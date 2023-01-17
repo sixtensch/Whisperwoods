@@ -6,10 +6,10 @@
 #pragma comment(lib, "D3DCompiler.lib")
 
 int WINAPI WinMain(
-	_In_		HINSTANCE instance,
-	_In_opt_	HINSTANCE previousInstance,
-	_In_		LPSTR     commandLine,
-	_In_		int       showCommand)
+	_In_		HINSTANCE	instance,
+	_In_opt_	HINSTANCE	previousInstance,
+	_In_		LPSTR		commandLine,
+	_In_		int			showCommand)
 {
 
 
