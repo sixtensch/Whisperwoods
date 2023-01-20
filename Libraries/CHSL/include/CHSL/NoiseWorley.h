@@ -1,12 +1,29 @@
 #pragma once
 
+/* CHSL
+
+	|	NoiseWorley
+	|
+	|	- Worley noise implementation for 1, 2, and 3 dimensions.
+	|	- Akin to a voronoi algorithm.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "Noise.h"
 #include "GeneralEnums.h"
 
 namespace cs
 {
 
-	class NoiseWorley : public cs::Noise3D
+	class NoiseWorley : public cs::Noise3
 	{
 	public:
 		enum class WorleyType
@@ -20,7 +37,7 @@ namespace cs
 		const int GRID_CLUSTER_RADIUS = 3;
 
 		unsigned int xs, ys, zs, s, cellCount, savedPositionsCount;
-		dimension::D d;
+		Dimension d;
 		cs::Point3 currentCenter;
 		cs::Vec3* cellLocalPositions;
 		cs::Vec3* savedPositions;

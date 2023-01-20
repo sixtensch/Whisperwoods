@@ -1,5 +1,21 @@
 #pragma once
 
+/* CHSL
+
+	|	Frustum, ViewFrustum
+	|
+	|	- Simple and unoptimized frustum, with a derived version for perspective view additions.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "Vector.h"
 #include "Plane.h"
 #include "Matrix.h"
@@ -16,10 +32,10 @@ namespace cs
 		Frustum(const Frustum&);
 
 		bool Contains(const cs::Vec3& vector);
-		bool Contains(const cs::Box& box);
+		bool Contains(const cs::Box3& box);
 
-		bool Intersects(const cs::Box& box);
-		bool IntersectsFuzzy(const cs::Box& box);
+		bool Intersects(const cs::Box3& box);
+		bool IntersectsFuzzy(const cs::Box3& box);
 		bool Intersects(const cs::BoxUnaligned& box);
 		bool IntersectsFuzzy(const cs::BoxUnaligned& box);
 

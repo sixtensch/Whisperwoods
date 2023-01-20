@@ -1,5 +1,22 @@
 #pragma once
 
+/* CHSL
+
+	|	Random
+	|
+	|	- Mersienne twister engine wrapper.
+	|	- Seeded pseudo-random number generation of multiple types. 
+
+*/
+
+
+
+
+
+
+
+
+
 #include <random>
 
 namespace cs 

@@ -1,5 +1,26 @@
 #pragma once
 
+/* CHSL
+
+	|	Matrix<T>
+	|	Matrix2<T>	(Mat2, Mat2i, Mat2d)
+	|	Matrix3<T>	(Mat3, Mat3i, Mat3d)
+	|	Matrix4<T>	(Mat4, Mat4i, Mat4d)
+	|
+	|	- Mathematical matrix implementation, with additional functionality for 2x2, 3x3, and 4x4 matrices.
+	|	- Functions for generating certain pre-defined matrices.
+	|	- SIMD implementation.
+
+*/
+
+
+
+
+
+
+
+
+
 #include <stdarg.h>
 #include <initializer_list>
 

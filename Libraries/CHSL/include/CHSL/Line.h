@@ -1,5 +1,22 @@
 #pragma once
 
+/* CHSL
+
+	|	_Line2<T>, _Line3<T>	(Line2, Line2i, Line2d, Line3, Line3i, Line3d)
+	|
+	|	- Line defined by origin and direction.
+	|	- Line2 describes a line on a 2D-plane, Line3 describes a line through a 3D-space.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "Vector.h"
 #include "Debug.h"
 
@@ -85,16 +102,6 @@ namespace cs
 		_Vec3<T> m_origin;
 		_Vec3<T> m_direction;
 	};
-
-
-
-	typedef _Line2<float> Line2;
-	typedef _Line2<double> Line2d;
-	typedef _Line2<int> Line2i;
-
-	typedef _Line3<float> Line3;
-	typedef _Line3<double> Line3d;
-	typedef _Line3<int> Line3i;
 
 
 
@@ -401,6 +408,18 @@ namespace cs
 			_Vec3<T2>((T2)m_direction.x, (T2)m_direction.y, (T2)m_direction.z)
 		);
 	}
+
+
+
+	// Typedefs
+
+	typedef _Line2<float> Line2;
+	typedef _Line2<double> Line2d;
+	typedef _Line2<int> Line2i;
+
+	typedef _Line3<float> Line3;
+	typedef _Line3<double> Line3d;
+	typedef _Line3<int> Line3i;
 
 }
 

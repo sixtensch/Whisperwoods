@@ -1,5 +1,21 @@
 #pragma once
 
+/* CHSL
+
+	|	Triangle
+	|
+	|	- Simple triangle implementation defined by three vertices.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "IRaycastTarget.h"
 
 namespace cs

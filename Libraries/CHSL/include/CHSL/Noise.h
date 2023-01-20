@@ -1,29 +1,43 @@
 #pragma once
 
+/* CHSL
+
+	|	Noise1, Noise2, Noise3
+	|
+	|	- Abstract base classes for implementing noise algorithms in 1, 2, and 3 dimensions.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "Vector.h"
 
 namespace cs
 {
 
-	class Noise1D
+	class Noise1
 	{
 	public:
-		Noise1D() {}
-		Noise1D(const Noise1D& copy) {}
-		virtual ~Noise1D() {}
+		Noise1() {}
+		Noise1(const Noise1& copy) {}
+		virtual ~Noise1() {}
 
 		// Result is scaled to the range [0 -> 1]
 		virtual float Gen1D(float x) = 0;
 	};
 
-	class Noise2D : public Noise1D
+	class Noise2 : public Noise1
 	{
 	public:
-		Noise2D() {}
-		Noise2D(const Noise2D& copy) {}
-		virtual ~Noise2D() {}
-
-		//virtual float Gen1D(float x) override	= 0;
+		Noise2() {}
+		Noise2(const Noise2& copy) {}
+		virtual ~Noise2() {}
 
 		// Result is scaled to the range [0 -> 1]
 		virtual float Gen2D(float x, float y) = 0;
@@ -34,15 +48,13 @@ namespace cs
 		}
 	};
 
-	class Noise3D : public Noise2D
+	class Noise3 : public Noise2
 	{
 	public:
-		Noise3D() {}
-		Noise3D(const Noise3D& copy) {}
-		virtual ~Noise3D() {}
+		Noise3() {}
+		Noise3(const Noise3& copy) {}
+		virtual ~Noise3() {}
 
-		//virtual float Gen1D(float x) override			= 0;
-		//virtual float Gen2D(float x, float y) override	= 0;
 
 		// Result is scaled to the range [0 -> 1]
 		virtual float Gen3D(float x, float y, float z) = 0;
@@ -54,13 +66,3 @@ namespace cs
 	};
 
 }
-
-//class NoiseGrid : public Noise3D
-//{
-//
-//};
-//
-//class NoiseSwishy : public Noise3D
-//{
-//
-//};

@@ -1,5 +1,22 @@
 #pragma once
 
+/* CHSL
+
+	|	Plane
+	|
+	|	- 3D-plane implementation.
+	|	- Defined by an origin position, and a plane normal.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "IRaycastTarget.h"
 #include "Vector.h"
 #include "Line.h"

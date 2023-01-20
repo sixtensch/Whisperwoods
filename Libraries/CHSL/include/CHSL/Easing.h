@@ -1,5 +1,22 @@
 #pragma once
 
+/* CHSL
+
+	|	Easing utilities, cs::ease
+	|
+	|	- Implements 18 efficient easing functions, along with a function pointer and switching function.
+	|	- Range from 0.0f-1.0f, unclamped.
+
+*/
+
+
+
+
+
+
+
+
+
 namespace cs
 {
 	typedef float (*EaseFunction)(float);
@@ -40,7 +57,7 @@ namespace cs
 
 	// Easing functions
 	// Range from 0.0f-1.0f, not clamped
-	namespace Ease
+	namespace ease
 	{
 		
 		EaseFunction getFunction(EaseType easeType);

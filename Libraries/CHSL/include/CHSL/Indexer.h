@@ -1,5 +1,22 @@
 #pragma once
 
+/* CHSL
+
+	|	Indexer
+	|
+	|	- Semi-complex cyclical list type for storing and retrieving items using unique ID:s.
+	|	- Not extensively tested.
+
+*/
+
+
+
+
+
+
+
+
+
 #include <iostream>
 
 #include "CHSLTypedef.h"
@@ -8,9 +25,7 @@
 
 namespace cs
 {
-	/// <summary>
-	/// Fixed-size cyclic list of members with fixed indices
-	/// </summary>
+	// Fixed-size cyclic list of members with fixed indices
 	template <typename T, size_t C, byte CBits = 16>
 	class Indexer
 	{

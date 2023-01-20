@@ -1,5 +1,21 @@
 #pragma once
 
+/* CHSL
+
+	|	IRaycastTarget
+	|
+	|	- Interface for types with defined line/ray intersection.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "Line.h"
 
 namespace cs

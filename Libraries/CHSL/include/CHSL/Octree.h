@@ -1,5 +1,22 @@
 #pragma once
 
+/* CHSL
+
+	|	Octree<T>
+	|
+	|	- Static octree implementation.
+	|	- Multiple searching algorithms.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "Vector.h"
 #include "Box.h"
 
@@ -9,7 +26,7 @@ namespace cs
 	template <typename T_data, typename T_key, typename T_box>
 	class OctreeIterator;
 
-	template<typename T_data, typename T_key = cs::Box, typename T_box = cs::Box>
+	template<typename T_data, typename T_key = cs::Box3, typename T_box = cs::Box3>
 	class Octree
 	{
 	public:

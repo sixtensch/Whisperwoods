@@ -1,5 +1,22 @@
 #pragma once
 
+/* CHSL
+
+	|	StateTracker
+	|
+	|	- Simple sequence tracker for moving between states with a floating-point selector variable.
+	|	- Defined by a sequence of key values, that split a timespan into regions.
+
+*/
+
+
+
+
+
+
+
+
+
 namespace cs
 {
 

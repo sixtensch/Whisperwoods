@@ -1,12 +1,29 @@
 #pragma once
 
+/* CHSL
+
+	|	NoiseSimplex
+	|
+	|	- 1, 2, and 3 dimensional simplex noise implementation.
+	|	- Very similar to Perlin noise, but without tearing artifacts.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "Noise.h"
 #include "CHSLTypedef.h"
 
 namespace cs
 {
 
-	class NoiseSimplex : public cs::Noise3D
+	class NoiseSimplex : public cs::Noise3
 	{
 	public:
 		static const unsigned int PERM_COUNT = 0x200;

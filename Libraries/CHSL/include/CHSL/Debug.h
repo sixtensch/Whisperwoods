@@ -1,18 +1,42 @@
 #pragma once
 
+/* CHSL
+
+	|	Debugging utilities
+	|	
+	|	Types Exception, ExceptionGeneral, ExceptionWindows
+	|
+	|	Macros EXC, EXC_TEMP, EXC_HRCHECK, EXC_HRLAST, EXC_COMCHECK, EXC_COMINFO, EXC_COMCHECKINFO
+	|
+	|	- Debugging exception types with good generalized code information.
+	|	- Macros for shorthand exception throwing.
+	|	- Macros for catching errors and messages.
+
+*/
+
+
+
+
+
+
+
+
+
 #include <exception>
 #include <string>
-#include <vector>
 #include "CHSLTypedef.h"
 
 #if defined(CHSL_DX) || defined(CHSLCOMPILE)
+#include <vector>
 
 namespace cs
 {
+
+	void initDXGI();
+
 	namespace  dxgiInfo
 	{
 
-		void init();
 		void set();
 		std::vector<std::string> getMessages();
 		void deInit();
@@ -97,32 +121,22 @@ namespace cs
 
 #if defined(CHSL_EXCEPT) || defined(CHSLCOMPILE)
 
-#define EXC_TEMP() throw cs::Exception(__FILE__, __FUNCTION__, __LINE__)
-#define EXC(str) throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, str)
+#define EXC_TEMP()					throw cs::Exception(__FILE__, __FUNCTION__, __LINE__)
+#define EXC(str)					throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, str)
 
 #if defined(_WINDOWS_) || defined(CHSLCOMPILE)
-#define EXC_WINDOWSCHECK(hrcall) { HRESULT _hres = (hrcall); if (_hres != 0) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
-#define EXC_HRLAST() { HRESULT hres = GetLastError(); if (hres != 0) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, hres); } }
-
-#include <sstream>
-
-// Requires std::wostringstream. Outputs to vs debug console
-#define DBOUT(s)																	\
-{																					\
-   std::wostringstream oStream;														\
-   oStream << "L: " << __LINE__ << "  F: " << __FILE__ << "  STR: " << s << '\n';	\
-   OutputDebugStringW( oStream.str().c_str() );										\
-}
+#define EXC_HRCHECK(hrcall)			{ HRESULT _hres = (hrcall); if (_hres != 0) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
+#define EXC_HRLAST()				{ HRESULT hres = GetLastError(); if (hres != 0) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, hres); } }
 #endif
 
 #if defined(CHSL_DX) || defined(CHSLCOMPILE)
-#define EXC_COMCHECK(hrcall) { HRESULT _hres = (hrcall); if (FAILED(_hres)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
-#ifdef inSAFE
-#define EXC_COMCHECKINFO(hrcall) { cs::dxgiInfo::set(); HRESULT _hres = (hrcall); if (FAILED(_hres)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres, cs::dxgiInfo::getMessages()); } }
-#define EXC_COMINFO(call) { cs::dxgiInfo::set(); (call); std::vector<std::string> v = cs::dxgiInfo::getMessages(); if (v.size() > 0) { throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, cs::ExceptionWindows::TranslateMessageArray(cs::dxgiInfo::getMessages())); } }
+#define EXC_COMCHECK(hrcall)		{ HRESULT _hres = (hrcall); if (FAILED(_hres)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
+#ifdef CHSL_SAFE
+#define EXC_COMCHECKINFO(hrcall)	{ cs::dxgiInfo::set(); HRESULT _hres = (hrcall); if (FAILED(_hres)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres, cs::dxgiInfo::getMessages()); } }
+#define EXC_COMINFO(call)			{ cs::dxgiInfo::set(); (call); std::vector<std::string> v = cs::dxgiInfo::getMessages(); if (v.size() > 0) { throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, cs::ExceptionWindows::TranslateMessageArray(cs::dxgiInfo::getMessages())); } }
 #else
-#define EXC_COMCHECKINFO(hrcall) { HRESULT _hres = (hrcall); if (FAILED(_hres)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
-#define EXC_COMINFO(call) { (call); }
+#define EXC_COMCHECKINFO(hrcall)	{ HRESULT _hres = (hrcall); if (FAILED(_hres)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
+#define EXC_COMINFO(call)			{ (call); }
 #endif
 #endif
 

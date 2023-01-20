@@ -4,11 +4,12 @@
 
 #ifndef CHSL_NOTYPES
 
-typedef unsigned char byte;
-typedef unsigned short ushort;
-typedef unsigned int uint;
-typedef unsigned long ulong;
-typedef unsigned long long ullong;
+#include <cstdint>
+
+typedef uint8_t byte;
+typedef uint16_t ushort;
+typedef uint32_t uint;
+typedef uint64_t uint64;
 
 typedef const char* cstr;
 

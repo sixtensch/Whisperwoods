@@ -1,5 +1,22 @@
 #pragma once
 
+/* CHSL
+
+	|	Timer
+	|
+	|	- Simple chrono clock wrapper.
+	|	- The timer starts at zero, Lap restarts the timer and returns the elapsed time, Peek returns the time but does not reset.
+
+*/
+
+
+
+
+
+
+
+
+
 #include <chrono>
 
 namespace cs

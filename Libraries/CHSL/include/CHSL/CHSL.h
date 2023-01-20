@@ -1,5 +1,19 @@
 #pragma once
 
+/* CHSL
+
+	|	CHSL.h
+	|
+	|	- Includes all fully implemented features of CHSL.
+
+*/
+
+
+
+
+
+
+
 // Global
 #include "CHSLMacros.h"
 #include "CHSLTypedef.h"
@@ -8,7 +22,6 @@
 
 // Geometry
 #include "Vector.h"
-#include "Rectangle.h"
 #include "Box.h"
 #include "Line.h"
 #include "Sphere.h"

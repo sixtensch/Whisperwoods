@@ -1,5 +1,22 @@
 #pragma once
 
+/* CHSL
+
+	|	ShuffleMap<Key, Value>
+	|
+	|	- Red-Black Tree based associative container.
+	|	- Optimized and built for items to change their key efficiently and quickly.
+
+*/
+
+
+
+
+
+
+
+
+
 #include <map>
 
 #include "CHSLTypedef.h"

@@ -1,5 +1,22 @@
 #pragma once
 
+/* CHSL
+
+	|	Sphere
+	|
+	|	- Simple sphere implementation. 
+	|	- Defined by an origin and a radius.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "IRaycastTarget.h"
 #include "Vector.h"
 #include "Line.h"

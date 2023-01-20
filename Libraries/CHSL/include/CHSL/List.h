@@ -1,5 +1,21 @@
 #pragma once
 
+/* CHSL
+
+    |	List<T>
+    |
+    |	- Growing array implementation.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "Debug.h"
 
 namespace cs

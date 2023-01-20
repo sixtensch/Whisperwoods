@@ -1,5 +1,19 @@
 #pragma once
 
+/* CHSL
+
+	|	Mathematical helper functions.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "CHSLTypedef.h"
 
 namespace cs

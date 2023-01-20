@@ -1,5 +1,21 @@
 #pragma once
 
+/* CHSL
+
+    |	RBTree<T>
+    |
+    |	- Red-Black Tree implementation
+
+*/
+
+
+
+
+
+
+
+
+
 #include <string>
 #include <vector>
 
@@ -58,7 +74,7 @@ namespace cs
 
 
     //public:
-    //    enum class Color { RED, BLACK };
+    //    enum class Color3 { RED, BLACK };
 
 
         //Node* FindNode(T key);

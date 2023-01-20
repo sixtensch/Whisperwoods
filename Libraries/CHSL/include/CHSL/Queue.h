@@ -1,5 +1,21 @@
 #pragma once
 
+/* CHSL
+
+	|	Queue<T>
+	|
+	|	- Growing FIFO cyclical container.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "Debug.h"
 #include "Math.h"
 

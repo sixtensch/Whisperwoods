@@ -1,5 +1,24 @@
 #pragma once
 
+/* CHSL
+
+	|	_Vec2<T>	(Point2, Point2u, Vec2, Vec2d)
+	|	_Vec3<T>	(Point3, Point3u, Vec3, Vec3d)
+	|	_Vec4<T>	(Point4, Point4u, Vec4, Vec4d)
+	|
+	|	- Mathematical vector implementation.
+	|	- Foundational piece of the CHSL linear algebra system.
+
+*/
+
+
+
+
+
+
+
+
+
 #include <cmath> 
 
 namespace cs
@@ -952,25 +971,25 @@ namespace cs
 
 	// ------------------------------------------------- Postface
 
-	typedef _Vec2<int> Point;
-	typedef _Vec2<unsigned int> UPoint;
+	typedef _Vec2<int> Point2;
+	typedef _Vec2<unsigned int> Point2u;
 	typedef _Vec2<float> Vec2;
 	typedef _Vec2<double> Vec2d;
 
 	typedef _Vec3<int> Point3;
-	typedef _Vec3<unsigned int> UPoint3;
+	typedef _Vec3<unsigned int> Point3u;
 	typedef _Vec3<float> Vec3;
 	typedef _Vec3<double> Vec3d;
 
 	typedef _Vec4<int> Point4;
-	typedef _Vec4<unsigned int> UPoint4;
+	typedef _Vec4<unsigned int> Point4u;
 	typedef _Vec4<float> Vec4;
 	typedef _Vec4<double> Vec4d;
 
 }
 
 #define VC3FLOOR( v ) Point3(cs::floor(v.x), cs::floor(v.y), cs::floor(v.z))
-#define VC2FLOOR( v ) Point(cs::floor(v.x), cs::floor(v.y))
+#define VC2FLOOR( v ) Point2(cs::floor(v.x), cs::floor(v.y))
 
 #ifdef CHSL_LINEAR
 

@@ -1,5 +1,21 @@
 #pragma once
 
+/* CHSL
+
+	|	Quaternion
+	|
+	|	- Quaternion implementation.
+
+*/
+
+
+
+
+
+
+
+
+
 namespace cs
 {
 

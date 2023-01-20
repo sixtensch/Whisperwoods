@@ -1,7 +1,24 @@
 #pragma once
 
+/* CHSL
+
+	|	Quadtree
+	|
+	|	- Quadtree implementation, effectively scaled down from the Octree.
+	|	- Less fully featured than Octree.
+
+*/
+
+
+
+
+
+
+
+
+
 #include "Vector.h"
-#include "Rectangle.h"
+#include "Box.h"
 
 namespace cs
 {
@@ -9,7 +26,7 @@ namespace cs
 	template <typename T_data, typename T_key, typename T_rect>
 	class QuadtreeIterator;
 
-	template<typename T_data, typename T_key = cs::Rect, typename T_rect = cs::Rect>
+	template<typename T_data, typename T_key = cs::Box2, typename T_rect = cs::Box2>
 	class Quadtree
 	{
 	public:

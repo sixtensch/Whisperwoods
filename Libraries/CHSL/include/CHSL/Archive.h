@@ -1,5 +1,17 @@
 #pragma once
 
+/* CHSL
+
+	|	Archive
+	|
+	|	- Not yet implemented. Storage, sorting, and serialization of large string sets.
+
+*/
+
+
+
+
+
 #include <string>
 #include "ShuffleMap.h"
 
