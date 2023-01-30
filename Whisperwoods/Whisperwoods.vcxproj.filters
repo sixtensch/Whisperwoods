@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="%2a Code">
+      <UniqueIdentifier>{73bb2c35-3f67-4e58-8de3-9cafb3dc54af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering">
+      <UniqueIdentifier>{319f88ab-8369-4dc3-a72d-00bf155b4be8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a World">
+      <UniqueIdentifier>{2e0a1ae4-9925-4978-ae62-f686cc4e0e79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core">
+      <UniqueIdentifier>{81b80c59-f471-4879-b94f-dfa366c23271}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Game">
+      <UniqueIdentifier>{5c5b00b3-e29e-4ff3-8f54-2c59addb977c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\Renderer">
+      <UniqueIdentifier>{24bebf3a-c487-43da-ad35-dc6342a93bed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\RendererHandler">
+      <UniqueIdentifier>{0a04b714-e8ab-44aa-b509-3eaca1ad4046}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\RendererCore">
+      <UniqueIdentifier>{fb0c8811-cbfd-4456-97c2-ca15a5d8d39c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\Window">
+      <UniqueIdentifier>{ab7fbf4a-af7d-4404-91d9-a60a227cfd2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Game\Game">
+      <UniqueIdentifier>{6b63017e-ef33-4a43-9a12-1f68e8bda265}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Game\Physics">
+      <UniqueIdentifier>{5596c52d-ca24-4e38-899c-a7c75c99fedf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Game\Events">
+      <UniqueIdentifier>{e04b31e7-4765-4b6a-852b-c197d05927cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Game\MapHandler">
+      <UniqueIdentifier>{628e029a-e8cd-4142-a426-f89e5010e688}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Game\Map">
+      <UniqueIdentifier>{74fa2f17-66c4-4b9a-9248-5da00a47cdc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Game\Generator">
+      <UniqueIdentifier>{c9e90a6d-543e-40b0-aed3-fd1c7412adc1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a World\Floor">
+      <UniqueIdentifier>{c7d83c26-6fe9-4d16-9008-ece4aaf49615}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a World\Room">
+      <UniqueIdentifier>{dcd16cdc-8669-4a70-8190-545dd54ef225}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a World\%2a GameObject">
+      <UniqueIdentifier>{a923247a-057f-4000-a063-4a95a3cc0c26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a World\%2a GameObject\GameObject">
+      <UniqueIdentifier>{e4c62fe3-5d82-4b89-9ac9-4a77770374fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a World\%2a GameObject\Player">
+      <UniqueIdentifier>{f39f79d4-f892-4de3-9c2c-63d9cebb18bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a World\%2a GameObject\Enemy">
+      <UniqueIdentifier>{55fcfc97-060e-480f-80c0-d79e9c863e9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a World\%2a GameObject\Light">
+      <UniqueIdentifier>{f5cd56c3-97ee-4fe0-a3ec-e7100489d4a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\Camera">
+      <UniqueIdentifier>{9f5d3222-e355-4f07-a6b1-96bf3fb17332}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\PCH">
+      <UniqueIdentifier>{6892ee39-ef73-463f-bd40-0c8acaf094cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\Whisperwoods">
+      <UniqueIdentifier>{2d1458b8-24ef-4555-9944-f2954744c528}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\Resources">
+      <UniqueIdentifier>{f3aca946-35f6-45fb-b9b9-af1c61c8f387}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\Input">
+      <UniqueIdentifier>{67145573-5ada-43dd-9624-4211a134d575}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\Sound">
+      <UniqueIdentifier>{d8f79a46-ede5-4267-ab21-e7b45b31c849}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\Config">
+      <UniqueIdentifier>{c6031fdf-ed0e-4636-9b92-72e1e8897b65}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Core.cpp">
+      <Filter>%2a Code\%2a Core\PCH</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>%2a Code\%2a Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Core.h">
+      <Filter>%2a Code\%2a Core\PCH</Filter>
+    </ClInclude>
+    <ClInclude Include="Constants.h">
+      <Filter>%2a Code\%2a Core</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
