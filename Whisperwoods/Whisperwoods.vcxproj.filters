@@ -88,6 +88,9 @@
     <Filter Include="%2a Code\%2a Core\Config">
       <UniqueIdentifier>{c6031fdf-ed0e-4636-9b92-72e1e8897b65}</UniqueIdentifier>
     </Filter>
+    <Filter Include="%2a Code\%2a Core\Debug">
+      <UniqueIdentifier>{a3f7d3e4-c11f-4d29-b6e8-d7ede23b7358}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -96,6 +99,27 @@
     <ClCompile Include="Main.cpp">
       <Filter>%2a Code\%2a Core</Filter>
     </ClCompile>
+    <ClCompile Include="Whisperwoods.cpp">
+      <Filter>%2a Code\%2a Core\Whisperwoods</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp">
+      <Filter>%2a Code\%2a Game\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Sound.cpp">
+      <Filter>%2a Code\%2a Core\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="Resources.cpp">
+      <Filter>%2a Code\%2a Core\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="Config.cpp">
+      <Filter>%2a Code\%2a Core\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Input.cpp">
+      <Filter>%2a Code\%2a Core\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug.cpp">
+      <Filter>%2a Code\%2a Core\Debug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -103,6 +127,27 @@
     </ClInclude>
     <ClInclude Include="Constants.h">
       <Filter>%2a Code\%2a Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Whisperwoods.h">
+      <Filter>%2a Code\%2a Core\Whisperwoods</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>%2a Code\%2a Game\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Sound.h">
+      <Filter>%2a Code\%2a Core\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources.h">
+      <Filter>%2a Code\%2a Core\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>%2a Code\%2a Core\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Input.h">
+      <Filter>%2a Code\%2a Core\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug.h">
+      <Filter>%2a Code\%2a Core\Debug</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

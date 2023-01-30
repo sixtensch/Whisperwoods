@@ -22,37 +22,40 @@ namespace cs
 	class Quaternion sealed
 	{
 	public:
-		Quaternion();									// Identity quaternion
-		Quaternion(Vec4 components);					// XYZ: imaginary, W: real
-		Quaternion(Vec3 imaginary, float real);			// XYZ: imaginary, W: real
-		Quaternion(float x, float y, float z, float w);	// XYZ: imaginary, W: real
+		Quaternion();										// Identity quaternion
+		Quaternion(const Vec4& components);					// XYZ: imaginary, W: real
+		Quaternion(const Vec3& imaginary, float real);		// XYZ: imaginary, W: real
+		Quaternion(float x, float y, float z, float w);		// XYZ: imaginary, W: real
 		Quaternion(const Quaternion&);
 		~Quaternion() = default;
 
-		Quaternion Conjugate();
-		Quaternion Normal();
-		Quaternion Inverse();
-		float Norm();
-		Mat4 Matrix();					// Matrix representation of the unit quaternion.
-		Mat4 MatrixUnrestricted();		// More expensive to calculate, but works for non-unit quaternions.
+		Quaternion Conjugate() const;
+		Quaternion Normal() const;
+		Quaternion Inverse() const;
+		float Norm() const;
+		Mat4 Matrix() const; 				// Matrix representation of the unit quaternion.
+		Mat4 MatrixUnrestricted() const; 	// More expensive to calculate, but works for non-unit quaternions.
 
 		Quaternion& ConjugateThis();
 		Quaternion& NormalizeThis();
 		Quaternion& InvertThis();
 
-		Vec3 operator*(Vec3 vector);			// Apply unit quaternion,					A*B -> transform vector B with unit quaternion A
-		Vec4 operator*(Vec4 vector);			// Apply unit quaternion,					A*B -> transform vector B with unit quaternion A
-		Quaternion operator*(Quaternion other);	// Quaternion concatenation/multiplication,	A*B -> apply unit quaternion A then B 
+		Vec3 operator*(const Vec3& vector) const; 				// Apply unit quaternion,					A*B -> transform vector B with unit quaternion A
+		Vec4 operator*(const Vec4& vector) const; 				// Apply unit quaternion,					A*B -> transform vector B with unit quaternion A
+		Quaternion operator*(const Quaternion& other) const; 	// Quaternion concatenation/multiplication,	A*B -> apply unit quaternion A then B 
 
-		Quaternion operator*(float scalar);		// Complex quaternion scaling. Does not change rotation.
-		Quaternion operator+(Quaternion other);	// Complex quaternion addition.
+		Quaternion operator*(float scalar) const; 				// Complex quaternion scaling. Does not change rotation.
+		Quaternion operator+(const Quaternion& other) const; 	// Complex quaternion addition.
 
 		static Quaternion GetIdentity();
-		static Quaternion GetAxis(Vec3 axis, float radians);
-		static Quaternion GetDeconstruct(Mat3 matrix);
+		static Quaternion GetAxis(const Vec3& axis, float radians);
+		static Quaternion GetAxisNormalized(const Vec3& axis, float radians);	// Use when the axis vector is normalized
+		static Quaternion GetDeconstruct(const Mat3& matrix);
+		static Quaternion GetDeconstruct(const Mat4& matrix);
+		static Quaternion GetSlerp(const Quaternion& from, const Quaternion& to, float lambda);
 
 	private:
-		Mat4 GetMatrix(float s);
+		Mat4 GetMatrix(float s) const;
 
 	private:
 		// Either:
