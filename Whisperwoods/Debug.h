@@ -1,14 +1,14 @@
 #pragma once
 
-class Config sealed
+class Debug sealed
 {
 public:
-	Config();
-	~Config();
+	Debug();
+	~Debug();
 
-	static Config& Get();
+	static Debug& Get();
 
 private:
-	static Config* s_singleton;
+	static Debug* s_singleton;
 };
 
