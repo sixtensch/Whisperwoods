@@ -120,6 +120,9 @@
     <ClCompile Include="Debug.cpp">
       <Filter>%2a Code\%2a Core\Debug</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>%2a Code\%2a Rendering\Renderer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -148,6 +151,9 @@
     </ClInclude>
     <ClInclude Include="Debug.h">
       <Filter>%2a Code\%2a Core\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>%2a Code\%2a Rendering\Renderer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
