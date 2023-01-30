@@ -532,7 +532,7 @@ namespace cs
 	template<typename T>
 	inline T Matrix2<T>::Trace() const
 	{
-		return (*this)(0, 0);
+		return (*this)(0, 0) + (*this)(1, 1);
 	}
 
 	template<typename T>
@@ -624,7 +624,7 @@ namespace cs
 	template<typename T>
 	inline T Matrix3<T>::Trace() const
 	{
-		return T();
+		return (*this)(0, 0) + (*this)(1, 1) + (*this)(2, 2);
 	}
 
 	template<typename T>
@@ -750,7 +750,7 @@ namespace cs
 	template<typename T>
 	inline T Matrix4<T>::Trace() const
 	{
-		return T();
+		return (*this)(0, 0) + (*this)(1, 1) + (*this)(2, 2) + (*this)(3, 3);
 	}
 
 }
