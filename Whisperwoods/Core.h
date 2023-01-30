@@ -12,3 +12,11 @@ using std::unique_ptr;
 using std::shared_ptr;
 using std::make_unique;
 using std::make_shared;
+
+// DX
+#include <DirectXMath.h>
+#include <d3d11.h>
+#include <wrl.h>
+namespace dx = DirectX;
+namespace wrl = Microsoft::WRL;
+using Microsoft::WRL::ComPtr;
