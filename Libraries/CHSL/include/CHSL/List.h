@@ -63,9 +63,9 @@ namespace cs
         int SearchLinear(T_value target, T_value predicate(const T&)); // Returns -1 when the target is not found.
 
         template<typename T_value>
-        T* GetBinary(T_value target, T_value predicate(const T&)); // Only works for sorted lists (per the predicate). Returns -1 when the target is not found.
+        T* GetBinary(T_value target, T_value predicate(const T&)); // Only works for sorted lists (per the predicate). Returns nullptr when the target is not found.
         template<typename T_value>
-        T* GetLinear(T_value target, T_value predicate(const T&)); // Only works for sorted lists (per the predicate). Returns -1 when the target is not found.
+        T* GetLinear(T_value target, T_value predicate(const T&)); // Only works for sorted lists (per the predicate). Returns nullptr when the target is not found.
 
         void Insert(int index, const T& value);
         void Remove(int index);

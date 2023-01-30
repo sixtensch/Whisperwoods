@@ -33,6 +33,7 @@
 // Mathematics
 #include "Matrix.h"
 #include "Math.h"
+#include "Quaternion.h"
 
 // Data structures
 #include "List.h"
