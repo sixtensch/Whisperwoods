@@ -47,6 +47,8 @@ enum DebugCommandParamType
 
 typedef void (*DebugCommandCallback)(void* params, void* userData);
 
+struct IDXGIInfoQueue;
+
 class Debug sealed
 {
 public:
@@ -82,6 +84,9 @@ public:
 		const std::string& identifier,
 		const std::string& description = "",
 		void* userData = nullptr);
+
+	static void DXGISet();
+	static bool DXGIGet(std::string& out);
 
 	static Debug& Get();
 
@@ -140,6 +145,9 @@ private:
 
 	// Member functions
 
+	void InitDXGI();
+	void DeInitDGXI();
+
 	void PPushMessage(DebugLevel level, const char* format, va_list args);
 	void PPushMessage(const char* message, DebugLevel level);
 
@@ -188,6 +196,9 @@ private:
 	bool m_showCommandLine;
 
 	ComPtr<ID3D11Device> m_deviceRef;
+
+	ComPtr<IDXGIInfoQueue> m_dxgiInfoQueue;
+	uint64 m_dxgiNext = 0u;
 };
 
 
@@ -202,4 +213,16 @@ private:
 #define LOG_CRITICAL(str, ...)		Debug::PushMessage(DebugLevelCritical, (str), __VA_ARGS__);
 #define LOG_COMMAND(cmd)			Debug::ExecuteCommand((cmd));
 
-#define EXC(str)
+#define EXC(str, ...)				throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, (str), __VA_ARGS__);
+#define EXC_TEMP()					throw cs::Exception(__FILE__, __FUNCTION__, __LINE__);
+#define EXC_HR(hrcall)				{ HRESULT _hres = (hrcall); if (_hres != 0) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
+#define EXC_HRLAST()				{ HRESULT _hres = GetLastError(); if (_hres != 0) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
+
+#define EXC_COM(comcall)			{ HRESULT _hres = (hrcall); if (FAILED(_hres)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
+#ifdef WW_NODXGI
+#define EXC_COMCHECK(comcall)		{ HRESULT _hres = (hrcall); if (_hres != 0) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
+#define EXC_COMINFO(call)			{ (call); }
+#else
+#define EXC_COMCHECK(comcall)		{ string _message; Debug::DXGISet(); HRESULT _hres = (hrcall); if (FAILED(_hres) || Debug::DXGIGet(_message)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres, _message); } }
+#define EXC_COMLAST(call)			{ string _message; Debug::DXGISet(); (call); if (Debug::DXGIGet(_message)) { throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, _message); } }
+#endif

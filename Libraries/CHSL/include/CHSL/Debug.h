@@ -93,16 +93,15 @@ namespace cs
 	typedef long HRESULT;
 #endif
 
-	class ExceptionWindows : public Exception
+	class ExceptionWindows : public ExceptionGeneral
 	{
 	private:
 		HRESULT hr;
-		std::vector<std::string> info;
 
 	public:
 		ExceptionWindows() = delete;
 		ExceptionWindows(cstr file, cstr func, int line, HRESULT hResult);
-		ExceptionWindows(cstr file, cstr func, int line, HRESULT hResult, std::vector<std::string> info);
+		ExceptionWindows(cstr file, cstr func, int line, HRESULT hResult, string info);
 
 		cstr what() const override;
 
@@ -112,7 +111,6 @@ namespace cs
 
 		// Publicly avaliable helper functions
 		static std::string TranslateHRESULT(HRESULT hResult);
-		static std::string TranslateMessageArray(std::vector<std::string> messages);
 	};
 
 #endif

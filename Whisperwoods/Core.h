@@ -2,8 +2,11 @@
 
 #include "Constants.h"
 
+#include <vector>
+
 #define CHSL_LINEAR
 //#define CHSL_EXCEPT	// We replace CHSL exceptions with our own system
+#include <CHSL/WindowsExt.h>
 #include <CHSL.h>
 
 #include <memory>

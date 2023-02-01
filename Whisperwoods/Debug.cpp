@@ -1,19 +1,19 @@
 #include "core.h"
 #include "Debug.h"
 
+#include <dxgidebug.h>
+
+#include <CHSL/Debug.h>
 #include <unordered_map>
 
-// #include 
 
 
 
-// extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 Debug* Debug::s_debug = nullptr;
 
-// extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
 #pragma comment(lib, "dxguid.lib")
+
 
 
 
@@ -59,6 +59,8 @@ Debug::Debug()
 	m_commands = new std::unordered_map<std::string, CommandItem>();
 
 	RegisterDefaultCommands();
+
+	InitDXGI();
 }
 
 Debug::~Debug()
@@ -73,6 +75,8 @@ Debug::~Debug()
 	delete (std::unordered_map<std::string, CommandItem>*)m_commands;
 
 	ReleaseStreams();
+
+	DeInitDGXI();
 }
 
 void Debug::CreateConsole()
@@ -340,7 +344,74 @@ void Debug::RegisterCommand(DebugCommandCallback callback, const std::string& id
 
 
 
+void Debug::DXGISet()
+{
+	s_debug->m_dxgiNext = s_debug->m_dxgiInfoQueue->GetNumStoredMessages(DXGI_DEBUG_ALL);
+}
+
+bool Debug::DXGIGet(std::string& out)
+{
+	uint64 end = s_debug->m_dxgiInfoQueue->GetNumStoredMessages(DXGI_DEBUG_ALL);
+
+	if (s_debug->m_dxgiNext == end)
+	{
+		return false;
+	}
+
+	out = "";
+
+	for (auto i = s_debug->m_dxgiNext; i < end; ++i)
+	{
+		uint64 messageLength = 0;
+
+		// get the size of message i in bytes
+		s_debug->m_dxgiInfoQueue->GetMessageA(DXGI_DEBUG_ALL, i, nullptr, &messageLength);
+
+		// allocate memory for message
+		auto bytes = std::make_unique<byte[]>(messageLength);
+		auto pMessage = reinterpret_cast<DXGI_INFO_QUEUE_MESSAGE*>(bytes.get());
+
+		// get the message and push its description into the vector
+		s_debug->m_dxgiInfoQueue->GetMessageA(DXGI_DEBUG_ALL, i, pMessage, &messageLength);
+
+		out += pMessage->pDescription;
+		out += "\n";
+	}
+
+	return true;
+}
+
+
+
 // Private functions
+
+void Debug::InitDXGI()
+{
+	typedef HRESULT(WINAPI* DXGIGetDebugInterface)(REFIID, void**);
+
+	// load the dll that contains the function DXGIGetDebugInterface
+	const auto hModDxgiDebug = LoadLibraryExA("dxgidebug.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+	if (hModDxgiDebug == nullptr)
+	{
+		EXC_HRLAST();
+	}
+
+	// get address of DXGIGetDebugInterface in dll
+	const auto DxgiGetDebugInterface = reinterpret_cast<DXGIGetDebugInterface>(
+		reinterpret_cast<void*>(GetProcAddress(hModDxgiDebug, "DXGIGetDebugInterface")));
+
+	if (DxgiGetDebugInterface == nullptr)
+	{
+		EXC_HRLAST();
+	}
+
+	DxgiGetDebugInterface(__uuidof(IDXGIInfoQueue), &m_dxgiInfoQueue);
+}
+
+void Debug::DeInitDGXI()
+{
+	m_dxgiInfoQueue.Reset();
+}
 
 int ImFormatStringV(char* buf, size_t buf_size, const char* fmt, va_list args);
 

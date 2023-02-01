@@ -138,7 +138,7 @@
       <AdditionalDependencies>DirectXTK$(PlatformArchitecture).lib;ImguiDocking$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture)-d.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /q /s /i "$(SolutionDir)Assets\" "$(OutDir)Assets\"</Command>
+      <Command>::xcopy /y /q /s /i "$(SolutionDir)Assets\" "$(OutDir)Assets\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -163,7 +163,7 @@
       <AdditionalDependencies>DirectXTK$(PlatformArchitecture).lib;ImguiDocking$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture).lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /q /s /i "$(SolutionDir)Assets\" "$(OutDir)Assets\"</Command>
+      <Command>::xcopy /y /q /s /i "$(SolutionDir)Assets\" "$(OutDir)Assets\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -184,7 +184,7 @@
       <AdditionalDependencies>DirectXTK$(PlatformArchitecture).lib;ImguiDocking$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture)-d.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /q /s /i "$(SolutionDir)Assets\" "$(OutDir)Assets\"</Command>
+      <Command>::xcopy /y /q /s /i "$(SolutionDir)Assets\" "$(OutDir)Assets\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -209,7 +209,7 @@
       <AdditionalDependencies>DirectXTK$(PlatformArchitecture).lib;ImguiDocking$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture).lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /q /s /i "$(SolutionDir)Assets\" "$(OutDir)Assets\"</Command>
+      <Command>::xcopy /y /q /s /i "$(SolutionDir)Assets\" "$(OutDir)Assets\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
