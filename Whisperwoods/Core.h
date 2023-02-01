@@ -23,3 +23,6 @@ using std::make_shared;
 namespace dx = DirectX;
 namespace wrl = Microsoft::WRL;
 using Microsoft::WRL::ComPtr;
+
+// Debugging system
+#include "Debug.h"

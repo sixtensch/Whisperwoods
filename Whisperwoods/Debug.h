@@ -218,11 +218,11 @@ private:
 #define EXC_HR(hrcall)				{ HRESULT _hres = (hrcall); if (_hres != 0) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
 #define EXC_HRLAST()				{ HRESULT _hres = GetLastError(); if (_hres != 0) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
 
-#define EXC_COM(comcall)			{ HRESULT _hres = (hrcall); if (FAILED(_hres)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
+#define EXC_COM(comcall)			{ HRESULT _hres = (comcall); if (FAILED(_hres)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
 #ifdef WW_NODXGI
-#define EXC_COMCHECK(comcall)		{ HRESULT _hres = (hrcall); if (_hres != 0) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
+#define EXC_COMCHECK(comcall)		{ HRESULT _hres = (comcall); if (_hres != 0) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
 #define EXC_COMINFO(call)			{ (call); }
 #else
-#define EXC_COMCHECK(comcall)		{ string _message; Debug::DXGISet(); HRESULT _hres = (hrcall); if (FAILED(_hres) || Debug::DXGIGet(_message)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres, _message); } }
+#define EXC_COMCHECK(comcall)		{ string _message; Debug::DXGISet(); HRESULT _hres = (comcall); if (FAILED(_hres) || Debug::DXGIGet(_message)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres, _message); } }
 #define EXC_COMLAST(call)			{ string _message; Debug::DXGISet(); (call); if (Debug::DXGIGet(_message)) { throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, _message); } }
 #endif

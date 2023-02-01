@@ -658,6 +658,8 @@ void Debug::DebugStreambuf::Push()
 {
 	m_buffer.Add('\0');
 	PushMessage(m_buffer.Data(), m_level);
+	m_buffer.Add('\0');
+	OutputDebugStringA(m_buffer.Data());
 	m_buffer.Clear(false);
 }
 
