@@ -36,6 +36,7 @@
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="Whisperwoods.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Config.h" />
@@ -50,6 +51,7 @@
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Sound.h" />
     <ClInclude Include="Whisperwoods.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

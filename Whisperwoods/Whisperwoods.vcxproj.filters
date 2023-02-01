@@ -158,8 +158,5 @@
     <ClInclude Include="Renderer.h">
       <Filter>%2a Code\%2a Rendering\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="RenderCore.h">
-      <Filter>%2a Code\%2a Rendering\RendererCore</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
