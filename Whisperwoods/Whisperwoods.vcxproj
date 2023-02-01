@@ -32,6 +32,7 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="RenderCore.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="RenderHandler.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="Whisperwoods.cpp" />
@@ -45,6 +46,7 @@
     <ClInclude Include="Input.h" />
     <ClInclude Include="RenderCore.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="RenderHandler.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Sound.h" />
     <ClInclude Include="Whisperwoods.h" />

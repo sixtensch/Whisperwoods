@@ -8,9 +8,8 @@ public:
 	Game();
 	~Game();
 
-	void Run();
+	void Update();
 
 private:
-	std::unique_ptr<Renderer>	m_renderer;
 };
 

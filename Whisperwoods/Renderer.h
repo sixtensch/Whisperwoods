@@ -8,6 +8,12 @@ public:
 	Renderer();
 	~Renderer();
 
+	void InitWindow(uint width, uint height);
+	void InitRenderer();
+
+	void UpdateWindow();
+	void Draw();
+
 	static Renderer& Get();
 
 private:
