@@ -4,6 +4,10 @@
 Input* Input::s_singleton = nullptr;
 
 Input::Input()
+	: m_lastKeyboardState({}), 
+	m_lastMouseState({}), 
+	m_keyboard(make_unique<dx::Keyboard>()), 
+	m_mouse(make_unique<dx::Mouse>())
 {
 	if (s_singleton != nullptr)
 	{
@@ -11,9 +15,6 @@ Input::Input()
 	}
 
 	s_singleton = this;
-
-	m_keyboard = make_unique<dx::Keyboard>();
-	m_mouse = make_unique<dx::Mouse>();
 }
 
 Input::~Input()
@@ -40,12 +41,14 @@ void Input::BindWindow(const HWND windowHandle)
 
 void Input::ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	dx::Keyboard::ProcessMessage(message, wParam, lParam);
+	m_lastKeyboardState = m_keyboard->GetState();
+	m_keyboard->ProcessMessage(message, wParam, lParam);
 }
 
 void Input::ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
-	dx::Mouse::ProcessMessage(message, wParam, lParam);
+	m_lastMouseState = m_mouse->GetState();
+	m_mouse->ProcessMessage(message, wParam, lParam);
 }
 
 KeyboardState Input::GetKeyboardState() const
@@ -53,7 +56,17 @@ KeyboardState Input::GetKeyboardState() const
 	return m_keyboard->GetState();
 }
 
+KeyboardState Input::GetLastKeyboardState() const
+{
+	return m_lastKeyboardState;
+}
+
 MouseState Input::GetMouseState() const
 {
 	return m_mouse->GetState();
+}
+
+MouseState Input::GetLastMouseState() const
+{
+	return m_lastMouseState;
 }
