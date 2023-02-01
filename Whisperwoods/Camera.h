@@ -1,0 +1,21 @@
+#pragma once
+
+
+
+
+//still need things with transform rather than a vec3 for position/rotation
+
+class Camera
+{
+public:
+	Camera();
+	~Camera();
+
+	void Update();
+	void SetValues(float fovRadians, float viewRatio, float nearDistance, float farDistance);
+
+private:
+	float m_fov, m_ratio, m_near, m_far;
+	float m_cameraSpeed = 10; //how fast the camera is moving, change value after need! 
+	Mat4 m_viewMatrix; //holds the view matrix for current frame
+};
