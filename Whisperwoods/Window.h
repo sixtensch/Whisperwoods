@@ -1,4 +1,6 @@
 #pragma once
+#include <Windows.h>
+
 enum CURSOR
 {
 	CURSOR_DISPLAY_DEFAULT = 0,
@@ -10,10 +12,8 @@ class Window sealed
 {
 public:
 	Window() = delete;
-	Window( LPCWSTR windowName, HINSTANCE instance, UINT width, UINT height, int nCmdShow );
+	Window( LPCSTR windowName, HINSTANCE instance, UINT width, UINT height, int nCmdShow );
 	~Window();
-
-	static LPARAM CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 
 
 	void Resize( UINT newWidth, UINT newHeight );
@@ -24,9 +24,9 @@ public:
 	const UINT GetHeight() const;
 	const UINT GetWidth() const;
 	const float GetAspectRatio() const;
-
 private:
 public:
+	//static Window* s_window;
 private:
 	HWND m_window;
 
