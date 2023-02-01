@@ -190,3 +190,14 @@ private:
 	ComPtr<ID3D11Device> m_deviceRef;
 };
 
+
+
+// ---------------------------- MACROS
+
+#define LOG_FRAMETRACE(str, ...)	Debug::PushMessage(DebugLevelFrameTrace, (str), __VA_ARGS__);
+#define LOG_TRACE(str, ...)			Debug::PushMessage(DebugLevelTrace, (str), __VA_ARGS__);
+#define LOG(str, ...)				Debug::PushMessage(DebugLevelDebug, (str), __VA_ARGS__);
+#define LOG_WARN(str, ...)			Debug::PushMessage(DebugLevelWarn, (str), __VA_ARGS__);
+#define LOG_ERROR(str, ...)			Debug::PushMessage(DebugLevelError, (str), __VA_ARGS__);
+#define LOG_CRITICAL(str, ...)		Debug::PushMessage(DebugLevelCritical, (str), __VA_ARGS__);
+#define LOG_COMMAND(cmd)			Debug::ExecuteCommand((cmd));

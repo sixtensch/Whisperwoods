@@ -342,24 +342,24 @@ void Debug::RegisterCommand(DebugCommandCallback callback, const std::string& id
 
 // Private functions
 
-//int ImFormatStringV(char* buf, size_t buf_size, const char* fmt, va_list args);
+int ImFormatStringV(char* buf, size_t buf_size, const char* fmt, va_list args);
 
 void Debug::PPushMessage(DebugLevel level, const char* format, va_list args)
 {
-	//const char* end = m_tempBuffer + ImFormatStringV(m_tempBuffer, c_tempBufferSize, format, args);
+	const char* end = m_tempBuffer + ImFormatStringV(m_tempBuffer, c_tempBufferSize, format, args);
 
-	//// m_mutex->lock();
+	// m_mutex->lock();
 
-	//m_items.Add(DebugItem{ level, std::string(m_tempBuffer, (int)(end - m_tempBuffer)) });
+	m_items.Add(DebugItem{ level, std::string(m_tempBuffer, (int)(end - m_tempBuffer)) });
 
-	//if (level == DebugLevelFrameTrace)
-	//{
-	//	m_frameTraceIndices.Add(m_items.Size() - 1);
-	//}
+	if (level == DebugLevelFrameTrace)
+	{
+		m_frameTraceIndices.Add(m_items.Size() - 1);
+	}
 
-	//TryCommand();
+	TryCommand();
 
-	//// m_mutex->unlock();
+	// m_mutex->unlock();
 }
 
 void Debug::PPushMessage(const char* message, DebugLevel level)
