@@ -27,3 +27,18 @@ void Camera::SetValues(float fovRadians, float viewRatio, float nearDistance, fl
 	this->m_fov = fovRadians;
 	this->m_ratio = viewRatio;
 }
+
+void Camera::CalculatePerspectiveProjection()
+{
+	m_projection = Mat4(dx::XMMatrixPerspectiveFovLH(this->m_fov, this->m_ratio, this->m_near, this->m_far));
+}
+
+void Camera::CalculateOrthoProjection(float width, float height)
+{
+	m_projection =  Mat4(dx::XMMatrixOrthographicLH(width, height, this->m_near, this->m_far));
+}
+
+const Mat4 Camera::GetProjectionMatrix() const
+{
+	return m_projection;
+}
