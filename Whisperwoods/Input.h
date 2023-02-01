@@ -9,21 +9,7 @@
 typedef dx::Keyboard::State KeyboardState;
 typedef dx::Mouse::State MouseState;
 typedef dx::Keyboard::Keys DXKey;
-
-/*
-Dictionary with key containing the abstract key as an enum like ENUM_FORWARD
-
-Value is a list of keyboard state for specific keys that are dynamically added [keyboardstate.A, keyboardstate.Del, ...].
-
-When Input is asked .GetInput(ENUM_FORWARD), it goes in the dictionary for the enum and ORs the array.
-
-result = false;
-foreach bool key in list:
-	result |= key;
-
-return result;
-
-*/
+// TODO: Add DXKey equivalent for mouse so abstract input can be used for mouse as well.
 
 enum ABSTRACT_INPUT_ENUM {
 
@@ -40,13 +26,13 @@ enum ABSTRACT_INPUT_ENUM {
 class Input sealed
 {
 public:
+	// TODO: Because mouse has to be bound to window to work, should InputInit() take in window handle?
 	Input();
-
 	~Input();
 
 	static Input& Get();
-	
-	void BindWindow(const HWND windowHandle);
+
+	void InputInit(const HWND windowHandle);
 
 	// These functions should only exists inside Windows Callback function.
 	void ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam);
@@ -60,7 +46,20 @@ public:
 
 	void AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey key);
 	void AddKeysToInput(const ABSTRACT_INPUT_ENUM input, const cs::List<DXKey>& keys);
+	/* 
+		TODO: 
+		Add so that variable number of input Enums can be passed to check if all are pressed.
+		This can be done for both AND as well as OR.
+
+		Best solution is probably variable number list. 
+		This can also be achieved (but probably shouldnt except given a good reason) 
+		with bit masks if Enums are set to powers of two.
+	*/
 	bool IsInputDown(ABSTRACT_INPUT_ENUM input) const;
+
+private:
+
+	void BindWindowToMouse(const HWND windowHandle);
 
 private:
 	static Input* s_singleton;
@@ -71,8 +70,7 @@ private:
 	MouseState m_currentMouseState;
 
 	unique_ptr<dx::Keyboard> m_keyboard;
-	// Mouse wont work if not bound to window.
-	unique_ptr<dx::Mouse> m_mouse;
+	unique_ptr<dx::Mouse> m_mouse; // Mouse events wont work if BindWindow() has not been called.
 
 	std::unordered_map<ABSTRACT_INPUT_ENUM, cs::List<DXKey>> m_inputMap;
 };

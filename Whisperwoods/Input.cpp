@@ -37,7 +37,22 @@ Input& Input::Get()
 	return *s_singleton;
 }
 
-void Input::BindWindow(const HWND windowHandle)
+void Input::InputInit(const HWND windowHandle)
+{
+	BindWindowToMouse(windowHandle);
+
+	// Hard coded binding of input values to DXKey values. Read this from a file later?
+	AddKeysToInput(FORWARD, { DXKey::W, DXKey::Up });
+	AddKeysToInput(BACKWARD, { DXKey::S, DXKey::Down });
+	AddKeysToInput(LEFT, { DXKey::A, DXKey::Left });
+	AddKeysToInput(RIGHT, { DXKey::D, DXKey::Right });
+	AddKeysToInput(SPRINT, { DXKey::LeftShift, DXKey::RightShift });
+	AddKeysToInput(CROUCH, { DXKey::LeftControl, DXKey::RightControl });
+	AddKeysToInput(POWER, { DXKey::Q, DXKey::NumPad0 });
+
+}
+
+void Input::BindWindowToMouse(const HWND windowHandle)
 {
 	m_mouse->SetWindow(windowHandle);
 }
