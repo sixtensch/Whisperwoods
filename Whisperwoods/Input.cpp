@@ -4,8 +4,10 @@
 Input* Input::s_singleton = nullptr;
 
 Input::Input()
-	: m_lastKeyboardState({}), 
-	m_lastMouseState({}), 
+	: m_lastKeyboardState({}),
+	m_currentKeyboardState({}),
+	m_lastMouseState({}),
+	m_currentMouseState({}),
 	m_keyboard(make_unique<dx::Keyboard>()), 
 	m_mouse(make_unique<dx::Mouse>()),
 	m_inputMap({})
@@ -44,17 +46,19 @@ void Input::ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	m_lastKeyboardState = m_keyboard->GetState();
 	m_keyboard->ProcessMessage(message, wParam, lParam);
+	m_currentKeyboardState = m_keyboard->GetState();
 }
 
 void Input::ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	m_lastMouseState = m_mouse->GetState();
 	m_mouse->ProcessMessage(message, wParam, lParam);
+	m_currentMouseState = m_mouse->GetState();
 }
 
 KeyboardState Input::GetKeyboardState() const
 {
-	return m_keyboard->GetState();
+	return m_currentKeyboardState;
 }
 
 KeyboardState Input::GetLastKeyboardState() const
@@ -64,7 +68,7 @@ KeyboardState Input::GetLastKeyboardState() const
 
 MouseState Input::GetMouseState() const
 {
-	return m_mouse->GetState();
+	return m_currentMouseState;
 }
 
 MouseState Input::GetLastMouseState() const
@@ -92,11 +96,10 @@ bool Input::IsInputDown(ABSTRACT_INPUT_ENUM input) const
 	if (dictIterator != m_inputMap.end())
 	{
 		const cs::List<DXKey> inputKeyList = (*dictIterator).second;
-		const KeyboardState keyboardState = m_keyboard->GetState();
 
 		for (DXKey key : inputKeyList)
 		{
-			resultBool |= keyboardState.IsKeyDown(key);
+			resultBool |= m_currentKeyboardState.IsKeyDown(key);
 		}
 	}
 	
