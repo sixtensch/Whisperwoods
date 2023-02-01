@@ -11,6 +11,9 @@ Input::Input()
 	}
 
 	s_singleton = this;
+
+	m_keyboard = make_unique<dx::Keyboard>();
+	m_mouse = make_unique<dx::Mouse>();
 }
 
 Input::~Input()
@@ -32,9 +35,6 @@ Input& Input::Get()
 
 void Input::BindWindow(const HWND windowHandle)
 {
-	m_keyboard = make_unique<dx::Keyboard>();
-	m_mouse = make_unique<dx::Mouse>();
-
 	m_mouse->SetWindow(windowHandle);
 }
 
