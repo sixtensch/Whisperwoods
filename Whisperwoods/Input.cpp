@@ -76,7 +76,7 @@ MouseState Input::GetLastMouseState() const
 	return m_lastMouseState;
 }
 
-void Input::AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey& key)
+void Input::AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey key)
 {
 	m_inputMap[input].Add(key);
 }

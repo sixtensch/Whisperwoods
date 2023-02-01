@@ -58,7 +58,7 @@ public:
 	MouseState GetMouseState() const;
 	MouseState GetLastMouseState() const;
 
-	void AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey& key);
+	void AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey key);
 	void AddKeysToInput(const ABSTRACT_INPUT_ENUM input, const cs::List<DXKey>& keys);
 	bool IsInputDown(ABSTRACT_INPUT_ENUM input) const;
 
