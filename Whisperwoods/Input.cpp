@@ -29,3 +29,31 @@ Input& Input::Get()
 
 	return *s_singleton;
 }
+
+void Input::BindWindow(const HWND windowHandle)
+{
+	m_keyboard = make_unique<dx::Keyboard>();
+	m_mouse = make_unique<dx::Mouse>();
+
+	m_mouse->SetWindow(windowHandle);
+}
+
+void Input::ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
+{
+	dx::Keyboard::ProcessMessage(message, wParam, lParam);
+}
+
+void Input::ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
+{
+	dx::Mouse::ProcessMessage(message, wParam, lParam);
+}
+
+KeyboardState Input::GetKeyboardState() const
+{
+	return m_keyboard->GetState();
+}
+
+MouseState Input::GetMouseState() const
+{
+	return m_mouse->GetState();
+}
