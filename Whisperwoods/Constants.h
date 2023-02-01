@@ -7,6 +7,7 @@
 
 #define DIR_ASSETS "./Assets/"
 
+#define WINDOW_NAME		"Whisperwoods"
 #define WINDOW_WIDTH	1280
 #define WINDOW_HEIGHT	720
 	

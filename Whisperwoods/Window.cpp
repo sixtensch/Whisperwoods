@@ -24,7 +24,7 @@ LPARAM WndProc( HWND window, UINT message, WPARAM wParam, LPARAM lParam )
 
 
 
-Window::Window( LPCSTR windowName, HINSTANCE instance, UINT width, UINT height, int nCmdShow )
+Window::Window( LPCSTR windowName, HINSTANCE instance, UINT width, UINT height )
 {
 	//if ( s_window != nullptr )
 	//{
@@ -59,12 +59,40 @@ Window::Window( LPCSTR windowName, HINSTANCE instance, UINT width, UINT height, 
 	if ( m_window == nullptr )
 	{
 		// Window could not be created
-		EXC( "Window could not be created in Window::Window(LPCWSTR windowName, HINSTANCE instance, UINT width, UINT height, int nCmdShow)" );
+		EXC( "Window could not be created." );
 		return;
 	}
-	ShowWindow( m_window, nCmdShow );
+
+	ShowWindow( m_window, SW_HIDE );
 }
-Window::~Window() {}
+
+Window::~Window() 
+{
+}
+
+bool Window::PollEvents()
+{
+	LOG_FRAMETRACE("Call to PollEvents for Window.");
+
+	static MSG msg;
+
+	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+	{
+		// Return optional int containing exit code if the message is a quit message
+		if (msg.message == WM_QUIT)
+		{
+			LOG_FRAMETRACE("ProcessMessages caught WM_QUIT message.");
+			return true;
+		}
+
+		// Create auxillary messages and then pass to WndProc
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	return false;
+}
+
 
 
 void Window::Resize(UINT width, UINT height)
@@ -93,6 +121,16 @@ void Window::CursorDisplay( CURSOR showHide )
 			ShowCursor( false );
 			break;
 	}
+}
+
+void Window::Show(bool show)
+{
+	if (m_window == nullptr)
+	{
+		return;
+	}
+
+	ShowWindow(m_window, show ? SW_SHOW : SW_HIDE);
 }
 
 
