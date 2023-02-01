@@ -29,7 +29,7 @@ RenderCore::RenderCore(UINT width, UINT height, HWND window)
 
     D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
 
-    HRESULT hr = D3D11CreateDeviceAndSwapChain(
+    EXC_COMCHECK(D3D11CreateDeviceAndSwapChain(
         nullptr, //IDXGI Adapter
         D3D_DRIVER_TYPE_HARDWARE, // Program selects, since first parameter is nullptr
         nullptr, // driver type of software
@@ -42,11 +42,7 @@ RenderCore::RenderCore(UINT width, UINT height, HWND window)
         &m_device, // adress of device
         nullptr, // no definition needed
         &m_context// adress of immidiatecontext
-    );
-    if (FAILED(hr)) //check if anything went wrong 
-    {
-        std::cerr << "ERROR! Could not create Device and SwapChain in RenderCore.cpp!" << std::endl;
-    }
+    ));
 
     //setup viewport
     m_viewPort.TopLeftX = 0;

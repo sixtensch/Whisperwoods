@@ -24,7 +24,5 @@ Whisperwoods::~Whisperwoods()
 
 void Whisperwoods::Run()
 {
-	//EXC("Hello %s", "World");
-
 	m_game->Run();
 }
