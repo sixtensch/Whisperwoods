@@ -10,7 +10,6 @@ typedef dx::Keyboard::State KeyboardState;
 typedef dx::Mouse::State MouseState;
 typedef dx::Keyboard::Keys DXKey;
 
-
 /*
 Dictionary with key containing the abstract key as an enum like ENUM_FORWARD
 
@@ -32,9 +31,9 @@ enum ABSTRACT_INPUT_ENUM {
 	BACKWARD,
 	LEFT,
 	RIGHT,
-	JUMP,
 	SPRINT,
 	CROUCH,
+	POWER,
 	INPUT_COUNT // This has to always be at the end of the enum.
 };
 
