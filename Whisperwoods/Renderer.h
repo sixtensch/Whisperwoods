@@ -1,18 +1,18 @@
 #pragma once
 
 #include "RenderHandler.h"
+#include "Window.h"
 #include "RenderCore.h"
 
 class Renderer sealed
 {
 public:
-	Renderer();
+	Renderer(HINSTANCE instance);
 	~Renderer();
 
-	void InitWindow(uint width, uint height);
-	void InitRenderer();
+	void Init(uint width, uint height);
 
-	void UpdateWindow();
+	bool UpdateWindow();
 	void Draw();
 
 	static Renderer& Get();
@@ -20,6 +20,9 @@ public:
 private:
 	static Renderer* s_singleton;
 
+	HINSTANCE m_instance;
+
+	shared_ptr<Window> m_window;
 	unique_ptr<RenderHandler> m_renderHandler;
 };
 

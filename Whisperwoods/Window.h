@@ -12,18 +12,20 @@ class Window sealed
 {
 public:
 	Window() = delete;
-	Window( LPCSTR windowName, HINSTANCE instance, UINT width, UINT height, int nCmdShow );
+	Window( LPCSTR windowName, HINSTANCE instance, UINT width, UINT height );
 	~Window();
 
+	bool PollEvents();
 
 	void Resize( UINT newWidth, UINT newHeight );
 	void CursorDisplay(CURSOR showHide);
-
+	void Show(bool show);
 
 	const HWND& Data() const;
 	const UINT GetHeight() const;
 	const UINT GetWidth() const;
 	const float GetAspectRatio() const;
+
 private:
 public:
 	//static Window* s_window;
