@@ -72,9 +72,17 @@ MouseState Input::GetLastMouseState() const
 	return m_lastMouseState;
 }
 
-void Input::AddKeyToInput(ABSTRACT_INPUT_ENUM input, DXKey key)
+void Input::AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey& key)
 {
 	m_inputMap[input].Add(key);
+}
+
+void Input::AddKeysToInput(const ABSTRACT_INPUT_ENUM input, const cs::List<DXKey>& keys)
+{
+	for (const DXKey& key : keys)
+	{
+		AddKeyToInput(input, key);
+	}
 }
 
 bool Input::IsInputDown(ABSTRACT_INPUT_ENUM input) const
