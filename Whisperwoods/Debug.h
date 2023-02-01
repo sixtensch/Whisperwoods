@@ -201,3 +201,5 @@ private:
 #define LOG_ERROR(str, ...)			Debug::PushMessage(DebugLevelError, (str), __VA_ARGS__);
 #define LOG_CRITICAL(str, ...)		Debug::PushMessage(DebugLevelCritical, (str), __VA_ARGS__);
 #define LOG_COMMAND(cmd)			Debug::ExecuteCommand((cmd));
+
+#define EXC(str)

@@ -79,7 +79,7 @@ namespace cs
 
 	public:
 		ExceptionGeneral() = delete;
-		ExceptionGeneral(cstr file, cstr func, int line, std::string string);
+		ExceptionGeneral(cstr file, cstr func, int line, std::string string, ...);
 
 		cstr what() const override;
 
