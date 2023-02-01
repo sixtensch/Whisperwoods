@@ -6,6 +6,10 @@
 Whisperwoods::Whisperwoods()
 {
 	m_debug = std::make_unique<Debug>();			// Debug initialization should be kept first
+	m_debug->CaptureStreams(true, true, true);
+
+	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
+
 	m_resources = std::make_unique<Resources>();
 	m_sound = std::make_unique<Sound>();
 	m_config = std::make_unique<Config>();
@@ -20,5 +24,7 @@ Whisperwoods::~Whisperwoods()
 
 void Whisperwoods::Run()
 {
+	//EXC("Hello %s", "World");
+
 	m_game->Run();
 }
