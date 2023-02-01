@@ -4,17 +4,7 @@
 
 #include <vector>
 
-#define CHSL_LINEAR
-//#define CHSL_EXCEPT	// We replace CHSL exceptions with our own system
 #include <CHSL/WindowsExt.h>
-#include <CHSL.h>
-
-#include <memory>
-
-using std::unique_ptr;
-using std::shared_ptr;
-using std::make_unique;
-using std::make_shared;
 
 // DX
 #include <DirectXMath.h>
@@ -23,6 +13,18 @@ using std::make_shared;
 namespace dx = DirectX;
 namespace wrl = Microsoft::WRL;
 using Microsoft::WRL::ComPtr;
+
+#define CHSL_LINEAR
+#define CHSL_DX
+//#define CHSL_EXCEPT	// We replace CHSL exceptions with our own system
+#include <CHSL.h>
+
+#include <memory>
+
+using std::unique_ptr;
+using std::shared_ptr;
+using std::make_unique;
+using std::make_shared;
 
 // Debugging system
 #include "Debug.h"

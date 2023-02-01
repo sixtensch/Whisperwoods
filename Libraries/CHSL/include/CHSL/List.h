@@ -17,6 +17,7 @@
 
 
 #include "Debug.h"
+#include <initializer_list>
 
 namespace cs
 {
@@ -44,6 +45,7 @@ namespace cs
         ~List();
         List(const List<T>& l_val);
         List(List<T>&& r_val);
+        List(std::initializer_list<T> il);
 
         List<T>& operator=(const List<T>& l_val);
         List<T>& operator=(List<T>&& r_val);
@@ -130,6 +132,25 @@ namespace cs
         m_elements(nullptr)
     {
         *this = static_cast<List<T>&&>(rVal);
+    }
+
+    template<typename T>
+    inline List<T>::List(std::initializer_list<T> il)
+        :
+        m_elements(nullptr),
+        m_size((int)il.size()),
+        m_capacity(0)
+    {
+        int capacity = c_dCapacity;
+        while (capacity < m_size)
+        {
+            capacity *= 2;
+        }
+
+        m_elements = new T[capacity];
+        m_capacity = capacity;
+
+        memcpy(m_elements, il.begin(), sizeof(T) * m_size);
     }
 
 
