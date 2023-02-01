@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RenderHandler.h"
 #include "RenderCore.h"
 
 class Renderer sealed
@@ -18,5 +19,7 @@ public:
 
 private:
 	static Renderer* s_singleton;
+
+	unique_ptr<RenderHandler> m_renderHandler;
 };
 

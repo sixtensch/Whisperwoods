@@ -34,6 +34,7 @@ void Renderer::UpdateWindow()
 
 void Renderer::Draw()
 {
+	m_renderHandler->Draw();
 }
 
 Renderer& Renderer::Get()
