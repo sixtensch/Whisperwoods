@@ -53,9 +53,6 @@ public:
 	Debug();
 	~Debug();
 
-	void Init(bool captureStreams);
-	void DeInit(bool writeLog = false);
-
 	void CreateConsole();
 	void DestroyConsole();
 	void DrawConsole();
@@ -64,6 +61,8 @@ public:
 
 	void WriteHelp();
 	void WriteLog();
+
+	void CaptureStreams(bool cout = true, bool cerr = true, bool clog = true);
 
 	void DumpDevice();
 	void LoadDeviceRef(ComPtr<ID3D11Device> device);
@@ -98,7 +97,7 @@ private:
 	{
 	public:
 		DebugStreambuf();
-		~DebugStreambuf();
+		~DebugStreambuf() = default;
 
 		void SetLevel(DebugLevel level);
 
@@ -144,8 +143,6 @@ private:
 	void PPushMessage(DebugLevel level, const char* format, va_list args);
 	void PPushMessage(const char* message, DebugLevel level);
 
-	void CaptureDebugOutput();
-
 	void CaptureStream(std::ios* stream, DebugLevel level);
 	void ReleaseStreams();
 
@@ -160,7 +157,7 @@ private:
 
 	// Variables
 
-	static Debug* s_singleton;
+	static Debug* s_debug;
 
 	static constexpr int c_tempBufferSize = 2048;
 	static constexpr int c_inputBufferSize = 128;
