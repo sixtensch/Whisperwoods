@@ -12,5 +12,4 @@ Game::~Game()
 
 void Game::Run()
 {
-	std::cout << "Hello World\n";
 }
