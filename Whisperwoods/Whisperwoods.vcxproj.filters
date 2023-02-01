@@ -123,6 +123,9 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>%2a Code\%2a Rendering\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="RenderCore.cpp">
+      <Filter>%2a Code\%2a Rendering\RendererCore</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">

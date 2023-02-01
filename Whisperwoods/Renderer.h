@@ -1,10 +1,18 @@
 #pragma once
 
+#include "RenderCore.h"
+
 class Renderer sealed
 {
 public:
 	Renderer();
 	~Renderer();
+
+	void InitWindow(uint width, uint height);
+	void InitRenderer();
+
+	void UpdateWindow();
+	void Draw();
 
 	static Renderer& Get();
 

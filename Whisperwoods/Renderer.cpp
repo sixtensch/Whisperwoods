@@ -20,6 +20,22 @@ Renderer::~Renderer()
 	s_singleton = nullptr;
 }
 
+void Renderer::InitWindow(uint width, uint height)
+{
+}
+
+void Renderer::InitRenderer()
+{
+}
+
+void Renderer::UpdateWindow()
+{
+}
+
+void Renderer::Draw()
+{
+}
+
 Renderer& Renderer::Get()
 {
 #ifdef WW_Renderer

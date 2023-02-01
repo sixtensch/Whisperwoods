@@ -21,6 +21,7 @@ private:
 	std::unique_ptr<Sound>		m_sound;
 	std::unique_ptr<Config>		m_config;
 	std::unique_ptr<Input>		m_input;
+	std::unique_ptr<Renderer>	m_renderer;
 
 	std::unique_ptr<Game>		m_game;
 };
