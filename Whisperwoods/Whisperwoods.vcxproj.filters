@@ -126,9 +126,6 @@
     <ClCompile Include="RenderCore.cpp">
       <Filter>%2a Code\%2a Rendering\RendererCore</Filter>
     </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>%2a Code\%2a Rendering\Window</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
