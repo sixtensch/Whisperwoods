@@ -3,6 +3,8 @@
 
 #include "Game.h"
 
+#include "Input.h"
+
 Whisperwoods::Whisperwoods(HINSTANCE instance)
 {
 	m_debug = std::make_unique<Debug>();			// Debug initialization should be kept first
@@ -13,7 +15,10 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	m_resources = std::make_unique<Resources>();
 	m_sound = std::make_unique<Sound>();
 	m_config = std::make_unique<Config>();
+
 	m_input = std::make_unique<Input>();
+	//m_input->InputInit(HWND windowHandle);
+	// TODO: Add so that window handle can be received from renderer/window.
 
 	m_renderer = std::make_unique<Renderer>(instance);
 	m_renderer->Init(WINDOW_WIDTH, WINDOW_HEIGHT);
