@@ -14,6 +14,6 @@ int WINAPI WinMain(
 {
 	std::unique_ptr<Whisperwoods> whisperwoods = make_unique<Whisperwoods>();
 	whisperwoods->Run();
-
+	
 	return 0;
 }

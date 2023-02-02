@@ -91,6 +91,12 @@
     <Filter Include="%2a Code\%2a Core\Debug">
       <UniqueIdentifier>{a3f7d3e4-c11f-4d29-b6e8-d7ede23b7358}</UniqueIdentifier>
     </Filter>
+    <Filter Include="%2a Code\%2a Core\Resources\FBX Importer">
+      <UniqueIdentifier>{ea1cc5c0-1d9b-4aa5-8686-b8a4c015228b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\Structs">
+      <UniqueIdentifier>{777d9de7-e9d4-4adc-abf3-0fc48a0febd0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -126,6 +132,9 @@
     <ClCompile Include="RenderCore.cpp">
       <Filter>%2a Code\%2a Rendering\RendererCore</Filter>
     </ClCompile>
+    <ClCompile Include="FBXImporter.cpp">
+      <Filter>%2a Code\%2a Core\Resources\FBX Importer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -160,6 +169,18 @@
     </ClInclude>
     <ClInclude Include="RenderCore.h">
       <Filter>%2a Code\%2a Rendering\RendererCore</Filter>
+    </ClInclude>
+    <ClInclude Include="FBXImporter.h">
+      <Filter>%2a Code\%2a Core\Resources\FBX Importer</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>%2a Code\%2a Core\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>%2a Code\%2a Core\Structs</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexGroup.h">
+      <Filter>%2a Code\%2a Core\Structs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
