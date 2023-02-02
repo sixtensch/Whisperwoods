@@ -439,6 +439,8 @@ void Debug::PPushMessage(const char* message, DebugLevel level)
 
 	m_items.Add(DebugItem{ level, std::string(message) });
 
+	OutputDebugStringA(message);
+
 	if (level == DebugLevelFrameTrace)
 	{
 		m_frameTraceIndices.Add(m_items.Size() - 1);
@@ -658,8 +660,6 @@ void Debug::DebugStreambuf::Push()
 {
 	m_buffer.Add('\0');
 	PushMessage(m_buffer.Data(), m_level);
-	m_buffer.Add('\0');
-	OutputDebugStringA(m_buffer.Data());
 	m_buffer.Clear(false);
 }
 
