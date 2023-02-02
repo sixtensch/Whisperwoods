@@ -6,7 +6,7 @@ struct Mesh
 {
 	// Raw verticies and indicies from the model defining the mesh and submeshes
 	cs::List<int> indicies;
-	// cs::List<Material> materials; // Add when material exists.
+	cs::List<int> materials; // TODO:Add when material exists.
 	// These contain the startindex in the indexlist, the count, and materialindex for the submeshes of the mesh.
 	cs::List<int> startIndicies;
 	cs::List<int> indexCounts;
@@ -21,7 +21,7 @@ struct Mesh
 
 struct MeshStatic : Mesh
 {
-	// Raw verticies and indicies from the model defining the mesh and submeshes
+	// Textured verticies, that do not contain rigging data.
 	cs::List<VertexTextured> verticies;
 	// Constructor.
 	MeshStatic(cs::List<VertexTextured> p_verticies, cs::List<int> p_indicies, cs::List<int> p_startIndicies, cs::List<int> p_indexCounts, cs::List<int> p_materialIndicies) :
@@ -32,12 +32,10 @@ struct MeshStatic : Mesh
 
 struct MeshRigged : Mesh
 {
-	// Raw verticies and indicies from the model defining the mesh and submeshes
-	cs::List<VertexSkinned> verticies;
+	// Full spec verticies with rigging data.
+	cs::List<VertexRigged> verticies;
 	// Constructor.
-	MeshRigged(cs::List<VertexSkinned> p_verticies, cs::List<int> p_indicies, cs::List<int> p_startIndicies, cs::List<int> p_indexCounts, cs::List<int> p_materialIndicies) :
+	MeshRigged(cs::List<VertexRigged> p_verticies, cs::List<int> p_indicies, cs::List<int> p_startIndicies, cs::List<int> p_indexCounts, cs::List<int> p_materialIndicies) :
 		Mesh(p_indicies, p_startIndicies, p_indexCounts, p_materialIndicies),
 		verticies(p_verticies) {};
-
-
 };

@@ -26,12 +26,12 @@ struct VertexTextured : Vertex
 		padding(p_pad) {};
 };
 
-struct VertexSkinned : VertexTextured
+struct VertexRigged : VertexTextured
 {
 	Point4 bones;
 	Vec4 weights;
-	VertexSkinned() = default;
-	VertexSkinned(Vec3 p_pos, Vec3 p_nor, Vec3 p_tan, Vec3 p_bitan, Vec2 p_uv, Vec2 p_pad, Point4 p_bones, Vec4 p_weights) :
+	VertexRigged() = default;
+	VertexRigged(Vec3 p_pos, Vec3 p_nor, Vec3 p_tan, Vec3 p_bitan, Vec2 p_uv, Vec2 p_pad, Point4 p_bones, Vec4 p_weights) :
 		VertexTextured(p_pos, p_nor, p_tan, p_bitan, p_uv, p_pad),
 		bones(p_bones),
 		weights(p_weights) {};

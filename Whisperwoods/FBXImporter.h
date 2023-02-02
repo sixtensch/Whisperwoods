@@ -1,9 +1,11 @@
 #pragma once
 #include <string>
+#include "Mesh.h"
 
 class FBXImporter
 {
-//public:
-	//static Mesh ImportFBX(std::string filePath, bool rigged);
+public:
+	static void ImportFBXStatic(std::string filePath, MeshStatic* outMesh);
+	static void ImportFBXRigged(std::string filePath, MeshRigged* outMesh);
 };
 

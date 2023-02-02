@@ -37,6 +37,8 @@
     <ClCompile Include="RenderHandler.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Sound.cpp" />
+    <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Whisperwoods.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -48,6 +50,7 @@
     <ClInclude Include="Debug.h" />
     <ClInclude Include="FBXImporter.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="RenderCore.h" />
@@ -55,6 +58,7 @@
     <ClInclude Include="RenderHandler.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Sound.h" />
+    <ClInclude Include="Transform.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexGroup.h" />
     <ClInclude Include="Whisperwoods.h" />
