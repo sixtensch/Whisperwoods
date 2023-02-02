@@ -8,7 +8,7 @@ Input::Input()
 	m_currentKeyboardState({}),
 	m_lastMouseState({}),
 	m_currentMouseState({}),
-	m_keyboard(make_unique<dx::Keyboard>()), 
+	m_keyboard(make_unique<dx::Keyboard>()),
 	m_mouse(make_unique<dx::Mouse>()),
 	m_inputList({})
 {
@@ -21,7 +21,7 @@ Input::Input()
 	for (int i = 0; i < INPUT_COUNT; i++)
 	{
 		m_inputList.Add({}); // Initializes the container for each input.
-}
+	}
 }
 
 Input::~Input()
@@ -59,6 +59,22 @@ void Input::InputInit(const HWND windowHandle)
 void Input::BindWindowToMouse(const HWND windowHandle)
 {
 	m_mouse->SetWindow(windowHandle);
+}
+
+bool Input::IsKeyBound(const DXKey key)
+{
+	for (const auto& keyList : m_inputList)
+	{
+		for (DXKey boundKey : keyList)
+		{
+			if (boundKey == key)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void Input::ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
@@ -119,9 +135,9 @@ bool Input::IsInputDown(ABSTRACT_INPUT_ENUM input) const
 	bool resultBool = false;
 	const auto& keyList = m_inputList[input];
 	for (DXKey key : keyList)
-		{
-			resultBool |= m_currentKeyboardState.IsKeyDown(key);
-		}
+	{
+		resultBool |= m_currentKeyboardState.IsKeyDown(key);
+	}
 	
 	return resultBool;
 }

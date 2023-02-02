@@ -60,6 +60,7 @@ public:
 private:
 
 	void BindWindowToMouse(const HWND windowHandle);
+	bool IsKeyBound(const DXKey key);
 
 private:
 	static Input* s_singleton;
