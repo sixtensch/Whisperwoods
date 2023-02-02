@@ -5,7 +5,7 @@ Renderer* Renderer::s_singleton = nullptr;
 
 
 
-Renderer::Renderer()
+Renderer::Renderer(HINSTANCE instance)
 {
 	if (s_singleton != nullptr)
 	{
@@ -13,6 +13,8 @@ Renderer::Renderer()
 	}
 
 	s_singleton = this;
+
+	m_instance = instance;
 }
 
 Renderer::~Renderer()
@@ -20,20 +22,24 @@ Renderer::~Renderer()
 	s_singleton = nullptr;
 }
 
-void Renderer::InitWindow(uint width, uint height)
+void Renderer::Init(uint width, uint height)
 {
+	m_window = make_shared<Window>(WINDOW_NAME, m_instance, width, height);
+
+	m_renderHandler = make_unique<RenderHandler>();
+	m_renderHandler->InitCore(m_window);
+
+	m_window->Show(true);
 }
 
-void Renderer::InitRenderer()
+bool Renderer::UpdateWindow()
 {
-}
-
-void Renderer::UpdateWindow()
-{
+	return m_window->PollEvents();
 }
 
 void Renderer::Draw()
 {
+	m_renderHandler->Draw();
 }
 
 Renderer& Renderer::Get()

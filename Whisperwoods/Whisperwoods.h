@@ -10,7 +10,7 @@
 class Whisperwoods sealed
 {
 public:
-	Whisperwoods();
+	Whisperwoods(HINSTANCE instance);
 	~Whisperwoods();
 
 	void Run();
