@@ -18,6 +18,7 @@ public:
 	void SetPosition(Vec3 position);
 	void SetRotation(Quaternion rotation);
 
+
 	const Mat4 GetProjectionMatrix() const;
 
 private:

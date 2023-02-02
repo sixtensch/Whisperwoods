@@ -17,12 +17,10 @@ Camera::~Camera()
 
 void Camera::Update()
 {
-	float cameraPositionX = 0.0f, cameraPositionY = 0.0f, cameraPositionZ = 0.0f; //These are scrap values, replace them with the transform later
-	m_viewMatrix = Mat4(
-	1.0f, 0.0f, 0.0f, 0.0f,
-	0.0f, 1.0f, 0.0f, 0.0f,
-	0.0f, 0.0f, 1.0f, 0.0f,
-	-cameraPositionX, -cameraPositionY, -cameraPositionZ, 1.0f);
+	Mat4 viewMat = cs::Mat::translation3(-m_transform.position.x, -m_transform.position.y, -m_transform.position.z);
+	viewMat = viewMat * m_transform.rotation.Matrix(); //TODO: is this correct?
+
+	// write view to vertexBuffer
 }
 
 void Camera::SetValues(float fovRadians, float viewRatio, float nearDistance, float farDistance)
@@ -57,3 +55,5 @@ const Mat4 Camera::GetProjectionMatrix() const
 {
 	return m_projection;
 }
+
+
