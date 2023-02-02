@@ -1,5 +1,6 @@
 #include "Core.h"
 #include "RenderCore.h"
+#include "ConstantbufferData.h"
 
 RenderCore::RenderCore(shared_ptr<Window> window)
 {
@@ -161,8 +162,10 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
     EXC_COMCHECK(m_device->CreateBlendState(&bd, &bss));
     EXC_COMINFO(m_context->OMSetBlendState(bss.Get(), nullptr, sampleMask));
-}
 
+    EXC_COMCHECK( CompileShaders() );
+    EXC_COMCHECK( CreateVSConstantBuffer() );
+}
 RenderCore::~RenderCore()
 {
 }
@@ -174,9 +177,48 @@ void RenderCore::NewFrame()
     EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
     m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get());
 
+    m_context->VSSetShader( m_shaders.vertexShader.Get(), nullptr, 0);
+    m_context->PSSetShader( m_shaders.pixelShader.Get(), nullptr, 0 );
 }
 
 void RenderCore::EndFrame()
 {
     EXC_COMCHECK(m_swapChain->Present(0u, 0u));
+}
+
+
+
+HRESULT RenderCore::CompileShaders()
+{
+    return E_NOTIMPL;
+}
+HRESULT RenderCore::CreateVSConstantBuffer()
+{
+    HRESULT hr = {};
+    D3D11_BUFFER_DESC Desc   = {};
+    Desc.Usage               = D3D11_USAGE_DYNAMIC;
+    Desc.BindFlags           = D3D11_BIND_CONSTANT_BUFFER;
+    Desc.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
+    Desc.ByteWidth           = sizeof( CB::VSData );
+    Desc.StructureByteStride = 0;
+    Desc.MiscFlags           = 0;
+
+
+    // Create the initial data for the cbuffer
+    CB::VSData data = {
+
+    };
+
+
+    D3D11_SUBRESOURCE_DATA subData = {};
+    subData.pSysMem          = &data;
+    subData.SysMemPitch      = 0;
+    subData.SysMemSlicePitch = 0;
+
+    hr = m_device->CreateBuffer(
+        &Desc,
+        &subData,
+        m_vsCBuffer.GetAddressOf()
+    );
+    return hr;
 }
