@@ -4,7 +4,7 @@
 
 GameObject::~GameObject()
 {
-	name = "Nameless GameObject";
+	
 }
 
 GameObject::GameObject(std::string p_name) : name(p_name)

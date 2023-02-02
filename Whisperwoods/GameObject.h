@@ -7,7 +7,7 @@ struct GameObject
 	cs::List<GameObject*> gameObjects; // Children
 
 	// Constructors
-	GameObject() = default;
+	GameObject() { name = "Nameless GameObject"; }
 	GameObject(std::string p_name);
 	GameObject(std::string p_name, Transform p_transform);
 	
