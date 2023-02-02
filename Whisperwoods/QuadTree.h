@@ -32,18 +32,18 @@ public: // Methods
 	quadTree();
 	~quadTree();
 	void Init( float maxHeight, float minHeight, float multiplier );
-	void Reconstruct( float hieght, float width );
+	//void Reconstruct( float hieght, float width );
 
 
 	void AddElement( T* elementAddress, const dx::BoundingBox& boundingBox );
 	void AddIndexed( T* elementAddress, const dx::BoundingBox& boundingBox, int index );
 
 	std::vector<const T>& CullTree( const dx::BoundingFrustum& frustum ) const;
-	void CullIndexed( const dx::BoundingFrustum& frustum, void** out_culledObjects );
+	//void CullIndexed( const dx::BoundingFrustum& frustum, void** out_culledObjects );
 private:
 	void AddToNode( T* elementAddress, const dx::BoundingBox& boundingBox, Node* nodeToProcess, int depth, int index = -1 );
 	void CheckNode( const dx::BoundingFrustum& frustum, Node* node, std::set<const T*>& out_validElements ) const;
-	void CheckIndexed( const dx::BoundingFrustum& frustum, Node* node, int index, std::vector<const T*>& out_validElements );
+	//void CheckIndexed( const dx::BoundingFrustum& frustum, Node* node, int index, std::vector<const T*>& out_validElements );
 	
 
 	void FreeNode( Node* node );
@@ -118,11 +118,11 @@ inline void quadTree<T>::Init( float maxHeight, float minHeight, float multiplie
 /// <typeparam name="T"></typeparam>
 /// <param name="Height"></param>
 /// <param name="Width"></param>
-template<typename T>
-inline void quadTree<T>::Reconstruct( float height, float width )
-{
-
-}
+//template<typename T>
+//inline void quadTree<T>::Reconstruct( float height, float width )
+//{
+//
+//}
 
 
 template<typename T>
