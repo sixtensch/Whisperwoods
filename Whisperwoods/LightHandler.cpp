@@ -1,0 +1,193 @@
+#include "core.h"
+#include "LightHandler.h"
+
+LightHandler::LightHandler( ID3D11Device* device )
+{
+	m_maxSize[LIGHT_TYPE_DIRECTIONAL] = START_MAX_LIGHTS;
+	m_maxSize[LIGHT_TYPE_SPOTLIGHT]   = START_MAX_LIGHTS;
+	m_maxSize[LIGHT_TYPE_POINTLIGHT]  = START_MAX_LIGHTS;
+
+	if ( !InitDirSBuffer( device, m_maxSize[LIGHT_TYPE_DIRECTIONAL] ) )
+	{
+		EXC( "Error creating light resource at LightHandler.cpp, line " + __LINE__ );
+	};
+	if( !InitPointSBuffer( device, START_MAX_LIGHTS ) )
+	{
+		EXC( "Error creating light resource at LightHandler.cpp, line " + __LINE__ );
+	};
+	if ( !InitSpotSBuffer( device, START_MAX_LIGHTS ) )
+	{
+		EXC( "Error creating light resource at LightHandler.cpp, line " + __LINE__ );
+	};
+}
+LightHandler::~LightHandler()
+{}
+
+
+ID3D11Buffer* LightHandler::GetStructuredBufferP( LightType type )
+{
+	switch ( type )
+	{
+		case LIGHT_TYPE_DIRECTIONAL: return m_dirSBuffer.Get();
+		case LIGHT_TYPE_POINTLIGHT: return m_pointSBuffer.Get();
+		case LIGHT_TYPE_SPOTLIGHT: return m_spotSBuffer.Get();
+	}
+	return nullptr;
+}
+ID3D11Buffer* const* LightHandler::GetStructuredBufferPP( LightType type )
+{
+	switch ( type )
+	{
+		case LIGHT_TYPE_DIRECTIONAL: return m_dirSBuffer.GetAddressOf();
+		case LIGHT_TYPE_POINTLIGHT: return m_pointSBuffer.GetAddressOf();
+		case LIGHT_TYPE_SPOTLIGHT: return m_spotSBuffer.GetAddressOf();
+	}
+	return nullptr;
+}
+
+void LightHandler::SetDirectionalLights(ID3D11DeviceContext* immediateContext, std::vector<DirectionalLight> data)
+{
+	HRESULT hr = {};
+
+	// Update light buffer
+	D3D11_MAPPED_SUBRESOURCE Resource = {};
+	hr = immediateContext->Map( m_dirSBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &Resource);
+	if ( FAILED( hr ) )
+	{
+		LOG_CRITICAL( "Failed to get map for directional structured buffer in SetDirectionalLights() function call, line: ");
+		return;
+	}
+	memcpy(
+		Resource.pData,
+		data.data(),
+		sizeof(DirectionalLight) * data.size()
+	);
+	immediateContext->Unmap( m_dirSBuffer.Get(), 0 );
+}
+void LightHandler::SetSpotLights( ID3D11DeviceContext* immediateContext, std::vector<SpotLight> data )
+{
+	HRESULT hr = {};
+
+	// Update light buffer
+	D3D11_MAPPED_SUBRESOURCE Resource = {};
+	hr = immediateContext->Map( m_spotSBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &Resource );
+	if ( FAILED( hr ) )
+	{
+		LOG_CRITICAL( "Failed to get map for directional structured buffer in SetSpotLights() function call, line: " + __LINE__ );
+		return;
+	}
+	memcpy(
+		Resource.pData,
+		data.data(),
+		sizeof( SpotLight ) * data.size()
+	);
+	immediateContext->Unmap( m_spotSBuffer.Get(), 0 );
+}
+void LightHandler::SetPointLights( ID3D11DeviceContext* immediateContext, std::vector<PointLight> data )
+{
+	HRESULT hr = {};
+
+	// Update light buffer
+	D3D11_MAPPED_SUBRESOURCE Resource = {};
+	hr = immediateContext->Map( m_pointSBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &Resource );
+	if ( FAILED( hr ) )
+	{
+		LOG_CRITICAL( "Failed to get map for directional structured buffer in SetPointLights() function call, line: ");
+		return;
+	}
+	memcpy(
+		Resource.pData,
+		data.data(),
+		sizeof( PointLight ) * data.size()
+	);
+	immediateContext->Unmap( m_pointSBuffer.Get(), 0 );
+}
+
+
+bool LightHandler::InitDirSBuffer( ID3D11Device* device, UINT LightCount )
+{
+	HRESULT hr = {};
+	D3D11_BUFFER_DESC bufferDesc = {};
+	bufferDesc.BindFlags           = D3D11_BIND_SHADER_RESOURCE;
+	bufferDesc.Usage               = D3D11_USAGE_DYNAMIC;
+	bufferDesc.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
+	bufferDesc.ByteWidth           = LightCount * sizeof( DirectionalLight );
+	bufferDesc.StructureByteStride = sizeof( DirectionalLight );
+	bufferDesc.MiscFlags           = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	hr = device->CreateBuffer(
+		&bufferDesc,
+		NULL,
+		m_dirSBuffer.GetAddressOf() );
+
+	if ( FAILED( hr ) )
+		LOG_CRITICAL("Failure constructing the directional light structuredbuffer line: ");
+	return SUCCEEDED( hr );
+}
+bool LightHandler::InitPointSBuffer( ID3D11Device* device, UINT LightCount )
+{
+	HRESULT hr = {};
+	D3D11_BUFFER_DESC bufferDesc = {};
+	bufferDesc.BindFlags           = D3D11_BIND_SHADER_RESOURCE;
+	bufferDesc.Usage               = D3D11_USAGE_DYNAMIC;
+	bufferDesc.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
+	bufferDesc.ByteWidth           = LightCount * sizeof( PointLight );
+	bufferDesc.StructureByteStride = sizeof( PointLight );
+	bufferDesc.MiscFlags           = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	hr = device->CreateBuffer(
+		&bufferDesc,
+		NULL,
+		m_pointSBuffer.GetAddressOf() );
+
+	if ( FAILED( hr ) )
+		LOG_CRITICAL( "Failure constructing the pointlight structuredbuffer line: " + __LINE__ );
+	return SUCCEEDED( hr );
+}
+bool LightHandler::InitSpotSBuffer( ID3D11Device* device, UINT LightCount )
+{
+	HRESULT hr = {};
+	D3D11_BUFFER_DESC bufferDesc = {};
+	bufferDesc.BindFlags           = D3D11_BIND_SHADER_RESOURCE;
+	bufferDesc.Usage               = D3D11_USAGE_DYNAMIC;
+	bufferDesc.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
+	bufferDesc.ByteWidth           = LightCount * sizeof( SpotLight );
+	bufferDesc.StructureByteStride = sizeof( SpotLight );
+	bufferDesc.MiscFlags           = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	hr = device->CreateBuffer(
+		&bufferDesc,
+		NULL,
+		m_spotSBuffer.GetAddressOf() );
+
+	if ( FAILED( hr ) )
+		LOG_CRITICAL( "Failure constructing the spotlight structuredbuffer line: " + __LINE__ );
+	return SUCCEEDED( hr );
+}
+
+
+bool LightHandler::ReallocLights( ID3D11Device* device, LightType type )
+{
+	bool toReturn = false;
+	switch ( type )
+	{
+		case LIGHT_TYPE_DIRECTIONAL:
+			m_dirSBuffer.Get()->Release();
+			m_maxSize[LIGHT_TYPE_DIRECTIONAL] *= 2;
+			toReturn = InitDirSBuffer( device, m_maxSize[LIGHT_TYPE_DIRECTIONAL] );
+			break;
+
+		case LIGHT_TYPE_SPOTLIGHT:
+			m_dirSBuffer.Get()->Release();
+			m_maxSize[LIGHT_TYPE_SPOTLIGHT] *= 2;
+			toReturn = InitSpotSBuffer( device, m_maxSize[LIGHT_TYPE_SPOTLIGHT] );
+			break;
+
+		case LIGHT_TYPE_POINTLIGHT:
+			m_dirSBuffer.Get()->Release();
+			m_maxSize[LIGHT_TYPE_POINTLIGHT] *= 2;
+			toReturn = InitPointSBuffer( device, m_maxSize[LIGHT_TYPE_POINTLIGHT] );
+			break;
+
+		default:
+			break;
+	}
+	return toReturn;
+}
