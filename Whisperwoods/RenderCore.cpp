@@ -66,18 +66,18 @@ RenderCore::RenderCore(shared_ptr<Window> window)
     EXC_COMCHECK(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&m_bbTexture));
 
     D3D11_RENDER_TARGET_VIEW_DESC rtvd;
-    rtvd.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+    rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     rtvd.Texture2D = { 0 };
 
     EXC_COMCHECK(m_device->CreateRenderTargetView(m_bbTexture.Get(), &rtvd, &m_bbRTV));
 
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-    srvd.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-    srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-    srvd.Texture2D = { 0, 1 };
-    
-    EXC_COMCHECK(m_device->CreateShaderResourceView(m_bbTexture.Get(), &srvd, &m_bbSRV));
+    //D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
+    //srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    //srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    //srvd.Texture2D = { 0, 1 };
+    //
+    //EXC_COMCHECK(m_device->CreateShaderResourceView(m_bbTexture.Get(), &srvd, &m_bbSRV));
 
     m_bbClearColor = cs::Color4f(0.1f, 0.1f, 0.2f, 1.0f);
 
@@ -101,16 +101,15 @@ RenderCore::RenderCore(shared_ptr<Window> window)
     dstSRD.pSysMem = nullptr;
     dstSRD.SysMemPitch = window->GetWidth() * 4;
 
-    EXC_COMCHECK(m_device->CreateTexture2D(&dstDesc, &dstSRD, &m_dsTexture));
+    EXC_COMCHECK(m_device->CreateTexture2D(&dstDesc, nullptr, &m_dsTexture));
 
     D3D11_SHADER_RESOURCE_VIEW_DESC dstSRVD;
     dstSRVD.Format = DXGI_FORMAT_R32_FLOAT;
     dstSRVD.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     dstSRVD.Texture2D = { 0, 1 };
 
-    EXC_COMCHECK(m_device->CreateShaderResourceView(m_bbTexture.Get(), &srvd, &m_bbSRV));
+    EXC_COMCHECK(m_device->CreateShaderResourceView(m_dsTexture.Get(), &dstSRVD, &m_dsSRV));
 
-    // Create
     D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
     dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
     dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
@@ -171,5 +170,13 @@ RenderCore::~RenderCore()
 void RenderCore::NewFrame()
 {
     m_context->ClearDepthStencilView(m_dsDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
-        
+
+    EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
+    m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get());
+
+}
+
+void RenderCore::EndFrame()
+{
+    EXC_COMCHECK(m_swapChain->Present(0u, 0u));
 }

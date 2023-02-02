@@ -9,6 +9,8 @@ public:
 	~RenderCore();
 
 	void NewFrame();
+
+	void EndFrame();
 	
 private:
 	shared_ptr<Window> m_window;
@@ -21,7 +23,7 @@ private:
 	// Back buffer
 	ComPtr<ID3D11Texture2D> m_bbTexture;
 	ComPtr<ID3D11RenderTargetView> m_bbRTV;
-	ComPtr<ID3D11ShaderResourceView> m_bbSRV;
+	//ComPtr<ID3D11ShaderResourceView> m_bbSRV;
 	cs::Color4f m_bbClearColor;
 
 	// Depth stencil
