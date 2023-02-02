@@ -60,9 +60,9 @@ namespace cs
         T& Back() const;
 
         template<typename T_value>
-        int SearchBinary(T_value target, T_value predicate(const T&)); // Only works for sorted lists (per the predicate). Returns -1 when the target is not found.
+        int SearchBinary(T_value target, T_value predicate(const T&)) const; // Only works for sorted lists (per the predicate). Returns -1 when the target is not found.
         template<typename T_value>
-        int SearchLinear(T_value target, T_value predicate(const T&)); // Returns -1 when the target is not found.
+        int SearchLinear(T_value target, T_value predicate(const T&)) const; // Returns -1 when the target is not found.
 
         template<typename T_value>
         T* GetBinary(T_value target, T_value predicate(const T&)); // Only works for sorted lists (per the predicate). Returns nullptr when the target is not found.
@@ -279,7 +279,7 @@ namespace cs
 
     template<typename T>
     template<typename T_value>
-    int List<T>::SearchBinary(T_value target, T_value predicate(const T&))
+    int List<T>::SearchBinary(T_value target, T_value predicate(const T&)) const
     {
         int low = 0;
         int high = m_size - 1;
@@ -308,7 +308,7 @@ namespace cs
 
     template<typename T>
     template<typename T_value>
-    inline int List<T>::SearchLinear(T_value target, T_value predicate(const T&))
+    inline int List<T>::SearchLinear(T_value target, T_value predicate(const T&)) const
     {
         for (int i = 0; i < m_size; i++)
         {

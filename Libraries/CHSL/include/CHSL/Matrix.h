@@ -130,6 +130,8 @@ namespace cs
 		Matrix4(const Matrix4&);
 #ifdef CHSL_DX
 		Matrix4(DirectX::XMMATRIX xmmatrix);
+
+		DirectX::XMMATRIX XMMatrix() const;
 #endif
 
 		Matrix4 operator*(const Matrix3<T>& matrix) const;
@@ -563,6 +565,8 @@ namespace cs
 
 	template<typename T>
 	inline Matrix3<T>::Matrix3()
+		:
+		Matrix<T, 3>{ 1, 0, 0, 0, 1, 0, 0, 0, 1 }
 	{
 	}
 
@@ -703,6 +707,8 @@ namespace cs
 
 	template<typename T>
 	inline Matrix4<T>::Matrix4()
+		:
+		Matrix<T, 4>{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }
 	{
 	}
 
@@ -761,6 +767,18 @@ namespace cs
 	inline Matrix4<T>::Matrix4(DirectX::XMMATRIX xmmatrix)
 	{
 		// What?
+	}
+
+	template<>
+	inline DirectX::XMMATRIX Matrix4<float>::XMMatrix() const
+	{
+		return DirectX::XMMATRIX(data);
+	}
+
+	template<typename T>
+	inline DirectX::XMMATRIX Matrix4<T>::XMMatrix() const
+	{
+		return DirectX::XMMATRIX();
 	}
 
 #endif
