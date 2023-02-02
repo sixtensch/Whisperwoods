@@ -199,7 +199,7 @@ xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmodL.dll" "$(SolutionDir)
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\ImGui\lib\$(SolutionDir)Libraries\CHSL\lib;$(SolutionDir)Libraries\DirectXTK\lib\$(Configuration)\;$(SolutionDir)Libraries\AssImp\lib\;$(SolutionDir)Libraries\FModCore\lib\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\ImGui\lib\$(Configuration)\;$(SolutionDir)Libraries\DirectXTK\lib\$(Configuration)\;$(SolutionDir)Libraries\AssImp\lib\;$(SolutionDir)Libraries\FModCore\lib\x64\;$(SolutionDir)Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>ImguiDocking$(PlatformArchitecture).lib;DirectXTK$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture)-d.lib;assimp-vc143-mtd.lib;fmodL_vc.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -227,7 +227,7 @@ xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmodL.dll" "$(SolutionDir)
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\ImGui\lib\$(SolutionDir)Libraries\CHSL\lib;$(SolutionDir)Libraries\DirectXTK\lib\$(Configuration)\;$(SolutionDir)Libraries\AssImp\lib\;$(SolutionDir)Libraries\FModCore\lib\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\ImGui\lib\$(Configuration)\;$(SolutionDir)Libraries\DirectXTK\lib\$(Configuration)\;$(SolutionDir)Libraries\AssImp\lib\;$(SolutionDir)Libraries\FModCore\lib\x64\;$(SolutionDir)Libraries\CHSL\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>ImguiDocking$(PlatformArchitecture).lib;DirectXTK$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture).lib;assimp-vc143-mtd.lib;fmod_vc.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>

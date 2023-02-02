@@ -38,4 +38,6 @@ struct MeshRigged : Mesh
 	MeshRigged(cs::List<VertexSkinned> p_verticies, cs::List<int> p_indicies, cs::List<int> p_startIndicies, cs::List<int> p_indexCounts, cs::List<int> p_materialIndicies) :
 		Mesh(p_indicies, p_startIndicies, p_indexCounts, p_materialIndicies),
 		verticies(p_verticies) {};
+
+
 };

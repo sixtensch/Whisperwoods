@@ -97,6 +97,9 @@
     <Filter Include="%2a Code\%2a Core\Structs">
       <UniqueIdentifier>{777d9de7-e9d4-4adc-abf3-0fc48a0febd0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="%2a Code\%2a Core\Model Importing">
+      <UniqueIdentifier>{8bb0f31a-6913-4e38-8378-50616860337c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -135,6 +138,9 @@
     <ClCompile Include="FBXImporter.cpp">
       <Filter>%2a Code\%2a Core\Resources\FBX Importer</Filter>
     </ClCompile>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="RenderHandler.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -166,6 +172,22 @@
     </ClInclude>
     <ClInclude Include="Renderer.h">
       <Filter>%2a Code\%2a Rendering\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="RenderCore.h" />
+    <ClInclude Include="RenderHandler.h" />
+    <ClInclude Include="Window.h" />
+    <ClInclude Include="VertexGroup.h">
+      <Filter>%2a Code\%2a Core\Model Importing</Filter>
+    </ClInclude>
+    <ClInclude Include="Vertex.h">
+      <Filter>%2a Code\%2a Core\Model Importing</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>%2a Code\%2a Core\Model Importing</Filter>
+    </ClInclude>
+    <ClInclude Include="FBXImporter.h">
+      <Filter>%2a Code\%2a Core\Model Importing</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
