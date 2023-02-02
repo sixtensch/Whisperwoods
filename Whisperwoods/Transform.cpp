@@ -26,8 +26,17 @@ Mat4 Transform::CalculateMatrix(Vec3 p_pos, Quaternion p_rotation, Vec3 p_scale)
 	return identityMatrix * scalingMatrix * rotationMatrix * translationMatrix;
 }
 
+
 void Transform::CalculateLocalMatrix()
 {
+	localMatrix = CalculateMatrix(position, rotation, scale);
+}
+
+void Transform::CalculateLocalMatrix(Vec3 p_pos, Quaternion p_rotation, Vec3 p_scale)
+{
+	position = p_pos;
+	rotation = p_rotation;
+	scale = p_scale;
 	localMatrix = CalculateMatrix(position, rotation, scale);
 }
 
@@ -35,6 +44,14 @@ void Transform::CalculateWorldMatrix()
 {
 	CalculateLocalMatrix();
 	worldMatrix = (parent == nullptr) ? localMatrix : localMatrix * parent->worldMatrix;
+}
+
+
+// Overload for external interaction
+void Transform::CalculateWorldMatrix(Mat4 parentWorldMatrix)
+{
+	CalculateLocalMatrix();
+	worldMatrix = localMatrix * parentWorldMatrix;
 }
 
 void Transform::SetRotationEuler(Vec3 p_rotation)

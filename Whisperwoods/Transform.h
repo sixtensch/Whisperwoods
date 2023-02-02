@@ -4,12 +4,16 @@
 struct Transform
 {
 	// Data
-	Transform* parent;
 	Vec3 position;
 	Quaternion rotation;
 	Vec3 scale;
 	Mat4 localMatrix;
 	Mat4 worldMatrix;
+	
+	// Parent / Child stuff.
+	Transform* parent;
+	cs::List<Transform*> transforms; // children, TODO: Maybe remove this as it might be redundant.
+
 
 	// Default constructor
 	Transform();
@@ -25,7 +29,9 @@ struct Transform
 	// Core functionality
 	Mat4 CalculateMatrix(Vec3 p_pos, Quaternion p_rotation, Vec3 p_scale);
 	void CalculateLocalMatrix();
+	void CalculateLocalMatrix(Vec3 p_pos, Quaternion p_rotation, Vec3 p_scale);
 	void CalculateWorldMatrix();
+	void CalculateWorldMatrix(Mat4 parentWorldMatrix);
 
 	// Nice to haves
 	void SetRotationEuler(Vec3 p_rotation);
