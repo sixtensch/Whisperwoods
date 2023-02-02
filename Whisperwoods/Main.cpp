@@ -12,7 +12,7 @@ int WINAPI WinMainSafe(
 	_In_		LPSTR		commandLine,
 	_In_		int			showCommand)
 {
-	std::unique_ptr<Whisperwoods> whisperwoods = make_unique<Whisperwoods>();
+	std::unique_ptr<Whisperwoods> whisperwoods = make_unique<Whisperwoods>(instance);
 	whisperwoods->Run();
 
 	return 0;
@@ -24,6 +24,10 @@ int WINAPI WinMain(
 	_In_		LPSTR		commandLine,
 	_In_		int			showCommand)
 {
+#if WW_DEBUG
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif
+
 #if CATCH_PROGRAM
 
 	try

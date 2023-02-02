@@ -1,12 +1,14 @@
 #include "Core.h"
 #include "RenderCore.h"
 
-RenderCore::RenderCore(UINT width, UINT height, HWND window)
+RenderCore::RenderCore(shared_ptr<Window> window)
 {
+    m_window = window;
+
     DXGI_SWAP_CHAIN_DESC desc = {};
 
-    desc.BufferDesc.Width = width;  // width/height of window
-    desc.BufferDesc.Height = height;
+    desc.BufferDesc.Width = window->GetWidth();  // width/height of window
+    desc.BufferDesc.Height = window->GetHeight();
     desc.BufferDesc.RefreshRate.Numerator = 0; // RefreshRate 60 hertz (0 from the beginning) 
     desc.BufferDesc.RefreshRate.Denominator = 1;
     desc.BufferDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM; // 32 bits with 8 per channel
@@ -15,10 +17,10 @@ RenderCore::RenderCore(UINT width, UINT height, HWND window)
     desc.SampleDesc.Count = 1; // one desc
     desc.SampleDesc.Quality = 0; //default
     desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_UNORDERED_ACCESS; //use resource or surface as result of rendering
-    desc.BufferCount = 1; 
-    desc.OutputWindow = window;
+    desc.BufferCount = 2; 
+    desc.OutputWindow = window->Data();
     desc.Windowed = true;
-    desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD; //deletes contents of backup buffer when called on
+    desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; //deletes contents of backup buffer when called on
     desc.Flags = 0;
 
     UINT flags = 0;
@@ -49,10 +51,8 @@ RenderCore::RenderCore(UINT width, UINT height, HWND window)
     m_viewPort.TopLeftY = 0;
     m_viewPort.MinDepth = 0;
     m_viewPort.MaxDepth = 1;
-    m_viewPort.Width = static_cast<float>(width);
-    m_viewPort.Height = static_cast<float>(height);
-
-
+    m_viewPort.Width = static_cast<float>(window->GetWidth());
+    m_viewPort.Height = static_cast<float>(window->GetHeight());
 }
 
 RenderCore::~RenderCore()
