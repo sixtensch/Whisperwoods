@@ -167,20 +167,5 @@
     <ClInclude Include="Renderer.h">
       <Filter>%2a Code\%2a Rendering\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="RenderCore.h">
-      <Filter>%2a Code\%2a Rendering\RendererCore</Filter>
-    </ClInclude>
-    <ClInclude Include="FBXImporter.h">
-      <Filter>%2a Code\%2a Core\Resources\FBX Importer</Filter>
-    </ClInclude>
-    <ClInclude Include="Vertex.h">
-      <Filter>%2a Code\%2a Core\Structs</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>%2a Code\%2a Core\Structs</Filter>
-    </ClInclude>
-    <ClInclude Include="VertexGroup.h">
-      <Filter>%2a Code\%2a Core\Structs</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Core.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -33,11 +34,14 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="RenderCore.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="RenderHandler.cpp" />
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="Whisperwoods.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Core.h" />
@@ -48,11 +52,13 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="RenderCore.h" />
     <ClInclude Include="Renderer.h" />
+    <ClInclude Include="RenderHandler.h" />
     <ClInclude Include="Resources.h" />
     <ClInclude Include="Sound.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexGroup.h" />
     <ClInclude Include="Whisperwoods.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -134,15 +140,15 @@
       <PreprocessorDefinitions>WW_DEBUG;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;$(SolutionDir)Libraries\AssImp\include;$(SolutionDir)Libraries\FModCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\ImGui\include;$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;$(SolutionDir)Libraries\AssImp\include;$(SolutionDir)Libraries\FModCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>core.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\CHSL\lib;$(SolutionDir)Libraries\DirectXTK\lib\$(Configuration)\;$(SolutionDir)Libraries\AssImp\lib\;$(SolutionDir)Libraries\FModCore\lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>DirectXTK$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture)-d.lib;assimp-vc143-mtd.lib;fmodL_vc.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\ImGui\lib\$(Configuration)\;$(SolutionDir)Libraries\CHSL\lib;$(SolutionDir)Libraries\DirectXTK\lib\$(Configuration)\;$(SolutionDir)Libraries\AssImp\lib\;$(SolutionDir)Libraries\FModCore\lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ImguiDocking$(PlatformArchitecture).lib;DirectXTK$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture)-d.lib;assimp-vc143-mtd.lib;fmodL_vc.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>::xcopy /y /q /s /i "$(SolutionDir)Assets\" "$(OutDir)Assets\"
@@ -160,7 +166,7 @@ xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmodL.dll" "$(SolutionDir)
       <PreprocessorDefinitions>WW_RELEASE;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;$(SolutionDir)Libraries\AssImp\include;$(SolutionDir)Libraries\FModCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\ImGui\include;$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;$(SolutionDir)Libraries\AssImp\include;$(SolutionDir)Libraries\FModCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>core.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -169,7 +175,7 @@ xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmodL.dll" "$(SolutionDir)
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\CHSL\lib;$(SolutionDir)Libraries\DirectXTK\lib\$(Configuration)\;$(SolutionDir)Libraries\AssImp\lib\;$(SolutionDir)Libraries\FModCore\lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\ImGui\lib\$(Configuration)\;$(SolutionDir)Libraries\CHSL\lib;$(SolutionDir)Libraries\DirectXTK\lib\$(Configuration)\;$(SolutionDir)Libraries\AssImp\lib\;$(SolutionDir)Libraries\FModCore\lib\x86\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>DirectXTK$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture).lib;assimp-vc143-mtd.lib;fmod_vc.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -186,15 +192,15 @@ xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmodL.dll" "$(SolutionDir)
       <PreprocessorDefinitions>WW_DEBUG;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;$(SolutionDir)Libraries\AssImp\include;$(SolutionDir)Libraries\FModCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\ImGui\include;$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;$(SolutionDir)Libraries\AssImp\include;$(SolutionDir)Libraries\FModCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>core.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\CHSL\lib;$(SolutionDir)Libraries\DirectXTK\lib\$(Configuration)\;$(SolutionDir)Libraries\AssImp\lib\;$(SolutionDir)Libraries\FModCore\lib\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>DirectXTK$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture)-d.lib;assimp-vc143-mtd.lib;fmodL_vc.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\ImGui\lib\$(SolutionDir)Libraries\CHSL\lib;$(SolutionDir)Libraries\DirectXTK\lib\$(Configuration)\;$(SolutionDir)Libraries\AssImp\lib\;$(SolutionDir)Libraries\FModCore\lib\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ImguiDocking$(PlatformArchitecture).lib;DirectXTK$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture)-d.lib;assimp-vc143-mtd.lib;fmodL_vc.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>::xcopy /y /q /s /i "$(SolutionDir)Assets\" "$(OutDir)Assets\"
@@ -212,7 +218,7 @@ xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmodL.dll" "$(SolutionDir)
       <PreprocessorDefinitions>WW_RELEASE;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;$(SolutionDir)Libraries\AssImp\include;$(SolutionDir)Libraries\FModCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Libraries\ImGui\include;$(SolutionDir)Libraries\DirectXTK\include;$(SolutionDir)Libraries\CHSL\include;$(SolutionDir)Libraries\AssImp\include;$(SolutionDir)Libraries\FModCore\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>core.h</PrecompiledHeaderFile>
     </ClCompile>
@@ -221,8 +227,8 @@ xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmodL.dll" "$(SolutionDir)
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\CHSL\lib;$(SolutionDir)Libraries\DirectXTK\lib\$(Configuration)\;$(SolutionDir)Libraries\AssImp\lib\;$(SolutionDir)Libraries\FModCore\lib\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>DirectXTK$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture).lib;assimp-vc143-mtd.lib;fmod_vc.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Libraries\ImGui\lib\$(SolutionDir)Libraries\CHSL\lib;$(SolutionDir)Libraries\DirectXTK\lib\$(Configuration)\;$(SolutionDir)Libraries\AssImp\lib\;$(SolutionDir)Libraries\FModCore\lib\x64\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ImguiDocking$(PlatformArchitecture).lib;DirectXTK$(PlatformArchitecture).lib;CHSL$(PlatformArchitecture).lib;assimp-vc143-mtd.lib;fmod_vc.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>::xcopy /y /q /s /i "$(SolutionDir)Assets\" "$(OutDir)Assets\"
