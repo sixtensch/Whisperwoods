@@ -10,7 +10,7 @@ Input::Input()
 	m_currentMouseState({}),
 	m_keyboard(make_unique<dx::Keyboard>()), 
 	m_mouse(make_unique<dx::Mouse>()),
-	m_inputMap({})
+	m_inputList({})
 {
 	if (s_singleton != nullptr)
 	{
@@ -18,6 +18,10 @@ Input::Input()
 	}
 
 	s_singleton = this;
+	for (int i = 0; i < INPUT_COUNT; i++)
+	{
+		m_inputList.Add({}); // Initializes the container for each input.
+}
 }
 
 Input::~Input()
@@ -93,7 +97,13 @@ MouseState Input::GetLastMouseState() const
 
 void Input::AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey key)
 {
-	m_inputMap[input].Add(key);
+	if (IsKeyBound(key))
+	{
+		LOG_ERROR("Key was not bound as it is already bound to other input.");
+		return;
+	}
+
+	m_inputList[input].Add(key);
 }
 
 void Input::AddKeysToInput(const ABSTRACT_INPUT_ENUM input, const cs::List<DXKey>& keys)
@@ -107,16 +117,11 @@ void Input::AddKeysToInput(const ABSTRACT_INPUT_ENUM input, const cs::List<DXKey
 bool Input::IsInputDown(ABSTRACT_INPUT_ENUM input) const
 {
 	bool resultBool = false;
-	const auto dictIterator = m_inputMap.find(input);
-	if (dictIterator != m_inputMap.end())
-	{
-		const cs::List<DXKey> inputKeyList = (*dictIterator).second;
-
-		for (DXKey key : inputKeyList)
+	const auto& keyList = m_inputList[input];
+	for (DXKey key : keyList)
 		{
 			resultBool |= m_currentKeyboardState.IsKeyDown(key);
 		}
-	}
 	
 	return resultBool;
 }

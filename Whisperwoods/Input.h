@@ -72,6 +72,6 @@ private:
 	unique_ptr<dx::Keyboard> m_keyboard;
 	unique_ptr<dx::Mouse> m_mouse; // Mouse events wont work if BindWindow() has not been called.
 
-	std::unordered_map<ABSTRACT_INPUT_ENUM, cs::List<DXKey>> m_inputMap;
+	cs::List<cs::List<DXKey>> m_inputList;
 };
 
