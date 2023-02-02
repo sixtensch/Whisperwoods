@@ -63,6 +63,7 @@ void Input::BindWindowToMouse(const HWND windowHandle)
 
 bool Input::IsKeyBound(const DXKey key)
 {
+	// TODO: Implement linear search check for const references when available CHSL. (Just for readability)
 	for (const auto& keyList : m_inputList)
 	{
 		for (DXKey boundKey : keyList)
