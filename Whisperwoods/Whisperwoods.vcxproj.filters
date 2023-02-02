@@ -91,8 +91,14 @@
     <Filter Include="%2a Code\%2a Core\Debug">
       <UniqueIdentifier>{a3f7d3e4-c11f-4d29-b6e8-d7ede23b7358}</UniqueIdentifier>
     </Filter>
-    <Filter Include="%2a Code\%2a Rendering\%2a Resources">
-      <UniqueIdentifier>{c9758528-c7c3-483a-b0c3-aa3e2e721213}</UniqueIdentifier>
+    <Filter Include="%2a Code\%2a Core\Resources\FBX Importer">
+      <UniqueIdentifier>{ea1cc5c0-1d9b-4aa5-8686-b8a4c015228b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\Structs">
+      <UniqueIdentifier>{777d9de7-e9d4-4adc-abf3-0fc48a0febd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\Model Importing">
+      <UniqueIdentifier>{8bb0f31a-6913-4e38-8378-50616860337c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -129,15 +135,12 @@
     <ClCompile Include="RenderCore.cpp">
       <Filter>%2a Code\%2a Rendering\RendererCore</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>%2a Code\%2a Rendering\Camera</Filter>
+    <ClCompile Include="FBXImporter.cpp">
+      <Filter>%2a Code\%2a Core\Resources\FBX Importer</Filter>
     </ClCompile>
-    <ClCompile Include="RenderHandler.cpp">
-      <Filter>%2a Code\%2a Rendering\RendererHandler</Filter>
-    </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>%2a Code\%2a Rendering\Window</Filter>
-    </ClCompile>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="RenderHandler.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -170,17 +173,21 @@
     <ClInclude Include="Renderer.h">
       <Filter>%2a Code\%2a Rendering\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>%2a Code\%2a Rendering\Camera</Filter>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="RenderCore.h" />
+    <ClInclude Include="RenderHandler.h" />
+    <ClInclude Include="Window.h" />
+    <ClInclude Include="VertexGroup.h">
+      <Filter>%2a Code\%2a Core\Model Importing</Filter>
     </ClInclude>
-    <ClInclude Include="RenderCore.h">
-      <Filter>%2a Code\%2a Rendering\RendererCore</Filter>
+    <ClInclude Include="Vertex.h">
+      <Filter>%2a Code\%2a Core\Model Importing</Filter>
     </ClInclude>
-    <ClInclude Include="RenderHandler.h">
-      <Filter>%2a Code\%2a Rendering\RendererHandler</Filter>
+    <ClInclude Include="Mesh.h">
+      <Filter>%2a Code\%2a Core\Model Importing</Filter>
     </ClInclude>
-    <ClInclude Include="Window.h">
-      <Filter>%2a Code\%2a Rendering\Window</Filter>
+    <ClInclude Include="FBXImporter.h">
+      <Filter>%2a Code\%2a Core\Model Importing</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

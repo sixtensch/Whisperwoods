@@ -47,9 +47,15 @@ namespace cs
 		Quaternion operator*(float scalar) const; 				// Complex quaternion scaling. Does not change rotation.
 		Quaternion operator+(const Quaternion& other) const; 	// Complex quaternion addition.
 
+		Quaternion& operator=(const Quaternion& other); 
+		Quaternion& operator+=(const Quaternion& other);
+		Quaternion& operator*=(const Quaternion& other);
+
 		static Quaternion GetIdentity();
 		static Quaternion GetAxis(const Vec3& axis, float radians);
 		static Quaternion GetAxisNormalized(const Vec3& axis, float radians);	// Use when the axis vector is normalized
+		static Quaternion GetEuler(const Vec3& euler);
+		static Quaternion GetEuler(float pitch, float yaw, float roll);
 		static Quaternion GetDeconstruct(const Mat3& matrix);
 		static Quaternion GetDeconstruct(const Mat4& matrix);
 		static Quaternion GetSlerp(const Quaternion& from, const Quaternion& to, float lambda);
@@ -57,7 +63,7 @@ namespace cs
 	private:
 		Mat4 GetMatrix(float s) const;
 
-	private:
+	public:
 		// Either:
 		// 4D Vector
 		// 3D imaginary vector + real component
@@ -70,21 +76,21 @@ namespace cs
 				// Imaginary components
 				union
 				{
-					Vec3 m_imaginary;
+					Vec3 imaginary;
 
 					struct
 					{
-						float m_x;
-						float m_y;
-						float m_z;
+						float x;
+						float y;
+						float z;
 					};
 				};
 
 				// Real component
-				float m_w;
+				float w;
 			};
 
-			Vec4 m_vector;
+			Vec4 vector;
 		};
 	};
 
