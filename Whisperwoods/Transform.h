@@ -8,6 +8,7 @@ struct Transform
 	Vec3 position;
 	Quaternion rotation;
 	Vec3 scale;
+	Mat4 localMatrix;
 	Mat4 worldMatrix;
 
 	// Default constructor
@@ -22,6 +23,8 @@ struct Transform
 	Transform& operator=(Transform&& other) = default;
 
 	// Core functionality
+	Mat4 CalculateMatrix(Vec3 p_pos, Quaternion p_rotation, Vec3 p_scale);
+	void CalculateLocalMatrix();
 	void CalculateWorldMatrix();
 
 	// Nice to haves
