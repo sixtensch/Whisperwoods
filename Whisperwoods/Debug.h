@@ -224,5 +224,5 @@ private:
 #define EXC_COMINFO(call)			{ (call); }
 #else
 #define EXC_COMCHECK(comcall)		{ string _message; Debug::DXGISet(); HRESULT _hres = (comcall); if (FAILED(_hres) || Debug::DXGIGet(_message)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres, _message); } }
-#define EXC_COMLAST(call)			{ string _message; Debug::DXGISet(); (call); if (Debug::DXGIGet(_message)) { throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, _message); } }
+#define EXC_COMINFO(call)			{ string _message; Debug::DXGISet(); (call); if (Debug::DXGIGet(_message)) { throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, _message); } }
 #endif
