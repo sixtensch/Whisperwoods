@@ -8,9 +8,9 @@ Input::Input()
 	m_currentKeyboardState({}),
 	m_lastMouseState({}),
 	m_currentMouseState({}),
-	m_keyboard(make_unique<dx::Keyboard>()), 
+	m_keyboard(make_unique<dx::Keyboard>()),
 	m_mouse(make_unique<dx::Mouse>()),
-	m_inputMap({})
+	m_inputList({})
 {
 	if (s_singleton != nullptr)
 	{
@@ -18,6 +18,10 @@ Input::Input()
 	}
 
 	s_singleton = this;
+	for (int i = 0; i < INPUT_COUNT; i++)
+	{
+		m_inputList.Add({}); // Initializes the container for each input.
+	}
 }
 
 Input::~Input()
@@ -57,6 +61,23 @@ void Input::BindWindowToMouse(const HWND windowHandle)
 	m_mouse->SetWindow(windowHandle);
 }
 
+bool Input::IsKeyBound(const DXKey key)
+{
+	// TODO: Implement linear search check for const references when available CHSL. (Just for readability)
+	for (const auto& keyList : m_inputList)
+	{
+		for (DXKey boundKey : keyList)
+		{
+			if (boundKey == key)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 void Input::ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	m_lastKeyboardState = m_keyboard->GetState();
@@ -93,7 +114,13 @@ MouseState Input::GetLastMouseState() const
 
 void Input::AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey key)
 {
-	m_inputMap[input].Add(key);
+	if (IsKeyBound(key))
+	{
+		LOG_ERROR("Key was not bound as it is already bound to other input.");
+		return;
+	}
+
+	m_inputList[input].Add(key);
 }
 
 void Input::AddKeysToInput(const ABSTRACT_INPUT_ENUM input, const cs::List<DXKey>& keys)
@@ -107,15 +134,10 @@ void Input::AddKeysToInput(const ABSTRACT_INPUT_ENUM input, const cs::List<DXKey
 bool Input::IsInputDown(ABSTRACT_INPUT_ENUM input) const
 {
 	bool resultBool = false;
-	const auto dictIterator = m_inputMap.find(input);
-	if (dictIterator != m_inputMap.end())
+	const auto& keyList = m_inputList[input];
+	for (DXKey key : keyList)
 	{
-		const cs::List<DXKey> inputKeyList = (*dictIterator).second;
-
-		for (DXKey key : inputKeyList)
-		{
-			resultBool |= m_currentKeyboardState.IsKeyDown(key);
-		}
+		resultBool |= m_currentKeyboardState.IsKeyDown(key);
 	}
 	
 	return resultBool;
