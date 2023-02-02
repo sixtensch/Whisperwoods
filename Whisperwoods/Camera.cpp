@@ -1,9 +1,14 @@
 #include "Core.h"
 #include "Camera.h"
 
-Camera::Camera()
+Camera::Camera(Vec3 position, Quaternion rotation)
 {
-	//add position/rotation to transform here
+	this->m_transform.position = position;
+	this->m_transform.rotation = rotation;
+	this->m_far = 0;
+	this->m_near = 0;
+	this->m_fov = 0;
+	this->m_ratio = 0;
 }
 
 Camera::~Camera()
@@ -36,6 +41,16 @@ void Camera::CalculatePerspectiveProjection()
 void Camera::CalculateOrthoProjection(float width, float height)
 {
 	m_projection =  Mat4(dx::XMMatrixOrthographicLH(width, height, this->m_near, this->m_far));
+}
+
+void Camera::SetPosition(Vec3 position)
+{
+	this->m_transform.position = position;
+}
+
+void Camera::SetRotation(Quaternion rotation)
+{
+	this->m_transform.rotation = rotation;
 }
 
 const Mat4 Camera::GetProjectionMatrix() const
