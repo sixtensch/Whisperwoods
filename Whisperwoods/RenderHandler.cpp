@@ -16,4 +16,6 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 
 void RenderHandler::Draw()
 {
+	m_renderCore->NewFrame();
+	m_renderCore->EndFrame();
 }
