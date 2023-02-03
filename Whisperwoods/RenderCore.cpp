@@ -163,7 +163,7 @@ RenderCore::RenderCore(shared_ptr<Window> window, const Camera& camera)
     EXC_COMCHECK(m_device->CreateBlendState(&bd, &bss));
     EXC_COMINFO(m_context->OMSetBlendState(bss.Get(), nullptr, sampleMask));
 
-    EXC_COMCHECK( CompileShaders() );
+    //EXC_COMCHECK( CompileShaders() );
     EXC_COMCHECK( CreateVSConstantBuffers(camera) );
 }
 RenderCore::~RenderCore()

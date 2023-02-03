@@ -11,7 +11,7 @@ RenderHandler::~RenderHandler()
 
 void RenderHandler::InitCore(shared_ptr<Window> window)
 {
-	m_renderCore = make_unique<RenderCore>(window);
+	m_renderCore = make_unique<RenderCore>(window, mainCamera);
 	mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(),0.01f, 100.0f );
 	mainCamera.CalculatePerspectiveProjection();
 }
