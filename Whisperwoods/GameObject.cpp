@@ -1,11 +1,16 @@
 #include "Core.h"
-#include "Transform.h"
 #include "GameObject.h"
 
 // Constructors
-GameObject::GameObject(std::string p_name) : name(p_name) {}
+GameObject::GameObject(std::string p_name) : name(p_name) 
+{
+	parent = nullptr;
+}
 
-GameObject::GameObject(std::string p_name, Transform p_transform) : name(p_name), transform(p_transform) {}
+GameObject::GameObject(std::string p_name, Transform p_transform) : name(p_name), transform(p_transform) 
+{
+	parent = nullptr;
+}
 
 // Destructor
 GameObject::~GameObject() {}
