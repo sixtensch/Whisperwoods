@@ -19,7 +19,8 @@ void Camera::Update()
 {
 	Mat4 viewMat = cs::Mat::translation3(-m_transform.position.x, -m_transform.position.y, -m_transform.position.z);
 	viewMat = viewMat * m_transform.rotation.Matrix(); //TODO: is this correct?
-
+	m_viewMatrix = viewMat;
+	m_worldMatrix = cs::Mat::translation3(m_transform.position.x, m_transform.position.y, m_transform.position.z);
 	// write view to vertexBuffer
 }
 
@@ -51,9 +52,22 @@ void Camera::SetRotation(Quaternion rotation)
 	this->m_transform.rotation = rotation;
 }
 
+const Vec3 Camera::GetPosition() const
+{
+	return m_transform.position;
+}
+
+const Mat4 Camera::GetWorldMatrix() const
+{
+	return m_worldMatrix;
+}
+
+const Mat4 Camera::GetViewMatrix() const
+{
+	return m_viewMatrix;
+}
+
 const Mat4 Camera::GetProjectionMatrix() const
 {
 	return m_projection;
 }
-
-
