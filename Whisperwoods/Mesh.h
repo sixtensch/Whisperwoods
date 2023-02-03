@@ -1,6 +1,7 @@
 #pragma once
 #include <CHSL/List.h>
 #include "Vertex.h"
+#include "Armature.h"
 
 struct Mesh
 {
