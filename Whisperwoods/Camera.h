@@ -8,6 +8,7 @@
 class Camera
 {
 public:
+	Camera();
 	Camera(Vec3 position, Quaternion rotation);
 	~Camera();
 
