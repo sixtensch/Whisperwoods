@@ -40,7 +40,7 @@ public:
 
 private:
 	void CompileShaders();
-	HRESULT CreateVSConstantBuffers(const Camera& camera);
+	void CreateVSConstantBuffers(const Camera& camera);
 
 	// Helper functions for the binder
 	void BindBlinnPhong();
