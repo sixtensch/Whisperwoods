@@ -6,7 +6,12 @@
 enum PIPELINE_TYPE
 {
 	BLINN_PHONG = 0,
-
+	SHADOW,
+	PPFX,
+	ANIMATION,
+	PARTICLE,
+	TEXT
+	// Stamina bar pipeline
 };
 
 class RenderCore

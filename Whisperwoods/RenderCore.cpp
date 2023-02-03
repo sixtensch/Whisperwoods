@@ -263,9 +263,8 @@ void RenderCore::CompileShaders()
         m_shaders.inputLayout.GetAddressOf()
     ));
 }
-HRESULT RenderCore::CreateVSConstantBuffers(const Camera& camera)
+void RenderCore::CreateVSConstantBuffers(const Camera& camera)
 {
-    HRESULT hr = {};
     D3D11_BUFFER_DESC Desc   = {};
     Desc.Usage               = D3D11_USAGE_DYNAMIC;
     Desc.BindFlags           = D3D11_BIND_CONSTANT_BUFFER;
@@ -288,10 +287,9 @@ HRESULT RenderCore::CreateVSConstantBuffers(const Camera& camera)
     subData.SysMemPitch      = 0;
     subData.SysMemSlicePitch = 0;
 
-    hr = m_device->CreateBuffer(
+    EXC_COMCHECK(m_device->CreateBuffer(
         &Desc,
         &subData,
         m_vertexShaderCBuffer.GetAddressOf()
-    );
-    return hr;
+    ));
 }
