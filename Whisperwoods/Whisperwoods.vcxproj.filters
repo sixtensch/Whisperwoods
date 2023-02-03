@@ -46,9 +46,6 @@
     <Filter Include="%2a Code\%2a Game\Generator">
       <UniqueIdentifier>{c9e90a6d-543e-40b0-aed3-fd1c7412adc1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="%2a Code\%2a World\Floor">
-      <UniqueIdentifier>{c7d83c26-6fe9-4d16-9008-ece4aaf49615}</UniqueIdentifier>
-    </Filter>
     <Filter Include="%2a Code\%2a World\Room">
       <UniqueIdentifier>{dcd16cdc-8669-4a70-8190-545dd54ef225}</UniqueIdentifier>
     </Filter>
@@ -100,6 +97,30 @@
     <Filter Include="%2a Code\%2a Core\Model Importing">
       <UniqueIdentifier>{8bb0f31a-6913-4e38-8378-50616860337c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="%2a Code\%2a World\Floor">
+      <UniqueIdentifier>{c7d83c26-6fe9-4d16-9008-ece4aaf49615}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Animation">
+      <UniqueIdentifier>{e938a359-b796-4387-aced-86b900f8bc8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Animation\Armature">
+      <UniqueIdentifier>{77fb90f1-e21f-4867-b6be-44ac718d6f26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Animation\Animation">
+      <UniqueIdentifier>{52e23909-f348-4c15-945f-f59a3b8c208a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a World\%2a GameObject\AudioSource">
+      <UniqueIdentifier>{239bceb5-96b1-4e58-be54-5d6d0cce58b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Animation\Bone">
+      <UniqueIdentifier>{ad1cf6c2-7daf-4891-8bbf-f0f62fafa47e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Animation\KeyFrame">
+      <UniqueIdentifier>{31f7926a-6c6f-4137-85cb-eff89834a4de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\Transform">
+      <UniqueIdentifier>{f9410f4e-3352-4a93-87e1-7a57129d9377}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -138,9 +159,34 @@
     <ClCompile Include="FBXImporter.cpp">
       <Filter>%2a Code\%2a Core\Resources\FBX Importer</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="RenderHandler.cpp" />
-    <ClCompile Include="Window.cpp" />
+    <ClCompile Include="LightHandler.cpp" />
+    <ClCompile Include="Armature.cpp">
+      <Filter>%2a Code\%2a Core\%2a Animation\Armature</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioSource.cpp">
+      <Filter>%2a Code\%2a World\%2a GameObject\AudioSource</Filter>
+    </ClCompile>
+    <ClCompile Include="Bone.cpp">
+      <Filter>%2a Code\%2a Core\%2a Animation\Bone</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>%2a Code\%2a Rendering\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>%2a Code\%2a World\%2a GameObject\GameObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Light.cpp">
+      <Filter>%2a Code\%2a World\%2a GameObject\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderHandler.cpp">
+      <Filter>%2a Code\%2a Rendering\RendererHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>%2a Code\%2a Core\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>%2a Code\%2a Rendering\Window</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -173,10 +219,6 @@
     <ClInclude Include="Renderer.h">
       <Filter>%2a Code\%2a Rendering\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="RenderCore.h" />
-    <ClInclude Include="RenderHandler.h" />
-    <ClInclude Include="Window.h" />
     <ClInclude Include="VertexGroup.h">
       <Filter>%2a Code\%2a Core\Model Importing</Filter>
     </ClInclude>
@@ -188,6 +230,44 @@
     </ClInclude>
     <ClInclude Include="FBXImporter.h">
       <Filter>%2a Code\%2a Core\Model Importing</Filter>
+    </ClInclude>
+    <ClInclude Include="LightHandler.h" />
+    <ClInclude Include="QuadTree.h" />
+    <ClInclude Include="Armature.h">
+      <Filter>%2a Code\%2a Core\%2a Animation\Armature</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation.h">
+      <Filter>%2a Code\%2a Core\%2a Animation\Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioSource.h">
+      <Filter>%2a Code\%2a World\%2a GameObject\AudioSource</Filter>
+    </ClInclude>
+    <ClInclude Include="Bone.h">
+      <Filter>%2a Code\%2a Core\%2a Animation\Bone</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>%2a Code\%2a Rendering\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>%2a Code\%2a World\%2a GameObject\GameObject</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyFrame.h">
+      <Filter>%2a Code\%2a Core\%2a Animation\KeyFrame</Filter>
+    </ClInclude>
+    <ClInclude Include="Light.h">
+      <Filter>%2a Code\%2a World\%2a GameObject\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderCore.h">
+      <Filter>%2a Code\%2a Rendering\RendererCore</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderHandler.h">
+      <Filter>%2a Code\%2a Rendering\RendererHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>%2a Code\%2a Core\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>%2a Code\%2a Rendering\Window</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
