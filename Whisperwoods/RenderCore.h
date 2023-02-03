@@ -25,7 +25,7 @@ public:
 	void EndFrame();
 	
 private:
-	HRESULT CompileShaders();
+	void CompileShaders();
 	HRESULT CreateVSConstantBuffers(const Camera& camera);
 
 private:

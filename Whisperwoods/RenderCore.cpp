@@ -1,6 +1,7 @@
 #include "Core.h"
 #include "RenderCore.h"
 #include "ConstantbufferData.h"
+#include <d3dcompiler.h>
 
 RenderCore::RenderCore(shared_ptr<Window> window, const Camera& camera)
 {
@@ -163,8 +164,8 @@ RenderCore::RenderCore(shared_ptr<Window> window, const Camera& camera)
     EXC_COMCHECK(m_device->CreateBlendState(&bd, &bss));
     EXC_COMINFO(m_context->OMSetBlendState(bss.Get(), nullptr, sampleMask));
 
-    //EXC_COMCHECK( CompileShaders() );
-    EXC_COMCHECK( CreateVSConstantBuffers(camera) );
+    CompileShaders();
+    CreateVSConstantBuffers(camera);
 }
 RenderCore::~RenderCore()
 {
@@ -188,9 +189,42 @@ void RenderCore::EndFrame()
 
 
 
-HRESULT RenderCore::CompileShaders()
+void RenderCore::CompileShaders()
 {
-    return E_NOTIMPL;
+    ID3DBlob* shaderBlob = {};
+
+#if WW_DEBUG
+    wchar_t vsPath[] = L"../Bin/Whisperwoods64-Debug/MeshVS.cso";
+    wchar_t pxPath[] = L"../Bin/Whisperwoods64-Debug/BlinnPhong.cso";
+#endif
+    
+    EXC_COMCHECK(D3DReadFileToBlob(pxPath, &shaderBlob));
+    EXC_COMCHECK(m_device->CreatePixelShader(
+        shaderBlob->GetBufferPointer(),
+        shaderBlob->GetBufferSize(),
+        nullptr,
+        m_shaders.pixelShader.GetAddressOf()
+    ));
+
+    EXC_COMCHECK(D3DReadFileToBlob(vsPath, &shaderBlob));
+    EXC_COMCHECK(m_device->CreateVertexShader(
+        shaderBlob->GetBufferPointer(),
+        shaderBlob->GetBufferSize(),
+        nullptr,
+        m_shaders.vertexShader.GetAddressOf()
+    ));
+
+    // Input Layout
+    D3D11_INPUT_ELEMENT_DESC vShaderInput[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
+    };
+    EXC_COMCHECK(m_device->CreateInputLayout(
+        vShaderInput, static_cast<UINT>(sizeof(vShaderInput) / sizeof(*vShaderInput)),
+        shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(),
+        m_shaders.inputLayout.GetAddressOf()
+    ));
 }
 HRESULT RenderCore::CreateVSConstantBuffers(const Camera& camera)
 {
