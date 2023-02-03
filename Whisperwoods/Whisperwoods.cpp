@@ -2,8 +2,8 @@
 #include "Whisperwoods.h"
 
 #include "Game.h"
-
 #include "Input.h"
+#include "AudioSource.h"
 
 Whisperwoods::Whisperwoods(HINSTANCE instance)
 {
@@ -14,6 +14,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	m_resources = std::make_unique<Resources>();
 	m_sound = std::make_unique<Sound>();
+
 	m_config = std::make_unique<Config>();
 
 	m_input = std::make_unique<Input>();
@@ -34,6 +35,11 @@ void Whisperwoods::Run()
 {
 	// Main frame loop
 
+	// Audio test startup
+	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, "Assets/Duck.mp3");
+	testSource.Play();
+
+
 	int frames = 0;
 	for (bool running = true; running; frames++)
 	{
@@ -42,8 +48,19 @@ void Whisperwoods::Run()
 		running = !m_renderer->UpdateWindow();
 
 		m_game->Update();
+		
+		m_sound->Update();
+
 		//m_game->Draw();
 
 		m_renderer->Draw();
+	}
+
+	// Audio test 2 shutdown
+	testSource.pitch = 0.75f;
+	testSource.Play();
+	while (testSource.IsPlaying())
+	{
+		m_sound->Update();
 	}
 }

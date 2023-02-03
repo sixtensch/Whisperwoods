@@ -1,13 +1,15 @@
 #pragma once
+#include "Transform.h"
 
 struct GameObject
 {
+public:
 	std::string name;
 	Transform transform;
 	// Maybe add parent?
 	GameObject* parent; // Possible exension
 	cs::List<GameObject*> gameObjects; // Children
-
+public:
 	// Constructors
 	GameObject() { name = "Nameless GameObject"; }
 	GameObject(std::string p_name);
@@ -23,6 +25,6 @@ struct GameObject
 	GameObject& operator+ (GameObject& other);
 	GameObject& operator- (GameObject& other);
 
-	// Core update function
-	void Update() {};
+	// Core update function - virtual
+	virtual void Update() = 0;
 };
