@@ -1,6 +1,5 @@
 #include "Core.h"
 #include "RenderCore.h"
-#include "ConstantbufferData.h"
 #include <d3dcompiler.h>
 
 RenderCore::RenderCore(shared_ptr<Window> window, const Camera& camera)
@@ -165,25 +164,35 @@ RenderCore::RenderCore(shared_ptr<Window> window, const Camera& camera)
     EXC_COMINFO(m_context->OMSetBlendState(bss.Get(), nullptr, sampleMask));
 
     CompileShaders();
-    CreateVSConstantBuffers(camera);
 }
 RenderCore::~RenderCore()
 {
 }
 
-void RenderCore::NewFrame()
+void RenderCore::NewFrame(ConstantBuffers cData)
 {
     m_context->ClearDepthStencilView(m_dsDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 
     EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
     m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get());
 
-    //m_context->DrawIndexed();
+    // Constant buffers
+    m_context->VSSetConstantBuffers(0, 1, cData.vertexShaderCBuffer.GetAddressOf());
 }
 
 void RenderCore::EndFrame()
 {
     EXC_COMCHECK(m_swapChain->Present(0u, 0u));
+}
+
+ID3D11Device* RenderCore::GetDeviceP()
+{
+    return m_device.Get();
+}
+
+ID3D11Device* const* RenderCore::GetDevicePP()
+{
+    return m_device.GetAddressOf();
 }
 
 void RenderCore::BindGPipeline(ID3D11Buffer* const* vertexBufferPP, ID3D11Buffer* indexBufferP, const UINT& stride, const UINT& offset, PIPELINE_TYPE flag)
@@ -193,10 +202,6 @@ void RenderCore::BindGPipeline(ID3D11Buffer* const* vertexBufferPP, ID3D11Buffer
     // Input Assembly
     m_context->IASetVertexBuffers(0, 1, vertexBufferPP, &stride, &offset);
     m_context->IASetIndexBuffer(indexBufferP, DXGI_FORMAT_R32_UINT, 0);
-
-    // Vertex Shader
-    m_context->VSSetConstantBuffers(0, 1, m_vertexShaderCBuffer.GetAddressOf());
-
 
     // Specialised binds
     switch (flag)
@@ -261,35 +266,5 @@ void RenderCore::CompileShaders()
         vShaderInput, static_cast<UINT>(sizeof(vShaderInput) / sizeof(*vShaderInput)),
         shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(),
         m_shaders.inputLayout.GetAddressOf()
-    ));
-}
-void RenderCore::CreateVSConstantBuffers(const Camera& camera)
-{
-    D3D11_BUFFER_DESC Desc   = {};
-    Desc.Usage               = D3D11_USAGE_DYNAMIC;
-    Desc.BindFlags           = D3D11_BIND_CONSTANT_BUFFER;
-    Desc.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
-    Desc.ByteWidth           = sizeof( CB::VSData );
-    Desc.StructureByteStride = 0;
-    Desc.MiscFlags           = 0;
-
-
-    // Create the initial data for the cbuffer
-    CB::VSData data = {
-        camera.GetWorldMatrix(),
-        camera.GetViewMatrix(),
-        camera.GetProjectionMatrix()
-    };
-
-
-    D3D11_SUBRESOURCE_DATA subData = {};
-    subData.pSysMem          = &data;
-    subData.SysMemPitch      = 0;
-    subData.SysMemSlicePitch = 0;
-
-    EXC_COMCHECK(m_device->CreateBuffer(
-        &Desc,
-        &subData,
-        m_vertexShaderCBuffer.GetAddressOf()
     ));
 }

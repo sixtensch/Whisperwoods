@@ -2,6 +2,8 @@
 
 #include "Window.h"
 #include "Camera.h"
+#include "ConstantbufferData.h"
+
 
 enum PIPELINE_TYPE
 {
@@ -31,16 +33,19 @@ public:
 	RenderCore(shared_ptr<Window> window, const Camera& camera);
 	~RenderCore();
 
-	void NewFrame();
+	void NewFrame(ConstantBuffers cData);
 
 	void EndFrame();
 
+
+	ID3D11Device* GetDeviceP();
+	ID3D11Device* const* GetDevicePP();
+
+
 	void BindGPipeline(ID3D11Buffer* const* vertexBufferPP, ID3D11Buffer* indexBufferP, const UINT& stride, const UINT& offset, PIPELINE_TYPE flag);
-	// TODO: add functions for the handler to modify the data in the constant buffers
 
 private:
 	void CompileShaders();
-	void CreateVSConstantBuffers(const Camera& camera);
 
 	// Helper functions for the binder
 	void BindBlinnPhong();
@@ -55,7 +60,6 @@ private:
 
 	// Shaders
 	ShaderData m_shaders;
-	ComPtr<ID3D11Buffer> m_vertexShaderCBuffer; // Should this be moved to the handler?
 
 
 	// Back buffer

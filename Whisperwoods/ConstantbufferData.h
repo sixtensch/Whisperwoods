@@ -16,3 +16,8 @@ namespace CB
 	};
 	// etc
 }
+
+struct ConstantBuffers
+{
+	ComPtr<ID3D11Buffer> vertexShaderCBuffer;
+};
