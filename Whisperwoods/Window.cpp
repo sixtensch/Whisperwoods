@@ -5,9 +5,6 @@
 
 //Window* Window::s_window = nullptr;
 
-
-//LPARAM WndProc( HWND window, UINT message, WPARAM wParam, LPARAM lParam )
-
 LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static Input& inputRef = Input::Get();
@@ -19,14 +16,14 @@ LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam
 		PostQuitMessage(0);
 		return 0;
 
-	case WM_ACTIVATEAPP:
+	case WM_ACTIVATEAPP: // This activates at destruct
 	{
 		inputRef.ProcessKeyboardMessage(message, wParam, lParam);
 		inputRef.ProcessMouseMessage(message, wParam, lParam);
 	}
 	break;
 
-	case WM_ACTIVATE:
+	case WM_ACTIVATE: // This activates at destruct
 	case WM_INPUT:
 	case WM_MOUSEMOVE:
 	case WM_LBUTTONDOWN:
