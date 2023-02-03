@@ -178,13 +178,50 @@ void RenderCore::NewFrame()
     EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
     m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get());
 
-    m_context->VSSetShader( m_shaders.vertexShader.Get(), nullptr, 0);
-    m_context->PSSetShader( m_shaders.pixelShader.Get(), nullptr, 0 );
+    //m_context->DrawIndexed();
 }
 
 void RenderCore::EndFrame()
 {
     EXC_COMCHECK(m_swapChain->Present(0u, 0u));
+}
+
+void RenderCore::BindGPipeline(ID3D11Buffer* const* vertexBufferPP, ID3D11Buffer* indexBufferP, const UINT& stride, const UINT& offset, PIPELINE_TYPE flag)
+{
+    // General binds all pipelines will use
+    
+    // Input Assembly
+    m_context->IASetVertexBuffers(0, 1, vertexBufferPP, &stride, &offset);
+    m_context->IASetIndexBuffer(indexBufferP, DXGI_FORMAT_R32_UINT, 0);
+
+    // Vertex Shader
+    m_context->VSSetConstantBuffers(0, 1, m_vertexShaderCBuffer.GetAddressOf());
+
+
+    // Specialised binds
+    switch (flag)
+    {
+        case BLINN_PHONG:
+            BindBlinnPhong();
+            break;
+
+
+        default:
+            LOG_CRITICAL("Incorrect flag, could not bind any new pipeline");
+            break;
+    }
+}
+void RenderCore::BindBlinnPhong()
+{
+    // Input Assembly
+    m_context->IASetInputLayout(m_shaders.inputLayout.Get());
+    m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    // Vertex Shader
+    m_context->VSSetShader(m_shaders.vertexShader.Get(), nullptr, 0);
+
+    // Pixel Shader
+    m_context->PSSetShader(m_shaders.pixelShader.Get(), nullptr, 0);
 }
 
 
@@ -254,7 +291,7 @@ HRESULT RenderCore::CreateVSConstantBuffers(const Camera& camera)
     hr = m_device->CreateBuffer(
         &Desc,
         &subData,
-        m_vsCBuffer.GetAddressOf()
+        m_vertexShaderCBuffer.GetAddressOf()
     );
     return hr;
 }

@@ -18,5 +18,10 @@ private:
 	unique_ptr<RenderCore> m_renderCore;
 
 	Camera mainCamera;
+
+
+	// Mesh Data
+	ComPtr<ID3D11Buffer> m_vertexBuffer;
+	ComPtr<ID3D11Buffer> m_indexBuffer;
 };
 
