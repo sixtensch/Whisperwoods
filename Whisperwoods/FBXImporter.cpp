@@ -81,6 +81,7 @@ aiMatrix4x4 ConvertToAssImp(DirectX::XMFLOAT4X4* mat)
 	return returnMat;
 }
 
+
 bool FBXImporter::ImportFBXStatic(std::string filePath, unique_ptr<MeshStatic>& outMesh)
 {
 	Assimp::Importer importer;
