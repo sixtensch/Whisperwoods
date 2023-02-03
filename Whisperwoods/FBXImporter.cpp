@@ -7,6 +7,7 @@
 #include "FBXImporter.h"
 #include "Vertex.h"
 #include "Mesh.h"
+#include "Armature.h"
 
 DirectX::XMFLOAT4X4 ConvertToDirectX(aiMatrix4x4* mat)
 {
@@ -33,7 +34,6 @@ DirectX::XMFLOAT4X4 ConvertToDirectX(aiMatrix4x4* mat)
 
 	return returnMat;
 }
-
 DirectX::XMFLOAT4X4 ConvertToDirectX2(aiMatrix4x4* mat)
 {
 	DirectX::XMFLOAT4X4 returnMat;
@@ -59,7 +59,6 @@ DirectX::XMFLOAT4X4 ConvertToDirectX2(aiMatrix4x4* mat)
 
 	return returnMat;
 }
-
 aiMatrix4x4 ConvertToAssImp(DirectX::XMFLOAT4X4* mat)
 {
 	aiMatrix4x4 returnMat;
@@ -82,8 +81,7 @@ aiMatrix4x4 ConvertToAssImp(DirectX::XMFLOAT4X4* mat)
 	return returnMat;
 }
 
-
-void FBXImporter::ImportFBXStatic(std::string filePath, MeshStatic* outMesh)
+bool FBXImporter::ImportFBXStatic(std::string filePath, unique_ptr<MeshStatic>& outMesh)
 {
 	Assimp::Importer importer;
 	LOG_TRACE("Starting FBX Import for file:");
@@ -98,7 +96,7 @@ void FBXImporter::ImportFBXStatic(std::string filePath, MeshStatic* outMesh)
 	{
 		LOG_ERROR("THERE WAS AN FBX IMPORT ERROR:");
 		LOG_TRACE(importer.GetErrorString());
-		return;
+		return false;
 	}
 	std::string answerString = (scene->HasMeshes()) ? "True" : "False";
 	std::string traceString1 = "ASSIMP: opened file: "  + filePath + ", has meshes? - " + answerString;
@@ -109,7 +107,7 @@ void FBXImporter::ImportFBXStatic(std::string filePath, MeshStatic* outMesh)
 	if (!scene->HasMeshes())
 	{
 		LOG_WARN("proposed .fbx does not contain any meshes.");
-		return;
+		return false;
 	}
 
 	int indexCounter = 0;
@@ -121,6 +119,9 @@ void FBXImporter::ImportFBXStatic(std::string filePath, MeshStatic* outMesh)
 		// In case of empty, continue
 		if (!newMesh->HasFaces())
 			continue;
+		
+		std::string traceString3 = "Processing sub-mesh: " + std::string(newMesh->mName.C_Str());
+		LOG_TRACE(traceString3.c_str());
 
 		int startIndex = indexCounter;
 		outMesh->startIndicies.Add(startIndex);
@@ -150,10 +151,44 @@ void FBXImporter::ImportFBXStatic(std::string filePath, MeshStatic* outMesh)
 		subMeshCounter++;
 	}
 
-
-	//return Mesh();
+	return true;
 }
 
-void FBXImporter::ImportFBXRigged(std::string filePath, MeshRigged* outMesh)
+bool FBXImporter::ImportFBXRigged(std::string filePath, unique_ptr<MeshRigged>& outMesh)
 {
+	Assimp::Importer importer;
+	LOG_TRACE("Starting FBX Import for file:");
+	LOG_TRACE(filePath.c_str());
+	const aiScene* scene = importer.ReadFile(filePath,
+		/*aiProcess_MakeLeftHanded |
+		aiProcess_CalcTangentSpace |
+		aiProcess_Triangulate |
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_SortByPType*/aiProcess_CalcTangentSpace | aiProcess_Triangulate);
+	if (scene == nullptr)
+	{
+		LOG_ERROR("THERE WAS AN FBX IMPORT ERROR:");
+		LOG_TRACE(importer.GetErrorString());
+		return false;
+	}
+	std::string answerString = (scene->HasMeshes()) ? "True" : "False";
+	std::string traceString1 = "ASSIMP: opened file: " + filePath + ", has meshes? - " + answerString;
+	std::string traceString2 = "Number of meshes: " + scene->mNumMeshes;
+	LOG_TRACE(traceString1.c_str());
+	LOG_TRACE(traceString2.c_str());
+
+	if (!scene->HasMeshes())
+	{
+		LOG_WARN("proposed .fbx does not contain any meshes.");
+		return false;
+	}
+
+	int indexCounter = 0;
+	int subMeshCounter = 0;
+
+
+	// TODO: Parse model, armature and animations (possibly divide into separate functions)
+
+
+	return true;
 }

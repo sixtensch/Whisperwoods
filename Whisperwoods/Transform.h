@@ -3,18 +3,19 @@
 
 struct Transform
 {
+public:
 	// Data
 	Vec3 position;
 	Quaternion rotation;
 	Vec3 scale;
 	Mat4 localMatrix;
 	Mat4 worldMatrix;
-	
+
 	// Parent / Child stuff.
 	Transform* parent;
 	cs::List<Transform*> transforms; // children, TODO: Maybe remove this as it might be redundant.
 
-
+public:
 	// Default constructor
 	Transform();
 	Transform(Vec3 p_position, Quaternion p_rotation, Vec3 p_scale);

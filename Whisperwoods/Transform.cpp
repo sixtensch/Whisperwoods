@@ -3,6 +3,7 @@
 
 Transform::Transform()
 {
+	rotation = Quaternion::GetAxis({ 0,1,0 }, DirectX::XM_PI);
 	parent = nullptr;
 }
 
