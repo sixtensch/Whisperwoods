@@ -3,7 +3,9 @@
 // Whisperwoods debug framework
 // See debug levels below
 
-
+#ifdef WW_DEBUG
+void RedirectIOToConsole();
+#endif
 
 enum DebugLevel
 {
