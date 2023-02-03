@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Window.h"
+#include "Camera.h"
 
 class RenderCore
 {
@@ -16,7 +17,7 @@ private:
 		ComPtr<ID3D11PixelShader>    pixelShader;
 	};
 public:
-	RenderCore(shared_ptr<Window> window);
+	RenderCore(shared_ptr<Window> window, const Camera& camera);
 	~RenderCore();
 
 	void NewFrame();
@@ -25,7 +26,7 @@ public:
 	
 private:
 	HRESULT CompileShaders();
-	HRESULT CreateVSConstantBuffer();
+	HRESULT CreateVSConstantBuffers(const Camera& camera);
 
 private:
 	shared_ptr<Window> m_window;

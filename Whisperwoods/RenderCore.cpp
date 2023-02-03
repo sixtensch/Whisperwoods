@@ -2,7 +2,7 @@
 #include "RenderCore.h"
 #include "ConstantbufferData.h"
 
-RenderCore::RenderCore(shared_ptr<Window> window)
+RenderCore::RenderCore(shared_ptr<Window> window, const Camera& camera)
 {
     m_window = window;
 
@@ -164,7 +164,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
     EXC_COMINFO(m_context->OMSetBlendState(bss.Get(), nullptr, sampleMask));
 
     EXC_COMCHECK( CompileShaders() );
-    EXC_COMCHECK( CreateVSConstantBuffer() );
+    EXC_COMCHECK( CreateVSConstantBuffers(camera) );
 }
 RenderCore::~RenderCore()
 {
@@ -192,7 +192,7 @@ HRESULT RenderCore::CompileShaders()
 {
     return E_NOTIMPL;
 }
-HRESULT RenderCore::CreateVSConstantBuffer()
+HRESULT RenderCore::CreateVSConstantBuffers(const Camera& camera)
 {
     HRESULT hr = {};
     D3D11_BUFFER_DESC Desc   = {};
@@ -206,7 +206,9 @@ HRESULT RenderCore::CreateVSConstantBuffer()
 
     // Create the initial data for the cbuffer
     CB::VSData data = {
-
+        // Identity
+        // View
+        camera.GetProjectionMatrix()
     };
 
 
