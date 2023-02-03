@@ -26,7 +26,7 @@ int WINAPI WinMain(
 {
 #if WW_DEBUG
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	RedirectIOToConsole();
+	RedirectIOToConsole(); // this opens console where things like std::cout are written to
 #endif
 
 #if CATCH_PROGRAM

@@ -695,7 +695,7 @@ int Debug::DebugStreambuf::sync()
 
 #ifdef WW_DEBUG
 
-void RedirectIOToConsole()
+void RedirectIOToConsole() //only happens during debug, will not be shown in release product
 {
 	AllocConsole();
 	HANDLE stdHandle;
