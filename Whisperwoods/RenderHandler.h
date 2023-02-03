@@ -2,6 +2,7 @@
 
 #include "RenderCore.h"
 #include "Window.h"
+#include "Camera.h"
 
 class RenderHandler sealed
 {
@@ -15,5 +16,7 @@ public:
 
 private:
 	unique_ptr<RenderCore> m_renderCore;
+
+	Camera mainCamera;
 };
 
