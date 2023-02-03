@@ -5,7 +5,7 @@
 class FBXImporter
 {
 public:
-	static void ImportFBXStatic(std::string filePath, MeshStatic* outMesh);
-	static void ImportFBXRigged(std::string filePath, MeshRigged* outMesh);
+	static bool ImportFBXStatic(std::string filePath, unique_ptr<MeshStatic>& outMesh);
+	static bool ImportFBXRigged(std::string filePath, unique_ptr<MeshRigged>& outMesh);
 };
 

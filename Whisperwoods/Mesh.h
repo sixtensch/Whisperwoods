@@ -6,7 +6,7 @@ struct Mesh
 {
 	// Raw verticies and indicies from the model defining the mesh and submeshes
 	cs::List<int> indicies;
-	cs::List<int> materials; // TODO:Add when material exists.
+	cs::List<int> materials; // TODO: Verify when material exists.
 	// These contain the startindex in the indexlist, the count, and materialindex for the submeshes of the mesh.
 	cs::List<int> startIndicies;
 	cs::List<int> indexCounts;

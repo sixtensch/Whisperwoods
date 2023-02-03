@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Armature.cpp" />
+    <ClCompile Include="AudioSource.cpp" />
+    <ClCompile Include="Bone.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="Core.cpp">
@@ -31,6 +34,7 @@
     <ClCompile Include="FBXImporter.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightHandler.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="RenderCore.cpp" />
@@ -44,6 +48,10 @@
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="Armature.h" />
+    <ClInclude Include="AudioSource.h" />
+    <ClInclude Include="Bone.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Constants.h" />
@@ -52,7 +60,9 @@
     <ClInclude Include="FBXImporter.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="KeyFrame.h" />
     <ClInclude Include="LightHandler.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="QuadTree.h" />
