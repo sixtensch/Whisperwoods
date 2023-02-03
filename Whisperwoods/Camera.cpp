@@ -1,6 +1,16 @@
 #include "Core.h"
 #include "Camera.h"
 
+Camera::Camera()
+{
+	this->m_transform.position = Vec3(0,0,0);
+	this->m_transform.rotation = Quaternion(0,0,0,0);
+	this->m_far = 0;
+	this->m_near = 0;
+	this->m_fov = 0;
+	this->m_ratio = 0;
+}
+
 Camera::Camera(Vec3 position, Quaternion rotation)
 {
 	this->m_transform.position = position;
