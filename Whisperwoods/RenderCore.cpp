@@ -276,8 +276,8 @@ void RenderCore::CreateVSConstantBuffers(const Camera& camera)
 
     // Create the initial data for the cbuffer
     CB::VSData data = {
-        // Identity
-        // View
+        camera.GetWorldMatrix(),
+        camera.GetViewMatrix(),
         camera.GetProjectionMatrix()
     };
 
