@@ -6,7 +6,8 @@
 #include <CHSL/Debug.h>
 #include <unordered_map>
 
-
+#include <fcntl.h>
+#include <io.h>
 
 
 
@@ -690,3 +691,21 @@ int Debug::DebugStreambuf::sync()
 {
 	return 0;
 }
+
+
+#ifdef WW_DEBUG
+
+void RedirectIOToConsole()
+{
+	AllocConsole();
+	HANDLE stdHandle;
+	int hConsole;
+	FILE* fp;
+	stdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	hConsole = _open_osfhandle((intptr_t)stdHandle, _O_TEXT);
+	fp = _fdopen(hConsole, "w");
+	freopen_s(&fp, "CONOUT$", "w", stdout);
+
+	printf("Hola! Console here, can I take your order?\n");
+}
+#endif
