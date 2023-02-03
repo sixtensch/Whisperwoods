@@ -7,6 +7,7 @@ struct Mesh
 	// Raw verticies and indicies from the model defining the mesh and submeshes
 	cs::List<int> indicies;
 	cs::List<int> materials; // TODO: Verify when material exists.
+	cs::List<std::string> materialNames;
 	// These contain the startindex in the indexlist, the count, and materialindex for the submeshes of the mesh.
 	cs::List<int> startIndicies;
 	cs::List<int> indexCounts;
@@ -34,6 +35,7 @@ struct MeshRigged : Mesh
 {
 	// Full spec verticies with rigging data.
 	cs::List<VertexRigged> verticies;
+	Armature armature;
 	// Constructor.
 	MeshRigged(cs::List<VertexRigged> p_verticies, cs::List<int> p_indicies, cs::List<int> p_startIndicies, cs::List<int> p_indexCounts, cs::List<int> p_materialIndicies) :
 		Mesh(p_indicies, p_startIndicies, p_indexCounts, p_materialIndicies),

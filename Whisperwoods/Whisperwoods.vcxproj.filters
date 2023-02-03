@@ -127,6 +127,9 @@
     <Filter Include="%2a Code\%2a Core\%2a Model Importing\VertexGroup">
       <UniqueIdentifier>{2a24318d-516c-442f-bd54-20c28aa81a1d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Animation\Animator">
+      <UniqueIdentifier>{5fac8100-97fc-47a5-9ebf-46e6dffb041b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -192,6 +195,9 @@
     </ClCompile>
     <ClCompile Include="Window.cpp">
       <Filter>%2a Code\%2a Rendering\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Animator.cpp">
+      <Filter>%2a Code\%2a Core\%2a Animation\Animator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -274,6 +280,9 @@
     </ClInclude>
     <ClInclude Include="VertexGroup.h">
       <Filter>%2a Code\%2a Core\%2a Model Importing\VertexGroup</Filter>
+    </ClInclude>
+    <ClInclude Include="Animator.h">
+      <Filter>%2a Code\%2a Core\%2a Animation\Animator</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
