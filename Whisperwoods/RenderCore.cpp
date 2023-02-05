@@ -216,6 +216,12 @@ void RenderCore::BindGPipeline(ID3D11Buffer* const* vertexBufferPP, ID3D11Buffer
             break;
     }
 }
+void RenderCore::DrawIndexed(int indexCount, int startIndexPos, int startVertexPos)
+{
+    m_context->DrawIndexed(indexCount, startIndexPos, startVertexPos);
+
+}
+
 void RenderCore::BindBlinnPhong()
 {
     // Input Assembly

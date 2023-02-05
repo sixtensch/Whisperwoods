@@ -43,6 +43,7 @@ public:
 
 
 	void BindGPipeline(ID3D11Buffer* const* vertexBufferPP, ID3D11Buffer* indexBufferP, const UINT& stride, const UINT& offset, PIPELINE_TYPE flag);
+	void DrawIndexed(int indexCount, int startIndexPos, int startVertexPos);
 
 private:
 	void CompileShaders();
