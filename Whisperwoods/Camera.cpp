@@ -1,6 +1,16 @@
 #include "Core.h"
 #include "Camera.h"
 
+Camera::Camera()
+{
+	this->m_transform.position = Vec3(0,0,0);
+	this->m_transform.rotation = Quaternion(0,0,0,0);
+	this->m_far = 0;
+	this->m_near = 0;
+	this->m_fov = 0;
+	this->m_ratio = 0;
+}
+
 Camera::Camera(Vec3 position, Quaternion rotation)
 {
 	this->m_transform.position = position;
@@ -19,7 +29,8 @@ void Camera::Update()
 {
 	Mat4 viewMat = cs::Mat::translation3(-m_transform.position.x, -m_transform.position.y, -m_transform.position.z);
 	viewMat = viewMat * m_transform.rotation.Matrix(); //TODO: is this correct?
-
+	m_viewMatrix = viewMat;
+	m_worldMatrix = cs::Mat::translation3(m_transform.position.x, m_transform.position.y, m_transform.position.z);
 	// write view to vertexBuffer
 }
 
@@ -51,9 +62,22 @@ void Camera::SetRotation(Quaternion rotation)
 	this->m_transform.rotation = rotation;
 }
 
+const Vec3 Camera::GetPosition() const
+{
+	return m_transform.position;
+}
+
+const Mat4 Camera::GetWorldMatrix() const
+{
+	return m_worldMatrix;
+}
+
+const Mat4 Camera::GetViewMatrix() const
+{
+	return m_viewMatrix;
+}
+
 const Mat4 Camera::GetProjectionMatrix() const
 {
 	return m_projection;
 }
-
-

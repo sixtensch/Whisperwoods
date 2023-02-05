@@ -6,7 +6,8 @@
 #include <CHSL/Debug.h>
 #include <unordered_map>
 
-
+#include <fcntl.h>
+#include <io.h>
 
 
 
@@ -252,15 +253,15 @@ Debug& Debug::Get()
 
 void Debug::CaptureStreams(bool cout, bool cerr, bool clog)
 {
-	if (cout)
-	{
-		CaptureStream(&std::cout, DebugLevelDebug);
-	}
+	//if (cout)
+	//{
+	//	CaptureStream(&std::cout, DebugLevelDebug);
+	//}
 
-	if (cerr)
-	{
-		CaptureStream(&std::cerr, DebugLevelDebug);
-	}
+	//if (cerr)
+	//{
+	//	CaptureStream(&std::cerr, DebugLevelDebug);
+	//}
 
 	if (clog)
 	{
@@ -423,6 +424,9 @@ void Debug::PPushMessage(DebugLevel level, const char* format, va_list args)
 
 	m_items.Add(DebugItem{ level, std::string(m_tempBuffer, (int)(end - m_tempBuffer)) });
 
+	std::cout << m_items.Back().text.c_str();
+	OutputDebugStringA(m_items.Back().text.c_str());
+
 	if (level == DebugLevelFrameTrace)
 	{
 		m_frameTraceIndices.Add(m_items.Size() - 1);
@@ -439,6 +443,7 @@ void Debug::PPushMessage(const char* message, DebugLevel level)
 
 	m_items.Add(DebugItem{ level, std::string(message) });
 
+	std::cout << message;
 	OutputDebugStringA(message);
 
 	if (level == DebugLevelFrameTrace)
@@ -690,3 +695,19 @@ int Debug::DebugStreambuf::sync()
 {
 	return 0;
 }
+
+
+#ifdef WW_DEBUG
+
+void RedirectIOToConsole() //only happens during debug, will not be shown in release product
+{
+	AllocConsole();
+	HANDLE stdHandle;
+	int hConsole;
+	FILE* fp;
+	stdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+	hConsole = _open_osfhandle((intptr_t)stdHandle, _O_TEXT);
+	fp = _fdopen(hConsole, "w");
+	freopen_s(&fp, "CONOUT$", "w", stdout);
+}
+#endif
