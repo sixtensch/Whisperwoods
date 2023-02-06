@@ -1,4 +1,6 @@
 #pragma once
+#include "Light.h"
+
 enum LightType
 {
 	LIGHT_TYPE_DIRECTIONAL = 0,
@@ -7,12 +9,12 @@ enum LightType
 };
 constexpr int START_MAX_LIGHTS = 40;
 
-class PointLight
-{};
-class DirectionalLight
-{};
-class SpotLight
-{};
+//class PointLight
+//{};
+//class DirectionalLight
+//{};
+//class SpotLight
+//{};
 
 class LightHandler sealed
 {
@@ -26,9 +28,9 @@ public:
 	ID3D11Buffer* const* GetStructuredBufferPP( LightType type );
 
 	
-	void SetDirectionalLights( ID3D11DeviceContext* immediateContext, std::vector<DirectionalLight> data );
-	void SetSpotLights( ID3D11DeviceContext* immediateContext, std::vector<SpotLight> data );
-	void SetPointLights( ID3D11DeviceContext* immediateContext, std::vector<PointLight> data );
+	void SetDirectionalLights( ID3D11DeviceContext* immediateContext, std::vector<DirectionalLight::DirectionalLightBufferData> data );
+	void SetSpotLights( ID3D11DeviceContext* immediateContext, std::vector<SpotLight::SpotLightBufferData> data );
+	void SetPointLights( ID3D11DeviceContext* immediateContext, std::vector<PointLight::PointLightBufferData> data );
 
 	bool ReallocLights( ID3D11Device* device, LightType type );
 

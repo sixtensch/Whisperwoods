@@ -45,7 +45,7 @@ ID3D11Buffer* const* LightHandler::GetStructuredBufferPP( LightType type )
 	return nullptr;
 }
 
-void LightHandler::SetDirectionalLights(ID3D11DeviceContext* immediateContext, std::vector<DirectionalLight> data)
+void LightHandler::SetDirectionalLights(ID3D11DeviceContext* immediateContext, std::vector<DirectionalLight::DirectionalLightBufferData> data)
 {
 	HRESULT hr = {};
 
@@ -64,7 +64,7 @@ void LightHandler::SetDirectionalLights(ID3D11DeviceContext* immediateContext, s
 	);
 	immediateContext->Unmap( m_dirSBuffer.Get(), 0 );
 }
-void LightHandler::SetSpotLights( ID3D11DeviceContext* immediateContext, std::vector<SpotLight> data )
+void LightHandler::SetSpotLights( ID3D11DeviceContext* immediateContext, std::vector<SpotLight::SpotLightBufferData> data )
 {
 	HRESULT hr = {};
 
@@ -83,7 +83,7 @@ void LightHandler::SetSpotLights( ID3D11DeviceContext* immediateContext, std::ve
 	);
 	immediateContext->Unmap( m_spotSBuffer.Get(), 0 );
 }
-void LightHandler::SetPointLights( ID3D11DeviceContext* immediateContext, std::vector<PointLight> data )
+void LightHandler::SetPointLights( ID3D11DeviceContext* immediateContext, std::vector<PointLight::PointLightBufferData> data )
 {
 	HRESULT hr = {};
 
