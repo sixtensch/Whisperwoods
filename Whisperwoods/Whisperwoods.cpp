@@ -1,9 +1,12 @@
-#include "core.h"
+#include "Core.h"
 #include "Whisperwoods.h"
 
 #include "Game.h"
 #include "Input.h"
 #include "AudioSource.h"
+
+// TODO: Dudd include. Remove later.
+//#include "TextureResource.h"
 
 Whisperwoods::Whisperwoods(HINSTANCE instance)
 {
@@ -39,6 +42,9 @@ void Whisperwoods::Run()
 	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, "Assets/Duck.mp3");
 	testSource.Play();
 
+	// TODO: Dudd code. Remove later.
+	//const Resources& resourceRef = m_resources->Get();
+	//const TextureResource* textResourcePtr = (TextureResource*)resourceRef.GetResource(TEXTURE, "TestPath/Test");
 
 	int frames = 0;
 	for (bool running = true; running; frames++)

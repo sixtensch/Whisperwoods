@@ -87,12 +87,12 @@ BasicResource* Resources::AllocateResource(const RESOURCE_TYPES resourceType, co
 	}
 
 	auto& resourceMap = m_resourceMaps[resourceType]; 
-	auto returnIt = resourceMap.insert({ subPath, std::move(resource) });
+	const auto& returnIt = resourceMap.insert({ subPath, std::move(resource) });
 
 	bool isSuccessful = returnIt.second;
 	const auto& insertionIt = returnIt.first;
 
-	if (isSuccessful == false)
+	if (!isSuccessful)
 	{
 		std::string blockerName = insertionIt->second.get()->resourceName;
 		std::string blockerPath = insertionIt->first;
