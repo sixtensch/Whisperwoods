@@ -12,6 +12,10 @@ struct BoneWeightPair
 	{
 		return (weight < rhs.weight);
 	}
+	bool operator > ( const BoneWeightPair& rhs )
+	{
+		return (weight > rhs.weight);
+	}
 };
 
 
@@ -29,13 +33,14 @@ struct Armature
 	Armature();
 	~Armature();
 
-	void InitializeMatrix(int numB);
+	//void InitializeMatrix(int numB);
 
 	void InitializeGPUResources(ComPtr<ID3D11Device>& device);
 	
 	void UpdateBoneMatrixBuffer(ComPtr<ID3D11DeviceContext>& immediateContext);
 	
-	static void CalculateVertexBoneInfo(cs::List<VertexRigged>* verticies, cs::List<VertexGroup>* vertexGroups);
+	//IS DONE IN THE IMPORTER NOW.
+	//static void CalculateVertexBoneInfo(cs::List<VertexRigged>* verticies, cs::List<VertexGroup>* vertexGroups);
 
 	void ResolveBoneParentIndicies();
 	

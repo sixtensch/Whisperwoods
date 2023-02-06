@@ -43,6 +43,15 @@ void Whisperwoods::Run()
 	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, "Assets/Duck.mp3");
 	testSource.Play();
 
+
+	FBXImporter importer;
+
+	ModelRiggedResource riggedModel;
+
+	importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &riggedModel );
+
+
+
 	// Move this into a model print function
 	/*for (size_t i = 0; i < modelPointer->startIndicies.Size(); i++)
 	{

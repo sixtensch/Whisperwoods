@@ -5,7 +5,7 @@
 Armature::Armature()
 {
 	numBones = -1;
-	initialized = false;
+	//initialized = false;
 }
 
 Armature::~Armature()
@@ -13,15 +13,15 @@ Armature::~Armature()
 	// nothing
 }
 
-void Armature::InitializeMatrix(int numB)
-{
-	for (int i = 0; i < numB; i++)
-	{
-		boneMatricies.Add(Mat4());
-	}
-	numBones = numB;
-	initialized = true;
-}
+//void Armature::InitializeMatrix(int numB)
+//{
+//	for (int i = 0; i < numB; i++)
+//	{
+//		boneMatricies.Add(Mat4());
+//	}
+//	numBones = numB;
+//	//initialized = true;
+//}
 
 void Armature::InitializeGPUResources(ComPtr<ID3D11Device>& device)
 {
@@ -76,6 +76,7 @@ void Armature::UpdateBoneMatrixBuffer(ComPtr<ID3D11DeviceContext>& immediateCont
 	//delete[] boneMatricies;
 }
 
+/* IS DONE IN THE IMPORTER NOW.
 void Armature::CalculateVertexBoneInfo(cs::List<VertexRigged>* verticies, cs::List<VertexGroup>* vertexGroups)
 {
 	std::cout << "Calculating Vertex Bone Info...";
@@ -130,6 +131,7 @@ void Armature::CalculateVertexBoneInfo(cs::List<VertexRigged>* verticies, cs::Li
 	}
 	std::cout << "done!" << std::endl;
 }
+*/
 
 void Armature::ResolveBoneParentIndicies()
 {

@@ -7,6 +7,8 @@
 void RedirectIOToConsole();
 #endif
 
+#include <mutex>
+
 enum DebugLevel
 {
 	// Most verbose. Information sometimes useful, and additionally expected to spam the console in real time.

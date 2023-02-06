@@ -64,7 +64,7 @@ struct ModelRiggedResource : public ModelResource
 
 	// Armature and vertex groups, bones and the verticies
 	Armature armature;
-	cs::List<VertexGroup> vertexGroups;
+	//cs::List<VertexGroup> vertexGroups;
 
 	// Vertex buffer function (rigged (and textured) verticies)
 	void CreateVertexBuffer(ID3D11Device* device);
