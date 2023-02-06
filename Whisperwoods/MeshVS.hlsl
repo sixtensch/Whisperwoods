@@ -1,8 +1,10 @@
 struct VSInput
 {
-    float3 Position : POSITION0;
-    float3 normal   : NORMAL0;
-    float2 UV       : TEXCOORD0;
+    float3 position : POSITION;
+    float3 normal   : NORMAL;
+    float3 tangent   : TANGENT;
+    float3 bitangent   : BITANGENT;
+    float4 UV       : TEXCOORD;
 };
 struct VSOutput
 {
@@ -26,8 +28,8 @@ VSOutput main(VSInput input)
     matrix wvMatrix = mul(WorldMatrix, ViewMatrix);
     matrix wvpMatrix = mul(wvMatrix, ProjectionMatrix);
     
-    output.wsPosition = mul(float4(input.Position, 1.0f), wvMatrix);
-    output.outPosition = mul(float4(input.Position, 1.0f), wvpMatrix);
+    output.wsPosition = mul(float4(input.position, 1.0f), wvMatrix);
+    output.outPosition = mul(float4(input.position, 1.0f), wvpMatrix);
     
     output.outNormal = input.normal;
     output.outUV = input.UV;

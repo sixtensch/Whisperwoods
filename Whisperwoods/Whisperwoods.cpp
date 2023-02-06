@@ -4,6 +4,7 @@
 #include "Game.h"
 #include "Input.h"
 #include "AudioSource.h"
+#include "FBXImporter.h"
 
 Whisperwoods::Whisperwoods(HINSTANCE instance)
 {
@@ -39,11 +40,38 @@ void Whisperwoods::Run()
 	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, "Assets/Duck.mp3");
 	testSource.Play();
 
+	FBXImporter importer;
+	
+	//unique_ptr<ModelStaticResource> testModel(new ModelStaticResource);
 
+	importer.ImportFBXStatic("Assets/ShadiiTest.fbx", m_renderer.get()->GetHandler().get()->staticModel);
+	ModelStaticResource* modelPointer = m_renderer.get()->GetHandler().get()->staticModel.get();
+	//modelPointer.
 
+	/*for (size_t i = 0; i < modelPointer->startIndicies.Size(); i++)
+	{
+		LOG_TRACE("SubMeshMaterial[%d]: %s", i, modelPointer->materialNames[i].c_str());
+		for (size_t j = 0; j < modelPointer->indexCounts[i]; j++)
+		{
+			int indexIndex = modelPointer->startIndicies[i] + j;
+			int indicie = modelPointer->indicies[indexIndex];
+			Vec3 pos = modelPointer->verticies[indicie].pos;
+			Vec3 nor = modelPointer->verticies[indicie].nor;
+			LOG_TRACE("Index[%d]: %d Vertex[%d]: pos: (%.2f, %.2f, %.2f) nor: (%.2f, %.2f, %.2f)",
+				j,
+				indicie,
+				indicie,
+				pos.x, pos.y, pos.z,
+				nor.x, nor.y, nor.z);
+		}
+	}*/
 
+	//Transform modelTransform({ 0,0,0 }, { 0,0,0 }, { 1,1,1 });
+	m_renderer.get()->GetHandler().get()->staticModel.get()->CreateVertexBuffer(m_renderer.get()->GetHandler()->GetRenderCore().get()->GetDeviceP());
 
-
+	//m_renderer.get()->GetHandler().get()->IndexBufferTest = testModel.get()->indexBuffer;
+	//m_renderer.get()->GetHandler().get()->VertexBufferTest = testModel.get()->vertexBuffer;
+	//m_renderer.get()->GetHandler().get()->indexDataSize = testModel.get()->indicies.Size();
 
 	int frames = 0;
 	for (bool running = true; running; frames++)

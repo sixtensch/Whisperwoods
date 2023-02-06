@@ -7,8 +7,7 @@ bool VertexTextured::operator==(const VertexTextured& other)
         (this->nor == other.nor) &&
         (this->tan == other.tan) &&
         (this->bitan == other.bitan) &&
-        (this->uv == other.uv) &&
-        (this->padding == other.padding))
+        (this->uv == other.uv))
     {
         return true;
     }
@@ -22,7 +21,6 @@ bool VertexRigged::operator==(const VertexRigged& other)
         (this->tan == other.tan) &&
         (this->bitan == other.bitan) &&
         (this->uv == other.uv) &&
-        (this->padding == other.padding) &&
         (this->bones == other.bones) &&
         (this->weights == other.weights))
     {

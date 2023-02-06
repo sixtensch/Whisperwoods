@@ -4,6 +4,7 @@
 #include "Window.h"
 #include "Camera.h"
 #include "ConstantbufferData.h"
+#include "ModelResource.h"
 
 class RenderHandler sealed
 {
@@ -15,6 +16,9 @@ public:
 
 	void Draw();
 
+	unique_ptr<ModelStaticResource> staticModel;
+	//int indexDataSize;
+	
 private:
 	void InitVSConstantBuffers();
 
@@ -25,5 +29,8 @@ private:
 
 
 	ConstantBuffers cbufferData;
+
+public: 
+	unique_ptr<RenderCore>& GetRenderCore() { return m_renderCore; };
 };
 

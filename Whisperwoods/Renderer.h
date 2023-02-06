@@ -24,5 +24,8 @@ private:
 
 	shared_ptr<Window> m_window;
 	unique_ptr<RenderHandler> m_renderHandler;
+
+public:
+	unique_ptr<RenderHandler>& GetHandler() { return m_renderHandler; }
 };
 

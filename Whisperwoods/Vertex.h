@@ -17,14 +17,11 @@ struct Vertex
 
 struct VertexTextured : Vertex
 {
-	Vec2 uv;
-	Vec2 padding;
+	Vec4 uv;
 	VertexTextured() = default;
 	VertexTextured(Vec3 p_pos, Vec3 p_nor, Vec3 p_tan, Vec3 p_bitan, Vec2 p_uv, Vec2 p_pad) :
 		Vertex(p_pos, p_nor, p_tan, p_bitan),
-		uv(p_uv),
-		padding(p_pad) {};
-
+		uv(p_uv) {};
 	bool operator==(const VertexTextured& other);
 };
 

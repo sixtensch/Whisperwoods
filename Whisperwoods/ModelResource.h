@@ -9,7 +9,6 @@ struct ModelResource
 	// Raw verticies and indicies from the model defining the mesh and submeshes
 	cs::List<int> indicies;
 	cs::List<int> materials; // TODO: Verify when material exists.
-	cs::List<std::string> materialNames;
 
 	// These contain the startindex in the indexlist, the count, and materialindex for the submeshes of the mesh.
 	cs::List<int> startIndicies;
@@ -22,7 +21,7 @@ struct ModelResource
 	ComPtr<ID3D11Buffer> indexBuffer;
 
 	// Index buffer function
-	void CreateIndexBuffer(ComPtr<ID3D11Device>& device);
+	void CreateIndexBuffer(ID3D11Device* device);
 
 	// Constructor.
 	ModelResource(cs::List<int> p_indicies, cs::List<int> p_startIndicies, cs::List<int> p_indexCounts, cs::List<int> p_materialIndicies) :
@@ -30,6 +29,8 @@ struct ModelResource
 		startIndicies(p_startIndicies),
 		indexCounts(p_indexCounts),
 		materialIndicies(p_materialIndicies) {};
+
+	ModelResource() = default;
 };
 
 struct ModelStaticResource : ModelResource
@@ -38,12 +39,14 @@ struct ModelStaticResource : ModelResource
 	cs::List<VertexTextured> verticies;
 
 	// Vertex buffer function (unrigged (only textured) verticies)
-	void CreateVertexBuffer(ComPtr<ID3D11Device>& device);
+	void CreateVertexBuffer(ID3D11Device* device);
 
 	// Constructor.
 	ModelStaticResource(cs::List<VertexTextured> p_verticies, cs::List<int> p_indicies, cs::List<int> p_startIndicies, cs::List<int> p_indexCounts, cs::List<int> p_materialIndicies) :
 		ModelResource(p_indicies, p_startIndicies,  p_indexCounts, p_materialIndicies),
 		verticies(p_verticies) {};
+
+	ModelStaticResource() = default;
 };
 
 
@@ -54,10 +57,12 @@ struct ModelRiggedResource : ModelResource
 	Armature armature;
 
 	// Vertex buffer function (rigged (and textured) verticies)
-	void CreateVertexBuffer(ComPtr<ID3D11Device>& device);
+	void CreateVertexBuffer(ID3D11Device* device);
 
 	// Constructor.
 	ModelRiggedResource(cs::List<VertexRigged> p_verticies, cs::List<int> p_indicies, cs::List<int> p_startIndicies, cs::List<int> p_indexCounts, cs::List<int> p_materialIndicies) :
 		ModelResource(p_indicies, p_startIndicies, p_indexCounts, p_materialIndicies),
 		verticies(p_verticies) {};
+
+	ModelRiggedResource() = default;
 };
