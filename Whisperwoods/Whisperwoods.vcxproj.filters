@@ -127,6 +127,9 @@
     <Filter Include="%2a Code\%2a Core\%2a Model Importing\VertexGroup">
       <UniqueIdentifier>{2a24318d-516c-442f-bd54-20c28aa81a1d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="%2a Code\%2a Core\Resources\Resource Structures">
+      <UniqueIdentifier>{9e353fe1-67d5-4231-afb6-8bbf59e9b677}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -193,6 +196,7 @@
     <ClCompile Include="Window.cpp">
       <Filter>%2a Code\%2a Rendering\Window</Filter>
     </ClCompile>
+    <ClCompile Include="GUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -275,5 +279,23 @@
     <ClInclude Include="VertexGroup.h">
       <Filter>%2a Code\%2a Core\%2a Model Importing\VertexGroup</Filter>
     </ClInclude>
+    <ClInclude Include="ConstantbufferData.h" />
+    <ClInclude Include="GUI.h" />
+    <ClInclude Include="ShaderResource.h">
+      <Filter>%2a Code\%2a Core\Resources\Resource Structures</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundResource.h">
+      <Filter>%2a Code\%2a Core\Resources\Resource Structures</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureResource.h">
+      <Filter>%2a Code\%2a Core\Resources\Resource Structures</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicResource.h">
+      <Filter>%2a Code\%2a Core\Resources\Resource Structures</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="BlinnPhong.hlsl" />
+    <FxCompile Include="MeshVS.hlsl" />
   </ItemGroup>
 </Project>

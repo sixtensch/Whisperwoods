@@ -52,6 +52,7 @@
     <ClInclude Include="Animation.h" />
     <ClInclude Include="Armature.h" />
     <ClInclude Include="AudioSource.h" />
+    <ClInclude Include="BasicResource.h" />
     <ClInclude Include="Bone.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Config.h" />
@@ -73,7 +74,10 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderHandler.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="ShaderResource.h" />
     <ClInclude Include="Sound.h" />
+    <ClInclude Include="SoundResource.h" />
+    <ClInclude Include="TextureResource.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexGroup.h" />
