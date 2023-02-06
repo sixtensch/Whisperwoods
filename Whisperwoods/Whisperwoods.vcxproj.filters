@@ -196,11 +196,12 @@
     <ClCompile Include="Window.cpp">
       <Filter>%2a Code\%2a Rendering\Window</Filter>
     </ClCompile>
-    <ClCompile Include="Animator.cpp">
-      <Filter>%2a Code\%2a Core\%2a Animation\Animator</Filter>
-    </ClCompile>
+    <ClCompile Include="GUI.cpp" />
     <ClCompile Include="ModelResource.cpp">
       <Filter>%2a Code\%2a Core\%2a Model Importing\ModelResource</Filter>
+    </ClCompile>
+    <ClCompile Include="Animator.cpp">
+      <Filter>%2a Code\%2a Core\%2a Animation\Animator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -281,12 +282,13 @@
     <ClInclude Include="VertexGroup.h">
       <Filter>%2a Code\%2a Core\%2a Model Importing\VertexGroup</Filter>
     </ClInclude>
-    <ClInclude Include="Animator.h">
-      <Filter>%2a Code\%2a Core\%2a Animation\Animator</Filter>
-    </ClInclude>
     <ClInclude Include="ConstantbufferData.h" />
+    <ClInclude Include="GUI.h" />
     <ClInclude Include="ModelResource.h">
       <Filter>%2a Code\%2a Core\%2a Model Importing\ModelResource</Filter>
+    </ClInclude>
+    <ClInclude Include="Animator.h">
+      <Filter>%2a Code\%2a Core\%2a Animation\Animator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
