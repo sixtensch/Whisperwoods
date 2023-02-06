@@ -1,10 +1,13 @@
-#include "core.h"
+#include "Core.h"
 #include "Whisperwoods.h"
 
 #include "Game.h"
 #include "Input.h"
 #include "AudioSource.h"
 #include "FBXImporter.h"
+
+// TODO: Dudd include. Remove later.
+//#include "TextureResource.h"
 
 Whisperwoods::Whisperwoods(HINSTANCE instance)
 {
