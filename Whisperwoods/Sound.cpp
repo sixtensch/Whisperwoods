@@ -104,7 +104,7 @@ FMOD::Channel* Sound::PlaySound(FMOD::Sound* sound, FMOD_VECTOR pos, FMOD_VECTOR
 
 	succeededOrWarn("Failed to play sound", m_system->playSound(sound, nullptr, false, &ch));
 	succeededOrWarn("Failed to set channel 3D Attributes", ch->set3DAttributes(&pos, &vel));
-	succeededOrWarn("Failed to set channel 3D Range", ch->set3DMinMaxDistance(16.0f, maxRange));
+	succeededOrWarn("Failed to set channel 3D Range", ch->set3DMinMaxDistance(1.0f, maxRange));
 	return ch;
 }
 
@@ -120,7 +120,7 @@ FMOD::Channel* Sound::PlaySound(FMOD::Sound* sound, FMOD::Channel* channel, FMOD
 
 	succeededOrWarn("Failed to play sound", m_system->playSound(sound, nullptr, false, &channel));
 	succeededOrWarn("Failed to set channel 3D Attributes", channel->set3DAttributes(&pos, &vel));
-	succeededOrWarn("Failed to set channel 3D Range", channel->set3DMinMaxDistance(16.0f, maxRange));
+	succeededOrWarn("Failed to set channel 3D Range", channel->set3DMinMaxDistance(1.0f, maxRange));
 	return channel;
 }
 

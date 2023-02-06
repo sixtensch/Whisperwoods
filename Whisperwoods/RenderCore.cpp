@@ -165,6 +165,7 @@ RenderCore::RenderCore(shared_ptr<Window> window, const Camera& camera)
 
     CompileShaders();
 }
+
 RenderCore::~RenderCore()
 {
 }

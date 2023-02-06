@@ -708,7 +708,7 @@ void Debug::CommandLog(void* params, void* userData)
 
 FMOD_RESULT Debug::LogFMOD(unsigned int flags, const char* file, int line, const char* func, const char* message)
 {
-	PushMessage("Triggered by internal FMOD system.", message, DebugLevelWarn);
+	PushMessage("Triggered by internal FMOD system.", message, DebugLevelTrace);
 	return FMOD_OK;
 }
 
