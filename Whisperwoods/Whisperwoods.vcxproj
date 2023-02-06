@@ -33,6 +33,7 @@
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="FBXImporter.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GUI.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightHandler.cpp" />
@@ -61,6 +62,7 @@
     <ClInclude Include="FBXImporter.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GUI.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="KeyFrame.h" />

@@ -31,6 +31,7 @@ public:
 	~Input();
 
 	static Input& Get();
+	static bool Exists();
 
 	void InputInit(const HWND windowHandle);
 
