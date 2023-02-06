@@ -94,7 +94,7 @@ BasicResource* Resources::AllocateResource(const RESOURCE_TYPES resourceType, co
 
 	if (!isSuccessful)
 	{
-		std::string blockerName = insertionIt->second.get()->resourceName;
+		std::string blockerName = insertionIt->second.get()->name;
 		std::string blockerPath = insertionIt->first;
 		EXC("Failed to create resource of type '%s' with path '%s'. Prevented by resource '%s' with path '%s'", 
 			resourceName.c_str(), subPath.c_str(), blockerName.c_str(), blockerPath.c_str());
