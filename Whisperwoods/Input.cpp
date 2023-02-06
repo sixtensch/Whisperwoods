@@ -41,6 +41,11 @@ Input& Input::Get()
 	return *s_singleton;
 }
 
+bool Input::Exists()
+{
+	return s_singleton != nullptr;
+}
+
 void Input::InputInit(const HWND windowHandle)
 {
 	BindWindowToMouse(windowHandle);
@@ -80,6 +85,9 @@ bool Input::IsKeyBound(const DXKey key)
 
 void Input::ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
+	if (s_singleton == nullptr)
+		return;
+
 	m_lastKeyboardState = m_keyboard->GetState();
 	m_keyboard->ProcessMessage(message, wParam, lParam);
 	m_currentKeyboardState = m_keyboard->GetState();
@@ -87,6 +95,9 @@ void Input::ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
 
 void Input::ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
+	if (s_singleton == nullptr)
+		return;
+
 	m_lastMouseState = m_mouse->GetState();
 	m_mouse->ProcessMessage(message, wParam, lParam);
 	m_currentMouseState = m_mouse->GetState();
@@ -116,7 +127,7 @@ void Input::AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey key)
 {
 	if (IsKeyBound(key))
 	{
-		LOG_ERROR("Key was not bound as it is already bound to other input.");
+		LOG_ERROR("Key failed to bind as it is already bound to other input.");
 		return;
 	}
 
