@@ -3,10 +3,6 @@
 // Whisperwoods debug framework
 // See debug levels below
 
-#ifdef WW_DEBUG
-void RedirectIOToConsole();
-#endif
-
 enum DebugLevel
 {
 	// Most verbose. Information sometimes useful, and additionally expected to spam the console in real time.
@@ -50,6 +46,8 @@ enum DebugCommandParamType
 typedef void (*DebugCommandCallback)(void* params, void* userData);
 
 struct IDXGIInfoQueue;
+enum FMOD_RESULT;
+class Sound;
 
 class Debug sealed
 {
@@ -67,14 +65,18 @@ public:
 	void WriteLog();
 
 	void CaptureStreams(bool cout = true, bool cerr = true, bool clog = true);
+	void CaptureSound(const Sound* sound);
 
 	void DumpDevice();
 	void LoadDeviceRef(ComPtr<ID3D11Device> device);
 
-	static void PushMessage(DebugLevel level, const char* format, ...);
-	static void PushMessage(const char* message, DebugLevel level = DebugLevelDebug);
+	static void PushMessage(string origin, DebugLevel level, const char* format, ...);
+	static void PushMessage(string origin, const char* message, DebugLevel level = DebugLevelDebug);
+	static void PushMessage(cstr file, cstr func, int line, DebugLevel level, const char* format, ...);
+	static void PushMessage(cstr file, cstr func, int line, const char* message, DebugLevel level = DebugLevelDebug);
 
-	static void ExecuteCommand(const char* command);
+	static void ExecuteCommand(string origin, const char* command);
+	static void ExecuteCommand(cstr file, cstr func, int line, const char* command);
 	static void RegisterCommand(
 		DebugCommandCallback callback,
 		const DebugCommandParamType parameters[4],
@@ -90,9 +92,9 @@ public:
 	static void DXGISet();
 	static bool DXGIGet(std::string& out);
 
-	static Debug& Get();
+	static const string& LevelToString(DebugLevel level);
 
-	
+	static Debug& Get();
 
 
 
@@ -107,6 +109,7 @@ private:
 		~DebugStreambuf() = default;
 
 		void SetLevel(DebugLevel level);
+		void SetOriginString(string originString);
 
 	private:
 		void Push();
@@ -118,12 +121,15 @@ private:
 	private:
 		DebugLevel m_level;
 		cs::List<char> m_buffer;
+		string m_originString;
 	};
 
 	struct DebugItem
 	{
 		DebugLevel level;
 		std::string text;
+		std::string origin;
+		std::chrono::steady_clock::time_point time;
 	};
 
 	struct CommandItem
@@ -150,10 +156,10 @@ private:
 	void InitDXGI();
 	void DeInitDGXI();
 
-	void PPushMessage(DebugLevel level, const char* format, va_list args);
-	void PPushMessage(const char* message, DebugLevel level);
+	void PPushMessage(DebugLevel level, const char* format, va_list args, std::string origin);
+	void PPushMessage(const char* message, DebugLevel level, std::string origin);
 
-	void CaptureStream(std::ios* stream, DebugLevel level);
+	void CaptureStream(std::ios* stream, DebugLevel level, string originString);
 	void ReleaseStreams();
 
 	void TryCommand();
@@ -162,6 +168,8 @@ private:
 	static void TryPrintDescription(const CommandItem& command, DebugLevel level);
 	static void CommandHelp(void* params, void* userData);
 	static void CommandLog(void* params, void* userData);
+
+	static FMOD_RESULT LogFMOD(unsigned int flags, const char* file, int line, const char* func, const char* message);
 
 
 
@@ -177,9 +185,12 @@ private:
 
 	std::mutex* m_mutex;
 
+	std::chrono::steady_clock::time_point m_startTime;
+
 	DebugLevel m_debugLevel;
 	DebugLevel m_displayLevel;
 	bool m_initialized;
+	string m_levelStrings[DebugLevelCount];
 
 	cs::List<DebugItem> m_items;
 	cs::List<StreamRedirect> m_streams;
@@ -207,13 +218,13 @@ private:
 
 // ---------------------------- MACROS
 
-#define LOG_FRAMETRACE(str, ...)	Debug::PushMessage(DebugLevelFrameTrace, (str), __VA_ARGS__);
-#define LOG_TRACE(str, ...)			Debug::PushMessage(DebugLevelTrace, (str), __VA_ARGS__);
-#define LOG(str, ...)				Debug::PushMessage(DebugLevelDebug, (str), __VA_ARGS__);
-#define LOG_WARN(str, ...)			Debug::PushMessage(DebugLevelWarn, (str), __VA_ARGS__);
-#define LOG_ERROR(str, ...)			Debug::PushMessage(DebugLevelError, (str), __VA_ARGS__);
-#define LOG_CRITICAL(str, ...)		Debug::PushMessage(DebugLevelCritical, (str), __VA_ARGS__);
-#define LOG_COMMAND(cmd)			Debug::ExecuteCommand((cmd));
+#define LOG_FRAMETRACE(str, ...)	Debug::PushMessage(__FILE__, __FUNCTION__, __LINE__, DebugLevelFrameTrace, (str), __VA_ARGS__);
+#define LOG_TRACE(str, ...)			Debug::PushMessage(__FILE__, __FUNCTION__, __LINE__, DebugLevelTrace, (str), __VA_ARGS__);
+#define LOG(str, ...)				Debug::PushMessage(__FILE__, __FUNCTION__, __LINE__, DebugLevelDebug, (str), __VA_ARGS__);
+#define LOG_WARN(str, ...)			Debug::PushMessage(__FILE__, __FUNCTION__, __LINE__, DebugLevelWarn, (str), __VA_ARGS__);
+#define LOG_ERROR(str, ...)			Debug::PushMessage(__FILE__, __FUNCTION__, __LINE__, DebugLevelError, (str), __VA_ARGS__);
+#define LOG_CRITICAL(str, ...)		Debug::PushMessage(__FILE__, __FUNCTION__, __LINE__, DebugLevelCritical, (str), __VA_ARGS__);
+#define LOG_COMMAND(cmd)			Debug::ExecuteCommand(__FILE__, __FUNCTION__, __LINE__, (cmd));
 
 #define EXC(str, ...)				throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, (str), __VA_ARGS__);
 #define EXC_TEMP()					throw cs::Exception(__FILE__, __FUNCTION__, __LINE__);

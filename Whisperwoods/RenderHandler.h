@@ -14,15 +14,16 @@ public:
 	void InitCore(shared_ptr<Window> window);
 
 	void Draw();
+	void Present();
+
+	const RenderCore* GetCore() const;
 
 private:
 	void InitVSConstantBuffers();
 
 private:
 	unique_ptr<RenderCore> m_renderCore;
-
 	Camera mainCamera;
-
 
 	ConstantBuffers cbufferData;
 };

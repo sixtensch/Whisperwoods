@@ -1,13 +1,19 @@
 #include "core.h"
 #include "Debug.h"
+#include "Sound.h"
 
 #include <dxgidebug.h>
+
+#include <fmod.h>
 
 #include <CHSL/Debug.h>
 #include <unordered_map>
 
+#include <imgui.h>
+
 #include <fcntl.h>
 #include <io.h>
+#include <format>
 
 
 
@@ -43,6 +49,19 @@ Debug::Debug()
 		{ 0.4f, 1.0f, 0.4f, 1.0f },
 
 		{}
+	},
+
+	m_levelStrings
+	{
+		"Frame Trace",
+		"Trace",
+		"Debug",
+		"Warning",
+		"Error",
+		"Critical Error",
+		"Command Trace",
+		"Command",
+		"None"
 	}
 {
 	if (s_debug != nullptr)
@@ -58,6 +77,8 @@ Debug::Debug()
 	m_dataBuffer = new byte[c_dataBufferSize + 1]{ 0 };
 
 	m_commands = new std::unordered_map<std::string, CommandItem>();
+
+	m_startTime = std::chrono::steady_clock::now();
 
 	RegisterDefaultCommands();
 
@@ -90,8 +111,6 @@ void Debug::DestroyConsole()
 
 void Debug::DrawConsole()
 {
-	/*
-
 	if (ImGui::Begin("Debug Console", nullptr, ImGuiWindowFlags_MenuBar))
 	{
 		if (ImGui::BeginMenuBar())
@@ -105,7 +124,7 @@ void Debug::DrawConsole()
 					strings,
 					7))
 				{
-					PushMessage((DebugLevel)std::max(m_debugLevel, DebugLevelWarn), "Debug level set to %s.", strings[m_debugLevel]);
+					PushMessage("Triggered from console widget.", (DebugLevel)std::max(m_debugLevel, DebugLevelWarn), "Debug level set to %s.", strings[m_debugLevel]);
 				}
 				ImGui::EndMenu();
 			}
@@ -151,24 +170,20 @@ void Debug::DrawConsole()
 					ImGui::Spacing();
 				}
 
-				switch (item.level)
+				ImGui::PushStyleColor(ImGuiCol_Text, *(ImVec4*)&m_textColors[item.level]);
+				ImGui::TextUnformatted(item.text.data());
+				if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
 				{
-				case DebugLevelDebug:
-					ImGui::TextUnformatted(item.text.data());
-					break;
+					using namespace std::chrono;
 
-					//case DebugLevelCommand:
-					//	ImGui::PushStyleColor(ImGuiCol_Text, m_textColors[DebugLevelCommand]);
-					//	ImGui::TextUnformatted(item.text.data());
-					//	ImGui::PopStyleColor();
-					//	break;
-
-				default:
-					ImGui::PushStyleColor(ImGuiCol_Text, *(ImVec4*)&m_textColors[item.level]);
-					ImGui::TextUnformatted(item.text.data());
-					ImGui::PopStyleColor();
-					break;
+					ImGui::SetTooltip("%s\n\nLevel: %s\n\nTime:\n%s\n%s",
+						item.origin.c_str(),
+						LevelToString(item.level).c_str(),
+						std::format("{:%T} since startup", floor<microseconds>(item.time - m_startTime)).c_str(),
+						std::format("{:%T} ago", floor<milliseconds>(steady_clock::now() - item.time)).c_str()
+					);
 				}
+				ImGui::PopStyleColor();
 			}
 
 			ImGui::PopTextWrapPos();
@@ -197,7 +212,7 @@ void Debug::DrawConsole()
 			{
 				if (m_inputBuffer[0] != '\0')
 				{
-					PushMessage(DebugLevelCommand, "%c %s", c_commandChar, m_inputBuffer);
+					PushMessage("Triggered from console widget.", DebugLevelCommand, "%c %s", c_commandChar, m_inputBuffer);
 					m_scrollToBottom = true;
 				}
 
@@ -213,8 +228,6 @@ void Debug::DrawConsole()
 		}
 	}
 	ImGui::End();
-
-	*/
 }
 
 void Debug::ClearFrameTrace()
@@ -237,6 +250,8 @@ void Debug::WriteHelp()
 void Debug::WriteLog()
 {
 	// TODO(sixten): Write logs.
+
+	LOG_ERROR("Log file writing currently not implemented.");
 }
 
 Debug& Debug::Get()
@@ -253,20 +268,25 @@ Debug& Debug::Get()
 
 void Debug::CaptureStreams(bool cout, bool cerr, bool clog)
 {
-	//if (cout)
-	//{
-	//	CaptureStream(&std::cout, DebugLevelDebug);
-	//}
+	if (cout)
+	{
+		CaptureStream(&std::cout, DebugLevelDebug, "From std::cout stream");
+	}
 
-	//if (cerr)
-	//{
-	//	CaptureStream(&std::cerr, DebugLevelDebug);
-	//}
+	if (cerr)
+	{
+		CaptureStream(&std::cerr, DebugLevelDebug, "From std::cerr stream");
+	}
 
 	if (clog)
 	{
-		CaptureStream(&std::clog, DebugLevelDebug);
+		CaptureStream(&std::clog, DebugLevelDebug, "From std::clog stream");
 	}
+}
+
+void Debug::CaptureSound(const Sound* sound)
+{
+	FMOD::Debug_Initialize(FMOD_DEBUG_LEVEL_LOG, FMOD_DEBUG_MODE_CALLBACK, LogFMOD);
 }
 
 void Debug::DumpDevice()
@@ -281,7 +301,7 @@ void Debug::LoadDeviceRef(ComPtr<ID3D11Device> device)
 	m_deviceRef = device;
 }
 
-void Debug::PushMessage(DebugLevel level, const char* format, ...)
+void Debug::PushMessage(string origin, DebugLevel level, const char* format, ...)
 {
 	if (!s_debug || s_debug->m_debugLevel > level)
 	{
@@ -290,29 +310,63 @@ void Debug::PushMessage(DebugLevel level, const char* format, ...)
 
 	va_list args;
 	va_start(args, format);
-	s_debug->PPushMessage(level, format, args);
+	s_debug->PPushMessage(level, format, args, origin);
 	va_end(args);
 }
 
-void Debug::PushMessage(const char* message, DebugLevel level)
+void Debug::PushMessage(string origin, const char* message, DebugLevel level)
 {
 	if (!s_debug || s_debug->m_debugLevel > level)
 	{
 		return;
 	}
 
-	s_debug->PPushMessage(message, level);
+	s_debug->PPushMessage(message, level, origin);
 }
 
-void Debug::ExecuteCommand(const char* command)
+void Debug::PushMessage(cstr file, cstr func, int line, DebugLevel level, const char* format, ...)
+{
+	if (!s_debug || s_debug->m_debugLevel > level)
+	{
+		return;
+	}
+
+	std::string origin = std::string("File: ") + file + "\nFunction: " + func + "\nLine: " + std::to_string(line);
+
+	va_list args;
+	va_start(args, format);
+	s_debug->PPushMessage(level, format, args, origin);
+	va_end(args);
+}
+
+void Debug::PushMessage(cstr file, cstr func, int line, const char* message, DebugLevel level)
+{
+	std::string origin = std::string("File: ") + file + "\nFunction: " + func + "\nLine: " + std::to_string(line);
+
+	PushMessage(origin, message, level);
+}
+
+void Debug::ExecuteCommand(string origin, const char* command)
 {
 	if (command[0] == c_commandChar)
 	{
-		PushMessage(command, DebugLevelCommand);
+		PushMessage(origin, command, DebugLevelCommand);
 	}
 	else
 	{
-		PushMessage(DebugLevelCommand, "%c %s", c_commandChar, command);
+		PushMessage(origin, DebugLevelCommand, "%c %s", c_commandChar, command);
+	}
+}
+
+void Debug::ExecuteCommand(cstr file, cstr func, int line, const char* command)
+{
+	if (command[0] == c_commandChar)
+	{
+		PushMessage(file, func, line, command, DebugLevelCommand);
+	}
+	else
+	{
+		PushMessage(file, func, line, DebugLevelCommand, "%c %s", c_commandChar, command);
 	}
 }
 
@@ -382,6 +436,11 @@ bool Debug::DXGIGet(std::string& out)
 	return true;
 }
 
+const string& Debug::LevelToString(DebugLevel level)
+{
+	return s_debug->m_levelStrings[level];
+}
+
 
 
 // Private functions
@@ -416,13 +475,13 @@ void Debug::DeInitDGXI()
 
 int ImFormatStringV(char* buf, size_t buf_size, const char* fmt, va_list args);
 
-void Debug::PPushMessage(DebugLevel level, const char* format, va_list args)
+void Debug::PPushMessage(DebugLevel level, const char* format, va_list args, string origin)
 {
 	const char* end = m_tempBuffer + ImFormatStringV(m_tempBuffer, c_tempBufferSize, format, args);
 
 	// m_mutex->lock();
 
-	m_items.Add(DebugItem{ level, std::string(m_tempBuffer, (int)(end - m_tempBuffer)) });
+	m_items.Add(DebugItem{ level, std::string(m_tempBuffer, (int)(end - m_tempBuffer)), origin, std::chrono::steady_clock::now() });
 
 	if (level == DebugLevelFrameTrace)
 	{
@@ -430,7 +489,7 @@ void Debug::PPushMessage(DebugLevel level, const char* format, va_list args)
 	}
 	else
 	{
-		std::cout << m_items.Back().text.c_str() << std::endl;
+		//std::cout << m_items.Back().text.c_str() << std::endl;
 		OutputDebugStringA((m_items.Back().text + '\n').c_str());
 	}
 
@@ -439,11 +498,11 @@ void Debug::PPushMessage(DebugLevel level, const char* format, va_list args)
 	// m_mutex->unlock();
 }
 
-void Debug::PPushMessage(const char* message, DebugLevel level)
+void Debug::PPushMessage(const char* message, DebugLevel level, string origin)
 {
 	//m_mutex->lock();
 
-	m_items.Add(DebugItem{ level, std::string(message) });
+	m_items.Add(DebugItem{ level, std::string(message), origin, std::chrono::steady_clock::now() });
 
 	if (level == DebugLevelFrameTrace)
 	{
@@ -451,7 +510,7 @@ void Debug::PPushMessage(const char* message, DebugLevel level)
 	}
 	else
 	{
-		std::cout << m_items.Back().text.c_str() << std::endl;
+		//std::cout << m_items.Back().text.c_str() << std::endl;
 		OutputDebugStringA((m_items.Back().text + '\n').c_str());
 	}
 
@@ -460,21 +519,22 @@ void Debug::PPushMessage(const char* message, DebugLevel level)
 	//m_mutex->unlock();
 }
 
-void Debug::CaptureStream(std::ios* stream, DebugLevel level)
+void Debug::CaptureStream(std::ios* stream, DebugLevel level, string originString)
 {
 	for (int i = 0; i < m_streams.Size(); i++)
 	{
 		if (m_streams[i].stream == stream)
 		{
-			PushMessage("Tried to capture already registered output stream.", DebugLevelWarn);
+			LOG_WARN("Tried to capture already registered output stream.");
 			return;
 		}
 	}
 
-	m_streams.Add({ {}, stream->rdbuf(), stream });
+	m_streams.Add({ {}, stream->rdbuf(), stream});
 
 	StreamRedirect& d = m_streams.Back();
 	d.buffer.SetLevel(level);
+	d.buffer.SetOriginString(originString);
 	stream->rdbuf(&d.buffer);
 }
 
@@ -514,13 +574,13 @@ void Debug::TryCommand()
 
 			if (paramsCount > command.parameterCount)
 			{
-				PushMessage(DebugLevelWarn, "Excess parameters given, command \"%s\" accepts a maximum of %i parameters.", id.c_str(), command.parameterCount);
+				LOG_ERROR("Excess parameters given, command \"%s\" accepts a maximum of %i parameters.", id.c_str(), command.parameterCount);
 				TryPrintDescription(command, DebugLevelWarn);
 				return;
 			}
 			else if (paramsCount < command.parameterCount)
 			{
-				PushMessage(DebugLevelError, "Insufficient parameters given, command \"%s\" requires %i parameters.", id.c_str(), command.parameterCount);
+				LOG_ERROR("Insufficient parameters given, command \"%s\" requires %i parameters.", id.c_str(), command.parameterCount);
 				TryPrintDescription(command, DebugLevelError);
 				return;
 			}
@@ -573,7 +633,7 @@ void Debug::TryCommand()
 				}
 				catch (...)
 				{
-					PushMessage(DebugLevelError, "Error parsing parameters.", id.c_str(), command.parameterCount);
+					LOG_ERROR("Error parsing parameters.", id.c_str(), command.parameterCount);
 					TryPrintDescription(command, DebugLevelError);
 					return;
 				}
@@ -586,7 +646,7 @@ void Debug::TryCommand()
 		}
 		else
 		{
-			PushMessage(DebugLevelWarn, "Command \"%s\" not recognized. Type \"help\" for a list of registered commands.", id.c_str(), c_commandChar);
+			LOG_WARN("Command \"%s\" not recognized. Type \"help\" for a list of registered commands.", id.c_str(), c_commandChar);
 		}
 	}
 }
@@ -631,7 +691,7 @@ void Debug::TryPrintDescription(const CommandItem& command, DebugLevel level)
 		message += ": \"" + command.description + "\"";
 	}
 
-	PushMessage(message.c_str(), DebugLevelCommandTrace);
+	PushMessage("Triggered from help command.", message.c_str(), DebugLevelCommandTrace);
 }
 
 void Debug::CommandHelp(void* params, void* userData)
@@ -644,6 +704,12 @@ void Debug::CommandLog(void* params, void* userData)
 {
 	Debug* d = (Debug*)userData;
 	d->WriteLog();
+}
+
+FMOD_RESULT Debug::LogFMOD(unsigned int flags, const char* file, int line, const char* func, const char* message)
+{
+	PushMessage("Triggered by internal FMOD system.", message, DebugLevelWarn);
+	return FMOD_OK;
 }
 
 
@@ -665,10 +731,15 @@ void Debug::DebugStreambuf::SetLevel(DebugLevel level)
 	m_level = level;
 }
 
+void Debug::DebugStreambuf::SetOriginString(string originString)
+{
+	m_originString = originString;
+}
+
 void Debug::DebugStreambuf::Push()
 {
 	m_buffer.Add('\0');
-	PushMessage(m_buffer.Data(), m_level);
+	PushMessage(m_originString, m_buffer.Data(), m_level);
 	m_buffer.Clear(false);
 }
 
@@ -689,7 +760,7 @@ int Debug::DebugStreambuf::overflow(int c)
 	else
 	{
 		result = c;
-		PushMessage(DebugLevelWarn, "Invalid value [%x] pushed to DebugStreambuf.", c);
+		LOG_WARN("Invalid value [%x] pushed to DebugStreambuf.", c);
 	}
 
 	return result;
@@ -699,19 +770,3 @@ int Debug::DebugStreambuf::sync()
 {
 	return 0;
 }
-
-
-#ifdef WW_DEBUG
-
-void RedirectIOToConsole() //only happens during debug, will not be shown in release product
-{
-	AllocConsole();
-	HANDLE stdHandle;
-	int hConsole;
-	FILE* fp;
-	stdHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-	hConsole = _open_osfhandle((intptr_t)stdHandle, _O_TEXT);
-	fp = _fdopen(hConsole, "w");
-	freopen_s(&fp, "CONOUT$", "w", stdout);
-}
-#endif

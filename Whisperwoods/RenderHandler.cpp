@@ -48,7 +48,7 @@ void RenderHandler::Draw()
 	vertexDesc.Usage = D3D11_USAGE_DYNAMIC;
 	vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	vertexDesc.ByteWidth = sizeof(Vertex) * vData.size();
+	vertexDesc.ByteWidth = sizeof(Vertex) * (int)vData.size();
 	vertexDesc.StructureByteStride = 0;
 	vertexDesc.MiscFlags = 0;
 
@@ -66,7 +66,7 @@ void RenderHandler::Draw()
 	indexDesc.Usage = D3D11_USAGE_DYNAMIC;
 	indexDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	indexDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	indexDesc.ByteWidth = sizeof(int) * iData.size();
+	indexDesc.ByteWidth = sizeof(int) * (int)iData.size();
 	indexDesc.StructureByteStride = 0;
 	indexDesc.MiscFlags = 0;
 
@@ -82,13 +82,22 @@ void RenderHandler::Draw()
 
 	m_renderCore->BindGPipeline(VertexBuffer.GetAddressOf(), IndexBuffer.Get(), sizeof(Vertex), 0, PIPELINE_TYPE::BLINN_PHONG);
 	
-	m_renderCore->DrawIndexed(iData.size(), 0, 0);
+	m_renderCore->DrawIndexed((int)iData.size(), 0, 0);
 	// ######################### DUD ########################################
+}
 
 
 
+void RenderHandler::Present()
+{
 	m_renderCore->EndFrame();
 }
+
+const RenderCore* RenderHandler::GetCore() const
+{
+	return m_renderCore.get();
+}
+
 
 
 void RenderHandler::InitVSConstantBuffers()
