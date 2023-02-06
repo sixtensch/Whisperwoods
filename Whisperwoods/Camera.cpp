@@ -31,6 +31,22 @@ void Camera::Update()
 	viewMat = viewMat * m_transform.rotation.Matrix(); //TODO: is this correct?
 	m_viewMatrix = viewMat;
 	m_worldMatrix = cs::Mat::translation3(m_transform.position.x, m_transform.position.y, m_transform.position.z);
+}
+
+void Camera::Update(float dt)
+{
+	m_translation = dx::XMFLOAT3(0, 0, 0);
+	//get key press here
+	
+	//update translation variable here depending on keypress
+	Translate(dt);
+
+	//Updates matrices with new values
+	Mat4 viewMat = cs::Mat::translation3(-m_transform.position.x, -m_transform.position.y, -m_transform.position.z);
+	viewMat = viewMat * m_transform.rotation.Matrix(); //TODO: is this correct?
+	m_viewMatrix = viewMat;
+	m_worldMatrix = cs::Mat::translation3(m_transform.position.x, m_transform.position.y, m_transform.position.z);
+	
 	// write view to vertexBuffer
 }
 
@@ -60,6 +76,21 @@ void Camera::SetPosition(Vec3 position)
 void Camera::SetRotation(Quaternion rotation)
 {
 	this->m_transform.rotation = rotation;
+}
+
+void Camera::Translate(float dt)
+{
+	dx::XMStoreFloat3(&m_translation,
+		dx::XMVector3Transform(
+			dx::XMLoadFloat3(&m_translation),
+			dx::XMMatrixRotationRollPitchYaw(m_transform.rotation.y, m_transform.rotation.x, 0) *
+			dx::XMMatrixScaling(1, 1, 1))
+	);
+
+	Vec2 t(m_translation.x, m_translation.z);
+	t.Normalize();
+	m_transform.position.x -= t.x * m_cameraMovementSpeed * dt;
+	m_transform.position.z -= t.y * m_cameraMovementSpeed * dt;
 }
 
 const Vec3 Camera::GetPosition() const

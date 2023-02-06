@@ -62,6 +62,7 @@ void Whisperwoods::Run()
 
 		running = !m_renderer->UpdateWindow();
 
+
 		m_game->Update();
 		
 		m_sound->Update();

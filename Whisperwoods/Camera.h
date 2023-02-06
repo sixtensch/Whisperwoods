@@ -13,11 +13,13 @@ public:
 	~Camera();
 
 	void Update();
+	void Update(float dt);
 	void SetValues(float fovRadians, float viewRatio, float nearDistance, float farDistance);
 	void CalculatePerspectiveProjection();
 	void CalculateOrthoProjection(float width, float height);
 	void SetPosition(Vec3 position);
 	void SetRotation(Quaternion rotation);
+	void Translate(float dt);
 
 	const Vec3 GetPosition() const;
 	const Mat4 GetWorldMatrix() const;
@@ -30,7 +32,9 @@ private:
 	Mat4 m_viewMatrix; //holds the view matrix for current frame
 	Mat4 m_projection; // matrix
 	Mat4 m_worldMatrix; 
-
+	float m_cameraMovementSpeed = 10; //this can be changed to make the camera move faster or slower
+	dx::XMFLOAT3 m_translation;
 	Transform m_transform;
+	
 
 };
