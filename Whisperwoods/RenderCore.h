@@ -29,18 +29,17 @@ private:
 		ComPtr<ID3D11GeometryShader> geometryShader;
 		ComPtr<ID3D11PixelShader>    pixelShader;
 	};
+
 public:
 	RenderCore(shared_ptr<Window> window, const Camera& camera);
 	~RenderCore();
 
 	void NewFrame(ConstantBuffers cData);
-
 	void EndFrame();
 
-
-	ID3D11Device* GetDeviceP();
+	ID3D11Device* GetDeviceP() const;
+	ID3D11DeviceContext* GetContext() const;
 	ID3D11Device* const* GetDevicePP();
-
 
 	void BindGPipeline(ID3D11Buffer* const* vertexBufferPP, ID3D11Buffer* indexBufferP, const UINT& stride, const UINT& offset, PIPELINE_TYPE flag);
 	void DrawIndexed(int indexCount, int startIndexPos, int startVertexPos);
