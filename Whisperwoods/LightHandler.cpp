@@ -45,13 +45,13 @@ ID3D11Buffer* const* LightHandler::GetStructuredBufferPP( LightType type )
 	return nullptr;
 }
 
-void LightHandler::SetDirectionalLights(ID3D11DeviceContext* immediateContext, std::vector<DirectionalLight::DirectionalLightBufferData> data)
+void LightHandler::SetDirectionalLights(ID3D11DeviceContext* context, std::vector<DirectionalLight::DirectionalLightBufferData> data)
 {
 	HRESULT hr = {};
 
 	// Update light buffer
 	D3D11_MAPPED_SUBRESOURCE Resource = {};
-	hr = immediateContext->Map( m_dirSBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &Resource);
+	hr = context->Map( m_dirSBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &Resource);
 	if ( FAILED( hr ) )
 	{
 		LOG_CRITICAL( "Failed to get map for directional structured buffer in SetDirectionalLights() function call, line: ");
@@ -62,15 +62,15 @@ void LightHandler::SetDirectionalLights(ID3D11DeviceContext* immediateContext, s
 		data.data(),
 		sizeof(DirectionalLight) * data.size()
 	);
-	immediateContext->Unmap( m_dirSBuffer.Get(), 0 );
+	context->Unmap( m_dirSBuffer.Get(), 0 );
 }
-void LightHandler::SetSpotLights( ID3D11DeviceContext* immediateContext, std::vector<SpotLight::SpotLightBufferData> data )
+void LightHandler::SetSpotLights( ID3D11DeviceContext* context, std::vector<SpotLight::SpotLightBufferData> data )
 {
 	HRESULT hr = {};
 
 	// Update light buffer
 	D3D11_MAPPED_SUBRESOURCE Resource = {};
-	hr = immediateContext->Map( m_spotSBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &Resource );
+	hr = context->Map( m_spotSBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &Resource );
 	if ( FAILED( hr ) )
 	{
 		LOG_CRITICAL( "Failed to get map for directional structured buffer in SetSpotLights() function call, line: " + __LINE__ );
@@ -81,15 +81,15 @@ void LightHandler::SetSpotLights( ID3D11DeviceContext* immediateContext, std::ve
 		data.data(),
 		sizeof( SpotLight ) * data.size()
 	);
-	immediateContext->Unmap( m_spotSBuffer.Get(), 0 );
+	context->Unmap( m_spotSBuffer.Get(), 0 );
 }
-void LightHandler::SetPointLights( ID3D11DeviceContext* immediateContext, std::vector<PointLight::PointLightBufferData> data )
+void LightHandler::SetPointLights( ID3D11DeviceContext* context, std::vector<PointLight::PointLightBufferData> data )
 {
 	HRESULT hr = {};
 
 	// Update light buffer
 	D3D11_MAPPED_SUBRESOURCE Resource = {};
-	hr = immediateContext->Map( m_pointSBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &Resource );
+	hr = context->Map( m_pointSBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &Resource );
 	if ( FAILED( hr ) )
 	{
 		LOG_CRITICAL( "Failed to get map for directional structured buffer in SetPointLights() function call, line: ");
@@ -100,7 +100,7 @@ void LightHandler::SetPointLights( ID3D11DeviceContext* immediateContext, std::v
 		data.data(),
 		sizeof( PointLight ) * data.size()
 	);
-	immediateContext->Unmap( m_pointSBuffer.Get(), 0 );
+	context->Unmap( m_pointSBuffer.Get(), 0 );
 }
 
 
@@ -111,8 +111,8 @@ bool LightHandler::InitDirSBuffer( ID3D11Device* device, UINT LightCount )
 	bufferDesc.BindFlags           = D3D11_BIND_SHADER_RESOURCE;
 	bufferDesc.Usage               = D3D11_USAGE_DYNAMIC;
 	bufferDesc.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
-	bufferDesc.ByteWidth           = LightCount * sizeof( DirectionalLight );
-	bufferDesc.StructureByteStride = sizeof( DirectionalLight );
+	bufferDesc.ByteWidth           = LightCount * sizeof( DirectionalLight::DirectionalLightBufferData);
+	bufferDesc.StructureByteStride = sizeof( DirectionalLight::DirectionalLightBufferData);
 	bufferDesc.MiscFlags           = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	hr = device->CreateBuffer(
 		&bufferDesc,
@@ -130,8 +130,8 @@ bool LightHandler::InitPointSBuffer( ID3D11Device* device, UINT LightCount )
 	bufferDesc.BindFlags           = D3D11_BIND_SHADER_RESOURCE;
 	bufferDesc.Usage               = D3D11_USAGE_DYNAMIC;
 	bufferDesc.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
-	bufferDesc.ByteWidth           = LightCount * sizeof( PointLight );
-	bufferDesc.StructureByteStride = sizeof( PointLight );
+	bufferDesc.ByteWidth           = LightCount * sizeof( PointLight::PointLightBufferData);
+	bufferDesc.StructureByteStride = sizeof( PointLight::PointLightBufferData);
 	bufferDesc.MiscFlags           = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	hr = device->CreateBuffer(
 		&bufferDesc,
@@ -149,8 +149,8 @@ bool LightHandler::InitSpotSBuffer( ID3D11Device* device, UINT LightCount )
 	bufferDesc.BindFlags           = D3D11_BIND_SHADER_RESOURCE;
 	bufferDesc.Usage               = D3D11_USAGE_DYNAMIC;
 	bufferDesc.CPUAccessFlags      = D3D11_CPU_ACCESS_WRITE;
-	bufferDesc.ByteWidth           = LightCount * sizeof( SpotLight );
-	bufferDesc.StructureByteStride = sizeof( SpotLight );
+	bufferDesc.ByteWidth           = LightCount * sizeof( SpotLight::SpotLightBufferData);
+	bufferDesc.StructureByteStride = sizeof( SpotLight::SpotLightBufferData);
 	bufferDesc.MiscFlags           = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 	hr = device->CreateBuffer(
 		&bufferDesc,
