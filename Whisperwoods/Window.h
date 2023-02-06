@@ -26,10 +26,12 @@ public:
 	const UINT GetWidth() const;
 	const float GetAspectRatio() const;
 
+	static LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam);
+	static void LoadPrioritizedWndProc(WNDPROC wndProc);
+
 private:
-public:
-	//static Window* s_window;
-private:
+	static WNDPROC s_externProcedure;
+
 	HWND m_window;
 
 	UINT m_height;

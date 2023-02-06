@@ -96,11 +96,20 @@ void RenderHandler::Draw()
 	int indSize = staticModel->indicies.Size();
 	m_renderCore->DrawIndexed(indSize, 0, 0);
 	// ######################### DUD ########################################
+}
 
 
 
+void RenderHandler::Present()
+{
 	m_renderCore->EndFrame();
 }
+
+const RenderCore* RenderHandler::GetCore() const
+{
+	return m_renderCore.get();
+}
+
 
 
 void RenderHandler::InitVSConstantBuffers()

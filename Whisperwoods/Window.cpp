@@ -3,11 +3,20 @@
 #include "Input.h"
 
 
-//Window* Window::s_window = nullptr;
+WNDPROC Window::s_externProcedure = nullptr;
 
-LRESULT CALLBACK WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK Window::WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	static Input& inputRef = Input::Get();
+
+	if (s_externProcedure)
+	{
+		if (s_externProcedure(window, message, wParam, lParam))
+		{
+			LOG_FRAMETRACE("Extern WndProc override.");
+			return true;
+		}
+	}
 
 	switch (message)
 	{
@@ -190,4 +199,9 @@ const UINT Window::GetWidth() const
 const float Window::GetAspectRatio() const
 {
 	return static_cast<float>(m_width) / static_cast<float>(m_height);
+}
+
+void Window::LoadPrioritizedWndProc(WNDPROC wndProc)
+{
+	s_externProcedure = wndProc;
 }

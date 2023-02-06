@@ -4,6 +4,8 @@
 #include "Window.h"
 #include "RenderCore.h"
 
+class GUI;
+
 class Renderer sealed
 {
 public:
@@ -14,6 +16,9 @@ public:
 
 	bool UpdateWindow();
 	void Draw();
+	void BeginGui();
+	void EndGui();
+	void Present();
 
 	static Renderer& Get();
 
@@ -24,6 +29,7 @@ private:
 
 	shared_ptr<Window> m_window;
 	unique_ptr<RenderHandler> m_renderHandler;
+	unique_ptr<GUI> m_gui;
 
 public:
 	unique_ptr<RenderHandler>& GetHandler() { return m_renderHandler; }

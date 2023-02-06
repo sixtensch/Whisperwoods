@@ -15,6 +15,9 @@ public:
 	void InitCore(shared_ptr<Window> window);
 
 	void Draw();
+	void Present();
+
+	const RenderCore* GetCore() const;
 
 	ModelStaticResource* staticModel;
 	//int indexDataSize;
@@ -24,9 +27,7 @@ private:
 
 private:
 	unique_ptr<RenderCore> m_renderCore;
-
 	Camera mainCamera;
-
 
 	ConstantBuffers cbufferData;
 

@@ -165,6 +165,7 @@ RenderCore::RenderCore(shared_ptr<Window> window, const Camera& camera)
 
     CompileShaders();
 }
+
 RenderCore::~RenderCore()
 {
 }
@@ -185,9 +186,14 @@ void RenderCore::EndFrame()
     EXC_COMCHECK(m_swapChain->Present(0u, 0u));
 }
 
-ID3D11Device* RenderCore::GetDeviceP()
+ID3D11Device* RenderCore::GetDeviceP() const 
 {
     return m_device.Get();
+}
+
+ID3D11DeviceContext* RenderCore::GetContext() const
+{
+    return m_context.Get();
 }
 
 ID3D11Device* const* RenderCore::GetDevicePP()
