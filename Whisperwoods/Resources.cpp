@@ -20,7 +20,8 @@ Resources::Resources()
 	InitMapList();
 
 	// TODO: Dudd code. Remove later.
-	auto resource = (const TextureResource*)AllocateResource(TEXTURE, "TestPath/Test", "Test name");
+	//auto resource = (const TextureResource*)AllocateResource(TEXTURE, "TestPath/Test", "Test name");
+	//auto resource2 = GET_TEXTURE("TestPath/Test");
 }
 
 Resources::~Resources()

@@ -19,10 +19,6 @@ enum RESOURCE_TYPES {
 
 typedef std::unordered_map<std::string, shared_ptr<BasicResource>> ResourceMap;
 
-// Define functions that COULD be defined if its too wordy to use casting etc etc.
-#define GET_TEXTURE(subPath) GetResource(TEXTURE, subPath);
-#define GET_SOUND(subPath) GetResource(SOUND, subPath);
-
 class Resources sealed
 {
 public:
@@ -31,16 +27,17 @@ public:
 
 	static Resources& Get();
 
-	// Gets a const pointer thats only used for reading purposes. Writable pointers are only used when allocating.
+	// This should be how resources are acquired. Writable pointers are used when allocating or when having to write for a special reason.
 	const BasicResource* GetResource(const RESOURCE_TYPES resourceType, std::string subPath) const;
 
+	// Available if acquisition of a resource needs to be writable.
 	BasicResource* GetWritableResource(const RESOURCE_TYPES resourceType, std::string subPath) const;
 
 private:
 
 	void InitMapList();
 
-	// Allocates a specific resource type in its specific map and returns a pointer to the allocated memory for modification.
+	// Allocates specific resource type in its map. Returns a pointer to the allocated memory for loading with data.
 	BasicResource* AllocateResource(const RESOURCE_TYPES resourceType, const std::string subPath, const std::string resourceName);
 
 private:
