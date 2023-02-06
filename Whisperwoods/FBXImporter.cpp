@@ -154,25 +154,23 @@ aiMatrix4x4 ConvertToAssImp(Mat4& mat)
 bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* const outMesh)
 {
 	Assimp::Importer importer;
-	LOG_TRACE("Starting FBX Import for file:");
-	LOG_TRACE(filePath.c_str());
+	LOG_TRACE("\nStarting static FBX Import for file: %s", filePath.c_str());
 	const aiScene* scene = importer.ReadFile(filePath,
 		/*aiProcess_MakeLeftHanded |
 		aiProcess_CalcTangentSpace |
 		aiProcess_Triangulate |
 		aiProcess_JoinIdenticalVertices |
-		aiProcess_SortByPType*/aiProcess_CalcTangentSpace | aiProcess_Triangulate);
+		aiProcess_SortByPType*/ aiProcessPreset_TargetRealtime_MaxQuality ); // chonky preset
 	if (scene == nullptr) 
 	{
 		LOG_ERROR("THERE WAS AN FBX IMPORT ERROR:");
 		LOG_TRACE(importer.GetErrorString());
 		return false;
 	}
+
 	std::string answerString = (scene->HasMeshes()) ? "True" : "False";
-	std::string traceString1 = "ASSIMP: opened file: "  + filePath + ", has meshes? - " + answerString;
-	std::string traceString2 = "Number of meshes: " + scene->mNumMeshes;
-	LOG_TRACE(traceString1.c_str());
-	LOG_TRACE(traceString2.c_str());
+	LOG_TRACE( "ASSIMP: opened file: %s, has meshes? - %s", filePath.c_str(), answerString.c_str() );
+	LOG_TRACE( "Number of meshes: %d\n", scene->mNumMeshes );
 
 	if (!scene->HasMeshes())
 	{
@@ -184,6 +182,8 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 	int numIndexCounter = 0;
 	int subMeshCounter = 0;
 
+	LOG_TRACE( "==STATIC IMPORT PROCESS START==\n", scene->mNumMeshes );
+
 	for (unsigned int i = 0; i < scene->mNumMeshes; i++)
 	{
 		aiMesh* newMesh = scene->mMeshes[i];
@@ -191,8 +191,10 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 		if (!newMesh->HasFaces())
 			continue;
 		
-		std::string traceString3 = "Processing sub-mesh: " + std::string(newMesh->mName.C_Str());
-		LOG_TRACE(traceString3.c_str());
+		LOG_TRACE( "	Processing submesh %s - material: %s - NumVerts: %d",
+			newMesh->mName.C_Str(),
+			scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str(),
+			newMesh->mNumVertices );
 
 		// Add material name to the material name list.
 		outMesh->materialNames.Add(std::string(scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str()));
@@ -217,33 +219,47 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 				Vec2(currentUV.x, currentUV.y), // UV
 				Vec2(subMeshCounter,0)); // submeshIndex and Padding, submesh index is important for differentiating identical verticies of different materials.
 			
-			// do existing vertex checks.
-			int existingVertIndex = -1;
-			for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
-			{
-				if (outMesh->verticies[k] == newVertex)
-				{
-					existingVertIndex = k;
-					break;
-				}
-			}
+			//// do existing vertex checks. // done by assimp
+			//int existingVertIndex = -1;
+			//for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
+			//{
+			//	if (outMesh->verticies[k] == newVertex)
+			//	{
+			//		existingVertIndex = k;
+			//		break;
+			//	}
+			//}
+
+			outMesh->verticies.Add( newVertex ); // Base verticies
 
 			// If it's a new vertex, add it and the index.
-			if (existingVertIndex == -1)
-			{
-				outMesh->verticies.Add(newVertex);
-				outMesh->indicies.Add(indexCounter);
-				indexCounter++;
-			}
-			else
-			{
-				outMesh->indicies.Add(existingVertIndex);
-			}
-			numIndexCounter++;
+			//if (existingVertIndex == -1)
+			//{
+			//	outMesh->verticies.Add(newVertex);
+			//	//outMesh->indicies.Add(indexCounter);
+			//	//indexCounter++;
+			//}
+			//else
+			//{
+			//	//outMesh->indicies.Add(existingVertIndex);
+			//}
+			//numIndexCounter++;
 		}
+
+		for (unsigned int j = 0; j < newMesh->mNumFaces; j++)
+		{
+			for (unsigned int k = 0; k < newMesh->mFaces[j].mNumIndices; k++)
+			{
+				outMesh->indicies.Add( newMesh->mFaces[j].mIndices[k]);
+				numIndexCounter++;
+			}
+		}
+		LOG_TRACE( "	Num indicies: %d", numIndexCounter - startIndex );
 		outMesh->indexCounts.Add(numIndexCounter - startIndex);
 		subMeshCounter++;
 	}
+	LOG_TRACE( "Done\n" );
+	LOG_TRACE( "Static Import Completed! Num verts: %d\n", outMesh->verticies.Size() );
 
 	return true;
 }
@@ -281,7 +297,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 		aiProcess_CalcTangentSpace |
 		aiProcess_Triangulate |
 		aiProcess_JoinIdenticalVertices |
-		aiProcess_SortByPType*/aiProcess_CalcTangentSpace | aiProcess_PopulateArmatureData | aiProcess_Triangulate);
+		aiProcess_SortByPType*/aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace | aiProcess_PopulateArmatureData);
 	if (scene == nullptr)
 	{
 		LOG_ERROR("THERE WAS AN FBX IMPORT ERROR:");
@@ -428,6 +444,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 		nBone.inverseBindMatrix = inverseBindTxList[i]; // Inverse bind matrix TODO: This shows that this is the only matrix that needs to be saved (maybe clean up above).
 		outMesh->armature.bones.Add( nBone );
 	}
+	LOG_TRACE( "Done\n" );
 
 	// Vertex groups not used in the current setup, weights calculated directly.
 	//LOG_TRACE( "Import process 6: Adding output vertex groups." );
@@ -439,14 +456,13 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 	//	newGroup.index = i;
 	//	outMesh->vertexGroups.Add( newGroup );
 	//}
-	LOG_TRACE( "Done\n" );
 
 	unsigned int indexCounter = 0;
 	unsigned int numIndexCounter = 0;
 	unsigned int subMeshCounter = 0;
 
 	
-	LOG_TRACE( "Processing mesh and weights..." );
+	LOG_TRACE( "Processing mesh and weights...\n" );
 	// Step 6: process the verticies and indicies as with the static import, but using the rigged verticies.
 	for (int i = 0; i < scene->mNumMeshes; i++)
 	{
@@ -457,14 +473,18 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 		if (!newMesh->HasBones())
 			continue;
 
+
 		
 		// Add material name to the material name list.
 		outMesh->materialNames.Add(std::string( scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str()));
 		int startIndex = numIndexCounter;
 		outMesh->startIndicies.Add(startIndex);
 
-		
-		LOG_TRACE( "	Processing vertex weights for %s - material: %s", newMesh->mName.C_Str(), scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str() );
+		LOG_TRACE( "	Processing: %s\n",
+			scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str(),
+			newMesh->mNumVertices );
+		LOG_TRACE( "		Processing vertex weights ... ");
+		int weightCounter = 0;
 		struct VertexBoneWeights
 		{
 			std::vector<BoneWeightPair> bones;
@@ -487,6 +507,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 						newPair.bone = k;
 						newPair.weight = newMesh->mBones[k]->mWeights[l].mWeight;
 						newWeightVector.bones.push_back( newPair );
+						weightCounter++;
 					}
 				}
 			}
@@ -497,11 +518,12 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 				newPair.bone = 0;
 				newPair.weight = 0;
 				newWeightVector.bones.push_back( newPair );
+				weightCounter++;
 			}
 			vertexWeights.push_back(newWeightVector);
 		}
-
-		LOG_TRACE( "	Processing submesh verticies and indicies for %s - material: %s", newMesh->mName.C_Str(), scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str() );
+		LOG_TRACE( "		Done - N:%d", weightCounter );
+		LOG_TRACE( "		Processing verticies ... ");
 		for (unsigned int j = 0; j < newMesh->mNumVertices; j++)
 		{
 			aiVector3D currentVert = newMesh->mVertices[j];
@@ -518,42 +540,67 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 				Vec3( currentBiTan.x, currentBiTan.y, currentBiTan.z ), // Bitangent
 				Vec2( currentUV.x, currentUV.y ), // UV
 				Vec2( subMeshCounter, 0 ), // Padding and submesh index
-				Point4 ( 0, 0, 0, 0), // Bone indicies (needs assigning later)
-				Vec4 ( 0, 0, 0, 0 )); // Weights (needs assigning later)
+				Point4 ( 
+					vertexWeights[j].bones[0].bone,
+					vertexWeights[j].bones[1].bone,
+					vertexWeights[j].bones[2].bone,
+					vertexWeights[j].bones[3].bone
+				), // Bone indicies 
+				Vec4 ( 
+					vertexWeights[j].bones[0].weight,
+					vertexWeights[j].bones[1].weight,
+					vertexWeights[j].bones[2].weight,
+					vertexWeights[j].bones[3].weight
+				)); // Weights 
 
-			// do existing vertex checks.
-			int existingVertIndex = -1;
-			for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
-			{
-				if (outMesh->verticies[k] == newVertex)
-				{
-					existingVertIndex = k;
-					break;
-				}
-			}
 
-			// If it's a new vertex, add it and the index.
-			if (existingVertIndex == -1)
-			{
-				// Add weights
-				newVertex.bones[0] = vertexWeights[j].bones[0].bone;
-				newVertex.bones[1] = vertexWeights[j].bones[1].bone;
-				newVertex.bones[2] = vertexWeights[j].bones[2].bone;
-				newVertex.bones[3] = vertexWeights[j].bones[3].bone;
-				newVertex.weights[0] = vertexWeights[j].bones[0].weight;
-				newVertex.weights[1] = vertexWeights[j].bones[1].weight;
-				newVertex.weights[2] = vertexWeights[j].bones[2].weight;
-				newVertex.weights[3] = vertexWeights[j].bones[3].weight;
-				outMesh->verticies.Add( newVertex );
-				outMesh->indicies.Add( indexCounter );
-				indexCounter++;
-			}
-			else
-			{
-				outMesh->indicies.Add( existingVertIndex );
-			}
-			numIndexCounter++;
+			outMesh->verticies.Add( newVertex );
+
+			// do existing vertex checks, done by assimp.
+			//int existingVertIndex = -1;
+			//for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
+			//{
+			//	if (outMesh->verticies[k] == newVertex)
+			//	{
+			//		existingVertIndex = k;
+			//		break;
+			//	}
+			//}
+
+			//// If it's a new vertex, add it and the index.
+			//if (existingVertIndex == -1)
+			//{
+			//	// Add weights
+			//	newVertex.bones[0] = vertexWeights[j].bones[0].bone;
+			//	newVertex.bones[1] = vertexWeights[j].bones[1].bone;
+			//	newVertex.bones[2] = vertexWeights[j].bones[2].bone;
+			//	newVertex.bones[3] = vertexWeights[j].bones[3].bone;
+			//	newVertex.weights[0] = vertexWeights[j].bones[0].weight;
+			//	newVertex.weights[1] = vertexWeights[j].bones[1].weight;
+			//	newVertex.weights[2] = vertexWeights[j].bones[2].weight;
+			//	newVertex.weights[3] = vertexWeights[j].bones[3].weight;
+			//	outMesh->verticies.Add( newVertex );
+			//	outMesh->indicies.Add( indexCounter );
+			//	indexCounter++;
+			//}
+			//else
+			//{
+			//	outMesh->indicies.Add( existingVertIndex );
+			//}
+			//numIndexCounter++;
 		}
+		LOG_TRACE( "		Done - SubMesh Vertex count: %d, Total: %d", newMesh->mNumVertices, outMesh->verticies.Size() );
+		LOG_TRACE( "		Processing submesh indicies ... ");
+
+		for (unsigned int j = 0; j < newMesh->mNumFaces; j++)
+		{
+			for (unsigned int k = 0; k < newMesh->mFaces[j].mNumIndices; k++)
+			{
+				outMesh->indicies.Add( newMesh->mFaces[j].mIndices[k] );
+				numIndexCounter++;
+			}
+		}
+		LOG_TRACE( "		Done - Submesh index count: %d - Total: %d\n", numIndexCounter - startIndex, outMesh->indicies.Size());
 		outMesh->indexCounts.Add(numIndexCounter - startIndex);
 		subMeshCounter++;
 	}
@@ -579,7 +626,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 	//	//LOG_TRACE( "Group[%d] - %s - Num vert-weights: %d", i, outMesh->vertexGroups[i].name.c_str(), outMesh->vertexGroups[i].verticies.Size());
 	//}
 	LOG_TRACE( "Done\n" );
-	LOG_TRACE( "Import Completed! Num verts: %d", outMesh->verticies.Size());
+	LOG_TRACE( "Rigged Import Completed! Num verts: %d\n", outMesh->verticies.Size());
 	return true;
 }
 
