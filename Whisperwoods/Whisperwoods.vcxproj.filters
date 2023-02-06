@@ -118,9 +118,6 @@
     <Filter Include="%2a Code\%2a Core\%2a Model Importing\FBX Importer">
       <UniqueIdentifier>{ea1cc5c0-1d9b-4aa5-8686-b8a4c015228b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="%2a Code\%2a Core\%2a Model Importing\Mesh">
-      <UniqueIdentifier>{2586625e-39cc-4dac-962c-176de7a15c7a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="%2a Code\%2a Core\%2a Model Importing\Vertex">
       <UniqueIdentifier>{fb614285-53ee-4ead-97d1-f481f08b28ec}</UniqueIdentifier>
     </Filter>
@@ -129,6 +126,9 @@
     </Filter>
     <Filter Include="%2a Code\%2a Core\%2a Animation\Animator">
       <UniqueIdentifier>{5fac8100-97fc-47a5-9ebf-46e6dffb041b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Model Importing\ModelResource">
+      <UniqueIdentifier>{2586625e-39cc-4dac-962c-176de7a15c7a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -195,6 +195,10 @@
     </ClCompile>
     <ClCompile Include="Window.cpp">
       <Filter>%2a Code\%2a Rendering\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="ModelResource.cpp">
+      <Filter>%2a Code\%2a Core\%2a Model Importing\ModelResource</Filter>
     </ClCompile>
     <ClCompile Include="Animator.cpp">
       <Filter>%2a Code\%2a Core\%2a Animation\Animator</Filter>
@@ -272,17 +276,23 @@
     <ClInclude Include="FBXImporter.h">
       <Filter>%2a Code\%2a Core\%2a Model Importing\FBX Importer</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>%2a Code\%2a Core\%2a Model Importing\Mesh</Filter>
-    </ClInclude>
     <ClInclude Include="Vertex.h">
       <Filter>%2a Code\%2a Core\%2a Model Importing\Vertex</Filter>
     </ClInclude>
     <ClInclude Include="VertexGroup.h">
       <Filter>%2a Code\%2a Core\%2a Model Importing\VertexGroup</Filter>
     </ClInclude>
+    <ClInclude Include="ConstantbufferData.h" />
+    <ClInclude Include="GUI.h" />
+    <ClInclude Include="ModelResource.h">
+      <Filter>%2a Code\%2a Core\%2a Model Importing\ModelResource</Filter>
+    </ClInclude>
     <ClInclude Include="Animator.h">
       <Filter>%2a Code\%2a Core\%2a Animation\Animator</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="BlinnPhong.hlsl" />
+    <FxCompile Include="MeshVS.hlsl" />
   </ItemGroup>
 </Project>

@@ -1,9 +1,13 @@
-#include "core.h"
+#include "Core.h"
 #include "Whisperwoods.h"
 
 #include "Game.h"
 #include "Input.h"
 #include "AudioSource.h"
+#include "FBXImporter.h"
+
+// TODO: Dudd include. Remove later.
+//#include "TextureResource.h"
 
 Whisperwoods::Whisperwoods(HINSTANCE instance)
 {
@@ -34,11 +38,29 @@ Whisperwoods::~Whisperwoods()
 void Whisperwoods::Run()
 {
 	// Main frame loop
-
+	
 	// Audio test startup
 	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, "Assets/Duck.mp3");
 	testSource.Play();
 
+	// Move this into a model print function
+	/*for (size_t i = 0; i < modelPointer->startIndicies.Size(); i++)
+	{
+		LOG_TRACE("SubMeshMaterial[%d]: %s", i, modelPointer->materialNames[i].c_str());
+		for (size_t j = 0; j < modelPointer->indexCounts[i]; j++)
+		{
+			int indexIndex = modelPointer->startIndicies[i] + j;
+			int indicie = modelPointer->indicies[indexIndex];
+			Vec3 pos = modelPointer->verticies[indicie].pos;
+			Vec3 nor = modelPointer->verticies[indicie].nor;
+			LOG_TRACE("Index[%d]: %d Vertex[%d]: pos: (%.2f, %.2f, %.2f) nor: (%.2f, %.2f, %.2f)",
+				j,
+				indicie,
+				indicie,
+				pos.x, pos.y, pos.z,
+				nor.x, nor.y, nor.z);
+		}
+	}*/
 
 	int frames = 0;
 	for (bool running = true; running; frames++)

@@ -1,13 +1,13 @@
 #pragma once
 #include <string>
-#include "Mesh.h"
-#include "Animation.h"
+#include "ModelResource.h"
+#include "AnimationResource.h"
 
 class FBXImporter
 {
 public:
-	static bool ImportFBXStatic(std::string filePath, unique_ptr<MeshStatic>& outMesh);
-	static bool ImportFBXRigged(std::string filePath, unique_ptr<MeshRigged>& outMesh);
-	static bool ImportFBXAnimations(std::string filePath, cs::List<Animation>& outAnimations);
+	static bool ImportFBXStatic(std::string filePath, ModelStaticResource* const outMesh);
+	static bool ImportFBXRigged(std::string filePath, ModelRiggedResource* const outMesh);
+	static bool ImportFBXAnimations(std::string filePath, AnimationResource* const outAnimations);
 };
 
