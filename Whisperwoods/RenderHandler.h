@@ -2,6 +2,8 @@
 
 #include "RenderCore.h"
 #include "Window.h"
+#include "Camera.h"
+#include "ConstantbufferData.h"
 
 class RenderHandler sealed
 {
@@ -14,6 +16,14 @@ public:
 	void Draw();
 
 private:
+	void InitVSConstantBuffers();
+
+private:
 	unique_ptr<RenderCore> m_renderCore;
+
+	Camera mainCamera;
+
+
+	ConstantBuffers cbufferData;
 };
 

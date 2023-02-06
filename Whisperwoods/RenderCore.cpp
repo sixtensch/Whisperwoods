@@ -1,7 +1,8 @@
 #include "Core.h"
 #include "RenderCore.h"
+#include <d3dcompiler.h>
 
-RenderCore::RenderCore(shared_ptr<Window> window)
+RenderCore::RenderCore(shared_ptr<Window> window, const Camera& camera)
 {
     m_window = window;
 
@@ -161,22 +162,115 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
     EXC_COMCHECK(m_device->CreateBlendState(&bd, &bss));
     EXC_COMINFO(m_context->OMSetBlendState(bss.Get(), nullptr, sampleMask));
-}
 
+    CompileShaders();
+}
 RenderCore::~RenderCore()
 {
 }
 
-void RenderCore::NewFrame()
+void RenderCore::NewFrame(ConstantBuffers cData)
 {
     m_context->ClearDepthStencilView(m_dsDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
 
     EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
     m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get());
 
+    // Constant buffers
+    m_context->VSSetConstantBuffers(0, 1, cData.vertexShaderCBuffer.GetAddressOf());
 }
 
 void RenderCore::EndFrame()
 {
     EXC_COMCHECK(m_swapChain->Present(0u, 0u));
+}
+
+ID3D11Device* RenderCore::GetDeviceP()
+{
+    return m_device.Get();
+}
+
+ID3D11Device* const* RenderCore::GetDevicePP()
+{
+    return m_device.GetAddressOf();
+}
+
+void RenderCore::BindGPipeline(ID3D11Buffer* const* vertexBufferPP, ID3D11Buffer* indexBufferP, const UINT& stride, const UINT& offset, PIPELINE_TYPE flag)
+{
+    // General binds all pipelines will use
+    
+    // Input Assembly
+    m_context->IASetVertexBuffers(0, 1, vertexBufferPP, &stride, &offset);
+    m_context->IASetIndexBuffer(indexBufferP, DXGI_FORMAT_R32_UINT, 0);
+
+    // Specialised binds
+    switch (flag)
+    {
+        case BLINN_PHONG:
+            BindBlinnPhong();
+            break;
+
+
+        default:
+            LOG_CRITICAL("Incorrect flag, could not bind any new pipeline");
+            break;
+    }
+}
+void RenderCore::DrawIndexed(int indexCount, int startIndexPos, int startVertexPos)
+{
+    m_context->DrawIndexed(indexCount, startIndexPos, startVertexPos);
+
+}
+
+void RenderCore::BindBlinnPhong()
+{
+    // Input Assembly
+    m_context->IASetInputLayout(m_shaders.inputLayout.Get());
+    m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    // Vertex Shader
+    m_context->VSSetShader(m_shaders.vertexShader.Get(), nullptr, 0);
+
+    // Pixel Shader
+    m_context->PSSetShader(m_shaders.pixelShader.Get(), nullptr, 0);
+}
+
+
+
+void RenderCore::CompileShaders()
+{
+    ID3DBlob* shaderBlob = {};
+
+#if WW_DEBUG
+    wchar_t vsPath[] = L"../Bin/Whisperwoods64-Debug/MeshVS.cso";
+    wchar_t pxPath[] = L"../Bin/Whisperwoods64-Debug/BlinnPhong.cso";
+#endif
+    
+    EXC_COMCHECK(D3DReadFileToBlob(pxPath, &shaderBlob));
+    EXC_COMCHECK(m_device->CreatePixelShader(
+        shaderBlob->GetBufferPointer(),
+        shaderBlob->GetBufferSize(),
+        nullptr,
+        m_shaders.pixelShader.GetAddressOf()
+    ));
+
+    EXC_COMCHECK(D3DReadFileToBlob(vsPath, &shaderBlob));
+    EXC_COMCHECK(m_device->CreateVertexShader(
+        shaderBlob->GetBufferPointer(),
+        shaderBlob->GetBufferSize(),
+        nullptr,
+        m_shaders.vertexShader.GetAddressOf()
+    ));
+
+    // Input Layout
+    D3D11_INPUT_ELEMENT_DESC vShaderInput[] = {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
+    };
+    EXC_COMCHECK(m_device->CreateInputLayout(
+        vShaderInput, static_cast<UINT>(sizeof(vShaderInput) / sizeof(*vShaderInput)),
+        shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(),
+        m_shaders.inputLayout.GetAddressOf()
+    ));
 }
