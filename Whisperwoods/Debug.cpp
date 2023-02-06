@@ -424,12 +424,14 @@ void Debug::PPushMessage(DebugLevel level, const char* format, va_list args)
 
 	m_items.Add(DebugItem{ level, std::string(m_tempBuffer, (int)(end - m_tempBuffer)) });
 
-	std::cout << m_items.Back().text.c_str();
-	OutputDebugStringA(m_items.Back().text.c_str());
-
 	if (level == DebugLevelFrameTrace)
 	{
 		m_frameTraceIndices.Add(m_items.Size() - 1);
+	}
+	else
+	{
+		std::cout << m_items.Back().text.c_str() << std::endl;
+		OutputDebugStringA((m_items.Back().text + '\n').c_str());
 	}
 
 	TryCommand();
@@ -443,12 +445,14 @@ void Debug::PPushMessage(const char* message, DebugLevel level)
 
 	m_items.Add(DebugItem{ level, std::string(message) });
 
-	std::cout << message;
-	OutputDebugStringA(message);
-
 	if (level == DebugLevelFrameTrace)
 	{
 		m_frameTraceIndices.Add(m_items.Size() - 1);
+	}
+	else
+	{
+		std::cout << m_items.Back().text.c_str() << std::endl;
+		OutputDebugStringA((m_items.Back().text + '\n').c_str());
 	}
 
 	TryCommand();
