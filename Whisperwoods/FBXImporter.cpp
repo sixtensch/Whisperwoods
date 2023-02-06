@@ -181,6 +181,7 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, unique_ptr<ModelStaticRe
 	}
 
 	int indexCounter = 0;
+	int numIndexCounter = 0;
 	int subMeshCounter = 0;
 
 	for (unsigned int i = 0; i < scene->mNumMeshes; i++)
@@ -193,7 +194,10 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, unique_ptr<ModelStaticRe
 		std::string traceString3 = "Processing sub-mesh: " + std::string(newMesh->mName.C_Str());
 		LOG_TRACE(traceString3.c_str());
 
-		int startIndex = indexCounter;
+		// Add material name to the material name list.
+		outMesh->materialNames.Add(std::string(scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str()));
+
+		int startIndex = numIndexCounter;
 		outMesh->startIndicies.Add(startIndex);
 
 		for (unsigned int j = 0; j < newMesh->mNumVertices; j++)
@@ -213,11 +217,31 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, unique_ptr<ModelStaticRe
 				Vec2(currentUV.x, currentUV.y), // UV
 				Vec2(0,0)); // Padding
 			
-			outMesh->verticies.Add(newVertex);
-			outMesh->indicies.Add(indexCounter);
-			indexCounter++;
+			// do existing vertex checks.
+			int existingVertIndex = -1;
+			for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
+			{
+				if (outMesh->verticies[k] == newVertex)
+				{
+					existingVertIndex = k;
+					break;
+				}
+			}
+
+			// If it's a new vertex, add it and the index.
+			if (existingVertIndex == -1)
+			{
+				outMesh->verticies.Add(newVertex);
+				outMesh->indicies.Add(indexCounter);
+				indexCounter++;
+			}
+			else
+			{
+				outMesh->indicies.Add(existingVertIndex);
+			}
+			numIndexCounter++;
 		}
-		outMesh->indexCounts.Add(indexCounter - startIndex);
+		outMesh->indexCounts.Add(numIndexCounter - startIndex);
 		subMeshCounter++;
 	}
 
@@ -416,7 +440,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, unique_ptr<ModelRiggedRe
 	return true;
 }
 
-bool FBXImporter::ImportFBXAnimations(std::string filePath, cs::List<Animation>& outAnimations)
+bool FBXImporter::ImportFBXAnimations(std::string filePath, cs::List<AnimationResource>& outAnimations)
 {
 	return false;
 }

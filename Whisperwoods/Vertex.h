@@ -24,6 +24,8 @@ struct VertexTextured : Vertex
 		Vertex(p_pos, p_nor, p_tan, p_bitan),
 		uv(p_uv),
 		padding(p_pad) {};
+
+	bool operator==(const VertexTextured& other);
 };
 
 struct VertexRigged : VertexTextured
@@ -35,4 +37,6 @@ struct VertexRigged : VertexTextured
 		VertexTextured(p_pos, p_nor, p_tan, p_bitan, p_uv, p_pad),
 		bones(p_bones),
 		weights(p_weights) {};
+
+	bool operator==(const VertexRigged& other);
 };

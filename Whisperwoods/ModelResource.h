@@ -2,7 +2,7 @@
 #include <CHSL/List.h>
 #include "Vertex.h"
 #include "Armature.h"
-
+#include <String>
 
 struct ModelResource
 {
@@ -15,6 +15,7 @@ struct ModelResource
 	cs::List<int> startIndicies;
 	cs::List<int> indexCounts;
 	cs::List<int> materialIndicies;
+	cs::List<std::string> materialNames;
 
 	// Vertex and index buffers
 	ComPtr<ID3D11Buffer> vertexBuffer;

@@ -47,11 +47,12 @@
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="Whisperwoods.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Animation.h" />
+    <ClInclude Include="AnimationResource.h" />
     <ClInclude Include="Animator.h" />
     <ClInclude Include="Armature.h" />
     <ClInclude Include="AudioSource.h" />

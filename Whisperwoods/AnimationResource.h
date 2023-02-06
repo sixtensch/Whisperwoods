@@ -11,7 +11,7 @@ struct AnimationChannel
 	cs::List<Vec3KeyFrame> scaleKeyFrames;
 };
 
-struct Animation
+struct AnimationResource // TODO: Derive from basic resource
 {
 	std::string name;
 	cs::List<AnimationChannel> channels;
