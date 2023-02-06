@@ -4,8 +4,8 @@
 #include "TextureResource.h"
 #include "ShaderResource.h"
 #include "SoundResource.h"
-
-
+#include "ModelResource.h"
+#include "FBXImporter.h"
 
 Resources* Resources::s_singleton = nullptr;
 
@@ -22,7 +22,11 @@ Resources::Resources()
 	InitMapList();
 
 	// TODO: Dudd code. Remove later.
+	FBXImporter importer;
 	AllocateResource(TEXTURE, "TestPath/Test", "Test name");
+	ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(MODELSTATIC, "Characters/ShadiiTest.fbx", "Test name"));
+	importer.ImportFBXStatic("Assets/Models/Characters/ShadiiTest.fbx", shadiiTestModel);
+	//shadiiTestModel->CreateVertexBuffer()
 }
 
 Resources::~Resources()
@@ -50,7 +54,7 @@ void Resources::InitMapList()
 	}
 }
 
-const BasicResource* Resources::GetResource(const RESOURCE_TYPES resourceType, const std::string subPath) const
+BasicResource* Resources::GetResource(const RESOURCE_TYPES resourceType, const std::string subPath)
 {
 	auto& resourceMap = m_resourceMaps[resourceType];
 	auto it = resourceMap.find(subPath);
@@ -81,6 +85,10 @@ BasicResource* Resources::AllocateResource(const RESOURCE_TYPES resourceType, co
 		resource = make_shared<SoundResource>(resourceName);
 		break;
 
+	case MODELSTATIC:
+		resource = make_shared<ModelStaticResource>();
+		break;
+
 	default:
 		return nullptr; // If not valid type, return nullptr.
 		break;
@@ -94,7 +102,7 @@ BasicResource* Resources::AllocateResource(const RESOURCE_TYPES resourceType, co
 
 	if (!isSuccessful)
 	{
-		std::string blockerName = insertionIt->second.get()->resourceName;
+		std::string blockerName = insertionIt->second.get()->name;
 		std::string blockerPath = insertionIt->first;
 		EXC("Failed to create resource of type '%s' with path '%s'. Prevented by resource '%s' with path '%s'", 
 			resourceName.c_str(), subPath.c_str(), blockerName.c_str(), blockerPath.c_str());

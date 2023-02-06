@@ -1,6 +1,7 @@
 #include "core.h"
 #include "RenderHandler.h"
 #include "Vertex.h"
+#include "Resources.h"
 
 RenderHandler::RenderHandler()
 {}
@@ -16,7 +17,10 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 
 	m_renderCore = make_unique<RenderCore>(window, mainCamera);
 
-	staticModel = make_unique<ModelStaticResource>();
+	Resources & resources = Resources::Get();
+
+	staticModel = static_cast<ModelStaticResource*>(resources.GetResource(MODELSTATIC, "Characters/ShadiiTest.fbx"));
+	staticModel->CreateVertexBuffer(m_renderCore.get()->GetDeviceP());
 
     InitVSConstantBuffers();
 }
@@ -84,12 +88,12 @@ void RenderHandler::Draw()
 	//	&isubData,
 	//	IndexBuffer.GetAddressOf()
 	//);
-	ID3D11Buffer* vertexBuffer = staticModel.get()->vertexBuffer.Get();
-	ID3D11Buffer* indexBuffer = staticModel.get()->indexBuffer.Get();
+	ID3D11Buffer* vertexBuffer = staticModel->vertexBuffer.Get();
+	ID3D11Buffer* indexBuffer = staticModel->indexBuffer.Get();
 
 	m_renderCore->BindGPipeline(&vertexBuffer, indexBuffer, sizeof(VertexTextured), 0, PIPELINE_TYPE::BLINN_PHONG);
 	
-	int indSize = staticModel.get()->indicies.Size();
+	int indSize = staticModel->indicies.Size();
 	m_renderCore->DrawIndexed(indSize, 0, 0);
 	// ######################### DUD ########################################
 

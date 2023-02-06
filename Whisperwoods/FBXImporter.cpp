@@ -151,7 +151,7 @@ aiMatrix4x4 ConvertToAssImp(Mat4& mat)
 #define MAT XMMATRIX
 #define XMIDENT DirectX::XMMatrixIdentity()
 
-bool FBXImporter::ImportFBXStatic(std::string filePath, unique_ptr<ModelStaticResource>& outMesh)
+bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* const outMesh)
 {
 	Assimp::Importer importer;
 	LOG_TRACE("Starting FBX Import for file:");
@@ -248,7 +248,23 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, unique_ptr<ModelStaticRe
 	return true;
 }
 
-bool FBXImporter::ImportFBXRigged(std::string filePath, unique_ptr<ModelRiggedResource>& outMesh)
+void RecursiveNodeFetch(aiNode* node, std::vector<aiNode*>& outputVector)
+{
+	for (int i = 0; i < node->mNumChildren; i++)
+	{
+		RecursiveNodeFetch(node->mChildren[i], outputVector);
+	}
+	outputVector.push_back(node);
+}
+
+std::vector<aiNode*> GetNodeVector(const aiScene* scene)
+{
+	std::vector<aiNode*> output;
+	RecursiveNodeFetch(scene->mRootNode, output);
+	return output;
+}
+
+bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* const outMesh)
 {
 	Assimp::Importer importer;
 	LOG_TRACE("Starting FBX Import for file:");
@@ -278,169 +294,195 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, unique_ptr<ModelRiggedRe
 	}
 
 	int indexCounter = 0;
+	int numIndexCounter = 0;
 	int subMeshCounter = 0;
-
 
 	outMesh->armature.globalInverseTransform = ConvertToMat4(&scene->mRootNode->mTransformation.Inverse().Transpose());
 
 
-	//for (int i = 0; i < scene->mNumMeshes; i++)
-	//{
-	//	aiMesh* newMesh = scene->mMeshes[i];
+	for (int i = 0; i < scene->mNumMeshes; i++)
+	{
+		aiMesh* newMesh = scene->mMeshes[i];
 
-	//	if (!newMesh->HasFaces())
-	//		continue;
+		if (!newMesh->HasFaces())
+			continue;
 
-	//	if (!newMesh->HasBones())
-	//		continue;
-
-	//	std::vector<aiNode*> nodes = GetNodeVector(scene);
+		if (!newMesh->HasBones())
+			continue;
 
 
-	//	outArmature.InitializeMatrix(newMesh->mNumBones);
+		std::string traceString3 = "Processing sub-mesh: " + std::string(newMesh->mName.C_Str());
+		LOG_TRACE(traceString3.c_str());
 
-	//	std::vector<aiBone*> boneList;
-	//	std::vector<std::string> boneNames;
-	//	std::vector<std::string> parentNames;
-	//	std::vector<int> parentIndicies;
-	//	std::vector<DirectX::XMFLOAT4X4> bindLocalTxList;
-	//	std::vector<DirectX::XMFLOAT4X4> bindModelTxList;
-	//	std::vector<DirectX::XMFLOAT4X4> inverseBindTxList;
+		std::vector<aiNode*> nodes = GetNodeVector(scene);
 
-	//	aiMatrix4x4 identity = aiMatrix4x4(
-	//		1, 0, 0, 0,
-	//		0, 1, 0, 0,
-	//		0, 0, 1, 0,
-	//		0, 0, 0, 1);
-	//	DirectX::XMFLOAT4X4 identityDx = ConvertToDirectX(&identity);
-	//	int numBones = newMesh->mNumBones;
+		outMesh->armature.InitializeMatrix(newMesh->mNumBones);
 
-	//	// Fill Vectors as makeshift arrays
-	//	for (int j = 0; j < numBones; j++)
-	//	{
-	//		boneList.push_back(newMesh->mBones[j]);
-	//		boneNames.push_back(std::string(newMesh->mBones[j]->mName.C_Str()));
-	//		parentNames.push_back(std::string(newMesh->mBones[j]->mNode->mParent->mName.C_Str()));
-	//		parentIndicies.push_back(-1);
-	//		bindLocalTxList.push_back(identityDx);
-	//		bindModelTxList.push_back(identityDx);
-	//		inverseBindTxList.push_back(identityDx);
-	//	}
+		std::vector<aiBone*> boneList;
+		std::vector<std::string> boneNames;
+		std::vector<std::string> parentNames;
+		std::vector<int> parentIndicies;
+		std::vector<Mat4> bindLocalTxList;
+		std::vector<Mat4> bindModelTxList;
+		std::vector<Mat4> inverseBindTxList;
 
-	//	// Fill local matricies
-	//	for (int j = 0; j < numBones; j++)
-	//	{
-	//		aiMatrix4x4 localMat = newMesh->mBones[j]->mNode->mTransformation.Transpose();
-	//		bindLocalTxList[j] = ConvertToDirectX(&localMat);
-	//	}
+		aiMatrix4x4 identity = aiMatrix4x4(
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1);
+		Mat4 identityDx = ConvertToMat4(&identity);
+		int numBones = newMesh->mNumBones;
 
-	//	// Resolve parent indicies
-	//	for (int j = 1; j < numBones; j++)
-	//	{
-	//		for (size_t k = 0; k < numBones; k++)
-	//		{
-	//			if (parentNames[j] == boneNames[k])
-	//			{
-	//				parentIndicies[j] = k;
-	//				break;
-	//			}
-	//		}
-	//	}
+		// Fill Vectors as makeshift arrays
+		for (int j = 0; j < numBones; j++)
+		{
+			boneList.push_back(newMesh->mBones[j]);
+			boneNames.push_back(std::string(newMesh->mBones[j]->mName.C_Str()));
+			parentNames.push_back(std::string(newMesh->mBones[j]->mNode->mParent->mName.C_Str()));
+			parentIndicies.push_back(-1);
+			bindLocalTxList.push_back(identityDx);
+			bindModelTxList.push_back(identityDx);
+			inverseBindTxList.push_back(identityDx);
+		}
 
-	//	// bindModelTx = parentBindModelTx * bindLocalTx;
-	//	// inverseBindModelTx = inverse(bindModelTx)
+		// Fill local matricies
+		for (int j = 0; j < numBones; j++)
+		{
+			aiMatrix4x4 localMat = newMesh->mBones[j]->mNode->mTransformation.Transpose();
+			bindLocalTxList[j] = ConvertToMat4(&localMat);
+		}
 
-	//	// Special case for root
-	//	bindModelTxList[0] = bindLocalTxList[0];
-	//	DXMAT mMatXM = DirectX::XMLoadFloat4x4(&bindModelTxList[0]);
-	//	DXMAT ibMatXM = DirectX::XMMatrixInverse(nullptr, mMatXM);
-	//	DirectX::XMStoreFloat4x4(&inverseBindTxList[0], ibMatXM);
-	//	// Resolve rest of bones
-	//	for (int j = 1; j < numBones; j++)
-	//	{
-	//		PrintMatrix(bindModelTxList[parentIndicies[j]], boneNames[j] + " - Parent Tx");
-	//		DXMAT pMatXM = DirectX::XMLoadFloat4x4(&bindModelTxList[parentIndicies[j]]);
-	//		PrintMatrix(bindLocalTxList[j], boneNames[j] + " - Local Tx");
-	//		DXMAT lMatXM = DirectX::XMLoadFloat4x4(&bindLocalTxList[j]);
-	//		DXMAT mMatXM = DirectX::XMMatrixMultiply(lMatXM, pMatXM);
-	//		DirectX::XMStoreFloat4x4(&bindModelTxList[j], mMatXM);
-	//		//PrintMatrix(bindModelTxList[j], boneNames[j] + " - Model Tx");
+		// Resolve parent indicies
+		for (int j = 1; j < numBones; j++)
+		{
+			for (size_t k = 0; k < numBones; k++)
+			{
+				if (parentNames[j] == boneNames[k])
+				{
+					parentIndicies[j] = k;
+					break;
+				}
+			}
+		}
 
-	//		DXMAT ibMatXM = DirectX::XMMatrixInverse(nullptr, mMatXM);
-	//		DirectX::XMStoreFloat4x4(&inverseBindTxList[j], ibMatXM);
-	//		//PrintMatrix(inverseBindTxList[j], boneNames[j] + " - Inverse Bind Tx");
-	//		//PrintMatrix(ConvertToDirectX(&newMesh->mBones[j]->mOffsetMatrix), boneNames[j] + " - Imported Inverse Bind Tx");
-	//	}
+		// bindModelTx = parentBindModelTx * bindLocalTx;
+		// inverseBindModelTx = inverse(bindModelTx)
 
-	//	// Create Bones
-	//	for (int j = 0; j < numBones; j++)
-	//	{
-	//		Bone nBone;
-	//		nBone.name = boneNames[j];
-	//		nBone.parentName = parentNames[j];
-	//		nBone.parentIndex = parentIndicies[j];
-	//		nBone.inverseBindMatrix = inverseBindTxList[j];
-	//		outArmature.bones.push_back(nBone);
-	//	}
+		// Special case for root
+		bindModelTxList[0] = bindLocalTxList[0];
+		//Mat4 ibMat = bindModelTxList[0].in
+		//DXMAT mMatXM = DirectX::XMLoadFloat4x4(&bindModelTxList[0]);
+		DXMAT ibMatXM = DirectX::XMMatrixInverse(nullptr, bindModelTxList[0].XMMatrix());
+		inverseBindTxList[0] = Mat4(ibMatXM);
+		// Resolve rest of bones
+		for (int j = 1; j < numBones; j++)
+		{
+			//PrintMatrix(bindModelTxList[parentIndicies[j]], boneNames[j] + " - Parent Tx");
+			DXMAT pMatXM = bindModelTxList[parentIndicies[j]].XMMatrix();
+			//PrintMatrix(bindLocalTxList[j], boneNames[j] + " - Local Tx");
+			DXMAT lMatXM = bindLocalTxList[j].XMMatrix();
+			DXMAT mMatXM = DirectX::XMMatrixMultiply(lMatXM, pMatXM);
+			bindModelTxList[j] = Mat4(mMatXM);
+			//DirectX::XMStoreFloat4x4(&bindModelTxList[j], mMatXM);
+			//PrintMatrix(bindModelTxList[j], boneNames[j] + " - Model Tx");
 
-	//	// Get Weights
-	//	for (int j = 0; j < newMesh->mNumBones; j++)
-	//	{
-	//		VertexGroup newGroup;
-	//		newGroup.name = boneList[j]->mName.C_Str();
-	//		newGroup.index = j;
-	//		int numWeights = newMesh->mBones[j]->mNumWeights;
-	//		for (size_t k = 0; k < newMesh->mBones[j]->mNumWeights; k++)
-	//		{
-	//			VertexWeightPair newVertexWeight;
-	//			newVertexWeight.vertex = newMesh->mBones[j]->mWeights[k].mVertexId;
-	//			newVertexWeight.weight = newMesh->mBones[j]->mWeights[k].mWeight;
-	//			newGroup.verticies.push_back(newVertexWeight);
-	//		}
-	//		outVertGroups->push_back(newGroup);
-	//	}
+			DXMAT ibMatXM = DirectX::XMMatrixInverse(nullptr, mMatXM);
+			inverseBindTxList[j] = Mat4(ibMatXM);
+			//DirectX::XMStoreFloat4x4(&inverseBindTxList[j], ibMatXM);
+			//PrintMatrix(inverseBindTxList[j], boneNames[j] + " - Inverse Bind Tx");
+			//PrintMatrix(ConvertToDirectX(&newMesh->mBones[j]->mOffsetMatrix), boneNames[j] + " - Imported Inverse Bind Tx");
+		}
 
-	//	// Get Mesh
-	//	for (int j = 0; j < newMesh->mNumVertices; j++)
-	//	{
-	//		aiVector3D currentVert = newMesh->mVertices[j];
-	//		aiVector3D currentNorm = newMesh->mNormals[j];
-	//		aiVector3D currentTan = newMesh->mTangents[j];
-	//		aiVector3D currentBiTan = newMesh->mBitangents[j];
-	//		aiVector3D currentUV = newMesh->mTextureCoords[0][j];
-	//		//aiVector3D currentUV = currentUVSet[0];
-	//		Vertex newVertex;
+		// Create Bones  TODO: fix for submeshes
+		for (int j = 0; j < numBones; j++)
+		{
+			Bone nBone;
+			nBone.name = boneNames[j];
+			nBone.parentName = parentNames[j];
+			nBone.parentIndex = parentIndicies[j];
+			nBone.inverseBindMatrix = inverseBindTxList[j];
+			outMesh->armature.bones.Add(nBone);
+		}
 
-	//		//printf("V: %.2f %.2f %.2f\n", currentVert.x, currentVert.y, currentVert.z);
-	//		newVertex.pos[0] = currentVert.x;
-	//		newVertex.pos[1] = currentVert.y;
-	//		newVertex.pos[2] = currentVert.z;
-
-	//		newVertex.nor[0] = currentNorm.x;
-	//		newVertex.nor[1] = currentNorm.y;
-	//		newVertex.nor[2] = currentNorm.z;
-
-	//		newVertex.tan[0] = currentTan.x;
-	//		newVertex.tan[1] = currentTan.y;
-	//		newVertex.tan[2] = currentTan.z;
-
-	//		newVertex.bitan[0] = currentBiTan.x;
-	//		newVertex.bitan[1] = currentBiTan.y;
-	//		newVertex.bitan[2] = currentBiTan.z;
-
-	//		newVertex.uv[0] = currentUV.x;
-	//		newVertex.uv[1] = currentUV.y;
-
-	//		outVerts->push_back(newVertex);
-	//	}
-	//	outArmature.ResolveBoneParentIndicies();
-	//}
+		// Get Weights  TODO: fix for submeshes
+		for (int j = 0; j < newMesh->mNumBones; j++)
+		{
+			VertexGroup newGroup;
+			newGroup.name = boneList[j]->mName.C_Str();
+			newGroup.index = j;
+			int numWeights = newMesh->mBones[j]->mNumWeights;
+			for (size_t k = 0; k < newMesh->mBones[j]->mNumWeights; k++)
+			{
+				VertexWeightPair newVertexWeight;
+				newVertexWeight.vertex = newMesh->mBones[j]->mWeights[k].mVertexId;
+				newVertexWeight.weight = newMesh->mBones[j]->mWeights[k].mWeight;
+				newGroup.verticies.Add(newVertexWeight);
+			}
+			outMesh->vertexGroups.Add(newGroup);
+		}
 
 
+
+		// Get mesh, TODO: fix for submeshes
+
+		// Add material name to the material name list.
+		outMesh->materialNames.Add(std::string(scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str()));
+		int startIndex = numIndexCounter;
+		outMesh->startIndicies.Add(startIndex);
+
+		for (unsigned int j = 0; j < newMesh->mNumVertices; j++)
+		{
+			aiVector3D currentVert = newMesh->mVertices[j];
+			aiVector3D currentNorm = newMesh->mNormals[j];
+			aiVector3D currentTan = newMesh->mTangents[j];
+			aiVector3D currentBiTan = newMesh->mBitangents[j];
+			aiVector3D currentUV = newMesh->mTextureCoords[0][j];
+			//aiVector3D currentUV = currentUVSet[0];
+
+			VertexRigged newVertex(
+				Vec3(currentVert.x, currentVert.y, currentVert.z), // Position
+				Vec3(currentNorm.x, currentNorm.y, currentNorm.z), // Normal
+				Vec3(currentTan.x, currentTan.y, currentTan.z), // Tangent
+				Vec3(currentBiTan.x, currentBiTan.y, currentBiTan.z), // Bitangent
+				Vec2(currentUV.x, currentUV.y), // UV
+				Vec2(0, 0), // Padding
+				Point4(0, 0, 0, 0), // Bones (needs assigning later)
+				Vec4(0, 0,0, 0)); // Weights (needs assigning later)
+
+			// do existing vertex checks.
+			int existingVertIndex = -1;
+			for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
+			{
+				if (outMesh->verticies[k] == newVertex)
+				{
+					existingVertIndex = k;
+					break;
+				}
+			}
+
+			// If it's a new vertex, add it and the index.
+			if (existingVertIndex == -1)
+			{
+				outMesh->verticies.Add(newVertex);
+				outMesh->indicies.Add(indexCounter);
+				indexCounter++;
+			}
+			else
+			{
+				outMesh->indicies.Add(existingVertIndex);
+			}
+			numIndexCounter++;
+		}
+		outMesh->indexCounts.Add(numIndexCounter - startIndex);
+		subMeshCounter++;
+
+		outMesh->armature.ResolveBoneParentIndicies();
+	}
 	return true;
 }
 
-bool FBXImporter::ImportFBXAnimations(std::string filePath, cs::List<AnimationResource>& outAnimations)
+bool FBXImporter::ImportFBXAnimations(std::string filePath, AnimationResource* const outAnimations)
 {
 	return false;
 }

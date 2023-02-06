@@ -16,7 +16,7 @@ public:
 
 	void Draw();
 
-	unique_ptr<ModelStaticResource> staticModel;
+	ModelStaticResource* staticModel;
 	//int indexDataSize;
 	
 private:

@@ -11,9 +11,9 @@ public:
 
 	BasicResource() {};
 	BasicResource(const std::string name) 
-		: resourceName(name) {};
+		: name(name) {};
 
 public:
-	std::string resourceName;
+	std::string name;
 };
 

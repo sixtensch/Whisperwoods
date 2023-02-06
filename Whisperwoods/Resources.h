@@ -15,6 +15,10 @@ enum RESOURCE_TYPES {
 	SHADER = 0,
 	TEXTURE,
 	SOUND,
+	MATERIAL,
+	MODELSTATIC,
+	MODELRIGGED,
+	MAP,
 	RESOURCE_COUNT // This has to always be at the end of the enum.
 };
 
@@ -32,7 +36,7 @@ public:
 
 	static Resources& Get();
 
-	const BasicResource* GetResource(const RESOURCE_TYPES resourceType, std::string subPath) const;
+	BasicResource* GetResource(const RESOURCE_TYPES resourceType, std::string subPath);
 
 private:
 

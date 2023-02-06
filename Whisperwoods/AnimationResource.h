@@ -2,6 +2,7 @@
 #include <string>
 #include <CHSL/List.h>
 #include "KeyFrame.h"
+#include "BasicResource.h"
 
 struct AnimationChannel
 {
@@ -11,9 +12,14 @@ struct AnimationChannel
 	cs::List<Vec3KeyFrame> scaleKeyFrames;
 };
 
-struct AnimationResource // TODO: Derive from basic resource
+struct AnimationResource : public BasicResource
 {
-	std::string name;
+	AnimationResource() = default;
+
+	AnimationResource(const std::string name) : BasicResource(name)  {
+		duration = 0;
+	}
+
 	cs::List<AnimationChannel> channels;
 	float duration;
 };

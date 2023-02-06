@@ -27,13 +27,21 @@ struct VertexTextured : Vertex
 
 struct VertexRigged : VertexTextured
 {
-	Point4 bones;
-	Vec4 weights;
+	int bones[4];
+	float weights[4];
 	VertexRigged() = default;
 	VertexRigged(Vec3 p_pos, Vec3 p_nor, Vec3 p_tan, Vec3 p_bitan, Vec2 p_uv, Vec2 p_pad, Point4 p_bones, Vec4 p_weights) :
-		VertexTextured(p_pos, p_nor, p_tan, p_bitan, p_uv, p_pad),
-		bones(p_bones),
-		weights(p_weights) {};
+		VertexTextured(p_pos, p_nor, p_tan, p_bitan, p_uv, p_pad)
+	{
+		bones[0] = p_bones.x;
+		bones[1] = p_bones.y;
+		bones[2] = p_bones.z;
+		bones[3] = p_bones.w;
+		weights[0] = p_weights.x;
+		weights[1] = p_weights.y;
+		weights[2] = p_weights.z;
+		weights[3] = p_weights.w;
+	};
 
 	bool operator==(const VertexRigged& other);
 };
