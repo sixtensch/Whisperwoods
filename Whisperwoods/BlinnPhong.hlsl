@@ -9,5 +9,5 @@ struct VSOutput
 
 float4 main(VSOutput input) : SV_TARGET
 {
-	return float4(0.5f, 0.5f, 0.5f, 1.0f);
+	return input.wsPosition;
 }
