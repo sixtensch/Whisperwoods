@@ -113,9 +113,9 @@ void RenderHandler::InitVSConstantBuffers()
 
     // Create the initial data for the cbuffer
     CB::VSData data = {
-        mainCamera.GetWorldMatrix(),
-        mainCamera.GetViewMatrix(),
-        mainCamera.GetProjectionMatrix()
+        Mat4(),
+        mainCamera.GetViewMatrix().Transpose(),
+        mainCamera.GetProjectionMatrix().Transpose()
     };
 
 

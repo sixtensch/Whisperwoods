@@ -7,7 +7,7 @@ struct AnimationChannel
 {
 	std::string channelName;
 	cs::List<Vec3KeyFrame> positionKeyFrames;
-	cs::List<QuaternionKeyFrame> rotationKeyFrames;
+	cs::List<QuatKeyFrame> rotationKeyFrames;
 	cs::List<Vec3KeyFrame> scaleKeyFrames;
 };
 

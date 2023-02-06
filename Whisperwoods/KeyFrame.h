@@ -12,7 +12,7 @@ struct Vec3KeyFrame : KeyFrame
 	cs::Vec3 value;
 };
 
-struct QuaternionKeyFrame : KeyFrame
+struct QuatKeyFrame : KeyFrame
 {
 	cs::Quaternion value;
 };

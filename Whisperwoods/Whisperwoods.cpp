@@ -50,6 +50,11 @@ void Whisperwoods::Run()
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
+
+
+
+
+
 	int frames = 0;
 	for (bool running = true; running; frames++)
 	{
