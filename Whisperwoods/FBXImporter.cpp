@@ -218,34 +218,12 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 				Vec3(currentBiTan.x, currentBiTan.y, currentBiTan.z), // Bitangent
 				Vec2(currentUV.x, currentUV.y), // UV
 				Vec2(subMeshCounter,0)); // submeshIndex and Padding, submesh index is important for differentiating identical verticies of different materials.
-			
-			//// do existing vertex checks. // done by assimp
-			//int existingVertIndex = -1;
-			//for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
-			//{
-			//	if (outMesh->verticies[k] == newVertex)
-			//	{
-			//		existingVertIndex = k;
-			//		break;
-			//	}
-			//}
 
+			// Add to the output vertex list
 			outMesh->verticies.Add( newVertex ); // Base verticies
-
-			// If it's a new vertex, add it and the index.
-			//if (existingVertIndex == -1)
-			//{
-			//	outMesh->verticies.Add(newVertex);
-			//	//outMesh->indicies.Add(indexCounter);
-			//	//indexCounter++;
-			//}
-			//else
-			//{
-			//	//outMesh->indicies.Add(existingVertIndex);
-			//}
-			//numIndexCounter++;
 		}
 
+		// Process faces - indicies
 		for (unsigned int j = 0; j < newMesh->mNumFaces; j++)
 		{
 			for (unsigned int k = 0; k < newMesh->mFaces[j].mNumIndices; k++)
@@ -286,7 +264,6 @@ bool Compare( BoneWeightPair i, BoneWeightPair j )
 	return (i > j);
 }
 
-
 // Quite heavy function.
 bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* const outMesh)
 {
@@ -314,7 +291,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 		return false;
 	}
 
-	LOG_TRACE( "==RIGGED IMPORT PROCESS START==\n", scene->mNumMeshes );
+	LOG_TRACE( "==RIGGED IMPORT PROCESS START==\n");
 
 	outMesh->armature.globalInverseTransform = ConvertToMat4(&scene->mRootNode->mTransformation.Inverse().Transpose());
 
@@ -446,22 +423,11 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 	}
 	LOG_TRACE( "Done\n" );
 
-	// Vertex groups not used in the current setup, weights calculated directly.
-	//LOG_TRACE( "Import process 6: Adding output vertex groups." );
-	//// Step 6: Create and add output vertex groups.
-	//for (int i = 0; i < numBones; i++)
-	//{
-	//	VertexGroup newGroup;
-	//	newGroup.name = boneNames[i];
-	//	newGroup.index = i;
-	//	outMesh->vertexGroups.Add( newGroup );
-	//}
-
+	// Reset vertex/index counters
 	unsigned int indexCounter = 0;
 	unsigned int numIndexCounter = 0;
 	unsigned int subMeshCounter = 0;
 
-	
 	LOG_TRACE( "Processing mesh and weights...\n" );
 	// Step 6: process the verticies and indicies as with the static import, but using the rigged verticies.
 	for (int i = 0; i < scene->mNumMeshes; i++)
@@ -473,8 +439,6 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 		if (!newMesh->HasBones())
 			continue;
 
-
-		
 		// Add material name to the material name list.
 		outMesh->materialNames.Add(std::string( scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str()));
 		int startIndex = numIndexCounter;
@@ -553,41 +517,8 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 					vertexWeights[j].bones[3].weight
 				)); // Weights 
 
-
+			// Add the vertex to the output list
 			outMesh->verticies.Add( newVertex );
-
-			// do existing vertex checks, done by assimp.
-			//int existingVertIndex = -1;
-			//for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
-			//{
-			//	if (outMesh->verticies[k] == newVertex)
-			//	{
-			//		existingVertIndex = k;
-			//		break;
-			//	}
-			//}
-
-			//// If it's a new vertex, add it and the index.
-			//if (existingVertIndex == -1)
-			//{
-			//	// Add weights
-			//	newVertex.bones[0] = vertexWeights[j].bones[0].bone;
-			//	newVertex.bones[1] = vertexWeights[j].bones[1].bone;
-			//	newVertex.bones[2] = vertexWeights[j].bones[2].bone;
-			//	newVertex.bones[3] = vertexWeights[j].bones[3].bone;
-			//	newVertex.weights[0] = vertexWeights[j].bones[0].weight;
-			//	newVertex.weights[1] = vertexWeights[j].bones[1].weight;
-			//	newVertex.weights[2] = vertexWeights[j].bones[2].weight;
-			//	newVertex.weights[3] = vertexWeights[j].bones[3].weight;
-			//	outMesh->verticies.Add( newVertex );
-			//	outMesh->indicies.Add( indexCounter );
-			//	indexCounter++;
-			//}
-			//else
-			//{
-			//	outMesh->indicies.Add( existingVertIndex );
-			//}
-			//numIndexCounter++;
 		}
 		LOG_TRACE( "		Done - SubMesh Vertex count: %d, Total: %d", newMesh->mNumVertices, outMesh->verticies.Size() );
 		LOG_TRACE( "		Processing submesh indicies ... ");
@@ -625,6 +556,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 	//		outMesh->verticies[i].weights[3] );
 	//	//LOG_TRACE( "Group[%d] - %s - Num vert-weights: %d", i, outMesh->vertexGroups[i].name.c_str(), outMesh->vertexGroups[i].verticies.Size());
 	//}
+
 	LOG_TRACE( "Done\n" );
 	LOG_TRACE( "Rigged Import Completed! Num verts: %d\n", outMesh->verticies.Size());
 	return true;
@@ -632,5 +564,85 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 
 bool FBXImporter::ImportFBXAnimations(std::string filePath, AnimationResource* const outAnimations)
 {
-	return false;
+	LOG_TRACE( "\nStarting Animation FBX Import for file: %s", filePath.c_str() );
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile( filePath,
+		/*aiProcess_CalcTangentSpace | aiProcess_Triangulate |*/ aiProcess_PopulateArmatureData );
+	if (scene == nullptr) {
+		LOG_ERROR( "THERE WAS AN FBX IMPORT ERROR:" );
+		LOG_TRACE( importer.GetErrorString() );
+		return false;
+	}
+	std::string answerString = (scene->HasAnimations()) ? "True" : "False";
+	LOG_TRACE( "ASSIMP: opened file: %s, has meshes? - %s", filePath.c_str(), answerString.c_str() );
+	LOG_TRACE( "Number of animations: %d\n", scene->mNumAnimations );
+
+	if (!scene->HasAnimations())
+	{
+		std::cout << "proposed .fbx does not contain any animations." << std::endl;
+		return false;
+	}
+
+	LOG_TRACE( "==ANIMATION IMPORT PROCESS START==\n" );
+
+	LOG_TRACE( "Processing animations ... \n" );
+	//if (VERBOSEINFO) std::cout << "Found: " << scene->mNumAnimations << " animations:" << std::endl;
+	for (size_t i = 0; i < scene->mNumAnimations; i++)
+	{
+		Animation newAnimation;
+		aiAnimation* animation = scene->mAnimations[i];
+
+		newAnimation.name = std::string(animation->mName.C_Str());
+		newAnimation.duration = animation->mDuration;
+
+		LOG_TRACE( "	Processing: %s\n", animation->mName.C_Str());
+		LOG_TRACE( "		Processing channels ...");
+		for (size_t j = 0; j < animation->mNumChannels; j++)
+		{
+			AnimationChannel newChannel;
+			aiNodeAnim* channel = animation->mChannels[j];
+			newChannel.channelName = channel->mNodeName.C_Str();
+			//LOG_TRACE( "		Channel: %s", channel->mNodeName.C_Str());
+			//LOG_TRACE( "			Processing position keys ... " );
+			for (size_t k = 0; k < channel->mNumPositionKeys; k++)
+			{
+				Vec3KeyFrame newKey;
+				aiVectorKey key = channel->mPositionKeys[k];
+				newKey.time = key.mTime;
+				newKey.value = { key.mValue.x, key.mValue.y, key.mValue.z };
+				//if (VERBOSEINFO) std::cout << "Pos Key: " << newKey.value.ToString() << " Time: " << newKey.time << std::endl;
+				newChannel.positionKeyFrames.Add( newKey );
+			}
+			//LOG_TRACE( "			Done! - Keys: %d", channel->mNumPositionKeys );
+			//LOG_TRACE( "			Processing rotation keys ... " );
+			for (size_t k = 0; k < channel->mNumRotationKeys; k++)
+			{
+				QuatKeyFrame newKey;
+				aiQuatKey key = channel->mRotationKeys[k];
+				newKey.time = key.mTime;
+				newKey.value = Quaternion( { key.mValue.x, key.mValue.y, key.mValue.z }, key.mValue.w );
+				//if (VERBOSEINFO) std::cout << "Rot Key: " << newKey.value.ToString() << " Time: " << newKey.time << std::endl;
+				newChannel.rotationKeyFrames.Add( newKey );
+			}
+			//LOG_TRACE( "			Done! - Keys: %d", channel->mNumRotationKeys );
+			//LOG_TRACE( "			Processing scaling keys ... " );
+			for (size_t k = 0; k < channel->mNumScalingKeys; k++)
+			{
+				Vec3KeyFrame newKey;
+				aiVectorKey key = channel->mScalingKeys[k];
+				newKey.time = key.mTime;
+				newKey.value = { key.mValue.x, key.mValue.y, key.mValue.z };
+				//if (VERBOSEINFO) std::cout << "Scale Key: " << newKey.value.ToString() << " Time: " << newKey.time << std::endl;
+				newChannel.scaleKeyFrames.Add( newKey );
+			}
+			//LOG_TRACE( "			Done! - Keys: %d", channel->mNumScalingKeys );
+			//LOG_TRACE( "		Done! - PKeys: %d - RKeys: %d - SKeys: %d", channel->mNumPositionKeys, channel->mNumRotationKeys, channel->mNumScalingKeys );
+			newAnimation.channels.Add( newChannel );
+		}
+		LOG_TRACE( "		Done! - Channels: %d - Duration: %f\n", animation->mNumChannels, animation->mDuration);
+		outAnimations->animations.Add( newAnimation );
+	}
+	LOG_TRACE( "	Done! \n", scene->mNumAnimations );
+	LOG_TRACE( "Animations Import Completed! Animations: %d\n", scene->mNumAnimations );
+	return true;
 }

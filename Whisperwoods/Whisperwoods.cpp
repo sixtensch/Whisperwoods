@@ -50,7 +50,9 @@ void Whisperwoods::Run()
 
 	importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &riggedModel );
 
+	AnimationResource animationResource;
 
+	importer.ImportFBXAnimations( "Assets/Shadii_Animated.fbx", &animationResource );
 
 	// Move this into a model print function
 	/*for (size_t i = 0; i < modelPointer->startIndicies.Size(); i++)
