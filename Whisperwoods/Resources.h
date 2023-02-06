@@ -8,7 +8,6 @@
 /*
 	Ett till lager av säkerhet kan läggas på datan genom att returnera weak_ptrs. Dessa kan endast bli
 	castade till en shared_ptr OM den underliggande shared_ptr faktiskt existerar. Den äger på så sätt aldrig datan.
-
 */
 
 enum RESOURCE_TYPES {
@@ -32,14 +31,16 @@ public:
 
 	static Resources& Get();
 
+	// Gets a const pointer thats only used for reading purposes. Writable pointers are only used when allocating.
 	const BasicResource* GetResource(const RESOURCE_TYPES resourceType, std::string subPath) const;
+
+	BasicResource* GetWritableResource(const RESOURCE_TYPES resourceType, std::string subPath) const;
 
 private:
 
 	void InitMapList();
-	void InitializeTextures();
 
-	// Allocates a specific resource type in its specific map and returns a pointer to the allocated memory.
+	// Allocates a specific resource type in its specific map and returns a pointer to the allocated memory for modification.
 	BasicResource* AllocateResource(const RESOURCE_TYPES resourceType, const std::string subPath, const std::string resourceName);
 
 private:

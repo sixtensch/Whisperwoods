@@ -5,8 +5,6 @@
 #include "ShaderResource.h"
 #include "SoundResource.h"
 
-
-
 Resources* Resources::s_singleton = nullptr;
 
 Resources::Resources()
@@ -22,7 +20,7 @@ Resources::Resources()
 	InitMapList();
 
 	// TODO: Dudd code. Remove later.
-	AllocateResource(TEXTURE, "TestPath/Test", "Test name");
+	auto resource = (const TextureResource*)AllocateResource(TEXTURE, "TestPath/Test", "Test name");
 }
 
 Resources::~Resources()
@@ -51,6 +49,12 @@ void Resources::InitMapList()
 }
 
 const BasicResource* Resources::GetResource(const RESOURCE_TYPES resourceType, const std::string subPath) const
+{
+	// Implicit cast to const ptr.
+	return GetWritableResource(resourceType, subPath);
+}
+
+BasicResource* Resources::GetWritableResource(const RESOURCE_TYPES resourceType, std::string subPath) const
 {
 	auto& resourceMap = m_resourceMaps[resourceType];
 	auto it = resourceMap.find(subPath);
@@ -90,6 +94,7 @@ BasicResource* Resources::AllocateResource(const RESOURCE_TYPES resourceType, co
 	const auto& returnIt = resourceMap.insert({ subPath, std::move(resource) });
 
 	bool isSuccessful = returnIt.second;
+	// Some complicated type that boils down to a Pair structure as { key (string), value (shared ptr) }
 	const auto& insertionIt = returnIt.first;
 
 	if (!isSuccessful)
@@ -102,6 +107,5 @@ BasicResource* Resources::AllocateResource(const RESOURCE_TYPES resourceType, co
 	
 	return insertionIt->second.get();
 }
-
 
 
