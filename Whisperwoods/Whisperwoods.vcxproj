@@ -67,7 +67,7 @@
     <ClInclude Include="Input.h" />
     <ClInclude Include="KeyFrame.h" />
     <ClInclude Include="LightHandler.h" />
-    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="QuadTree.h" />
     <ClInclude Include="RenderCore.h" />
     <ClInclude Include="Renderer.h" />

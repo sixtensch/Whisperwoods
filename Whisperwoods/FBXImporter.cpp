@@ -6,7 +6,7 @@
 
 #include "FBXImporter.h"
 #include "Vertex.h"
-#include "Mesh.h"
+#include "ModelResource.h"
 #include "Armature.h"
 
 DirectX::XMFLOAT4X4 ConvertToDirectX(aiMatrix4x4* mat)
@@ -151,7 +151,7 @@ aiMatrix4x4 ConvertToAssImp(Mat4& mat)
 #define MAT XMMATRIX
 #define XMIDENT DirectX::XMMatrixIdentity()
 
-bool FBXImporter::ImportFBXStatic(std::string filePath, unique_ptr<MeshStatic>& outMesh)
+bool FBXImporter::ImportFBXStatic(std::string filePath, unique_ptr<ModelStaticResource>& outMesh)
 {
 	Assimp::Importer importer;
 	LOG_TRACE("Starting FBX Import for file:");
@@ -183,7 +183,7 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, unique_ptr<MeshStatic>& 
 	int indexCounter = 0;
 	int subMeshCounter = 0;
 
-	for (int i = 0; i < scene->mNumMeshes; i++)
+	for (unsigned int i = 0; i < scene->mNumMeshes; i++)
 	{
 		aiMesh* newMesh = scene->mMeshes[i];
 		// In case of empty, continue
@@ -196,7 +196,7 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, unique_ptr<MeshStatic>& 
 		int startIndex = indexCounter;
 		outMesh->startIndicies.Add(startIndex);
 
-		for (int j = 0; j < newMesh->mNumVertices; j++)
+		for (unsigned int j = 0; j < newMesh->mNumVertices; j++)
 		{
 			aiVector3D currentVert = newMesh->mVertices[j];
 			aiVector3D currentNorm = newMesh->mNormals[j];
@@ -224,7 +224,7 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, unique_ptr<MeshStatic>& 
 	return true;
 }
 
-bool FBXImporter::ImportFBXRigged(std::string filePath, unique_ptr<MeshRigged>& outMesh)
+bool FBXImporter::ImportFBXRigged(std::string filePath, unique_ptr<ModelRiggedResource>& outMesh)
 {
 	Assimp::Importer importer;
 	LOG_TRACE("Starting FBX Import for file:");
