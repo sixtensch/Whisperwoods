@@ -3,6 +3,12 @@
 #include "Vertex.h"
 #include "VertexGroup.h"
 
+#define DXMAT DirectX::XMMATRIX
+#define DX4X4 DirectX::XMFLOAT4X4
+#define DX DirextX
+#define MAT XMMATRIX
+#define XMIDENT DirectX::XMMatrixIdentity()
+
 // Stuff required later for skeletal anim.
 struct BoneWeightPair
 {

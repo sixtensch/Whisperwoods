@@ -145,11 +145,6 @@ aiMatrix4x4 ConvertToAssImp(Mat4& mat)
 	return returnMat;
 }
 
-#define DXMAT DirectX::XMMATRIX
-#define DX4X4 DirectX::XMFLOAT4X4
-#define DX DirextX
-#define MAT XMMATRIX
-#define XMIDENT DirectX::XMMatrixIdentity()
 
 bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* const outMesh)
 {
@@ -322,8 +317,6 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 		if (!newMesh->HasBones())
 			continue;
 		
-		//LOG_TRACE( "Processing armature bones for submesh %s - material: %s", newMesh->mName.C_Str(),  scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str() );
-
 		// Initialize vectors.
 		for (int j = 0; j < newMesh->mNumBones; j++)
 		{
