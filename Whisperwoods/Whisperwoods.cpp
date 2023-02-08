@@ -61,6 +61,8 @@ void Whisperwoods::Run()
 	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Characters/ShadiiTest.fbx");
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0);
 
+	//Quaternion rotation = Quaternion::GetAxis({ 0, 1.0f, 0 }, 1.0f);
+
 	int frames = 0;
 	cs::Timer deltaTimer;
 	for (bool running = true; running; frames++)
@@ -70,7 +72,12 @@ void Whisperwoods::Run()
 
 		float dTime = deltaTimer.Lap();
 
+		static float dTimeAcc = 0.0f;
+		dTimeAcc += dTime;
+
 		Move(dTime);
+
+		//mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0) * (rotation.Matrix() * dTimeAcc);
 
 		m_game->Update();
 		m_sound->Update();

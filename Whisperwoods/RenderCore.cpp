@@ -33,7 +33,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
     flags = D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-    D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
+    D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_1 };
 
     EXC_COMCHECK(D3D11CreateDeviceAndSwapChain(
         nullptr, //IDXGI Adapter
@@ -462,16 +462,32 @@ void RenderCore::InitConstantBuffers()
     ));
 
     EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVObjectInfo, 1, m_constantBuffers.objectInfo.GetAddressOf()));
+
+
+
+    // Shading info
+
+    desc.ByteWidth = sizeof(CB::ShadingInfo);
+
+    EXC_COMCHECK(m_device->CreateBuffer(
+        &desc,
+        nullptr,
+        m_constantBuffers.shadingInfo.GetAddressOf()
+    ));
+
+    EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVShadingInfo, 1, m_constantBuffers.shadingInfo.GetAddressOf()));
 }
 
 void RenderCore::InitLightBuffers()
 {
+    /*int totalSize = 0;
+
     D3D11_BUFFER_DESC bufferDesc = {};
     bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
     bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.StructureByteStride = sizeof(DirectionalLight::Data);
     bufferDesc.ByteWidth = LIGHT_CAPACITY_DIR * bufferDesc.StructureByteStride;
-    bufferDesc.StructureByteStride = sizeof(DirectionalLight::DirectionalLightBufferData);
     bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
     EXC_COMCHECK(m_device->CreateBuffer(
         &bufferDesc,
@@ -479,7 +495,9 @@ void RenderCore::InitLightBuffers()
         m_lightBufferDir.GetAddressOf()
     ));
 
-    bufferDesc.StructureByteStride = sizeof(PointLight::PointLightBufferData);
+    totalSize += bufferDesc.ByteWidth;
+
+    bufferDesc.StructureByteStride = sizeof(PointLight::Data);
     bufferDesc.ByteWidth = LIGHT_CAPACITY_POINT * bufferDesc.StructureByteStride;
     EXC_COMCHECK(m_device->CreateBuffer(
         &bufferDesc,
@@ -487,11 +505,66 @@ void RenderCore::InitLightBuffers()
         m_lightBufferPoint.GetAddressOf()
     ));
 
-    bufferDesc.StructureByteStride = sizeof(SpotLight::SpotLightBufferData);
+    totalSize += bufferDesc.ByteWidth;
+
+    bufferDesc.StructureByteStride = sizeof(SpotLight::Data);
     bufferDesc.ByteWidth = LIGHT_CAPACITY_SPOT * bufferDesc.StructureByteStride;
     EXC_COMCHECK(m_device->CreateBuffer(
         &bufferDesc,
         nullptr,
         m_lightBufferSpot.GetAddressOf()
     ));
+
+    totalSize += bufferDesc.ByteWidth;*/
+
+
+
+    /*D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.StructureByteStride = sizeof(DirectionalLight::Data);
+    bufferDesc.ByteWidth = LIGHT_CAPACITY_DIR * bufferDesc.StructureByteStride;
+    bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;*/
+}
+
+void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
+    const DirectionalLight& lightDirectional,
+    const cs::List<PointLight>& lightsPoint,
+    const cs::List<SpotLight>& lightsSpot)
+{
+    CB::ShadingInfo si = 
+    {
+        {}, {}, {},
+
+        (Vec3)ambientColor * ambientIntensity,
+        0,
+        mainCamera.GetPosition(),
+        0
+    };
+
+    int dirCount = /*cs::imin(LIGHT_CAPACITY_DIR, lightsDirectional.Size())*/ 1;
+    si.pointCount = cs::imin(LIGHT_CAPACITY_POINT, lightsPoint.Size());
+    si.spotCount = cs::imin(LIGHT_CAPACITY_SPOT, lightsSpot.Size());
+
+    si.directional = lightDirectional.bufferData;
+
+    for (int i = 0; i < si.pointCount; i++)
+    {
+        si.points[i] = lightsPoint[i].bufferData;
+    }
+
+    for (int i = 0; i < si.spotCount; i++)
+    {
+        si.spots[i] = lightsSpot[i].bufferData;
+    }
+
+
+
+    // Mapping
+
+    D3D11_MAPPED_SUBRESOURCE msr = {};
+    EXC_COMCHECK(m_context->Map(m_constantBuffers.shadingInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+    memcpy(msr.pData, &si, sizeof(CB::ShadingInfo));
+    EXC_COMINFO(m_context->Unmap(m_constantBuffers.shadingInfo.Get(), 0u));
 }

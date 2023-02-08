@@ -19,6 +19,8 @@ public:
 	void SetPosition(Vec3 position);
 	void SetRotation(Quaternion rotation);
 
+	void CopyTransform(const Transform& transform);
+
 	const Vec3 GetPosition() const;
 	const Mat4 GetWorldMatrix() const;
 	const Mat4 GetViewMatrix() const;

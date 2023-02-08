@@ -36,7 +36,7 @@
 #define REGISTER_CBV_OBJECT_INFO        register(b10)
 #define REGISTER_CBV_MATERIAL_INFO      register(b11)
 #define REGISTER_CBV_CLIENT_INFO        register(b12)
-#define REGISTER_CBV_LIGHT_INFO         register(b13)
+#define REGISTER_CBV_SHADING_INFO       register(b13)
 
 
 

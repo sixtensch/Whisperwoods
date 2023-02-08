@@ -31,6 +31,11 @@ public:
 	void SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format = DXGI_FORMAT_R32_UINT);
 	void DrawIndexed(uint indexCount, uint start, uint base);
 
+	void WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
+		const DirectionalLight& lightDirectional,
+		const cs::List<PointLight>& lightsPoint,
+		const cs::List<SpotLight>& lightsSpot);
+
 	void InitImGui() const;
 
 private:
@@ -73,4 +78,5 @@ private:
 	ComPtr<ID3D11Buffer> m_lightBufferPoint;
 	ComPtr<ID3D11Buffer> m_lightBufferSpot;
 	ComPtr<ID3D11Buffer> m_lightBufferDir;
+	ComPtr<ID3D11Buffer> m_lightBufferStaging;
 };

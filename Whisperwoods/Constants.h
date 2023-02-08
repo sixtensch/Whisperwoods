@@ -1,4 +1,5 @@
-#pragma once
+#ifndef H_CONSTANTS
+#define H_CONSTANTS
 
 #define CATCH_PROGRAM	1
 
@@ -17,4 +18,8 @@
 #define LIGHT_CAPACITY_DIR		1
 #define LIGHT_CAPACITY_POINT	8
 #define LIGHT_CAPACITY_SPOT		8
+
+#define LIGHT_NEAR		0.05f
+#define LIGHT_FAR		100.0f
 	
+#endif
