@@ -17,7 +17,7 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	m_lightAmbientIntensity = 0.5f;
 
 	m_lightDirectional.transform.position = { 0, 10, 0 };
-	m_lightDirectional.transform.SetRotationEuler({ 1.5f, 0.2f, 0.0f });
+	m_lightDirectional.transform.SetRotationEuler({ 0.5f, 0.9f, 0.0f });
 	m_lightDirectional.diameter = 20.0f;
 	m_lightDirectional.intensity = 1.0f;
 	m_lightDirectional.color = cs::Color3f(0xFFFFB0);

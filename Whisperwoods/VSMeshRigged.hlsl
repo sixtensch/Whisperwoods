@@ -15,6 +15,7 @@ struct VSInput
 struct VSOutput
 {
     float4 outPosition  : SV_POSITION;
+    float4 wPosition    : WPOSITION0;
     float4 wsPosition   : WSPOSITION0;
     float3 outNormal    : NORMAL0;
     float3 outTangent   : TANGENT0;
@@ -36,13 +37,10 @@ cbuffer VSObjectInfo : REGISTER_CBV_OBJECT_INFO
 VSOutput main(VSInput input)
 {
     VSOutput output;
-
-    matrix wvMatrix = mul(WorldMatrix, ViewMatrix);
-    matrix wvpMatrix = mul(wvMatrix, ProjectionMatrix);
-
-    output.wsPosition = mul(float4(input.position, 1.0f), wvMatrix);
-    output.outPosition = mul(float4(input.position, 1.0f), wvpMatrix);
-
+	
+    output.wPosition = mul(float4(input.position, 1.0f), WorldMatrix);
+    output.wsPosition = mul(output.wPosition, ViewMatrix);
+    output.outPosition = mul(output.wsPosition, ProjectionMatrix);
 
     output.outNormal = mul(input.normal, (float3x3)WorldMatrix);
     //output.outNormal = normalize(output.outNormal);

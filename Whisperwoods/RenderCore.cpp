@@ -482,6 +482,7 @@ void RenderCore::InitPipelines()
         m_pipelines[PipelineTypeStandardRigged].inputLayout.GetAddressOf()
     ));
 
+    blob->Release();
 }
 
 void RenderCore::InitConstantBuffers()
