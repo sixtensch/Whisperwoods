@@ -21,9 +21,9 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 
 	Resources& resources = Resources::Get();
 
-	// TODO: Dudd code. Remove later.
-	//ModelStaticResource* temp = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, "Characters/ShadiiTest.fbx"));
-	//temp->CreateVertexBuffer(m_renderCore.get()->GetDeviceP());
+	ModelStaticResource* temp = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, "WWM/ShadiiTest.wwm"));
+	m_renderCore->CreateVertexBuffer(temp->verticies.Data(), temp->GetVertexByteWidth(), temp->vertexBuffer.GetAddressOf());
+	m_renderCore->CreateIndexBuffer(temp->indicies.Data(), sizeof(int) * temp->indicies.Size(), temp->indexBuffer.GetAddressOf());
 }
 
 void RenderHandler::Draw()
@@ -58,19 +58,17 @@ Camera& RenderHandler::GetCamera()
 
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
 {
-	//Resources& resources = Resources::Get();
-	//
-	//ModelStaticResource* model = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, "Characters/ShadiiTest.fbx"));
-	//
-	//shared_ptr<MeshRenderableStatic> newRenderable = make_shared<MeshRenderableStatic>(
-	//	m_renderableIDCounter++,
-	//	model,
-	//	cs::Mat4()
-	//);
-	//
-	//m_worldRenderables.Add((shared_ptr<WorldRenderable>)newRenderable);
+	Resources& resources = Resources::Get();
 
+	ModelStaticResource* model = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpath));
 
-	// TODO: Everything here is dudd code. Remove later.
-	return nullptr;
+	shared_ptr<MeshRenderableStatic> newRenderable = make_shared<MeshRenderableStatic>(
+		m_renderableIDCounter++,
+		model,
+		cs::Mat4()
+	);
+	
+	m_worldRenderables.Add((shared_ptr<WorldRenderable>)newRenderable);
+
+	return newRenderable;
 }

@@ -8,6 +8,10 @@
 #include "Vertex.h"
 #include "ModelResource.h"
 #include "Armature.h"
+#include "WhisperWoodsModelHead.h"
+#include <fstream>
+#include <filesystem>
+#include <direct.h>
 
 DirectX::XMFLOAT4X4 ConvertToDirectX(aiMatrix4x4* mat)
 {
@@ -145,19 +149,284 @@ aiMatrix4x4 ConvertToAssImp(Mat4& mat)
 	return returnMat;
 }
 
+bool IsSame(VertexTextured a, VertexTextured b)
+{
+	if (a.pos == b.pos && a.nor == b.nor) return true;
+	return false;
+}
+
+struct FixedSizeCharArray 
+{
+	char data[128] = { '\0' };
+};
+
+//void print_state(const std::ios& stream) {
+//	std::cout << " good()=" << stream.good();
+//	std::cout << " eof()=" << stream.eof();
+//	std::cout << " fail()=" << stream.fail();
+//	std::cout << " bad()=" << stream.bad();
+//}
+
+std::string FBXImporter::SaveWMM(ModelStaticResource* inMesh, std::string subDir)
+{
+	// Use model name as base for out name
+	std::string outName = subDir + inMesh->name + ".wwm";
+	//namespace fs = std::filesystem;
+	_mkdir(subDir.c_str()); // TODO: Maybe remove
+	// Open the writer
+	std::fstream writer;
+	writer.open(outName, std::fstream::out | std::fstream::binary);
+
+	if (!writer)
+	{
+		LOG_WARN("WMM Writer failed to open file: %s", outName.c_str());
+		return "fail";
+	}
+
+	// Gather the head data
+	WhisperWoodsModelHead headData;
+	headData.rigged = false;
+	headData.numVerticies = inMesh->verticies.Size();
+	headData.numIndicies = inMesh->indicies.Size();
+	headData.numSubMeshes = inMesh->startIndicies.Size();
+
+	// Write the head information
+	writer.write((char*)&headData, sizeof(WhisperWoodsModelHead));
+
+	// Write startIndicies
+	writer.write((char*)inMesh->startIndicies.Data(), sizeof(int) * headData.numSubMeshes);
+
+	// Write indexCounts
+	writer.write((char*)inMesh->indexCounts.Data(), sizeof(int) * headData.numSubMeshes);
+	
+	// Convert the material names to a fixed buffersize
+	cs::List<FixedSizeCharArray> nameList;
+	for (int i = 0; i < headData.numSubMeshes; i++)
+	{
+		FixedSizeCharArray buffer;
+		int length = (inMesh->materialNames[i].length() <= 128) ? inMesh->materialNames[i].length() : 128;
+		for (int j = 0; j < length; j++)
+		{
+			buffer.data[j] = inMesh->materialNames[i][j];
+		}
+		nameList.Add(buffer);
+	}
+
+	// Write materialNames
+	writer.write((char*)nameList.Data(), sizeof(FixedSizeCharArray) * headData.numSubMeshes);
+
+	// Write verticies
+	writer.write((char*)inMesh->verticies.Data(), sizeof(VertexTextured) * headData.numVerticies);
+
+	// Write indicies
+	writer.write((char*)inMesh->indicies.Data(), sizeof(int) * headData.numIndicies);
+
+	// Close the writer
+	writer.close();
+
+	// If an error occured
+	if (!writer.good()) {
+		LOG_WARN("WMM Static Writer error occurred at writing time! , EOF: %d, FAILBIT: %d, BADBIT: %d", writer.eof(), writer.fail(), writer.bad());
+		return "fail";
+	}
+
+	// Return the path
+	return outName;
+}
+
+std::string FBXImporter::SaveWMM(ModelRiggedResource* inMesh, std::string subDir)
+{
+	// Use model name as base for out name
+	std::string outName = subDir + inMesh->name + ".wwm";
+	_mkdir(subDir.c_str());
+	// Open the writer
+	std::ofstream writer(outName, std::ios::out | std::ios::binary);
+
+	// Gather the head data
+	WhisperWoodsModelHead headData;
+	headData.rigged = true;
+	headData.numVerticies = inMesh->verticies.Size();
+	headData.numIndicies = inMesh->indicies.Size();
+	headData.numSubMeshes = inMesh->startIndicies.Size();
+
+	// Write the head information
+	writer.write((char*)&headData, sizeof(WhisperWoodsModelHead));
+
+	// Write startIndicies
+	writer.write((char*)inMesh->startIndicies.Data(), sizeof(int) * headData.numSubMeshes);
+	// Write indexCounts
+	writer.write((char*)inMesh->indexCounts.Data(), sizeof(int) * headData.numSubMeshes);
+
+	// Convert the material names to a fixed buffersize
+	cs::List<FixedSizeCharArray> nameList;
+	for (int i = 0; i < headData.numSubMeshes; i++)
+	{
+		FixedSizeCharArray buffer;
+		int length = (inMesh->materialNames[i].length() <= 128) ? inMesh->materialNames[i].length() : 128;
+		for (int j = 0; j < length; j++)
+		{
+			buffer.data[j] = inMesh->materialNames[i][j];
+		}
+		nameList.Add(buffer);
+	}
+
+	// Write materialNames
+	writer.write((char*)nameList.Data(), sizeof(FixedSizeCharArray) * headData.numSubMeshes);
+
+	// Write verticies
+	writer.write((char*)inMesh->verticies.Data(), sizeof(VertexRigged) * headData.numVerticies);
+
+	// Write indicies
+	writer.write((char*)inMesh->indicies.Data(), sizeof(int) * headData.numIndicies);
+
+	// Close the writer
+	writer.close();
+
+	// If an error occured
+	if (!writer.good()) {
+		LOG_WARN("WMM Rigged Writer error occurred at writing time! , EOF: %d, FAILBIT: %d, BADBIT: %d", writer.eof(), writer.fail(), writer.bad());
+		return "fail";
+	}
+
+	// Return the path
+	return outName;
+}
+
+bool FBXImporter::LoadWWMStatic(std::string filePath, ModelStaticResource* const outMesh)
+{
+	std::ifstream reader(filePath, std::ifstream::out | std::ifstream::binary);
+
+	if (!reader)
+	{
+		LOG_WARN("WMM Reader failed to open file: %s", filePath.c_str());
+		return false;
+	}
+
+	// Read the head data.
+	WhisperWoodsModelHead headData;
+	reader.read((char*)&headData, sizeof(WhisperWoodsModelHead));
+
+	if (headData.rigged)
+	{
+		LOG_WARN("WMM Reader Static read file: %s which was saved as rigged, aborted.", filePath.c_str());
+		return false;
+	}
+
+	//Read the startindicies
+	reader.read((char*)outMesh->startIndicies.MassAdd(headData.numSubMeshes), sizeof(int) * headData.numSubMeshes);
+
+	//Read the indexCounts
+	reader.read((char*)outMesh->indexCounts.MassAdd(headData.numSubMeshes), sizeof(int) * headData.numSubMeshes);
+
+	// Temp store
+	cs::List<FixedSizeCharArray> readNames;
+
+	//Read the names
+	reader.read((char*)readNames.MassAdd(headData.numSubMeshes), sizeof(FixedSizeCharArray) * headData.numSubMeshes);
+
+	// Convert and add to the outmesh
+	for (int i = 0; i < headData.numSubMeshes; i++)
+	{
+		outMesh->materialNames.Add(std::string(readNames[i].data));
+		outMesh->materialIndicies.Add(i); // Add the indicies.
+		outMesh->materials.Add(i); // Add the indicies. TODO: FIX FOR BLANK REFERNCES TO THE RESOURCE STUFF
+	}
+
+	//Read the verticies
+	reader.read((char*)outMesh->verticies.MassAdd(headData.numVerticies), sizeof(VertexTextured) * headData.numVerticies);
+
+	//Read the indicies
+	reader.read((char*)outMesh->indicies.MassAdd(headData.numIndicies), sizeof(int) * headData.numIndicies);
+
+	// close the reader
+	reader.close();
+
+	if (!reader.good())
+	{
+		LOG_WARN("WMM Static reader, error found at close, data might be garbled.");
+		return false;
+	}
+	
+	return true;
+}
+
+bool FBXImporter::LoadWWMRigged(std::string filePath, ModelRiggedResource* const outMesh)
+{
+	std::ifstream reader(filePath, std::ios::out | std::ios::binary);
+
+	if (!reader)
+	{
+		LOG_WARN("WMM Reader failed to open file: %s", filePath.c_str());
+		return false;
+	}
+
+	// Read the head data.
+	WhisperWoodsModelHead headData;
+	reader.read((char*)&headData, sizeof(WhisperWoodsModelHead));
+
+	if (!headData.rigged)
+	{
+		LOG_WARN("WMM Reader Rigged read file: %s which was saved as rigged, aborted.", filePath.c_str());
+		return false;
+	}
+
+	//Read the startindicies
+	reader.read((char*)outMesh->startIndicies.MassAdd(headData.numSubMeshes), sizeof(int) * headData.numSubMeshes);
+
+	//Read the indexCounts
+	reader.read((char*)outMesh->indexCounts.MassAdd(headData.numSubMeshes), sizeof(int) * headData.numSubMeshes);
+
+	// Temp store
+	cs::List<FixedSizeCharArray> readNames;
+
+	//Read the names
+	reader.read((char*)readNames.MassAdd(headData.numSubMeshes), sizeof(FixedSizeCharArray) * headData.numSubMeshes);
+
+	// Convert and add to the outmesh
+	for (int i = 0; i < headData.numSubMeshes; i++)
+	{
+		outMesh->materialNames.Add(std::string(readNames[i].data));
+		outMesh->materialIndicies.Add(i); // Add the indicies.
+		outMesh->materials.Add(i); // Add the indicies. TODO: FIX FOR BLANK REFERNCES TO THE RESOURCE STUFF
+	}
+
+	//Read the verticies
+	reader.read((char*)outMesh->verticies.MassAdd(headData.numVerticies), sizeof(VertexRigged) * headData.numVerticies);
+
+	//Read the indicies
+	reader.read((char*)outMesh->indicies.MassAdd(headData.numIndicies), sizeof(int) * headData.numIndicies);
+
+	reader.close();
+
+	if (!reader.good())
+	{
+		LOG_WARN("WMM Rigged reader, error found at close, data might be garbled.");
+		return false;
+	}
+
+	return true;
+}
 
 bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* const outMesh)
 {
 	Assimp::Importer importer;
 	LOG_TRACE("\nStarting static FBX Import for file: %s", filePath.c_str());
-	const aiScene* scene = importer.ReadFile(filePath, aiProcess_CalcTangentSpace); // chonky preset
-
+	const aiScene* scene = importer.ReadFile(filePath, /*aiProcessPreset_TargetRealtime_MaxQuality*/
+		aiProcess_CalcTangentSpace |
+		aiProcess_GenSmoothNormals |
+		aiProcess_GenUVCoords | 
+		aiProcess_JoinIdenticalVertices | 
+		aiProcess_CalcTangentSpace | 
+		aiProcess_Triangulate | 
+		aiProcess_SortByPType
+	); // chonky preset
+	//aiProcessPreset_TargetRealtime_MaxQuality
 	//const aiScene* scene = importer.ReadFile(filePath,
 	//	/*aiProcess_MakeLeftHanded |
 	//	aiProcess_CalcTangentSpace |
 	//	aiProcess_Triangulate |
 	//	aiProcess_JoinIdenticalVertices |
-	//	aiProcess_SortByPType*/ /*aiProcessPreset_TargetRealtime_MaxQuality */); // chonky preset
+	//	aiProcess_SortByPType*/ /*aiProcessPreset_TargetRealtime_MaxQuality );*/ // chonky preset
 
 	if (scene == nullptr) 
 	{
@@ -179,8 +448,12 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 	int indexCounter = 0;
 	int numIndexCounter = 0;
 	int subMeshCounter = 0;
+	int vertexCounter = 0;
 
 	LOG_TRACE( "==STATIC IMPORT PROCESS START==\n", scene->mNumMeshes );
+
+	// Get name from the input path
+	outMesh->name = remove_extension(base_name(filePath));
 
 	for (unsigned int i = 0; i < scene->mNumMeshes; i++)
 	{
@@ -189,7 +462,7 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 		if (!newMesh->HasFaces())
 			continue;
 		
-		LOG_TRACE( "	Processing submesh %s - material: %s - NumVerts: %d",
+		LOG_TRACE( "	Processing submesh %s - material: %s - Num incomming verts: %d",
 			newMesh->mName.C_Str(),
 			scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str(),
 			newMesh->mNumVertices );
@@ -214,11 +487,33 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 				Vec3(currentNorm.x, currentNorm.y, currentNorm.z), // Normal
 				Vec3(currentTan.x, currentTan.y, currentTan.z), // Tangent
 				Vec3(currentBiTan.x, currentBiTan.y, currentBiTan.z), // Bitangent
-				Vec2(currentUV.x, currentUV.y), // UV
-				Vec2(subMeshCounter,0)); // submeshIndex and Padding, submesh index is important for differentiating identical verticies of different materials.
+				Vec4(currentUV.x, currentUV.y, subMeshCounter, 0)); // UB, submeshIndex and Padding, submesh index is important for differentiating identical verticies of different materials.
 
+			//int existingIndex = -1;
+			//for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
+			//{
+			//	if (IsSame(outMesh->verticies[k], newVertex))
+			//	{	
+			//		//LOG_TRACE("%d is same as %d", j, k);
+			//		existingIndex = k;
+			//		break;
+			//	}
+			//}
+
+			//if (existingIndex == -1)
+			//{
+			//	//LOG_TRACE("Added Vertex [%d] P(%f,%f,%f)", outMesh->verticies.Size(), newVertex.pos.x, newVertex.pos.y, newVertex.pos.z);
+			//	outMesh->verticies.Add(newVertex); // Base verticies
+			//	outMesh->indicies.Add(indexCounter);
+			//	indexCounter++;
+			//}
+			//else
+			//{
+			//	outMesh->indicies.Add(existingIndex);
+			//}
+			//numIndexCounter++;
 			// Add to the output vertex list
-			outMesh->verticies.Add( newVertex ); // Base verticies
+			outMesh->verticies.Add(newVertex);
 		}
 
 		// Process faces - indicies
@@ -226,12 +521,18 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 		{
 			for (unsigned int k = 0; k < newMesh->mFaces[j].mNumIndices; k++)
 			{
-				outMesh->indicies.Add( newMesh->mFaces[j].mIndices[k]);
+				outMesh->indicies.Add(vertexCounter+newMesh->mFaces[j].mIndices[k]);
 				numIndexCounter++;
 			}
+			if (newMesh->mFaces[j].mNumIndices != 3)
+			{
+				LOG_TRACE("Face %d had wierd number of indicies: %d", j, newMesh->mFaces[j].mNumIndices);
+			}
 		}
-		LOG_TRACE( "	Num indicies: %d", numIndexCounter - startIndex );
+
+		LOG_TRACE( "	Num indicies: %d, Num verts: ", numIndexCounter - startIndex, outMesh->verticies.Size() );
 		outMesh->indexCounts.Add(numIndexCounter - startIndex);
+		vertexCounter = outMesh->verticies.Size();
 		subMeshCounter++;
 	}
 	LOG_TRACE( "Done\n" );
@@ -290,6 +591,9 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 	}
 
 	LOG_TRACE( "==RIGGED IMPORT PROCESS START==\n");
+
+	// Get name from the input path
+	outMesh->name = remove_extension(base_name(filePath));
 
 	outMesh->armature.globalInverseTransform = ConvertToMat4(&scene->mRootNode->mTransformation.Inverse().Transpose());
 
@@ -423,6 +727,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 	unsigned int indexCounter = 0;
 	unsigned int numIndexCounter = 0;
 	unsigned int subMeshCounter = 0;
+	int vertexCounter = 0;
 
 	LOG_TRACE( "Processing mesh and weights...\n" );
 	// Step 6: process the verticies and indicies as with the static import, but using the rigged verticies.
@@ -498,8 +803,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 				Vec3( currentNorm.x, currentNorm.y, currentNorm.z ), // Normal
 				Vec3( currentTan.x, currentTan.y, currentTan.z ), // Tangent
 				Vec3( currentBiTan.x, currentBiTan.y, currentBiTan.z ), // Bitangent
-				Vec2( currentUV.x, currentUV.y ), // UV
-				Vec2( subMeshCounter, 0 ), // Padding and submesh index
+				Vec4( currentUV.x, currentUV.y, subMeshCounter, 0), // UV Padding and submesh index
 				Point4 ( 
 					vertexWeights[j].bones[0].bone,
 					vertexWeights[j].bones[1].bone,
@@ -523,12 +827,13 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 		{
 			for (unsigned int k = 0; k < newMesh->mFaces[j].mNumIndices; k++)
 			{
-				outMesh->indicies.Add( newMesh->mFaces[j].mIndices[k] );
+				outMesh->indicies.Add(vertexCounter + newMesh->mFaces[j].mIndices[k] );
 				numIndexCounter++;
 			}
 		}
 		LOG_TRACE( "		Done - Submesh index count: %d - Total: %d\n", numIndexCounter - startIndex, outMesh->indicies.Size());
 		outMesh->indexCounts.Add(numIndexCounter - startIndex);
+		vertexCounter = outMesh->verticies.Size();
 		subMeshCounter++;
 	}
 	LOG_TRACE( "Done\n" );

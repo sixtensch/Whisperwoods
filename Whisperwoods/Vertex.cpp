@@ -14,6 +14,18 @@ bool VertexTextured::operator==(const VertexTextured& other)
     return false;
 }
 
+bool VertexTextured::IsSamePNU(const VertexTextured& other)
+{
+    if (this->pos.x == other.pos.x && this->pos.y == other.pos.x && this->pos.z == other.pos.z)
+    {
+        return true;
+    }
+    return false;
+
+    //return ((this->pos == other.pos));// && (this->nor == other.nor));// && (this->uv == other.uv));
+    // return false;
+}
+
 bool VertexRigged::operator==(const VertexRigged& other)
 {
     if ((this->pos == other.pos) &&
@@ -28,3 +40,4 @@ bool VertexRigged::operator==(const VertexRigged& other)
     }
     return false;
 }
+

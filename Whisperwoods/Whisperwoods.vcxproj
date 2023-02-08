@@ -92,6 +92,7 @@
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexGroup.h" />
+    <ClInclude Include="WhisperWoodsModelHead.h" />
     <ClInclude Include="Whisperwoods.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>

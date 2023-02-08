@@ -470,7 +470,7 @@ namespace cs
         int startSize = m_size;
         m_size += valueCount;
 
-        return &(m_elements[m_size]);
+        return &(m_elements[startSize]);
     }
 
     template<typename T>
