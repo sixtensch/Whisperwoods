@@ -4,6 +4,8 @@
 #include <fmod_common.h>
 #include <fmod_errors.h>
 
+#include "SoundResource.h"
+
 class Sound sealed
 {
 public:
@@ -19,6 +21,7 @@ public:
 
 	/// Loads a sound and stores the pointer handle in the class vector.
 	FMOD::Sound* LoadSound(std::string filePath);
+	bool LoadSound(const std::string filePath, SoundResource* soundResource);
 
 	/// Plays the sound at index in the soundVector.
 	FMOD::Channel* PlaySound(int index);

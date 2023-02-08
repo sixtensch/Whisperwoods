@@ -1,11 +1,29 @@
-#include "core.h"
+#include "Core.h"
 #include "Resources.h"
+
+#include <filesystem>
 
 #include "TextureResource.h"
 #include "ShaderResource.h"
 #include "SoundResource.h"
 #include "ModelResource.h"
 #include "FBXImporter.h"
+
+#define MODELS_PATH "Assets/Models/"
+#define TEXTURE_PATH "Assets/Textures/"
+#define SOUND_PATH "Assets/Sounds/"
+#define MATERIAL_PATH "Assets/Materials/"
+#define MAP_PATH "Assets/Maps/"
+
+// TODO: Dudd includes. Remove later.
+namespace fs = std::filesystem;
+#include <fmod.hpp>
+#include <fmod_common.h>
+#include <fmod_errors.h>
+#include "Sound.h"
+
+
+
 
 Resources* Resources::s_singleton = nullptr;
 
@@ -55,6 +73,13 @@ void Resources::InitMapList()
 	{
 		m_resourceMaps.Add({});
 	}
+}
+
+void Resources::LoadAssetDirectory()
+{
+	LoadSounds();
+
+	int a = 0;
 }
 
 const BasicResource* Resources::GetResource(const ResourceType resourceType, const std::string subPath) const
@@ -120,4 +145,28 @@ BasicResource* Resources::AllocateResource(ResourceType resourceType, const std:
 	return insertionIt->second.get();
 }
 
+void Resources::LoadSounds()
+{
+	auto sound = Sound::Get();
+	std::string path = SOUND_PATH;
+
+	for (const auto& file : fs::directory_iterator(path))
+	{
+		const fs::path& rawFilePath = file.path();
+
+		if (fs::is_regular_file(rawFilePath))
+		{
+			std::string filePath = rawFilePath.string();
+			SoundResource* soundResource = (SoundResource*)AllocateResource(ResourceTypeSound, filePath, rawFilePath.filename().string());
+			
+			if (!sound.LoadSound(filePath, soundResource))
+			{
+				EXC("Failed to load sound %s.", filePath.c_str());
+			}
+			
+			// TODO: Dudd test code that works.
+			//sound.PlaySoundA(soundResource->currentSound, {}, {}, 10.0f);
+		}
+	}
+}
 

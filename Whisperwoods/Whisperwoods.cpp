@@ -34,6 +34,10 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	m_input->InputInit(Renderer::GetWindow().Data());
 
 	m_game = std::make_unique<Game>(); 
+
+
+	// TODO: Change to some init place.
+	m_resources->LoadAssetDirectory();
 }
 
 Whisperwoods::~Whisperwoods()

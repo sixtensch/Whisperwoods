@@ -35,15 +35,19 @@ public:
 
 	// This should be how resources are acquired. Writable pointers are used when allocating or when having to write for a special reason.
 	const BasicResource* GetResource(const ResourceType resourceType, std::string subPath) const;
-
 	// Available if acquisition of a resource needs to be writable.
 	BasicResource* GetWritableResource(const ResourceType resourceType, std::string subPath) const;
+
+	// This is supposed to be called after all singletons are initialized.
+	void LoadAssetDirectory();
 
 private:
 	void InitMapList();
 
 	// Allocates a specific resource type in its specific map and returns a pointer to the allocated memory.
 	BasicResource* AllocateResource(ResourceType resourceType, const std::string subPath, const std::string resourceName);
+
+	void LoadSounds();
 
 private:
 	static Resources* s_singleton;

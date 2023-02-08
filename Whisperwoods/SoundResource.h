@@ -1,13 +1,15 @@
 #pragma once
 #include "BasicResource.h"
 
+#include <fmod.hpp>
+
 struct SoundResource : public BasicResource {
 
 	SoundResource()
 		: SoundResource("Default sound resource") {}
 
 	SoundResource(const std::string name)
-		: BasicResource(name), soundVar() {}
+		: BasicResource(name), currentSound(nullptr) {}
 
-	int soundVar;
+	FMOD::Sound* currentSound;
 };
