@@ -181,7 +181,7 @@ private:
 	static constexpr int c_debutOutputTimeout = 100;
 	static constexpr char c_commandChar = '>';
 
-	std::mutex* m_mutex;
+	// std::mutex* m_mutex;
 
 	std::chrono::steady_clock::time_point m_startTime;
 

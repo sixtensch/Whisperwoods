@@ -50,6 +50,14 @@ void Whisperwoods::Run()
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
+	FBXImporter importer;
+
+	ModelRiggedResource riggedModel;
+	AnimationResource animationResource;
+
+	importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &riggedModel );
+	importer.ImportFBXAnimations( "Assets/Shadii_Animated.fbx", &animationResource );
+
 	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Characters/ShadiiTest.fbx");
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0);
 

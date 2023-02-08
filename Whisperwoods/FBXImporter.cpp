@@ -145,34 +145,27 @@ aiMatrix4x4 ConvertToAssImp(Mat4& mat)
 	return returnMat;
 }
 
-#define DXMAT DirectX::XMMATRIX
-#define DX4X4 DirectX::XMFLOAT4X4
-#define DX DirextX
-#define MAT XMMATRIX
-#define XMIDENT DirectX::XMMatrixIdentity()
 
 bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* const outMesh)
 {
 	Assimp::Importer importer;
-	LOG_TRACE("Starting FBX Import for file:");
-	LOG_TRACE(filePath.c_str());
+	LOG_TRACE("\nStarting static FBX Import for file: %s", filePath.c_str());
 	const aiScene* scene = importer.ReadFile(filePath,
 		/*aiProcess_MakeLeftHanded |
 		aiProcess_CalcTangentSpace |
 		aiProcess_Triangulate |
 		aiProcess_JoinIdenticalVertices |
-		aiProcess_SortByPType*/aiProcess_CalcTangentSpace | aiProcess_Triangulate);
+		aiProcess_SortByPType*/ aiProcessPreset_TargetRealtime_MaxQuality ); // chonky preset
 	if (scene == nullptr) 
 	{
 		LOG_ERROR("THERE WAS AN FBX IMPORT ERROR:");
 		LOG_TRACE(importer.GetErrorString());
 		return false;
 	}
+
 	std::string answerString = (scene->HasMeshes()) ? "True" : "False";
-	std::string traceString1 = "ASSIMP: opened file: "  + filePath + ", has meshes? - " + answerString;
-	std::string traceString2 = "Number of meshes: " + scene->mNumMeshes;
-	LOG_TRACE(traceString1.c_str());
-	LOG_TRACE(traceString2.c_str());
+	LOG_TRACE( "ASSIMP: opened file: %s, has meshes? - %s", filePath.c_str(), answerString.c_str() );
+	LOG_TRACE( "Number of meshes: %d\n", scene->mNumMeshes );
 
 	if (!scene->HasMeshes())
 	{
@@ -184,6 +177,8 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 	int numIndexCounter = 0;
 	int subMeshCounter = 0;
 
+	LOG_TRACE( "==STATIC IMPORT PROCESS START==\n", scene->mNumMeshes );
+
 	for (unsigned int i = 0; i < scene->mNumMeshes; i++)
 	{
 		aiMesh* newMesh = scene->mMeshes[i];
@@ -191,8 +186,10 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 		if (!newMesh->HasFaces())
 			continue;
 		
-		std::string traceString3 = "Processing sub-mesh: " + std::string(newMesh->mName.C_Str());
-		LOG_TRACE(traceString3.c_str());
+		LOG_TRACE( "	Processing submesh %s - material: %s - NumVerts: %d",
+			newMesh->mName.C_Str(),
+			scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str(),
+			newMesh->mNumVertices );
 
 		// Add material name to the material name list.
 		outMesh->materialNames.Add(std::string(scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str()));
@@ -215,35 +212,27 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 				Vec3(currentTan.x, currentTan.y, currentTan.z), // Tangent
 				Vec3(currentBiTan.x, currentBiTan.y, currentBiTan.z), // Bitangent
 				Vec2(currentUV.x, currentUV.y), // UV
-				Vec2(0,0)); // Padding
-			
-			// do existing vertex checks.
-			int existingVertIndex = -1;
-			for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
-			{
-				if (outMesh->verticies[k] == newVertex)
-				{
-					existingVertIndex = k;
-					break;
-				}
-			}
+				Vec2(subMeshCounter,0)); // submeshIndex and Padding, submesh index is important for differentiating identical verticies of different materials.
 
-			// If it's a new vertex, add it and the index.
-			if (existingVertIndex == -1)
-			{
-				outMesh->verticies.Add(newVertex);
-				outMesh->indicies.Add(indexCounter);
-				indexCounter++;
-			}
-			else
-			{
-				outMesh->indicies.Add(existingVertIndex);
-			}
-			numIndexCounter++;
+			// Add to the output vertex list
+			outMesh->verticies.Add( newVertex ); // Base verticies
 		}
+
+		// Process faces - indicies
+		for (unsigned int j = 0; j < newMesh->mNumFaces; j++)
+		{
+			for (unsigned int k = 0; k < newMesh->mFaces[j].mNumIndices; k++)
+			{
+				outMesh->indicies.Add( newMesh->mFaces[j].mIndices[k]);
+				numIndexCounter++;
+			}
+		}
+		LOG_TRACE( "	Num indicies: %d", numIndexCounter - startIndex );
 		outMesh->indexCounts.Add(numIndexCounter - startIndex);
 		subMeshCounter++;
 	}
+	LOG_TRACE( "Done\n" );
+	LOG_TRACE( "Static Import Completed! Num verts: %d\n", outMesh->verticies.Size() );
 
 	return true;
 }
@@ -254,6 +243,7 @@ void RecursiveNodeFetch(aiNode* node, std::vector<aiNode*>& outputVector)
 	{
 		RecursiveNodeFetch(node->mChildren[i], outputVector);
 	}
+	//LOG_TRACE( "Node: %s", node->mName.C_Str() );
 	outputVector.push_back(node);
 }
 
@@ -264,17 +254,22 @@ std::vector<aiNode*> GetNodeVector(const aiScene* scene)
 	return output;
 }
 
+bool Compare( BoneWeightPair i, BoneWeightPair j )
+{
+	return (i > j);
+}
+
+// Quite heavy function.
 bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* const outMesh)
 {
 	Assimp::Importer importer;
-	LOG_TRACE("Starting FBX Import for file:");
-	LOG_TRACE(filePath.c_str());
+	LOG_TRACE("\nStarting Rigged FBX Import for file: %s", filePath.c_str());
 	const aiScene* scene = importer.ReadFile(filePath,
 		/*aiProcess_MakeLeftHanded |
 		aiProcess_CalcTangentSpace |
 		aiProcess_Triangulate |
 		aiProcess_JoinIdenticalVertices |
-		aiProcess_SortByPType*/aiProcess_CalcTangentSpace | aiProcess_Triangulate);
+		aiProcess_SortByPType*/aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace | aiProcess_PopulateArmatureData);
 	if (scene == nullptr)
 	{
 		LOG_ERROR("THERE WAS AN FBX IMPORT ERROR:");
@@ -282,10 +277,8 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 		return false;
 	}
 	std::string answerString = (scene->HasMeshes()) ? "True" : "False";
-	std::string traceString1 = "ASSIMP: opened file: " + filePath + ", has meshes? - " + answerString;
-	std::string traceString2 = "Number of meshes: " + scene->mNumMeshes;
-	LOG_TRACE(traceString1.c_str());
-	LOG_TRACE(traceString2.c_str());
+	LOG_TRACE( "ASSIMP: opened file: %s, has meshes? - %s", filePath.c_str(), answerString.c_str() );
+	LOG_TRACE( "Number of meshes: %d\n", scene->mNumMeshes );
 
 	if (!scene->HasMeshes())
 	{
@@ -293,144 +286,201 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 		return false;
 	}
 
-	int indexCounter = 0;
-	int numIndexCounter = 0;
-	int subMeshCounter = 0;
+	LOG_TRACE( "==RIGGED IMPORT PROCESS START==\n");
 
 	outMesh->armature.globalInverseTransform = ConvertToMat4(&scene->mRootNode->mTransformation.Inverse().Transpose());
 
+	// Armature and vertex groups
+	// Setup some lists for the import.
+	std::vector<aiNode*> nodes = GetNodeVector( scene );
+	std::vector<aiBone*> boneList;
+	std::vector<std::string> boneNames;
+	std::vector<std::string> parentNames;
+	std::vector<int> parentIndicies;
+	std::vector<Mat4> bindLocalTxList;
+	std::vector<Mat4> bindModelTxList;
+	std::vector<Mat4> inverseBindTxList;
+	aiMatrix4x4 identity = aiMatrix4x4(
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1 );
+	Mat4 identityDx = ConvertToMat4( &identity );
+	int numBones = 0;
 
+	LOG_TRACE( "Retrieving bones from all submeshes ..." );
+	// Step 1: Initalize all the vectors with base data, gathering all the bones from all submeshes.
 	for (int i = 0; i < scene->mNumMeshes; i++)
 	{
 		aiMesh* newMesh = scene->mMeshes[i];
 
+		if (!newMesh->HasBones())
+			continue;
+		
+		// Initialize vectors.
+		for (int j = 0; j < newMesh->mNumBones; j++)
+		{
+			bool boneAlreadyExists = false;
+			aiString parentName = (newMesh->mBones[j]->mNode == nullptr) ? aiString("No node") : (newMesh->mBones[j]->mNode->mParent == nullptr) ? aiString("No parent") : newMesh->mBones[j]->mNode->mParent->mName;
+			
+			for (int k = 0; k < boneNames.size(); k++)
+			{
+				if (boneNames[k] == std::string(newMesh->mBones[j]->mName.C_Str()))
+				{
+					boneAlreadyExists = true;
+					break;
+				}
+			}
+			if (!boneAlreadyExists)
+			{
+				outMesh->armature.boneMatricies.Add(Mat4()); // Init an empty matrix, might be redundant.
+				boneList.push_back( newMesh->mBones[j] );
+				boneNames.push_back( std::string( newMesh->mBones[j]->mName.C_Str() ) );
+				parentNames.push_back( std::string( newMesh->mBones[j]->mNode->mParent->mName.C_Str() ) );
+				parentIndicies.push_back( -1 );
+				bindLocalTxList.push_back( identityDx );
+				bindModelTxList.push_back( identityDx );
+				inverseBindTxList.push_back( identityDx );
+				numBones++;
+				//LOG_TRACE( "%s - Bone [%d] Name: %s, Parent: %s Added", newMesh->mName.C_Str(), j, newMesh->mBones[j]->mName.C_Str(), parentName.C_Str() );
+			}
+		}
+	}
+	LOG_TRACE( "Done\n" );
+	LOG_TRACE( "Processing local Matricies ..." );
+	// Step 2: Fill local matricies
+	for (int i = 0; i < numBones; i++)
+	{
+		aiMatrix4x4 localMat = boneList[i]->mNode->mTransformation.Transpose();
+		bindLocalTxList[i] = ConvertToMat4( &localMat );
+	}
+	LOG_TRACE( "Done\n" );
+	LOG_TRACE( "Resolving parent indicies ... " );
+	// Step 3: Resolve parent indicies
+	for (int i = 0; i < numBones; i++)
+	{
+		for (int j = 0; j < numBones; j++)
+		{
+			if (parentNames[i] == boneNames[j])
+			{
+				parentIndicies[i] = j;
+				break;
+			}
+		}
+		//LOG_TRACE( "Bone[%d]: %s, Parent: %s, Parent index: %d", i, boneNames[i].c_str(), parentNames[i].c_str(), parentIndicies[i]);
+	}
+	LOG_TRACE( "Done\n" );
+	LOG_TRACE( "Calculating inverse bind matricies ... " );
+	// Step 4: Calculate inverse bind matricies
+	// 4.1 Special case for root(s) (no parent index)
+	for (int i = 0; i < numBones; i++)
+	{
+		if (parentIndicies[i] == -1)
+		{
+			// Store the bind matrix as Mat4
+			bindModelTxList[i] = bindLocalTxList[i];
+			// Calculate the inverse
+			DXMAT ibMatXM = DirectX::XMMatrixInverse(nullptr, bindModelTxList[i].XMMatrix());
+			// Store the inverse bind matrix as Mat4
+			inverseBindTxList[i] = Mat4(ibMatXM); // Convert to Mat4 and store as inverse
+		}
+	}
+
+	// 4.2 Resolve rest of bones
+	for (int j = 1; j < numBones; j++)
+	{
+		// Get parent matrix as XMMATRIX
+		DXMAT pMatXM = bindModelTxList[parentIndicies[j]].XMMatrix();
+		// Get local matrix as XMMATRIX
+		DXMAT lMatXM = bindLocalTxList[j].XMMatrix();
+		// Multiply local and parent matrix.
+		DXMAT mMatXM = DirectX::XMMatrixMultiply( lMatXM, pMatXM );
+		// Store model bind matrix as Mat4
+		bindModelTxList[j] = Mat4(mMatXM);
+		// Use DirectX to invert the local matrix
+		DXMAT ibMatXM = DirectX::XMMatrixInverse( nullptr, mMatXM );
+		// Store the inverse as Mat4
+		inverseBindTxList[j] = Mat4( ibMatXM );
+	}
+	LOG_TRACE( "Done\n" );
+	LOG_TRACE( "Adding output bones to armature ..." );
+	// Step 5: Create and add output bones to the output armature
+	for (int i = 0; i < numBones; i++)
+	{
+		Bone nBone;
+		nBone.name = boneNames[i]; // Name
+		nBone.parentName = parentNames[i]; // Parent Name
+		nBone.parentIndex = parentIndicies[i]; // Parent Index
+		nBone.inverseBindMatrix = inverseBindTxList[i]; // Inverse bind matrix TODO: This shows that this is the only matrix that needs to be saved (maybe clean up above).
+		outMesh->armature.bones.Add( nBone );
+	}
+	LOG_TRACE( "Done\n" );
+
+	// Reset vertex/index counters
+	unsigned int indexCounter = 0;
+	unsigned int numIndexCounter = 0;
+	unsigned int subMeshCounter = 0;
+
+	LOG_TRACE( "Processing mesh and weights...\n" );
+	// Step 6: process the verticies and indicies as with the static import, but using the rigged verticies.
+	for (int i = 0; i < scene->mNumMeshes; i++)
+	{
+		aiMesh* newMesh = scene->mMeshes[i];
 		if (!newMesh->HasFaces())
 			continue;
 
 		if (!newMesh->HasBones())
 			continue;
 
-
-		std::string traceString3 = "Processing sub-mesh: " + std::string(newMesh->mName.C_Str());
-		LOG_TRACE(traceString3.c_str());
-
-		std::vector<aiNode*> nodes = GetNodeVector(scene);
-
-		outMesh->armature.InitializeMatrix(newMesh->mNumBones);
-
-		std::vector<aiBone*> boneList;
-		std::vector<std::string> boneNames;
-		std::vector<std::string> parentNames;
-		std::vector<int> parentIndicies;
-		std::vector<Mat4> bindLocalTxList;
-		std::vector<Mat4> bindModelTxList;
-		std::vector<Mat4> inverseBindTxList;
-
-		aiMatrix4x4 identity = aiMatrix4x4(
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1);
-		Mat4 identityDx = ConvertToMat4(&identity);
-		int numBones = newMesh->mNumBones;
-
-		// Fill Vectors as makeshift arrays
-		for (int j = 0; j < numBones; j++)
-		{
-			boneList.push_back(newMesh->mBones[j]);
-			boneNames.push_back(std::string(newMesh->mBones[j]->mName.C_Str()));
-			parentNames.push_back(std::string(newMesh->mBones[j]->mNode->mParent->mName.C_Str()));
-			parentIndicies.push_back(-1);
-			bindLocalTxList.push_back(identityDx);
-			bindModelTxList.push_back(identityDx);
-			inverseBindTxList.push_back(identityDx);
-		}
-
-		// Fill local matricies
-		for (int j = 0; j < numBones; j++)
-		{
-			aiMatrix4x4 localMat = newMesh->mBones[j]->mNode->mTransformation.Transpose();
-			bindLocalTxList[j] = ConvertToMat4(&localMat);
-		}
-
-		// Resolve parent indicies
-		for (int j = 1; j < numBones; j++)
-		{
-			for (size_t k = 0; k < numBones; k++)
-			{
-				if (parentNames[j] == boneNames[k])
-				{
-					parentIndicies[j] = k;
-					break;
-				}
-			}
-		}
-
-		// bindModelTx = parentBindModelTx * bindLocalTx;
-		// inverseBindModelTx = inverse(bindModelTx)
-
-		// Special case for root
-		bindModelTxList[0] = bindLocalTxList[0];
-		//Mat4 ibMat = bindModelTxList[0].in
-		//DXMAT mMatXM = DirectX::XMLoadFloat4x4(&bindModelTxList[0]);
-		DXMAT ibMatXM = DirectX::XMMatrixInverse(nullptr, bindModelTxList[0].XMMatrix());
-		inverseBindTxList[0] = Mat4(ibMatXM);
-		// Resolve rest of bones
-		for (int j = 1; j < numBones; j++)
-		{
-			//PrintMatrix(bindModelTxList[parentIndicies[j]], boneNames[j] + " - Parent Tx");
-			DXMAT pMatXM = bindModelTxList[parentIndicies[j]].XMMatrix();
-			//PrintMatrix(bindLocalTxList[j], boneNames[j] + " - Local Tx");
-			DXMAT lMatXM = bindLocalTxList[j].XMMatrix();
-			DXMAT mMatXM = DirectX::XMMatrixMultiply(lMatXM, pMatXM);
-			bindModelTxList[j] = Mat4(mMatXM);
-			//DirectX::XMStoreFloat4x4(&bindModelTxList[j], mMatXM);
-			//PrintMatrix(bindModelTxList[j], boneNames[j] + " - Model Tx");
-
-			DXMAT ibMatXM = DirectX::XMMatrixInverse(nullptr, mMatXM);
-			inverseBindTxList[j] = Mat4(ibMatXM);
-			//DirectX::XMStoreFloat4x4(&inverseBindTxList[j], ibMatXM);
-			//PrintMatrix(inverseBindTxList[j], boneNames[j] + " - Inverse Draw Tx");
-			//PrintMatrix(ConvertToDirectX(&newMesh->mBones[j]->mOffsetMatrix), boneNames[j] + " - Imported Inverse Draw Tx");
-		}
-
-		// Create Bones  TODO: fix for submeshes
-		for (int j = 0; j < numBones; j++)
-		{
-			Bone nBone;
-			nBone.name = boneNames[j];
-			nBone.parentName = parentNames[j];
-			nBone.parentIndex = parentIndicies[j];
-			nBone.inverseBindMatrix = inverseBindTxList[j];
-			outMesh->armature.bones.Add(nBone);
-		}
-
-		// Get Weights  TODO: fix for submeshes
-		for (int j = 0; j < newMesh->mNumBones; j++)
-		{
-			VertexGroup newGroup;
-			newGroup.name = boneList[j]->mName.C_Str();
-			newGroup.index = j;
-			int numWeights = newMesh->mBones[j]->mNumWeights;
-			for (size_t k = 0; k < newMesh->mBones[j]->mNumWeights; k++)
-			{
-				VertexWeightPair newVertexWeight;
-				newVertexWeight.vertex = newMesh->mBones[j]->mWeights[k].mVertexId;
-				newVertexWeight.weight = newMesh->mBones[j]->mWeights[k].mWeight;
-				newGroup.verticies.Add(newVertexWeight);
-			}
-			outMesh->vertexGroups.Add(newGroup);
-		}
-
-
-
-		// Get mesh, TODO: fix for submeshes
-
 		// Add material name to the material name list.
-		outMesh->materialNames.Add(std::string(scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str()));
+		outMesh->materialNames.Add(std::string( scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str()));
 		int startIndex = numIndexCounter;
 		outMesh->startIndicies.Add(startIndex);
 
+		LOG_TRACE( "	Processing: %s\n",
+			scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str(),
+			newMesh->mNumVertices );
+		LOG_TRACE( "		Processing vertex weights ... ");
+		int weightCounter = 0;
+		struct VertexBoneWeights
+		{
+			std::vector<BoneWeightPair> bones;
+		};
+		std::vector<VertexBoneWeights> vertexWeights;
+		for (unsigned int j = 0; j < newMesh->mNumVertices; j++)
+		{
+			VertexBoneWeights newWeightVector;
+			for (unsigned int k = 0; k < newMesh->mNumBones; k++)
+			{
+				for (unsigned int l = 0; l < newMesh->mBones[k]->mNumWeights; l++)
+				{
+					if (newMesh->mBones[k]->mWeights[l].mVertexId != j)
+					{
+						continue;
+					}
+					else
+					{
+						BoneWeightPair newPair;
+						newPair.bone = k;
+						newPair.weight = newMesh->mBones[k]->mWeights[l].mWeight;
+						newWeightVector.bones.push_back( newPair );
+						weightCounter++;
+					}
+				}
+			}
+			std::sort(newWeightVector.bones.begin(), newWeightVector.bones.end(), Compare);
+			while (newWeightVector.bones.size() < 4) // TODO: change to max bones later maybe.
+			{
+				BoneWeightPair newPair;
+				newPair.bone = 0;
+				newPair.weight = 0;
+				newWeightVector.bones.push_back( newPair );
+				weightCounter++;
+			}
+			vertexWeights.push_back(newWeightVector);
+		}
+		LOG_TRACE( "		Done - N:%d", weightCounter );
+		LOG_TRACE( "		Processing verticies ... ");
 		for (unsigned int j = 0; j < newMesh->mNumVertices; j++)
 		{
 			aiVector3D currentVert = newMesh->mVertices[j];
@@ -441,48 +491,151 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 			//aiVector3D currentUV = currentUVSet[0];
 
 			VertexRigged newVertex(
-				Vec3(currentVert.x, currentVert.y, currentVert.z), // Position
-				Vec3(currentNorm.x, currentNorm.y, currentNorm.z), // Normal
-				Vec3(currentTan.x, currentTan.y, currentTan.z), // Tangent
-				Vec3(currentBiTan.x, currentBiTan.y, currentBiTan.z), // Bitangent
-				Vec2(currentUV.x, currentUV.y), // UV
-				Vec2(0, 0), // Padding
-				Point4(0, 0, 0, 0), // Bones (needs assigning later)
-				Vec4(0, 0,0, 0)); // Weights (needs assigning later)
+				Vec3( currentVert.x, currentVert.y, currentVert.z ), // Position
+				Vec3( currentNorm.x, currentNorm.y, currentNorm.z ), // Normal
+				Vec3( currentTan.x, currentTan.y, currentTan.z ), // Tangent
+				Vec3( currentBiTan.x, currentBiTan.y, currentBiTan.z ), // Bitangent
+				Vec2( currentUV.x, currentUV.y ), // UV
+				Vec2( subMeshCounter, 0 ), // Padding and submesh index
+				Point4 ( 
+					vertexWeights[j].bones[0].bone,
+					vertexWeights[j].bones[1].bone,
+					vertexWeights[j].bones[2].bone,
+					vertexWeights[j].bones[3].bone
+				), // Bone indicies 
+				Vec4 ( 
+					vertexWeights[j].bones[0].weight,
+					vertexWeights[j].bones[1].weight,
+					vertexWeights[j].bones[2].weight,
+					vertexWeights[j].bones[3].weight
+				)); // Weights 
 
-			// do existing vertex checks.
-			int existingVertIndex = -1;
-			for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
-			{
-				if (outMesh->verticies[k] == newVertex)
-				{
-					existingVertIndex = k;
-					break;
-				}
-			}
-
-			// If it's a new vertex, add it and the index.
-			if (existingVertIndex == -1)
-			{
-				outMesh->verticies.Add(newVertex);
-				outMesh->indicies.Add(indexCounter);
-				indexCounter++;
-			}
-			else
-			{
-				outMesh->indicies.Add(existingVertIndex);
-			}
-			numIndexCounter++;
+			// Add the vertex to the output list
+			outMesh->verticies.Add( newVertex );
 		}
+		LOG_TRACE( "		Done - SubMesh Vertex count: %d, Total: %d", newMesh->mNumVertices, outMesh->verticies.Size() );
+		LOG_TRACE( "		Processing submesh indicies ... ");
+
+		for (unsigned int j = 0; j < newMesh->mNumFaces; j++)
+		{
+			for (unsigned int k = 0; k < newMesh->mFaces[j].mNumIndices; k++)
+			{
+				outMesh->indicies.Add( newMesh->mFaces[j].mIndices[k] );
+				numIndexCounter++;
+			}
+		}
+		LOG_TRACE( "		Done - Submesh index count: %d - Total: %d\n", numIndexCounter - startIndex, outMesh->indicies.Size());
 		outMesh->indexCounts.Add(numIndexCounter - startIndex);
 		subMeshCounter++;
-
-		outMesh->armature.ResolveBoneParentIndicies();
 	}
+	LOG_TRACE( "Done\n" );
+	LOG_TRACE( "Resolving armature parent indicies (Possibly redundant) ... " );
+	// Maybe redundant?
+	outMesh->armature.ResolveBoneParentIndicies();
+
+	// Printout for checking
+	//LOG_TRACE( "Import process 8: Debug print of verticies: " );
+	//for (int i = 0; i < outMesh->verticies.Size(); i++)
+	//{
+	//	LOG_TRACE( "V[%d] Bones: %s, %s, %s, %s - Weights: %f, %f, %f, %f",
+	//		i,
+	//		boneNames[outMesh->verticies[i].bones[0]].c_str(),
+	//		boneNames[outMesh->verticies[i].bones[1]].c_str(),
+	//		boneNames[outMesh->verticies[i].bones[2]].c_str(),
+	//		boneNames[outMesh->verticies[i].bones[3]].c_str(),
+	//		outMesh->verticies[i].weights[0],
+	//		outMesh->verticies[i].weights[1],
+	//		outMesh->verticies[i].weights[2],
+	//		outMesh->verticies[i].weights[3] );
+	//	//LOG_TRACE( "Group[%d] - %s - Num vert-weights: %d", i, outMesh->vertexGroups[i].name.c_str(), outMesh->vertexGroups[i].verticies.Size());
+	//}
+
+	LOG_TRACE( "Done\n" );
+	LOG_TRACE( "Rigged Import Completed! Num verts: %d\n", outMesh->verticies.Size());
 	return true;
 }
 
 bool FBXImporter::ImportFBXAnimations(std::string filePath, AnimationResource* const outAnimations)
 {
-	return false;
+	LOG_TRACE( "\nStarting Animation FBX Import for file: %s", filePath.c_str() );
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile( filePath,
+		/*aiProcess_CalcTangentSpace | aiProcess_Triangulate |*/ aiProcess_PopulateArmatureData );
+	if (scene == nullptr) {
+		LOG_ERROR( "THERE WAS AN FBX IMPORT ERROR:" );
+		LOG_TRACE( importer.GetErrorString() );
+		return false;
+	}
+	std::string answerString = (scene->HasAnimations()) ? "True" : "False";
+	LOG_TRACE( "ASSIMP: opened file: %s, has meshes? - %s", filePath.c_str(), answerString.c_str() );
+	LOG_TRACE( "Number of animations: %d\n", scene->mNumAnimations );
+
+	if (!scene->HasAnimations())
+	{
+		std::cout << "proposed .fbx does not contain any animations." << std::endl;
+		return false;
+	}
+
+	LOG_TRACE( "==ANIMATION IMPORT PROCESS START==\n" );
+
+	LOG_TRACE( "Processing animations ... \n" );
+	//if (VERBOSEINFO) std::cout << "Found: " << scene->mNumAnimations << " animations:" << std::endl;
+	for (size_t i = 0; i < scene->mNumAnimations; i++)
+	{
+		Animation newAnimation;
+		aiAnimation* animation = scene->mAnimations[i];
+
+		newAnimation.name = std::string(animation->mName.C_Str());
+		newAnimation.duration = animation->mDuration;
+
+		LOG_TRACE( "	Processing: %s\n", animation->mName.C_Str());
+		LOG_TRACE( "		Processing channels ...");
+		for (size_t j = 0; j < animation->mNumChannels; j++)
+		{
+			AnimationChannel newChannel;
+			aiNodeAnim* channel = animation->mChannels[j];
+			newChannel.channelName = channel->mNodeName.C_Str();
+			//LOG_TRACE( "		Channel: %s", channel->mNodeName.C_Str());
+			//LOG_TRACE( "			Processing position keys ... " );
+			for (size_t k = 0; k < channel->mNumPositionKeys; k++)
+			{
+				Vec3KeyFrame newKey;
+				aiVectorKey key = channel->mPositionKeys[k];
+				newKey.time = key.mTime;
+				newKey.value = { key.mValue.x, key.mValue.y, key.mValue.z };
+				//if (VERBOSEINFO) std::cout << "Pos Key: " << newKey.value.ToString() << " Time: " << newKey.time << std::endl;
+				newChannel.positionKeyFrames.Add( newKey );
+			}
+			//LOG_TRACE( "			Done! - Keys: %d", channel->mNumPositionKeys );
+			//LOG_TRACE( "			Processing rotation keys ... " );
+			for (size_t k = 0; k < channel->mNumRotationKeys; k++)
+			{
+				QuatKeyFrame newKey;
+				aiQuatKey key = channel->mRotationKeys[k];
+				newKey.time = key.mTime;
+				newKey.value = Quaternion( { key.mValue.x, key.mValue.y, key.mValue.z }, key.mValue.w );
+				//if (VERBOSEINFO) std::cout << "Rot Key: " << newKey.value.ToString() << " Time: " << newKey.time << std::endl;
+				newChannel.rotationKeyFrames.Add( newKey );
+			}
+			//LOG_TRACE( "			Done! - Keys: %d", channel->mNumRotationKeys );
+			//LOG_TRACE( "			Processing scaling keys ... " );
+			for (size_t k = 0; k < channel->mNumScalingKeys; k++)
+			{
+				Vec3KeyFrame newKey;
+				aiVectorKey key = channel->mScalingKeys[k];
+				newKey.time = key.mTime;
+				newKey.value = { key.mValue.x, key.mValue.y, key.mValue.z };
+				//if (VERBOSEINFO) std::cout << "Scale Key: " << newKey.value.ToString() << " Time: " << newKey.time << std::endl;
+				newChannel.scaleKeyFrames.Add( newKey );
+			}
+			//LOG_TRACE( "			Done! - Keys: %d", channel->mNumScalingKeys );
+			//LOG_TRACE( "		Done! - PKeys: %d - RKeys: %d - SKeys: %d", channel->mNumPositionKeys, channel->mNumRotationKeys, channel->mNumScalingKeys );
+			newAnimation.channels.Add( newChannel );
+		}
+		LOG_TRACE( "		Done! - Channels: %d - Duration: %f\n", animation->mNumChannels, animation->mDuration);
+		outAnimations->animations.Add( newAnimation );
+	}
+	LOG_TRACE( "	Done! \n", scene->mNumAnimations );
+	LOG_TRACE( "Animations Import Completed! Animations: %d\n", scene->mNumAnimations );
+	return true;
 }

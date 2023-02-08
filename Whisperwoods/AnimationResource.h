@@ -12,14 +12,18 @@ struct AnimationChannel
 	cs::List<Vec3KeyFrame> scaleKeyFrames;
 };
 
-struct AnimationResource : public BasicResource
+struct Animation
+{
+	std::string name;
+	cs::List<AnimationChannel> channels;
+	float duration;
+};
+
+struct AnimationResource : public BasicResource // Set of animations
 {
 	AnimationResource() = default;
 
-	AnimationResource(const std::string name) : BasicResource(name)  {
-		duration = 0;
-	}
+	AnimationResource(const std::string name) : BasicResource(name)  {}
 
-	cs::List<AnimationChannel> channels;
-	float duration;
+	cs::List<Animation> animations;
 };
