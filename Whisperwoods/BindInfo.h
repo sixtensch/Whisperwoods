@@ -81,12 +81,9 @@ enum RegSRV : char
 	RegSRVTexNormal = 9,
 	RegSRVTexDisplacement = 10,
 
-	RegSRVDefPosition = 12,
-	RegSRVDefNormal = 13,
-	RegSRVDefAmbient = 14,
-	RegSRVDefDiffuse = 15,
-	RegSRVDefSpecular = 16,
-	RegSRVDefExponent = 17,
+	RegSRVLightsDirectional = 11,
+	RegSRVLightsPoint = 12,
+	RegSRVLightsSpot = 13,
 
 	RegSRVCopySource = 20,
 	RegSRVParticleData = 21,

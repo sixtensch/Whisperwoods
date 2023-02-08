@@ -58,12 +58,9 @@
 #define REGISTER_SRV_TEX_NORMAL         register(t9)
 #define REGISTER_SRV_TEX_DISPLACEMENT   register(t10)
 
-#define REGISTER_SRV_DEF_POSITION       register(t12)
-#define REGISTER_SRV_DEF_NORMAL         register(t13)
-#define REGISTER_SRV_DEF_AMBIENT        register(t14)
-#define REGISTER_SRV_DEF_DIFFUSE        register(t15)
-#define REGISTER_SRV_DEF_SPECULAR       register(t16)
-#define REGISTER_SRV_DEF_EXPONENT       register(t17)
+#define REGISTER_SRV_LIGHTS_DIRECTIONAL register(t11)
+#define REGISTER_SRV_LIGHTS_POINT       register(t12)
+#define REGISTER_SRV_LIGHTS_SPOT        register(t13)
 
 #define REGISTER_SRV_COPY_SOURCE        register(t20)
 #define REGISTER_SRV_PARTICLE_DATA      register(t21)

@@ -26,9 +26,9 @@ public:
 	ID3D11Buffer* GetStructuredBufferP( LightType type );
 	ID3D11Buffer* const* GetStructuredBufferPP( LightType type );
 	
-	void SetDirectionalLights( ID3D11DeviceContext* context, std::vector<DirectionalLight::DirectionalLightBufferData> data );
-	void SetSpotLights( ID3D11DeviceContext* context, std::vector<SpotLight::SpotLightBufferData> data );
-	void SetPointLights( ID3D11DeviceContext* context, std::vector<PointLight::PointLightBufferData> data );
+	void SetDirectionalLights( ID3D11DeviceContext* context, const cs::List<DirectionalLight::DirectionalLightBufferData>& data);
+	void SetSpotLights( ID3D11DeviceContext* context, const cs::List<SpotLight::SpotLightBufferData>& data );
+	void SetPointLights( ID3D11DeviceContext* context, const cs::List<PointLight::PointLightBufferData>& data );
 
 	bool ReallocLights( ID3D11Device* device, LightType type );
 
