@@ -66,14 +66,25 @@ shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpat
 	return s_singleton->m_renderHandler->CreateMeshStatic(subpath);
 }
 
-Renderer& Renderer::Get()
+Camera& Renderer::GetCamera()
 {
-#ifdef WW_Renderer
-	if (s_singleton == nullptr)
-	{
-		throw "Renderer singleton not found.";	// TODO: Proper exceptions
-	}
-#endif
-
-	return *s_singleton;
+	return s_singleton->m_renderHandler->GetCamera();
 }
+
+Window& Renderer::GetWindow()
+{
+	return *(s_singleton->m_window.get());
+}
+
+//
+//Renderer& Renderer::Get()
+//{
+//#ifdef WW_Renderer
+//	if (s_singleton == nullptr)
+//	{
+//		throw "Renderer singleton not found.";	// TODO: Proper exceptions
+//	}
+//#endif
+//
+//	return *s_singleton;
+//}

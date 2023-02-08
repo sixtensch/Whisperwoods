@@ -20,6 +20,8 @@ public:
 
 	const RenderCore* GetCore() const;
 
+	Camera& GetCamera();
+
 	shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 
 private:

@@ -9,7 +9,7 @@
 class RenderCore
 {
 public:
-	RenderCore(shared_ptr<Window> window, const Camera& camera);
+	RenderCore(shared_ptr<Window> window);
 	~RenderCore();
 
 	void NewFrame();

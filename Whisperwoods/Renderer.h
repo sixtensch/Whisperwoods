@@ -22,8 +22,9 @@ public:
 	void Present();
 
 	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
-
-	static Renderer& Get();
+	static Camera& GetCamera();
+	static Window& GetWindow();
+	//static Renderer& Get();
 
 private:
 	static Renderer* s_singleton;

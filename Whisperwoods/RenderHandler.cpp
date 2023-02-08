@@ -17,7 +17,7 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_mainCamera.Update();
 
-	m_renderCore = make_unique<RenderCore>(window, m_mainCamera);
+	m_renderCore = make_unique<RenderCore>(window);
 
 	Resources& resources = Resources::Get();
 
@@ -48,6 +48,11 @@ void RenderHandler::Present()
 const RenderCore* RenderHandler::GetCore() const
 {
 	return m_renderCore.get();
+}
+
+Camera& RenderHandler::GetCamera()
+{
+	return m_mainCamera;
 }
 
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)

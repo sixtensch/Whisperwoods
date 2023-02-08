@@ -5,7 +5,7 @@
 #include "imgui_impl_win32.h"
 #include <d3dcompiler.h>
 
-RenderCore::RenderCore(shared_ptr<Window> window, const Camera& camera)
+RenderCore::RenderCore(shared_ptr<Window> window)
 {
     m_window = window;
 
@@ -198,7 +198,7 @@ void RenderCore::UpdateViewInfo(const Camera& camera)
 {
     CB::VSViewInfo vi =
     {
-        camera.GetViewMatrix().Transpose(),
+        camera.GetViewMatrix(),
         camera.GetProjectionMatrix().Transpose()
     };
 
@@ -212,7 +212,7 @@ void RenderCore::UpdateObjectInfo(const WorldRenderable* worldRenderable)
 {
     CB::VSObjectInfo oi =
     {
-        worldRenderable->worldMatrix.Transpose()
+        worldRenderable->worldMatrix
     };
 
     D3D11_MAPPED_SUBRESOURCE msr = {};
