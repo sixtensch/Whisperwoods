@@ -22,6 +22,8 @@ public:
 	void Present();
 
 	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
+	static shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
+
 	static Camera& GetCamera();
 	static Window& GetWindow();
 	//static Renderer& Get();

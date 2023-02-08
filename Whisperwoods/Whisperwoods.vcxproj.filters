@@ -364,6 +364,9 @@
     <ClInclude Include="DrawInfo.h">
       <Filter>%2a Code\%2a Rendering\DrawInfo</Filter>
     </ClInclude>
+    <ClInclude Include="WhisperWoodsModelHead.h">
+      <Filter>%2a Code\%2a Core\%2a Model Importing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VSMesh.hlsl">

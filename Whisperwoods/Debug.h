@@ -62,6 +62,8 @@ public:
 	void WriteHelp();
 	void WriteLog();
 
+	void CalculateFps(float dTime);
+
 	void CaptureStreams(bool cout = true, bool cerr = true, bool clog = true);
 	void CaptureSound(const Sound* sound);
 
@@ -205,6 +207,18 @@ private:
 	byte* m_dataBuffer;
 	bool m_scrollToBottom;
 	bool m_showCommandLine;
+
+	// -----------------------------  fps stuff
+	float dTimeAverage16;
+	float dTimeAverage256;
+	float fpsAverage16;
+	float fpsAverage256;
+
+	float dTimeAccumulator16;
+	float dTimeAccumulator256;
+	cs::Queue<float> dTimeQueue16;
+	cs::Queue<float> dTimeQueue256;
+	//-------------------------------
 
 	ComPtr<ID3D11Device> m_deviceRef;
 
