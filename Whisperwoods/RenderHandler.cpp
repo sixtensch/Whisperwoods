@@ -35,7 +35,7 @@ void RenderHandler::Draw()
         if (m_worldRenderables[i]->enabled)
         {
             m_renderCore->UpdateObjectInfo(m_worldRenderables[i].get());
-			m_renderCore->DrawObject(m_worldRenderables[i].get());
+			m_renderCore->DrawObject(m_worldRenderables[i].get(), false);
         }
     }
 }

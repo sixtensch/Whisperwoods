@@ -221,11 +221,11 @@ void RenderCore::UpdateObjectInfo(const WorldRenderable* worldRenderable)
     EXC_COMINFO(m_context->Unmap(m_constantBuffers.vsObjectInfo.Get(), 0u));
 }
 
-void RenderCore::DrawObject(const Renderable* renderable)
+void RenderCore::DrawObject(const Renderable* renderable, bool shadowing)
 {
-    if (renderable->pipelineType != m_pipelineCurrent)
+    if (renderable->pipelineType != m_pipelineCurrent || shadowing != m_shadowPSBound)
     {
-        BindPipeline(renderable->pipelineType);
+        BindPipeline(renderable->pipelineType, shadowing);
     }
 
     DrawInfo drawInfo =
@@ -257,7 +257,7 @@ void RenderCore::InitImGui() const
     ImGui_ImplDX11_Init(m_device.Get(), m_context.Get());
 }
 
-void RenderCore::BindPipeline(PipelineType pipeline)
+void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)
 {
     const Pipeline& n = m_pipelines[pipeline];  // New pipeline
 
@@ -307,9 +307,15 @@ void RenderCore::BindPipeline(PipelineType pipeline)
         m_context->HSSetShader(n.hullShader.Get(), nullptr, 0);
     }
 
-    if (n.pixelShader != o.pixelShader)
+    if (shadowing && !m_shadowPSBound)
+    {
+        m_context->PSSetShader(nullptr, nullptr, 0);
+        m_shadowPSBound = true;
+    }
+    else if (!shadowing && (n.pixelShader != o.pixelShader || m_shadowPSBound))
     {
         m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0);
+        m_shadowPSBound = false;
     }
 
     m_pipelineCurrent = pipeline;

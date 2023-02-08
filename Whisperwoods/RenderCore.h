@@ -19,7 +19,7 @@ public:
 
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
-	void DrawObject(const Renderable* renderable);
+	void DrawObject(const Renderable* renderable, bool shadowing);
 
 	void SetVertexBuffer(ComPtr<ID3D11Buffer> buffer, uint stride, uint offset);
 	void SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format = DXGI_FORMAT_R32_UINT);
@@ -28,7 +28,7 @@ public:
 	void InitImGui() const;
 
 private:
-	void BindPipeline(PipelineType pipeline);
+	void BindPipeline(PipelineType pipeline, bool shadowing);
 
 	void InitPipelines();
 	void InitConstantBuffers();
@@ -57,6 +57,7 @@ private:
 	// Pipelines
 	Pipeline m_pipelines[PipelineTypeCount];
 	int m_pipelineCurrent;
+	bool m_shadowPSBound;
 
 	// Constant buffers
 	ConstantBuffers m_constantBuffers;
