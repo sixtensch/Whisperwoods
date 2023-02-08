@@ -16,15 +16,8 @@
 #define SOUND_PATH "Assets/Sounds/"
 #define MATERIAL_PATH "Assets/Materials/"
 #define MAP_PATH "Assets/Maps/"
-#define STATIC_MODEL_PATH "Assets/Models/Statics"
-#define RIGGED_MODEL_PATH "Assets/Models/Rigged"
-
-// TODO: Dudd includes. Remove later.
-
-#include <fmod.hpp>
-#include <fmod_common.h>
-#include <fmod_errors.h>
-
+#define STATIC_MODEL_PATH "Assets/Models/WWM/"
+#define RIGGED_MODEL_PATH "Assets/Models/WWM/"
 
 Resources* Resources::s_singleton = nullptr;
 
@@ -242,7 +235,7 @@ void Resources::LoadModelStaticResources()
 		std::string filePath = path.string();
 		ModelStaticResource* modelStaticResource = (ModelStaticResource*)AllocateResource(ResourceTypeModelStatic, filePath, path.filename().string());
 	
-		importer.ImportFBXStatic(filePath, modelStaticResource);
+		FBXImporter::LoadWWMStatic(filePath, modelStaticResource);
 	}
 
 }
@@ -258,7 +251,7 @@ void Resources::LoadModelRiggedResources()
 		std::string filePath = path.string();
 		ModelRiggedResource* modelRiggedResource = (ModelRiggedResource*)AllocateResource(ResourceTypeModelRigged, filePath, path.filename().string());
 
-		importer.ImportFBXRigged(filePath, modelRiggedResource);
+		FBXImporter::LoadWWMRigged(filePath, modelRiggedResource);
 	}
 }
 
