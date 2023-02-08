@@ -4,8 +4,6 @@
 #include <fmod_common.h>
 #include <fmod_errors.h>
 
-#include "SoundResource.h"
-
 class Sound sealed
 {
 public:
@@ -21,7 +19,7 @@ public:
 
 	/// Loads a sound and stores the pointer handle in the class vector.
 	FMOD::Sound* LoadSound(std::string filePath);
-	bool LoadSound(const std::string filePath, SoundResource* soundResource);
+	bool LoadSound(const std::string filePath, FMOD::Sound* sound);
 
 	/// Plays the sound at index in the soundVector.
 	FMOD::Channel* PlaySound(int index);
@@ -55,7 +53,7 @@ private:
 	static Sound* s_singleton;
 	FMOD_RESULT m_fmodResult;
 	FMOD::System* m_system;
-	std::vector<FMOD::Sound*> m_sounds; // TODO: CHANGE TO RESOURCE MANAGER? 
-	std::vector<FMOD::Channel*> m_channels; // TODO: CHANGE TO RESOURCE MANAGER? 
+	std::vector<FMOD::Sound*> m_sounds; // TODO: CHANGE TO RESOURCE MANAGER? Move this out.
+	std::vector<FMOD::Channel*> m_channels; // TODO: CHANGE TO RESOURCE MANAGER? GEt this shit away.
 };
 
