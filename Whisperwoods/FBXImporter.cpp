@@ -150,12 +150,15 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 {
 	Assimp::Importer importer;
 	LOG_TRACE("\nStarting static FBX Import for file: %s", filePath.c_str());
-	const aiScene* scene = importer.ReadFile(filePath,
-		/*aiProcess_MakeLeftHanded |
-		aiProcess_CalcTangentSpace |
-		aiProcess_Triangulate |
-		aiProcess_JoinIdenticalVertices |
-		aiProcess_SortByPType*/ aiProcessPreset_TargetRealtime_MaxQuality ); // chonky preset
+	const aiScene* scene = importer.ReadFile(filePath, aiProcess_CalcTangentSpace); // chonky preset
+
+	//const aiScene* scene = importer.ReadFile(filePath,
+	//	/*aiProcess_MakeLeftHanded |
+	//	aiProcess_CalcTangentSpace |
+	//	aiProcess_Triangulate |
+	//	aiProcess_JoinIdenticalVertices |
+	//	aiProcess_SortByPType*/ /*aiProcessPreset_TargetRealtime_MaxQuality */); // chonky preset
+
 	if (scene == nullptr) 
 	{
 		LOG_ERROR("THERE WAS AN FBX IMPORT ERROR:");
