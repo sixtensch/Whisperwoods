@@ -207,29 +207,29 @@ ID3D11Device* RenderCore::GetDeviceP() const
 
 void RenderCore::UpdateViewInfo(const Camera& camera)
 {
-    CB::VSViewInfo vi =
+    CB::ViewInfo vi =
     {
         camera.GetViewMatrix(),
         camera.GetProjectionMatrix().Transpose()
     };
 
     D3D11_MAPPED_SUBRESOURCE msr = {};
-    EXC_COMCHECK(m_context->Map(m_constantBuffers.vsViewInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
-    memcpy(msr.pData, &vi, sizeof(CB::VSViewInfo));
-    EXC_COMINFO(m_context->Unmap(m_constantBuffers.vsViewInfo.Get(), 0u));
+    EXC_COMCHECK(m_context->Map(m_constantBuffers.viewInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+    memcpy(msr.pData, &vi, sizeof(CB::ViewInfo));
+    EXC_COMINFO(m_context->Unmap(m_constantBuffers.viewInfo.Get(), 0u));
 }
 
 void RenderCore::UpdateObjectInfo(const WorldRenderable* worldRenderable)
 {
-    CB::VSObjectInfo oi =
+    CB::ObjectInfo oi =
     {
         worldRenderable->worldMatrix
     };
 
     D3D11_MAPPED_SUBRESOURCE msr = {};
-    EXC_COMCHECK(m_context->Map(m_constantBuffers.vsObjectInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
-    memcpy(msr.pData, &oi, sizeof(CB::VSObjectInfo));
-    EXC_COMINFO(m_context->Unmap(m_constantBuffers.vsObjectInfo.Get(), 0u));
+    EXC_COMCHECK(m_context->Map(m_constantBuffers.objectInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+    memcpy(msr.pData, &oi, sizeof(CB::ObjectInfo));
+    EXC_COMINFO(m_context->Unmap(m_constantBuffers.objectInfo.Get(), 0u));
 }
 
 void RenderCore::DrawObject(const Renderable* renderable, bool shadowing)
@@ -384,29 +384,30 @@ void RenderCore::InitConstantBuffers()
     desc.Usage = D3D11_USAGE_DYNAMIC;
     desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    desc.ByteWidth = sizeof(CB::VSViewInfo);
+    desc.ByteWidth = sizeof(CB::ViewInfo);
     desc.StructureByteStride = 0;
     desc.MiscFlags = 0;
 
     EXC_COMCHECK(m_device->CreateBuffer(
         &desc,
         nullptr,
-        m_constantBuffers.vsViewInfo.GetAddressOf()
+        m_constantBuffers.viewInfo.GetAddressOf()
     ));
 
-    EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVViewInfo, 1, m_constantBuffers.vsViewInfo.GetAddressOf()));
+    EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVViewInfo, 1, m_constantBuffers.viewInfo.GetAddressOf()));
+    EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVViewInfo, 1, m_constantBuffers.viewInfo.GetAddressOf()));
 
 
 
     // Object info
 
-    desc.ByteWidth = sizeof(CB::VSObjectInfo);
+    desc.ByteWidth = sizeof(CB::ObjectInfo);
 
     EXC_COMCHECK(m_device->CreateBuffer(
         &desc,
         nullptr,
-        m_constantBuffers.vsObjectInfo.GetAddressOf()
+        m_constantBuffers.objectInfo.GetAddressOf()
     ));
 
-    EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVObjectInfo, 1, m_constantBuffers.vsObjectInfo.GetAddressOf()));
+    EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVObjectInfo, 1, m_constantBuffers.objectInfo.GetAddressOf()));
 }

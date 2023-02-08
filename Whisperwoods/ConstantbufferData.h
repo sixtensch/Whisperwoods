@@ -3,13 +3,13 @@
 
 namespace CB
 {
-	struct VSViewInfo
+	struct ViewInfo
 	{
 		Mat4 viewMatrix;
 		Mat4 projectionMatrix;
 	};
 
-	struct VSObjectInfo
+	struct ObjectInfo
 	{
 		Mat4 worldMatrix;
 	};
@@ -24,6 +24,6 @@ namespace CB
 
 struct ConstantBuffers
 {
-	ComPtr<ID3D11Buffer> vsViewInfo;
-	ComPtr<ID3D11Buffer> vsObjectInfo;
+	ComPtr<ID3D11Buffer> viewInfo;
+	ComPtr<ID3D11Buffer> objectInfo;
 };

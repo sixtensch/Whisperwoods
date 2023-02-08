@@ -20,13 +20,13 @@ struct VSOutput
     float2 outUV        : TEXCOORD0;
 };
 
-cbuffer VSViewInfo : REGISTER_CBV_VIEW_INFO
+cbuffer ViewInfo : REGISTER_CBV_VIEW_INFO
 {
     matrix ViewMatrix;
     matrix ProjectionMatrix;
 };
 
-cbuffer VSObjectInfo : REGISTER_CBV_OBJECT_INFO
+cbuffer ObjectInfo : REGISTER_CBV_OBJECT_INFO
 {
     matrix WorldMatrix;
 };

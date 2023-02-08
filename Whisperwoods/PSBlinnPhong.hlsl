@@ -10,6 +10,7 @@ struct VSOutput
 };
 
 
+
 float4 main(VSOutput input) : SV_TARGET
 {
     float3 normalColor = input.outNormal;
