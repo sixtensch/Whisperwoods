@@ -19,10 +19,11 @@ struct VertexTextured : Vertex
 {
 	Vec4 uv;
 	VertexTextured() = default;
-	VertexTextured(Vec3 p_pos, Vec3 p_nor, Vec3 p_tan, Vec3 p_bitan, Vec2 p_uv, Vec2 p_pad) :
+	VertexTextured(Vec3 p_pos, Vec3 p_nor, Vec3 p_tan, Vec3 p_bitan, Vec4 p_uv) :
 		Vertex(p_pos, p_nor, p_tan, p_bitan),
 		uv(p_uv) {};
 	bool operator==(const VertexTextured& other);
+	bool IsSamePNU(const VertexTextured& other);
 };
 
 struct VertexRigged : VertexTextured
@@ -30,8 +31,8 @@ struct VertexRigged : VertexTextured
 	int bones[4];
 	float weights[4];
 	VertexRigged() = default;
-	VertexRigged(Vec3 p_pos, Vec3 p_nor, Vec3 p_tan, Vec3 p_bitan, Vec2 p_uv, Vec2 p_pad, Point4 p_bones, Vec4 p_weights) :
-		VertexTextured(p_pos, p_nor, p_tan, p_bitan, p_uv, p_pad)
+	VertexRigged(Vec3 p_pos, Vec3 p_nor, Vec3 p_tan, Vec3 p_bitan, Vec4 p_uv, Point4 p_bones, Vec4 p_weights) :
+		VertexTextured(p_pos, p_nor, p_tan, p_bitan, p_uv)
 	{
 		bones[0] = p_bones.x;
 		bones[1] = p_bones.y;
@@ -42,6 +43,5 @@ struct VertexRigged : VertexTextured
 		weights[2] = p_weights.z;
 		weights[3] = p_weights.w;
 	};
-
 	bool operator==(const VertexRigged& other);
 };

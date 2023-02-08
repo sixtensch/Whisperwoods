@@ -59,7 +59,8 @@ void Whisperwoods::Run()
 	importer.ImportFBXAnimations( "Assets/Shadii_Animated.fbx", &animationResource );
 
 	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Characters/ShadiiTest.fbx");
-	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0);
+	float rotationY = cs::c_pi * 1.0f;
+	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 
 	int frames = 0;
 	cs::Timer deltaTimer;
@@ -74,6 +75,8 @@ void Whisperwoods::Run()
 
 		m_game->Update();
 		m_sound->Update();
+		rotationY += 2 * dTime;
+		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 
 		m_renderer->Draw();
 		m_renderer->BeginGui();

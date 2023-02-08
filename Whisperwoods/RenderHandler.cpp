@@ -59,7 +59,7 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 {
 	Resources& resources = Resources::Get();
 
-	ModelStaticResource* model = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, "Characters/ShadiiTest.fbx"));
+	ModelStaticResource* model = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpath));
 
 	shared_ptr<MeshRenderableStatic> newRenderable = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter++,
