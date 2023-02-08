@@ -239,7 +239,36 @@ HRESULT RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Bu
     return hr;
 }
 
+HRESULT RenderCore::CreateImageTexture(char* image, UINT resHeight, UINT resWidth, UINT sysMemPitch, DXGI_FORMAT format, ID3D11Texture2D** out_texturePP)
+{
+    HRESULT hr = {};
+    D3D11_TEXTURE2D_DESC textureDesc = {};
+    textureDesc.Height = resHeight;
+    textureDesc.Width = resWidth;
+    textureDesc.Format = format;
+    textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.SampleDesc.Quality = 0;
+    textureDesc.CPUAccessFlags = 0;
+    textureDesc.MiscFlags = 0;
 
+    D3D11_SUBRESOURCE_DATA subData = {};
+    subData.pSysMem = image;
+    subData.SysMemPitch = sysMemPitch;
+    subData.SysMemSlicePitch = 0;
+
+    hr = m_device->CreateTexture2D(
+        &textureDesc,
+        &subData,
+        out_texturePP
+    );
+    if ( FAILED(hr) )
+        LOG_ERROR("Failed to create texture2d");
+    return hr;
+}
 
 void RenderCore::UpdateViewInfo(const Camera& camera)
 {

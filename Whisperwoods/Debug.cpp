@@ -36,6 +36,8 @@ Debug::Debug()
 	m_tempBuffer(nullptr),
 	m_inputBuffer(nullptr),
 
+	
+
 	m_textColors
 	{
 		{ 0.4f, 0.4f, 0.4f, 1.0f },
@@ -70,6 +72,13 @@ Debug::Debug()
 	}
 
 	s_debug = this;
+
+	dTimeAverage16 = 0.0f;
+	dTimeAverage256 = 0.0f;
+	fpsAverage16 = 0.0f;
+	fpsAverage256 = 0.0f;
+	dTimeAccumulator16 = 0.0f;
+	dTimeAccumulator256 = 0.0f;
 
 	m_initialized = true;
 	m_tempBuffer = new char[c_tempBufferSize + 1] { '\0' };
@@ -113,6 +122,9 @@ void Debug::DrawConsole()
 {
 	if (ImGui::Begin("Debug Console", nullptr, ImGuiWindowFlags_MenuBar))
 	{
+		
+
+	
 		if (ImGui::BeginMenuBar())
 		{
 			if (ImGui::BeginMenu("Config"))
@@ -128,7 +140,12 @@ void Debug::DrawConsole()
 				}
 				ImGui::EndMenu();
 			}
-
+			if (ImGui::Begin("FPS counter"))
+			{
+				ImGui::Text("Last 16 frames average FPS: %f", fpsAverage16);
+				ImGui::Text("Last 256 frames average FPS: %f", fpsAverage256);
+				ImGui::End();
+			}
 			if (ImGui::BeginMenu("Display"))
 			{
 				static const char* strings[7] = { "Frame Trace (!)", "Trace", "Debug", "Warn", "Error", "Critical", "Commands" };
@@ -145,6 +162,7 @@ void Debug::DrawConsole()
 
 			ImGui::EndMenuBar();
 		}
+
 
 		float consoleHeight = 0.0f;
 		if (m_showCommandLine)
@@ -253,6 +271,31 @@ void Debug::WriteLog()
 
 	LOG_ERROR("Log file writing currently not implemented.");
 }
+
+void Debug::CalculateFps(float dTime) // Calculates fps to member variables Imgui uses
+{
+	dTimeAccumulator16 += dTime;
+	dTimeAccumulator256 += dTime;
+	dTimeQueue16.Push(dTime);
+	dTimeQueue256.Push(dTime);
+
+	if (dTimeQueue16.Size() == 16)
+	{
+		dTimeAccumulator16 -= dTimeQueue16.Pop();
+	}
+
+	if (dTimeQueue256.Size() == 256)
+	{
+		dTimeAccumulator256 -= dTimeQueue256.Pop();
+	}
+
+	dTimeAverage16 = dTimeAccumulator16 / dTimeQueue16.Size();
+	dTimeAverage256 = dTimeAccumulator256 / dTimeQueue256.Size();
+	fpsAverage16 = 1.0f / dTimeAverage16;
+	fpsAverage256 = 1.0f / dTimeAverage256;
+}
+
+
 
 Debug& Debug::Get()
 {
