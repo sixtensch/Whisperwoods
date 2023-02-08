@@ -62,6 +62,11 @@ void Camera::SetRotation(Quaternion rotation)
 	this->m_transform.rotation = rotation;
 }
 
+void Camera::CopyTransform(const Transform& transform)
+{
+	m_transform = transform;
+}
+
 const Vec3 Camera::GetPosition() const
 {
 	return m_transform.position;

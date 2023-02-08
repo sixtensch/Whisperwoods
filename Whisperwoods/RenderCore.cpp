@@ -33,7 +33,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
     flags = D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-    D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_0 };
+    D3D_FEATURE_LEVEL featureLevels[] = { D3D_FEATURE_LEVEL_11_1 };
 
     EXC_COMCHECK(D3D11CreateDeviceAndSwapChain(
         nullptr, //IDXGI Adapter
@@ -184,6 +184,17 @@ void RenderCore::NewFrame()
     EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
 }
 
+void RenderCore::TargetShadowMap(Light* light)
+{
+
+}
+
+void RenderCore::TargetBackBuffer()
+{
+    EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
+    EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
+}
+
 void RenderCore::EndFrame()
 {
     EXC_COMCHECK(m_swapChain->Present(0u, 0u));
@@ -272,36 +283,36 @@ HRESULT RenderCore::CreateImageTexture(char* image, UINT resHeight, UINT resWidt
 
 void RenderCore::UpdateViewInfo(const Camera& camera)
 {
-    CB::VSViewInfo vi =
+    CB::ViewInfo vi =
     {
         camera.GetViewMatrix(),
         camera.GetProjectionMatrix().Transpose()
     };
 
     D3D11_MAPPED_SUBRESOURCE msr = {};
-    EXC_COMCHECK(m_context->Map(m_constantBuffers.vsViewInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
-    memcpy(msr.pData, &vi, sizeof(CB::VSViewInfo));
-    EXC_COMINFO(m_context->Unmap(m_constantBuffers.vsViewInfo.Get(), 0u));
+    EXC_COMCHECK(m_context->Map(m_constantBuffers.viewInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+    memcpy(msr.pData, &vi, sizeof(CB::ViewInfo));
+    EXC_COMINFO(m_context->Unmap(m_constantBuffers.viewInfo.Get(), 0u));
 }
 
 void RenderCore::UpdateObjectInfo(const WorldRenderable* worldRenderable)
 {
-    CB::VSObjectInfo oi =
+    CB::ObjectInfo oi =
     {
         worldRenderable->worldMatrix
     };
 
     D3D11_MAPPED_SUBRESOURCE msr = {};
-    EXC_COMCHECK(m_context->Map(m_constantBuffers.vsObjectInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
-    memcpy(msr.pData, &oi, sizeof(CB::VSObjectInfo));
-    EXC_COMINFO(m_context->Unmap(m_constantBuffers.vsObjectInfo.Get(), 0u));
+    EXC_COMCHECK(m_context->Map(m_constantBuffers.objectInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+    memcpy(msr.pData, &oi, sizeof(CB::ObjectInfo));
+    EXC_COMINFO(m_context->Unmap(m_constantBuffers.objectInfo.Get(), 0u));
 }
 
-void RenderCore::DrawObject(const Renderable* renderable)
+void RenderCore::DrawObject(const Renderable* renderable, bool shadowing)
 {
-    if (renderable->pipelineType != m_pipelineCurrent)
+    if (renderable->pipelineType != m_pipelineCurrent || shadowing != m_shadowPSBound)
     {
-        BindPipeline(renderable->pipelineType);
+        BindPipeline(renderable->pipelineType, shadowing);
     }
 
     DrawInfo drawInfo =
@@ -333,7 +344,7 @@ void RenderCore::InitImGui() const
     ImGui_ImplDX11_Init(m_device.Get(), m_context.Get());
 }
 
-void RenderCore::BindPipeline(PipelineType pipeline)
+void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)
 {
     const Pipeline& n = m_pipelines[pipeline];  // New pipeline
 
@@ -383,9 +394,15 @@ void RenderCore::BindPipeline(PipelineType pipeline)
         m_context->HSSetShader(n.hullShader.Get(), nullptr, 0);
     }
 
-    if (n.pixelShader != o.pixelShader)
+    if (shadowing && !m_shadowPSBound)
+    {
+        m_context->PSSetShader(nullptr, nullptr, 0);
+        m_shadowPSBound = true;
+    }
+    else if (!shadowing && (n.pixelShader != o.pixelShader || m_shadowPSBound))
     {
         m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0);
+        m_shadowPSBound = false;
     }
 
     m_pipelineCurrent = pipeline;
@@ -465,6 +482,7 @@ void RenderCore::InitPipelines()
         m_pipelines[PipelineTypeStandardRigged].inputLayout.GetAddressOf()
     ));
 
+    blob->Release();
 }
 
 void RenderCore::InitConstantBuffers()
@@ -475,29 +493,135 @@ void RenderCore::InitConstantBuffers()
     desc.Usage = D3D11_USAGE_DYNAMIC;
     desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    desc.ByteWidth = sizeof(CB::VSViewInfo);
+    desc.ByteWidth = sizeof(CB::ViewInfo);
     desc.StructureByteStride = 0;
     desc.MiscFlags = 0;
 
     EXC_COMCHECK(m_device->CreateBuffer(
         &desc,
         nullptr,
-        m_constantBuffers.vsViewInfo.GetAddressOf()
+        m_constantBuffers.viewInfo.GetAddressOf()
     ));
 
-    EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVViewInfo, 1, m_constantBuffers.vsViewInfo.GetAddressOf()));
+    EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVViewInfo, 1, m_constantBuffers.viewInfo.GetAddressOf()));
+    EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVViewInfo, 1, m_constantBuffers.viewInfo.GetAddressOf()));
 
 
 
     // Object info
 
-    desc.ByteWidth = sizeof(CB::VSObjectInfo);
+    desc.ByteWidth = sizeof(CB::ObjectInfo);
 
     EXC_COMCHECK(m_device->CreateBuffer(
         &desc,
         nullptr,
-        m_constantBuffers.vsObjectInfo.GetAddressOf()
+        m_constantBuffers.objectInfo.GetAddressOf()
     ));
 
-    EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVObjectInfo, 1, m_constantBuffers.vsObjectInfo.GetAddressOf()));
+    EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVObjectInfo, 1, m_constantBuffers.objectInfo.GetAddressOf()));
+
+
+
+    // Shading info
+
+    desc.ByteWidth = sizeof(CB::ShadingInfo);
+
+    EXC_COMCHECK(m_device->CreateBuffer(
+        &desc,
+        nullptr,
+        m_constantBuffers.shadingInfo.GetAddressOf()
+    ));
+
+    EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVShadingInfo, 1, m_constantBuffers.shadingInfo.GetAddressOf()));
+}
+
+void RenderCore::InitLightBuffers()
+{
+    /*int totalSize = 0;
+
+    D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.StructureByteStride = sizeof(DirectionalLight::Data);
+    bufferDesc.ByteWidth = LIGHT_CAPACITY_DIR * bufferDesc.StructureByteStride;
+    bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    EXC_COMCHECK(m_device->CreateBuffer(
+        &bufferDesc,
+        nullptr,
+        m_lightBufferDir.GetAddressOf()
+    ));
+
+    totalSize += bufferDesc.ByteWidth;
+
+    bufferDesc.StructureByteStride = sizeof(PointLight::Data);
+    bufferDesc.ByteWidth = LIGHT_CAPACITY_POINT * bufferDesc.StructureByteStride;
+    EXC_COMCHECK(m_device->CreateBuffer(
+        &bufferDesc,
+        nullptr,
+        m_lightBufferPoint.GetAddressOf()
+    ));
+
+    totalSize += bufferDesc.ByteWidth;
+
+    bufferDesc.StructureByteStride = sizeof(SpotLight::Data);
+    bufferDesc.ByteWidth = LIGHT_CAPACITY_SPOT * bufferDesc.StructureByteStride;
+    EXC_COMCHECK(m_device->CreateBuffer(
+        &bufferDesc,
+        nullptr,
+        m_lightBufferSpot.GetAddressOf()
+    ));
+
+    totalSize += bufferDesc.ByteWidth;*/
+
+
+
+    /*D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.StructureByteStride = sizeof(DirectionalLight::Data);
+    bufferDesc.ByteWidth = LIGHT_CAPACITY_DIR * bufferDesc.StructureByteStride;
+    bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;*/
+}
+
+void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
+    const DirectionalLight& lightDirectional,
+    const cs::List<PointLight>& lightsPoint,
+    const cs::List<SpotLight>& lightsSpot)
+{
+    CB::ShadingInfo si = 
+    {
+        {}, {}, {},
+
+        (Vec3)ambientColor * ambientIntensity,
+        0,
+        mainCamera.GetPosition(),
+        0
+    };
+
+    int dirCount = /*cs::imin(LIGHT_CAPACITY_DIR, lightsDirectional.Size())*/ 1;
+    si.pointCount = cs::imin(LIGHT_CAPACITY_POINT, lightsPoint.Size());
+    si.spotCount = cs::imin(LIGHT_CAPACITY_SPOT, lightsSpot.Size());
+
+    si.directional = lightDirectional.bufferData;
+
+    for (int i = 0; i < si.pointCount; i++)
+    {
+        si.points[i] = lightsPoint[i].bufferData;
+    }
+
+    for (int i = 0; i < si.spotCount; i++)
+    {
+        si.spots[i] = lightsSpot[i].bufferData;
+    }
+
+
+
+    // Mapping
+
+    D3D11_MAPPED_SUBRESOURCE msr = {};
+    EXC_COMCHECK(m_context->Map(m_constantBuffers.shadingInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+    memcpy(msr.pData, &si, sizeof(CB::ShadingInfo));
+    EXC_COMINFO(m_context->Unmap(m_constantBuffers.shadingInfo.Get(), 0u));
 }
