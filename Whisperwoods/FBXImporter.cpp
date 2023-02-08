@@ -294,8 +294,8 @@ std::string FBXImporter::SaveWMM(ModelRiggedResource* inMesh, std::string subDir
 
 bool FBXImporter::LoadWWMStatic(std::string filePath, ModelStaticResource* const outMesh)
 {
+	LOG_TRACE("Loading Static WMM: %s ...", filePath.c_str());
 	std::ifstream reader(filePath, std::ifstream::out | std::ifstream::binary);
-
 	if (!reader)
 	{
 		LOG_WARN("WMM Reader failed to open file: %s", filePath.c_str());
@@ -346,14 +346,14 @@ bool FBXImporter::LoadWWMStatic(std::string filePath, ModelStaticResource* const
 		LOG_WARN("WMM Static reader, error found at close, data might be garbled.");
 		return false;
 	}
-	
+	LOG_TRACE("DONE");
 	return true;
 }
 
 bool FBXImporter::LoadWWMRigged(std::string filePath, ModelRiggedResource* const outMesh)
 {
+	LOG_TRACE("Loadiing Rigged WMM: %s ...", filePath.c_str());
 	std::ifstream reader(filePath, std::ios::out | std::ios::binary);
-
 	if (!reader)
 	{
 		LOG_WARN("WMM Reader failed to open file: %s", filePath.c_str());
@@ -403,7 +403,7 @@ bool FBXImporter::LoadWWMRigged(std::string filePath, ModelRiggedResource* const
 		LOG_WARN("WMM Rigged reader, error found at close, data might be garbled.");
 		return false;
 	}
-
+	LOG_TRACE("DONE");
 	return true;
 }
 

@@ -24,10 +24,11 @@ Resources::Resources()
 	// TODO: Dudd code. Remove later.
 	FBXImporter importer;
 	AllocateResource(ResourceTypeTexture, "TestPath/Test", "Test name");
-	ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(ResourceTypeModelStatic, "WWM/ShadiiTest.wwm", "Test name"));
-	
-	importer.LoadWWMStatic("Assets/Models/WWM/ShadiiTest.wwm", shadiiTestModel);
-	
+	ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(ResourceTypeModelStatic, "WWM/ShadiiTest.wwm", "Test name"));	
+	ModelRiggedResource* shadiiTestModelRigged = static_cast<ModelRiggedResource*>(AllocateResource(ResourceTypeModelRigged, "WWM/Shadii_Animated.wwm", "Shadii rigged"));
+
+	importer.LoadWWMStatic("Assets/Models/Static/ShadiiTest.wwm", shadiiTestModel);
+	importer.LoadWWMRigged("Assets/Models/Rigged/Shadii_Animated.wwm", shadiiTestModelRigged);
 	//importer.ImportFBXStatic("Assets/Models/Characters/ShadiiTest.fbx", shadiiTestModel);
 	//shadiiTestModel->CreateVertexBuffer()
 
@@ -93,6 +94,10 @@ BasicResource* Resources::AllocateResource(ResourceType resourceType, const std:
 
 	case ResourceTypeModelStatic:
 		resource = make_shared<ModelStaticResource>();
+		break;
+
+	case ResourceTypeModelRigged:
+		resource = make_shared<ModelRiggedResource>();
 		break;
 
 	default:

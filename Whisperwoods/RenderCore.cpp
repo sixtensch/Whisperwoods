@@ -395,8 +395,6 @@ void RenderCore::InitPipelines()
 {
     ComPtr<ID3DBlob> blob;
 
-
-
     // Standard pipeline (blinn-phong)
 
     m_pipelines[PipelineTypeStandard].primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -433,6 +431,40 @@ void RenderCore::InitPipelines()
         blob->GetBufferSize(),
         m_pipelines[PipelineTypeStandard].inputLayout.GetAddressOf()
     ));
+
+
+
+    // Standard pipeline rigged (blinn-phong)
+
+    m_pipelines[PipelineTypeStandardRigged] = m_pipelines[PipelineTypeStandard];
+
+    EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"VSMeshRigged.cso", &blob));
+    EXC_COMCHECK(m_device->CreateVertexShader(
+        blob->GetBufferPointer(),
+        blob->GetBufferSize(),
+        nullptr,
+        &m_pipelines[PipelineTypeStandardRigged].vertexShader
+    ));
+
+    D3D11_INPUT_ELEMENT_DESC inputLayoutStandardRigged[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "BONES", 0, DXGI_FORMAT_R32G32B32A32_SINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    };
+
+    EXC_COMCHECK(m_device->CreateInputLayout(
+        inputLayoutStandardRigged,
+        (uint)(sizeof(inputLayoutStandardRigged) / sizeof(*inputLayoutStandardRigged)),
+        blob->GetBufferPointer(),
+        blob->GetBufferSize(),
+        m_pipelines[PipelineTypeStandardRigged].inputLayout.GetAddressOf()
+    ));
+
 }
 
 void RenderCore::InitConstantBuffers()

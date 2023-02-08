@@ -25,6 +25,8 @@ public:
 
 	shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 
+	shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
+
 private:
 	unique_ptr<RenderCore> m_renderCore;
 
