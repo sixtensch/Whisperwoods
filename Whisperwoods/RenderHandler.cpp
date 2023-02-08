@@ -21,7 +21,8 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 
 	Resources& resources = Resources::Get();
 
-	ModelStaticResource* temp = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, "WWM/ShadiiTest.wwm"));
+	// TODO: Dudd code. Change to proper usage of get resource. Should not be using writeable.
+	ModelStaticResource* temp = static_cast<ModelStaticResource*>(resources.GetWritableResource(ResourceTypeModelStatic, "WWM/ShadiiTest.wwm"));
 	m_renderCore->CreateVertexBuffer(temp->verticies.Data(), temp->GetVertexByteWidth(), temp->vertexBuffer.GetAddressOf());
 	m_renderCore->CreateIndexBuffer(temp->indicies.Data(), sizeof(int) * temp->indicies.Size(), temp->indexBuffer.GetAddressOf());
 }
@@ -60,7 +61,7 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 {
 	Resources& resources = Resources::Get();
 
-	ModelStaticResource* model = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpath));
+	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpath));
 
 	shared_ptr<MeshRenderableStatic> newRenderable = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter++,
