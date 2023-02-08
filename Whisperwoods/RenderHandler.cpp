@@ -30,6 +30,12 @@ void RenderHandler::Draw()
 	m_renderCore->NewFrame();
     m_renderCore->UpdateViewInfo(m_mainCamera);
 
+
+
+	// Main scene rendering
+
+	m_renderCore->TargetBackBuffer();
+
     for (int i = 0; i < m_worldRenderables.Size(); i++)
     {
         if (m_worldRenderables[i]->enabled)

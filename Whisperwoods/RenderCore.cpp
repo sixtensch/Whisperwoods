@@ -184,6 +184,17 @@ void RenderCore::NewFrame()
     EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
 }
 
+void RenderCore::TargetShadowMap(Light* light)
+{
+
+}
+
+void RenderCore::TargetBackBuffer()
+{
+    EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
+    EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
+}
+
 void RenderCore::EndFrame()
 {
     EXC_COMCHECK(m_swapChain->Present(0u, 0u));

@@ -5,6 +5,7 @@
 #include "ConstantbufferData.h"
 #include "Pipeline.h"
 #include "Renderable.h"
+#include "Light.h"
 
 class RenderCore
 {
@@ -13,6 +14,8 @@ public:
 	~RenderCore();
 
 	void NewFrame();
+	void TargetShadowMap(Light* light);
+	void TargetBackBuffer();
 	void EndFrame();
 
 	ID3D11Device* GetDeviceP() const;
