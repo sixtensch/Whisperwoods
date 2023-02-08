@@ -22,7 +22,8 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	Resources& resources = Resources::Get();
 
 	ModelStaticResource* temp = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, "Characters/ShadiiTest.fbx"));
-	temp->CreateVertexBuffer(m_renderCore.get()->GetDeviceP());
+	m_renderCore->CreateVertexBuffer(temp->verticies.Data(), temp->GetVertexByteWidth(), temp->vertexBuffer.GetAddressOf());
+	m_renderCore->CreateIndexBuffer(temp->indicies.Data(), sizeof(int) * temp->indicies.Size(), temp->indexBuffer.GetAddressOf());
 }
 
 void RenderHandler::Draw()
