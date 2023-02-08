@@ -5,6 +5,7 @@
 #include "ConstantbufferData.h"
 #include "Pipeline.h"
 #include "Renderable.h"
+#include "LightHandler.h"
 
 class RenderCore
 {
@@ -40,6 +41,9 @@ private:
 	ComPtr<ID3D11Device> m_device;
 	ComPtr<ID3D11DeviceContext> m_context;
 	ComPtr<IDXGISwapChain> m_swapChain;
+
+	// LightData
+	LightHandler m_lightData;
 
 	// Back buffer
 	ComPtr<ID3D11Texture2D> m_bbTexture;

@@ -170,6 +170,10 @@ RenderCore::RenderCore(shared_ptr<Window> window)
     InitConstantBuffers();
 
     m_pipelineCurrent = -1;
+
+
+    // Lighting
+    m_lightData.Init();
 }
 
 RenderCore::~RenderCore()
