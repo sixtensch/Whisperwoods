@@ -9,7 +9,7 @@
 namespace dx = DirectX;
 
 #define MAX_DEPTH 8
-#define NODE_MAX_ELEMENTS 10
+#define LEAF_MAX_ELEMENTS 10
 
 
 /// TODO:
@@ -39,7 +39,7 @@ public: // Methods
 	QuadTree();
 	~QuadTree();
 	void Init( float maxHeight, float minHeight, float top, float left);
-	void Reconstruct( float height, float width );
+	void Reconstruct( float top, float left );
 
 
 	void AddElement( T* elementAddress, const dx::BoundingBox& boundingBox );
@@ -89,8 +89,8 @@ inline void QuadTree<T>::Init( float maxHeight, float minHeight, float top, floa
 	m_minHeight = minHeight;
 
 	// Creates the root bounding box
-	dx::XMVECTOR topleft = { -left, m_minHeight, top };
-	dx::XMVECTOR bottomRigh = { left, m_maxHeight, -top };
+	dx::XMVECTOR topleft = { left, m_minHeight, top };
+	dx::XMVECTOR bottomRigh = { -left, m_maxHeight, -top };
 
 	dx::BoundingBox rootBox;
 	dx::BoundingBox::CreateFromPoints( rootBox, topleft, bottomRigh );
@@ -106,7 +106,7 @@ inline void QuadTree<T>::Init( float maxHeight, float minHeight, float top, floa
 	{
 		m_root->children[i] = nullptr;
 	}
-	for ( int i = 0; i < NODE_MAX_ELEMENTS; ++i )
+	for ( int i = 0; i < LEAF_MAX_ELEMENTS; ++i )
 	{
 		m_root->data[i].element = nullptr;
 		m_root->data[i].boundedVolume = {};
@@ -123,9 +123,35 @@ inline void QuadTree<T>::Init( float maxHeight, float minHeight, float top, floa
 /// <param name="Height"></param>
 /// <param name="Width"></param>
 template<typename T>
-inline void QuadTree<T>::Reconstruct(float height, float width)
+inline void QuadTree<T>::Reconstruct(float top, float left)
 {
+	// Clear the entire tree
+	FreeNode(m_root);
 
+	// Create a new tree
+	dx::XMVECTOR topleft = { left, m_minHeight, top };
+	dx::XMVECTOR bottomRigh = { -left, m_maxHeight, -top };
+
+	dx::BoundingBox rootBox;
+	dx::BoundingBox::CreateFromPoints(rootBox, topleft, bottomRigh);
+
+
+	m_root = (Node*)malloc(sizeof(Node));
+	if ( !m_root )
+	{
+		EXC("Failed mallocing the root for quadtree in Reconstruction function call.");
+	}
+
+	for ( int i = 0; i < 4; i++ )
+	{
+		m_root->children[i] = nullptr;
+	}
+	for ( int i = 0; i < LEAF_MAX_ELEMENTS; ++i )
+	{
+		m_root->data[i].element = nullptr;
+		m_root->data[i].boundedVolume = {};
+	}
+	m_root->nodeBox = rootBox;
 }
 
 
@@ -176,7 +202,7 @@ inline void QuadTree<T>::AddToNode( T* elementAddress, const dx::BoundingBox& bo
 		return;
 
 	int newDepth = ++depth;
-	if ( isLeaf( nodeToProcess ) )
+	if ( IsLeaf( nodeToProcess ) )
 	{
 		int nodeElements = 0;
 		if ( (depth >= MAX_DEPTH) )
@@ -199,7 +225,7 @@ inline void QuadTree<T>::AddToNode( T* elementAddress, const dx::BoundingBox& bo
 			SplitNode( nodeToProcess );
 
 			// Add the current nodes element to a child node
-			for ( int elementIndex = 0; elementIndex < NODE_MAX_ELEMENTS; elementIndex++ )
+			for ( int elementIndex = 0; elementIndex < LEAF_MAX_ELEMENTS; elementIndex++ )
 			{
 				for ( int childIndex = 0; childIndex < 4; ++childIndex )
 				{
@@ -207,7 +233,7 @@ inline void QuadTree<T>::AddToNode( T* elementAddress, const dx::BoundingBox& bo
 				}
 			}
 			// Clear node
-			for ( int i = 0; i < NODE_MAX_ELEMENTS; ++i )
+			for ( int i = 0; i < LEAF_MAX_ELEMENTS; ++i )
 			{
 				nodeToProcess->data[i].element = nullptr;
 				nodeToProcess->data[i].boundedVolume = {};
@@ -263,9 +289,9 @@ inline void QuadTree<T>::CheckNode( const dx::BoundingFrustum& frustum, Node* no
 		return;
 	}
 
-	if ( isLeaf( node ) )
+	if ( IsLeaf( node ) )
 	{
-		for ( int i = 0; i < NODE_MAX_ELEMENTS; ++i )
+		for ( int i = 0; i < LEAF_MAX_ELEMENTS; ++i )
 		{
 			if ( node->data[i].element == nullptr )
 			{
@@ -312,7 +338,7 @@ template<typename T>
 inline bool QuadTree<T>::IsFull( Node* nodeToProcess, int& out_index ) const
 {
 	out_index = 0;
-	for ( int i = 0; i < NODE_MAX_ELEMENTS; ++i )
+	for ( int i = 0; i < LEAF_MAX_ELEMENTS; ++i )
 	{
 		if ( nodeToProcess->data[i].element != nullptr )
 		{
@@ -323,7 +349,7 @@ inline bool QuadTree<T>::IsFull( Node* nodeToProcess, int& out_index ) const
 			break;
 		}
 	}
-	return out_index == (NODE_MAX_ELEMENTS);
+	return out_index == (LEAF_MAX_ELEMENTS);
 }
 
 template<typename T>
@@ -392,7 +418,7 @@ inline void QuadTree<T>::SplitNode( Node* nodeToProcess )
 	}
 	for ( int i = 0; i < 4; ++i )
 	{
-		for ( int j = 0; j < NODE_MAX_ELEMENTS; ++j )
+		for ( int j = 0; j < LEAF_MAX_ELEMENTS; ++j )
 		{
 			nodeToProcess->children[i]->data[j].element = nullptr;
 			nodeToProcess->children[i]->data[j].boundedVolume = {};
