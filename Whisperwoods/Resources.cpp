@@ -22,10 +22,10 @@ Resources::Resources()
 	InitMapList();
 
 	// TODO: Dudd code. Remove later.
-	FBXImporter importer;
-	AllocateResource(ResourceTypeTexture, "TestPath/Test", "Test name");
-	ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(ResourceTypeModelStatic, "Characters/ShadiiTest.fbx", "Test name"));
-	importer.ImportFBXStatic("Assets/Models/Characters/ShadiiTest.fbx", shadiiTestModel);
+	//FBXImporter importer;
+	//AllocateResource(ResourceTypeTexture, "TestPath/Test", "Test name");
+	//ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(ResourceTypeModelStatic, "Characters/ShadiiTest.fbx", "Test name"));
+	//importer.ImportFBXStatic("Assets/Models/Characters/ShadiiTest.fbx", shadiiTestModel);
 	//shadiiTestModel->CreateVertexBuffer()
 
 	//ShaderResource* shader = (ShaderResource*)AllocateResource(ResourceTypeShader, "VSMesh.cso", "Test name");
@@ -57,12 +57,12 @@ void Resources::InitMapList()
 	}
 }
 
-BasicResource* Resources::GetResource(ResourceType resourceType, const std::string subPath)
+const BasicResource* Resources::GetResource(const ResourceType resourceType, const std::string subPath) const
 {
 	return (const BasicResource*)GetWritableResource(resourceType, subPath);
 }
 
-BasicResource* Resources::GetWritableResource(const RESOURCE_TYPES resourceType, std::string subPath) const
+BasicResource* Resources::GetWritableResource(const ResourceType resourceType, std::string subPath) const
 {
 	auto& resourceMap = m_resourceMaps[resourceType];
 	auto it = resourceMap.find(subPath);

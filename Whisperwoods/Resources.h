@@ -33,12 +33,11 @@ public:
 
 	static Resources& Get();
 
-	BasicResource* GetResource(ResourceType resourceType, std::string subPath);
 	// This should be how resources are acquired. Writable pointers are used when allocating or when having to write for a special reason.
-	const BasicResource* GetResource(const RESOURCE_TYPES resourceType, std::string subPath) const;
+	const BasicResource* GetResource(const ResourceType resourceType, std::string subPath) const;
 
 	// Available if acquisition of a resource needs to be writable.
-	BasicResource* GetWritableResource(const RESOURCE_TYPES resourceType, std::string subPath) const;
+	BasicResource* GetWritableResource(const ResourceType resourceType, std::string subPath) const;
 
 private:
 	void InitMapList();
