@@ -71,7 +71,7 @@ FMOD::Sound* Sound::LoadSound(std::string filePath)
 	return newSound;
 }
 
-bool Sound::LoadSound(const std::string filePath, FMOD::Sound* sound)
+bool Sound::LoadSound(const std::string filePath, FMOD::Sound*& sound)
 {
 	FMOD_RESULT result = m_system->createSound(filePath.c_str(), FMOD_LOOP_OFF + FMOD_3D, nullptr, &sound);
 	return result == FMOD_OK;
