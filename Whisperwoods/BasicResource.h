@@ -5,15 +5,24 @@
 
 #define DEFAULT_RESOURCE_NAME "Default Resource"
 
-class BasicResource {
+/*
+	Note:
+	Inherited resources should have a constructor available for inputting its name.
 
-public:
+	Newly defined resources that derive from this class has to define their own allocation
+	inside Resources::AllocateResource() with make_shared<NewResourceType>() to be handled properly. 
+		
+*/
 
-	BasicResource() {};
+struct BasicResource {
+
+	BasicResource() 
+		: BasicResource(DEFAULT_RESOURCE_NAME) {};
+
 	BasicResource(const std::string name) 
 		: name(name) {};
 
-public:
-	std::string name;
+	// Name is not for any functional reason. Only for identification in debugging.
+	const std::string name;
 };
 

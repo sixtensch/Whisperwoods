@@ -59,6 +59,11 @@ void Resources::InitMapList()
 
 BasicResource* Resources::GetResource(ResourceType resourceType, const std::string subPath)
 {
+	return (const BasicResource*)GetWritableResource(resourceType, subPath);
+}
+
+BasicResource* Resources::GetWritableResource(const RESOURCE_TYPES resourceType, std::string subPath) const
+{
 	auto& resourceMap = m_resourceMaps[resourceType];
 	auto it = resourceMap.find(subPath);
 
@@ -101,6 +106,7 @@ BasicResource* Resources::AllocateResource(ResourceType resourceType, const std:
 	const auto& returnIt = resourceMap.insert({ subPath, std::move(resource) });
 
 	bool isSuccessful = returnIt.second;
+	// Some complicated type that boils down to a Pair structure as { key (string), value (shared ptr) }
 	const auto& insertionIt = returnIt.first;
 
 	if (!isSuccessful)
@@ -113,6 +119,5 @@ BasicResource* Resources::AllocateResource(ResourceType resourceType, const std:
 	
 	return insertionIt->second.get();
 }
-
 
 
