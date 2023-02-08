@@ -1,5 +1,6 @@
 #pragma once
 #include <DirectXCollision.h>
+#include "Core.h"
 
 #include <vector>
 #include <set>
@@ -11,8 +12,14 @@ namespace dx = DirectX;
 #define NODE_MAX_ELEMENTS 10
 
 
+/// TODO:
+//		Add parent node data functionality
+//		Add reconstruction feature
+//		implement indexed culling
+//
+
 template <typename T>
-class quadTree
+class QuadTree
 {
 private: // Misc
 	struct NodeData
@@ -29,27 +36,28 @@ private: // Misc
 		Node* children[4];
 	};
 public: // Methods
-	quadTree();
-	~quadTree();
-	void Init( float maxHeight, float minHeight, float multiplier );
-	//void Reconstruct( float hieght, float width );
+	QuadTree();
+	~QuadTree();
+	void Init( float maxHeight, float minHeight, float top, float left);
+	void Reconstruct( float height, float width );
 
 
 	void AddElement( T* elementAddress, const dx::BoundingBox& boundingBox );
 	void AddIndexed( T* elementAddress, const dx::BoundingBox& boundingBox, int index );
 
 	std::vector<const T>& CullTree( const dx::BoundingFrustum& frustum ) const;
-	//void CullIndexed( const dx::BoundingFrustum& frustum, void** out_culledObjects );
+	void CullIndexed( const dx::BoundingFrustum& frustum, cs::List<T*>& out_culledObjects ) const;
 private:
 	void AddToNode( T* elementAddress, const dx::BoundingBox& boundingBox, Node* nodeToProcess, int depth, int index = -1 );
 	void CheckNode( const dx::BoundingFrustum& frustum, Node* node, std::set<const T*>& out_validElements ) const;
-	//void CheckIndexed( const dx::BoundingFrustum& frustum, Node* node, int index, std::vector<const T*>& out_validElements );
+	void CheckIndexed( const dx::BoundingFrustum& frustum, Node* node, int index, std::vector<const T*>& out_validElements );
 	
 
 	void FreeNode( Node* node );
 
-	bool isLeaf( Node* nodeToProcess ) const;
-	bool isFull( Node* nodeToProcess, int& out_index ) const;
+	bool IsLeaf( Node* nodeToProcess ) const;
+	bool IsFull(Node * nodeToProcess, int& out_index) const;
+	bool IsParentData(Node* nodeToProcess, int& out_childNr) const;
 	void SplitNode( Node* nodeToProcess );
 
 public: // Variables
@@ -59,33 +67,31 @@ private:
 	float m_minHeight;
 };
 
-
-
 template<typename T>
-inline quadTree<T>::quadTree() : m_minHeight( -20.0f ), m_maxHeight( 20.0f )
+inline QuadTree<T>::QuadTree() : m_minHeight( -20.0f ), m_maxHeight( 20.0f )
 {
 	m_root = nullptr;
 }
 template<typename T>
-inline quadTree<T>::~quadTree()
+inline QuadTree<T>::~QuadTree()
 {
 	//Recursively go through the tree to free every node
 	FreeNode( m_root );
 }
 
 
+
 // ################################### Definitions ###################################
 template<typename T>
-inline void quadTree<T>::Init( float maxHeight, float minHeight, float multiplier )
+inline void QuadTree<T>::Init( float maxHeight, float minHeight, float top, float left)
 {
 	m_maxHeight = maxHeight;
 	m_minHeight = minHeight;
 
 	// Creates the root bounding box
-	// from (-1, min_height, -1) to (1, max_height, 1)
+	dx::XMVECTOR topleft = { -left, m_minHeight, top };
+	dx::XMVECTOR bottomRigh = { left, m_maxHeight, -top };
 
-	dx::XMVECTOR topleft = { -1.0f * multiplier, m_minHeight, -1.0f * multiplier };
-	dx::XMVECTOR bottomRigh = { 1.0f * multiplier, m_maxHeight, 1.0f * multiplier };
 	dx::BoundingBox rootBox;
 	dx::BoundingBox::CreateFromPoints( rootBox, topleft, bottomRigh );
 
@@ -93,7 +99,7 @@ inline void quadTree<T>::Init( float maxHeight, float minHeight, float multiplie
 	m_root = (Node*)malloc( sizeof( Node ) );
 	if ( !m_root )
 	{
-		exit( 1 );
+		EXC("Failed mallocing the root for quadtree.");
 	}
 
 	for ( int i = 0; i < 4; i++ )
@@ -105,8 +111,6 @@ inline void quadTree<T>::Init( float maxHeight, float minHeight, float multiplie
 		m_root->data[i].element = nullptr;
 		m_root->data[i].boundedVolume = {};
 	}
-
-
 	m_root->nodeBox = rootBox;
 }
 
@@ -118,21 +122,21 @@ inline void quadTree<T>::Init( float maxHeight, float minHeight, float multiplie
 /// <typeparam name="T"></typeparam>
 /// <param name="Height"></param>
 /// <param name="Width"></param>
-//template<typename T>
-//inline void quadTree<T>::Reconstruct( float height, float width )
-//{
-//
-//}
+template<typename T>
+inline void QuadTree<T>::Reconstruct(float height, float width)
+{
+
+}
 
 
 template<typename T>
-inline void quadTree<T>::FreeNode( Node* node )
+inline void QuadTree<T>::FreeNode( Node* node )
 {
 	if ( node == nullptr )
 	{
 		return;
 	}
-	if ( isLeaf( node ) )
+	if ( IsLeaf( node ) )
 	{
 		free( node );
 		node = nullptr;
@@ -154,17 +158,18 @@ inline void quadTree<T>::FreeNode( Node* node )
 /// <param name="ElementAddress"></param>
 /// <param name="BoundingBox"></param>
 template<typename T>
-inline void quadTree<T>::AddElement( T* elementAddress, const dx::BoundingBox& boundingBox )
+inline void QuadTree<T>::AddElement( T* elementAddress, const dx::BoundingBox& boundingBox )
 {
 	AddToNode( elementAddress, boundingBox, m_root, 0, -1 );
 }
 template<typename T>
-inline void quadTree<T>::AddIndexed( T* elementAddress, const dx::BoundingBox& boundingBox, int index )
+inline void QuadTree<T>::AddIndexed( T* elementAddress, const dx::BoundingBox& boundingBox, int index )
 {
 	AddToNode( elementAddress, boundingBox,m_root, 0, index );
 }
+
 template<typename T>
-inline void quadTree<T>::AddToNode( T* elementAddress, const dx::BoundingBox& boundingBox, Node* nodeToProcess, int depth, int index )
+inline void QuadTree<T>::AddToNode( T* elementAddress, const dx::BoundingBox& boundingBox, Node* nodeToProcess, int depth, int index )
 {
 	bool collision = nodeToProcess->nodeBox.Intersects( boundingBox );
 	if ( !collision )
@@ -180,7 +185,7 @@ inline void quadTree<T>::AddToNode( T* elementAddress, const dx::BoundingBox& bo
 			nodeToProcess->data.push_back( { elementAddress, boundingBox, index } );
 			return;
 		}
-		else if ( !isFull( nodeToProcess, nodeElements ) )
+		else if ( !IsFull( nodeToProcess, nodeElements ) )
 		{
 			// Add element to this node
 			nodeToProcess->data[nodeElements].element = elementAddress;
@@ -228,7 +233,7 @@ inline void quadTree<T>::AddToNode( T* elementAddress, const dx::BoundingBox& bo
 /// <param name="Frustum"></param>
 /// <returns></returns>
 template<typename T>
-inline std::vector<const T>& quadTree<T>::CullTree( const dx::BoundingFrustum& frustum ) const
+inline std::vector<const T>& QuadTree<T>::CullTree( const dx::BoundingFrustum& frustum ) const
 {
 	std::vector<const T> toReturn;
 	std::set<const T*> validElements;
@@ -243,7 +248,13 @@ inline std::vector<const T>& quadTree<T>::CullTree( const dx::BoundingFrustum& f
 	return toReturn;
 }
 template<typename T>
-inline void quadTree<T>::CheckNode( const dx::BoundingFrustum& frustum, Node* node, std::set<const T*>& out_validElements ) const
+inline void QuadTree<T>::CullIndexed(const dx::BoundingFrustum& frustum, cs::List<T*>& out_culledObjects) const
+{
+
+}
+
+template<typename T>
+inline void QuadTree<T>::CheckNode( const dx::BoundingFrustum& frustum, Node* node, std::set<const T*>& out_validElements ) const
 {
 	//Check if node bounding volume is in the frustum
 	bool collision = frustum.Contains( node->nodeBox );
@@ -281,18 +292,24 @@ inline void quadTree<T>::CheckNode( const dx::BoundingFrustum& frustum, Node* no
 
 }
 
+template<typename T>
+inline void QuadTree<T>::CheckIndexed(const dx::BoundingFrustum& frustum, Node* node, int index, std::vector<const T*>& out_validElements)
+{
+
+}
+
 
 
 // Helper functions
 
 template<typename T>
-inline bool quadTree<T>::isLeaf( Node* nodeToProcess ) const
+inline bool QuadTree<T>::IsLeaf( Node* nodeToProcess ) const
 {
 	return nodeToProcess->children[0] == nullptr;
 }
 
 template<typename T>
-inline bool quadTree<T>::isFull( Node* nodeToProcess, int& out_index ) const
+inline bool QuadTree<T>::IsFull( Node* nodeToProcess, int& out_index ) const
 {
 	out_index = 0;
 	for ( int i = 0; i < NODE_MAX_ELEMENTS; ++i )
@@ -310,7 +327,18 @@ inline bool quadTree<T>::isFull( Node* nodeToProcess, int& out_index ) const
 }
 
 template<typename T>
-inline void quadTree<T>::SplitNode( Node* nodeToProcess )
+inline bool QuadTree<T>::IsParentData(Node* nodeToProcess, int& out_childNr) const
+{
+	for ( int i = 0; i < 4; ++i )
+	{
+		// check if there is a collision between element and child bounding volume
+	}
+
+	return false;
+}
+
+template<typename T>
+inline void QuadTree<T>::SplitNode( Node* nodeToProcess )
 {
 	dx::BoundingBox tempBox;
 	dx::XMFLOAT3 CenterPoint = nodeToProcess->nodeBox.Center;
@@ -359,6 +387,8 @@ inline void quadTree<T>::SplitNode( Node* nodeToProcess )
 		nodeToProcess->children[i]->children[1] = nullptr;
 		nodeToProcess->children[i]->children[2] = nullptr;
 		nodeToProcess->children[i]->children[3] = nullptr;
+		
+		nodeToProcess->children[i]->data;
 	}
 	for ( int i = 0; i < 4; ++i )
 	{
