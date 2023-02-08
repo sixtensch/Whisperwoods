@@ -240,11 +240,9 @@ void Resources::LoadModelStaticResources()
 
 void Resources::LoadModelRiggedResources()
 {
-	FBXImporter importer;
+	cs::List<fs::path> riggedModelPaths = CollectFilePaths(RIGGED_MODEL_PATH);
 
-	cs::List<fs::path> staticModelPaths = CollectFilePaths(STATIC_MODEL_PATH);
-
-	for (fs::path& path : staticModelPaths)
+	for (fs::path& path : riggedModelPaths)
 	{
 		std::string filePath = path.string();
 		ModelRiggedResource* modelRiggedResource = (ModelRiggedResource*)AllocateResource(ResourceTypeModelRigged, filePath, path.filename().string());
