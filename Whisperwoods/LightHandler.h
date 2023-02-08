@@ -7,14 +7,8 @@ enum LightType
 	LIGHT_TYPE_SPOTLIGHT = 1,
 	LIGHT_TYPE_POINTLIGHT = 2
 };
-constexpr int START_MAX_LIGHTS = 40;
 
-//class PointLight
-//{};
-//class DirectionalLight
-//{};
-//class SpotLight
-//{};
+constexpr int START_MAX_LIGHTS = 40;
 
 class LightHandler sealed
 {
@@ -37,8 +31,6 @@ private:
 	bool InitDirSBuffer( ID3D11Device* device, UINT LightCount );
 	bool InitSpotSBuffer( ID3D11Device* device, UINT LightCount );
 
-
-public:
 private:
 	wrl::ComPtr<ID3D11Buffer> m_pointSBuffer;
 	wrl::ComPtr<ID3D11Buffer> m_spotSBuffer;

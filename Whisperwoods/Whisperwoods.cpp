@@ -50,7 +50,7 @@ void Whisperwoods::Run()
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
-	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Characters / ShadiiTest.fbx");
+	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Characters/ShadiiTest.fbx");
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0);
 
 	int frames = 0;

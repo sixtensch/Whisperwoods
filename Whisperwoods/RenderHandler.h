@@ -31,10 +31,6 @@ private:
 	uint m_renderableIDCounter;
 	cs::List<shared_ptr<WorldRenderable>> m_worldRenderables;
 
-	cs::List<shared_ptr<DirectionalLight>> m_lightsDirectional;
-	cs::List<shared_ptr<PointLight>> m_lightsPoint;
-	cs::List<shared_ptr<SpotLight>> m_lightsSpot;
-
 	Camera m_mainCamera;
 };
 
