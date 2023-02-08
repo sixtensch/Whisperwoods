@@ -206,7 +206,7 @@ HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11B
     subData.SysMemPitch = 0;
     subData.SysMemSlicePitch = 0;
 
-    HRESULT hr = m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP);
+    hr = m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP);
     if ( FAILED(hr) )
     {
         LOG_ERROR("failed to create static model vertexBuffer");
@@ -231,7 +231,7 @@ HRESULT RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Bu
     subData.SysMemPitch = 0;
     subData.SysMemSlicePitch = 0;
 
-    HRESULT hr = m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP);
+    hr = m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP);
     if ( FAILED(hr) )
     {
         LOG_ERROR("failed to create model indexBuffer");
