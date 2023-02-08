@@ -23,10 +23,8 @@ public:
 	LightHandler( ID3D11Device* device );
 	~LightHandler();
 
-
 	ID3D11Buffer* GetStructuredBufferP( LightType type );
 	ID3D11Buffer* const* GetStructuredBufferPP( LightType type );
-
 	
 	void SetDirectionalLights( ID3D11DeviceContext* context, std::vector<DirectionalLight::DirectionalLightBufferData> data );
 	void SetSpotLights( ID3D11DeviceContext* context, std::vector<SpotLight::SpotLightBufferData> data );

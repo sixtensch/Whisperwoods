@@ -1,3 +1,6 @@
+
+#include "Constants.hlsli"
+
 struct VSInput
 {
     float3 position     : POSITION0;
@@ -6,6 +9,7 @@ struct VSInput
     float3 bitangent    : BITANGENT0;
     float4 UV           : TEXCOORD0;
 };
+
 struct VSOutput
 {
     float4 outPosition  : SV_POSITION;
@@ -16,11 +20,15 @@ struct VSOutput
     float2 outUV        : TEXCOORD0;
 };
 
-cbuffer VSData
+cbuffer VSViewInfo : REGISTER_CBV_VIEW_INFO
 {
-    matrix WorldMatrix;
     matrix ViewMatrix;
     matrix ProjectionMatrix;
+};
+
+cbuffer VSObjectInfo : REGISTER_CBV_OBJECT_INFO
+{
+    matrix WorldMatrix;
 };
 
 VSOutput main(VSInput input)

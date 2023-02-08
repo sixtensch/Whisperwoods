@@ -31,7 +31,7 @@ void Renderer::Init(uint width, uint height)
 	m_renderHandler = make_unique<RenderHandler>();
 	m_renderHandler->InitCore(m_window);
 
-	m_gui = make_unique<GUI>(m_window.get(), m_renderHandler->GetCore(), true, true);
+	m_gui = make_unique<GUI>(m_renderHandler->GetCore(), true, true);
 
 	m_window->Show(true);
 }
@@ -59,6 +59,11 @@ void Renderer::EndGui()
 void Renderer::Present()
 {
 	m_renderHandler->Present();
+}
+
+shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpath)
+{
+	return s_singleton->m_renderHandler->CreateMeshStatic(subpath);
 }
 
 Renderer& Renderer::Get()

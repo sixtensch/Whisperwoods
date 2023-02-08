@@ -23,10 +23,13 @@ Resources::Resources()
 
 	// TODO: Dudd code. Remove later.
 	FBXImporter importer;
-	AllocateResource(TEXTURE, "TestPath/Test", "Test name");
-	ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(MODELSTATIC, "Characters/ShadiiTest.fbx", "Test name"));
+	AllocateResource(ResourceTypeTexture, "TestPath/Test", "Test name");
+	ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(ResourceTypeModelStatic, "Characters/ShadiiTest.fbx", "Test name"));
 	importer.ImportFBXStatic("Assets/Models/Characters/ShadiiTest.fbx", shadiiTestModel);
 	//shadiiTestModel->CreateVertexBuffer()
+
+	//ShaderResource* shader = (ShaderResource*)AllocateResource(ResourceTypeShader, "VSMesh.cso", "Test name");
+	//shader->shaderVar
 }
 
 Resources::~Resources()
@@ -48,13 +51,13 @@ Resources& Resources::Get()
 
 void Resources::InitMapList()
 {
-	for (int i = 0; i < RESOURCE_COUNT; i++)
+	for (int i = 0; i < ResourceTypeCount; i++)
 	{
 		m_resourceMaps.Add({});
 	}
 }
 
-BasicResource* Resources::GetResource(const RESOURCE_TYPES resourceType, const std::string subPath)
+BasicResource* Resources::GetResource(ResourceType resourceType, const std::string subPath)
 {
 	auto& resourceMap = m_resourceMaps[resourceType];
 	auto it = resourceMap.find(subPath);
@@ -67,25 +70,25 @@ BasicResource* Resources::GetResource(const RESOURCE_TYPES resourceType, const s
 	return nullptr;
 }
 
-BasicResource* Resources::AllocateResource(const RESOURCE_TYPES resourceType, const std::string subPath, const std::string resourceName)
+BasicResource* Resources::AllocateResource(ResourceType resourceType, const std::string subPath, const std::string resourceName)
 {
 	std::shared_ptr<BasicResource> resource = nullptr;
 
 	switch (resourceType)
 	{
-	case SHADER:
+	case ResourceTypeShader:
 		resource = make_shared<ShaderResource>(resourceName);
 		break;
 
-	case TEXTURE:
+	case ResourceTypeTexture:
 		resource = make_shared<TextureResource>(resourceName);
 		break;
 
-	case SOUND:
+	case ResourceTypeSound:
 		resource = make_shared<SoundResource>(resourceName);
 		break;
 
-	case MODELSTATIC:
+	case ResourceTypeModelStatic:
 		resource = make_shared<ModelStaticResource>();
 		break;
 

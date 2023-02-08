@@ -1,14 +1,19 @@
 #pragma once
-#include "Core.h"
+#include "BindInfo.h"
 
 namespace CB
 {
-	struct VSData
+	struct VSViewInfo
+	{
+		Mat4 viewMatrix;
+		Mat4 projectionMatrix;
+	};
+
+	struct VSObjectInfo
 	{
 		Mat4 worldMatrix;
-		Mat4 viewMatrix;
-		Mat4 ProjectionMatrix;
 	};
+
 	//...
 	struct PSData
 	{
@@ -19,5 +24,6 @@ namespace CB
 
 struct ConstantBuffers
 {
-	ComPtr<ID3D11Buffer> vertexShaderCBuffer;
+	ComPtr<ID3D11Buffer> vsViewInfo;
+	ComPtr<ID3D11Buffer> vsObjectInfo;
 };

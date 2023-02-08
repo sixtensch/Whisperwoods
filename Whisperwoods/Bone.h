@@ -9,7 +9,7 @@ struct Bone
 	Vec3 localPos;
 	Quaternion localRot;
 	Vec3 localScale;
-	//DirectX::XMFLOAT4X4 bindMatrix; // Inverse Bind matrix
+	//DirectX::XMFLOAT4X4 bindMatrix; // Inverse Draw matrix
 	Mat4 inverseBindMatrix;	// local Transform
 	//aiMatrix4x4 localMatrix;	// local Transform
 	//aiMatrix4x4 modelMatrix;	// model Transform

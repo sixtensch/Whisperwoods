@@ -23,8 +23,6 @@ enum DebugLevel
 	// Least verbose. Information related to critical errors and system-breaking behavior likely to cause further errors.
 	DebugLevelCritical,		
 
-
-
 	DebugLevelCommandTrace,	// Information following from commands.
 	DebugLevelCommand,		// Information specifically triggered by user commands for debugging.
 

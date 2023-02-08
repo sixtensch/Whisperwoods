@@ -51,28 +51,7 @@ void Whisperwoods::Run()
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
-
-
-
-
-	// Move this into a model print function
-	/*for (size_t i = 0; i < modelPointer->startIndicies.Size(); i++)
-	{
-		LOG_TRACE("SubMeshMaterial[%d]: %s", i, modelPointer->materialNames[i].c_str());
-		for (size_t j = 0; j < modelPointer->indexCounts[i]; j++)
-		{
-			int indexIndex = modelPointer->startIndicies[i] + j;
-			int indicie = modelPointer->indicies[indexIndex];
-			Vec3 pos = modelPointer->verticies[indicie].pos;
-			Vec3 nor = modelPointer->verticies[indicie].nor;
-			LOG_TRACE("Index[%d]: %d Vertex[%d]: pos: (%.2f, %.2f, %.2f) nor: (%.2f, %.2f, %.2f)",
-				j,
-				indicie,
-				indicie,
-				pos.x, pos.y, pos.z,
-				nor.x, nor.y, nor.z);
-		}
-	}*/
+	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Characters / ShadiiTest.fbx");
 
 	int frames = 0;
 	for (bool running = true; running; frames++)

@@ -3,52 +3,35 @@
 #include "Window.h"
 #include "Camera.h"
 #include "ConstantbufferData.h"
-
-
-enum PIPELINE_TYPE
-{
-	BLINN_PHONG = 0,
-	SHADOW,
-	PPFX,
-	ANIMATION,
-	PARTICLE,
-	TEXT
-	// Stamina bar pipeline
-};
+#include "Pipeline.h"
+#include "Renderable.h"
 
 class RenderCore
 {
-private:
-	struct ShaderData
-	{
-		ComPtr<ID3D11InputLayout>    inputLayout;
-
-		ComPtr<ID3D11VertexShader>   vertexShader;
-		ComPtr<ID3D11DomainShader>   domainShader;
-		ComPtr<ID3D11HullShader>     hullShader;
-		ComPtr<ID3D11GeometryShader> geometryShader;
-		ComPtr<ID3D11PixelShader>    pixelShader;
-	};
-
 public:
 	RenderCore(shared_ptr<Window> window, const Camera& camera);
 	~RenderCore();
 
-	void NewFrame(ConstantBuffers cData);
+	void NewFrame();
 	void EndFrame();
 
 	ID3D11Device* GetDeviceP() const;
-	ID3D11DeviceContext* GetContext() const;
-	ID3D11Device* const* GetDevicePP();
 
-	void BindGPipeline(ID3D11Buffer* const* vertexBufferPP, ID3D11Buffer* indexBufferP, const UINT& stride, const UINT& offset, PIPELINE_TYPE flag);
-	void DrawIndexed(int indexCount, int startIndexPos, int startVertexPos);
+	void UpdateViewInfo(const Camera& camera);
+	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
+	void DrawObject(const Renderable* renderable);
+
+	void SetVertexBuffer(ComPtr<ID3D11Buffer> buffer, uint stride, uint offset);
+	void SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format = DXGI_FORMAT_R32_UINT);
+	void DrawIndexed(uint indexCount, uint start, uint base);
+
+	void InitImGui() const;
 
 private:
-	void CompileShaders();
+	void BindPipeline(PipelineType pipeline);
 
-	// Helper functions for the binder
-	void BindBlinnPhong();
+	void InitPipelines();
+	void InitConstantBuffers();
 
 private:
 	shared_ptr<Window> m_window;
@@ -57,10 +40,6 @@ private:
 	ComPtr<ID3D11Device> m_device;
 	ComPtr<ID3D11DeviceContext> m_context;
 	ComPtr<IDXGISwapChain> m_swapChain;
-
-	// Shaders
-	ShaderData m_shaders;
-
 
 	// Back buffer
 	ComPtr<ID3D11Texture2D> m_bbTexture;
@@ -75,4 +54,10 @@ private:
 
 	D3D11_VIEWPORT m_viewport;
 
+	// Pipelines
+	Pipeline m_pipelines[PipelineTypeCount];
+	int m_pipelineCurrent;
+
+	// Constant buffers
+	ConstantBuffers m_constantBuffers;
 };

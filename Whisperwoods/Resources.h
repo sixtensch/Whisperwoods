@@ -11,22 +11,24 @@
 
 */
 
-enum RESOURCE_TYPES {
-	SHADER = 0,
-	TEXTURE,
-	SOUND,
-	MATERIAL,
-	MODELSTATIC,
-	MODELRIGGED,
-	MAP,
-	RESOURCE_COUNT // This has to always be at the end of the enum.
+enum ResourceType 
+{
+	ResourceTypeShader,
+	ResourceTypeTexture,
+	ResourceTypeSound,
+	ResourceTypeMaterial,
+	ResourceTypeModelStatic,
+	ResourceTypeModelRigged,
+	ResourceTypeMap,
+
+	ResourceTypeCount // <-- Keep last
 };
 
 typedef std::unordered_map<std::string, shared_ptr<BasicResource>> ResourceMap;
 
 // Define functions that COULD be defined if its too wordy to use casting etc etc.
-#define GET_TEXTURE(subPath) GetResource(TEXTURE, subPath);
-#define GET_SOUND(subPath) GetResource(SOUND, subPath);
+#define GET_TEXTURE(subPath) GetResource(ResourceTypeTexture, subPath);
+#define GET_SOUND(subPath) GetResource(ResourceTypeSound, subPath);
 
 class Resources sealed
 {
@@ -36,15 +38,14 @@ public:
 
 	static Resources& Get();
 
-	BasicResource* GetResource(const RESOURCE_TYPES resourceType, std::string subPath);
+	BasicResource* GetResource(ResourceType resourceType, std::string subPath);
 
 private:
-
 	void InitMapList();
 	void InitializeTextures();
 
 	// Allocates a specific resource type in its specific map and returns a pointer to the allocated memory.
-	BasicResource* AllocateResource(const RESOURCE_TYPES resourceType, const std::string subPath, const std::string resourceName);
+	BasicResource* AllocateResource(ResourceType resourceType, const std::string subPath, const std::string resourceName);
 
 private:
 	static Resources* s_singleton;

@@ -73,9 +73,6 @@
     <Filter Include="%2a Code\%2a Core\Whisperwoods">
       <UniqueIdentifier>{2d1458b8-24ef-4555-9944-f2954744c528}</UniqueIdentifier>
     </Filter>
-    <Filter Include="%2a Code\%2a Core\Resources">
-      <UniqueIdentifier>{f3aca946-35f6-45fb-b9b9-af1c61c8f387}</UniqueIdentifier>
-    </Filter>
     <Filter Include="%2a Code\%2a Core\Input">
       <UniqueIdentifier>{67145573-5ada-43dd-9624-4211a134d575}</UniqueIdentifier>
     </Filter>
@@ -127,8 +124,41 @@
     <Filter Include="%2a Code\%2a Core\%2a Animation\Animator">
       <UniqueIdentifier>{5fac8100-97fc-47a5-9ebf-46e6dffb041b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="%2a Code\%2a Core\%2a Model Importing\ModelResource">
+    <Filter Include="%2a Code\%2a Resources">
+      <UniqueIdentifier>{2f84fcaf-6abc-4ce5-940e-762ea2277605}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Resources\Resources">
+      <UniqueIdentifier>{2242c8bc-6a37-4b5f-a78f-166296bf515f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\GUI">
+      <UniqueIdentifier>{c199de11-7adc-4e1a-bd34-7c3fd0652133}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\Constant Buffer Data">
+      <UniqueIdentifier>{a9ab767a-3639-45f2-a00b-7e056fbec52f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Shaders">
+      <UniqueIdentifier>{ed9569c4-3ee7-4e94-a969-0585bf1d8dc4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\%2a Renderable">
+      <UniqueIdentifier>{7609e66b-3a24-4b1a-8acb-e55ffe819d28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\%2a Renderable\MeshRenderable">
+      <UniqueIdentifier>{111a951b-ce5e-4b8b-b123-3726b2d42b5e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\LightHandler">
+      <UniqueIdentifier>{284fa0b3-9e7e-41d3-8a01-f28dcdeb96ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\Pipeline">
+      <UniqueIdentifier>{2e637bc7-1d4d-4c30-8b97-7c3f45473ac5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Resources\ModelResource">
       <UniqueIdentifier>{2586625e-39cc-4dac-962c-176de7a15c7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\BindInfo">
+      <UniqueIdentifier>{70abdff0-8ea3-4c06-bc71-372ef6fabf5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\DrawInfo">
+      <UniqueIdentifier>{85fb15ca-ad66-459a-b27f-bcf3a2206781}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -146,9 +176,6 @@
     </ClCompile>
     <ClCompile Include="Sound.cpp">
       <Filter>%2a Code\%2a Core\Sound</Filter>
-    </ClCompile>
-    <ClCompile Include="Resources.cpp">
-      <Filter>%2a Code\%2a Core\Resources</Filter>
     </ClCompile>
     <ClCompile Include="Config.cpp">
       <Filter>%2a Code\%2a Core\Config</Filter>
@@ -168,7 +195,6 @@
     <ClCompile Include="FBXImporter.cpp">
       <Filter>%2a Code\%2a Core\%2a Model Importing\FBX Importer</Filter>
     </ClCompile>
-    <ClCompile Include="LightHandler.cpp" />
     <ClCompile Include="Armature.cpp">
       <Filter>%2a Code\%2a Core\%2a Animation\Armature</Filter>
     </ClCompile>
@@ -196,12 +222,27 @@
     <ClCompile Include="Window.cpp">
       <Filter>%2a Code\%2a Rendering\Window</Filter>
     </ClCompile>
-    <ClCompile Include="GUI.cpp" />
     <ClCompile Include="ModelResource.cpp">
-      <Filter>%2a Code\%2a Core\%2a Model Importing\ModelResource</Filter>
+      <Filter>%2a Code\%2a Resources\ModelResource</Filter>
     </ClCompile>
     <ClCompile Include="Animator.cpp">
       <Filter>%2a Code\%2a Core\%2a Animation\Animator</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp" />
+    <ClCompile Include="Resources.cpp">
+      <Filter>%2a Code\%2a Resources\Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI.cpp">
+      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRenderable.cpp">
+      <Filter>%2a Code\%2a Rendering\%2a Renderable\MeshRenderable</Filter>
+    </ClCompile>
+    <ClCompile Include="LightHandler.cpp">
+      <Filter>%2a Code\%2a Rendering\LightHandler</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderable.cpp">
+      <Filter>%2a Code\%2a Rendering\%2a Renderable</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -220,9 +261,6 @@
     <ClInclude Include="Sound.h">
       <Filter>%2a Code\%2a Core\Sound</Filter>
     </ClInclude>
-    <ClInclude Include="Resources.h">
-      <Filter>%2a Code\%2a Core\Resources</Filter>
-    </ClInclude>
     <ClInclude Include="Config.h">
       <Filter>%2a Code\%2a Core\Config</Filter>
     </ClInclude>
@@ -235,13 +273,9 @@
     <ClInclude Include="Renderer.h">
       <Filter>%2a Code\%2a Rendering\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="LightHandler.h" />
     <ClInclude Include="QuadTree.h" />
     <ClInclude Include="Armature.h">
       <Filter>%2a Code\%2a Core\%2a Animation\Armature</Filter>
-    </ClInclude>
-    <ClInclude Include="Animation.h">
-      <Filter>%2a Code\%2a Core\%2a Animation\Animation</Filter>
     </ClInclude>
     <ClInclude Include="AudioSource.h">
       <Filter>%2a Code\%2a World\%2a GameObject\AudioSource</Filter>
@@ -282,17 +316,66 @@
     <ClInclude Include="VertexGroup.h">
       <Filter>%2a Code\%2a Core\%2a Model Importing\VertexGroup</Filter>
     </ClInclude>
-    <ClInclude Include="ConstantbufferData.h" />
-    <ClInclude Include="GUI.h" />
     <ClInclude Include="ModelResource.h">
-      <Filter>%2a Code\%2a Core\%2a Model Importing\ModelResource</Filter>
+      <Filter>%2a Code\%2a Resources\ModelResource</Filter>
     </ClInclude>
     <ClInclude Include="Animator.h">
       <Filter>%2a Code\%2a Core\%2a Animation\Animator</Filter>
     </ClInclude>
+    <ClInclude Include="TextureResource.h">
+      <Filter>%2a Code\%2a Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundResource.h">
+      <Filter>%2a Code\%2a Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderResource.h">
+      <Filter>%2a Code\%2a Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicResource.h">
+      <Filter>%2a Code\%2a Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationResource.h">
+      <Filter>%2a Code\%2a Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="Resources.h">
+      <Filter>%2a Code\%2a Resources\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI.h">
+      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstantbufferData.h">
+      <Filter>%2a Code\%2a Rendering\Constant Buffer Data</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRenderable.h">
+      <Filter>%2a Code\%2a Rendering\%2a Renderable\MeshRenderable</Filter>
+    </ClInclude>
+    <ClInclude Include="LightHandler.h">
+      <Filter>%2a Code\%2a Rendering\LightHandler</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderable.h">
+      <Filter>%2a Code\%2a Rendering\%2a Renderable</Filter>
+    </ClInclude>
+    <ClInclude Include="Pipeline.h">
+      <Filter>%2a Code\%2a Rendering\Pipeline</Filter>
+    </ClInclude>
+    <ClInclude Include="BindInfo.h">
+      <Filter>%2a Code\%2a Rendering\BindInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawInfo.h">
+      <Filter>%2a Code\%2a Rendering\DrawInfo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="BlinnPhong.hlsl" />
-    <FxCompile Include="MeshVS.hlsl" />
+    <FxCompile Include="VSMesh.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PSBlinnPhong.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Constants.hlsli">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

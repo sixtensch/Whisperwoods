@@ -10,7 +10,7 @@
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-GUI::GUI(const Window* window, const RenderCore* renderCore, bool docking, bool viewports)
+GUI::GUI(const RenderCore* renderCore, bool docking, bool viewports)
 {
 	LOG("Initializing GUI handler.");
 	LOG_TRACE("Creating ImGui context.");
@@ -27,8 +27,7 @@ GUI::GUI(const Window* window, const RenderCore* renderCore, bool docking, bool 
 	}
 
 	LOG_TRACE("Initializing ImGui Win32 and DX11 implementation.");
-	ImGui_ImplWin32_Init(window->Data());
-	ImGui_ImplDX11_Init(renderCore->GetDeviceP(), renderCore->GetContext());
+	renderCore->InitImGui();
 
 	// Set the imgui input-overriding wndproc
 	Window::LoadPrioritizedWndProc(ImGui_ImplWin32_WndProcHandler);

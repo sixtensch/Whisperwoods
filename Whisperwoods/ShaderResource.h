@@ -2,6 +2,18 @@
 
 #include "BasicResource.h"
 
+enum ShaderType
+{
+	ShaderTypeVertex,
+	ShaderTypeGeometry,
+	ShaderTypeDomain,
+	ShaderTypeHull,
+	ShaderTypePixel,
+	ShaderTypeCompute,
+
+	ShaderTypeCount		// <-- Keep last
+};
+
 struct ShaderResource : public BasicResource {
 
 	ShaderResource()

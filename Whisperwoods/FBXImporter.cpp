@@ -390,8 +390,8 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 			DXMAT ibMatXM = DirectX::XMMatrixInverse(nullptr, mMatXM);
 			inverseBindTxList[j] = Mat4(ibMatXM);
 			//DirectX::XMStoreFloat4x4(&inverseBindTxList[j], ibMatXM);
-			//PrintMatrix(inverseBindTxList[j], boneNames[j] + " - Inverse Bind Tx");
-			//PrintMatrix(ConvertToDirectX(&newMesh->mBones[j]->mOffsetMatrix), boneNames[j] + " - Imported Inverse Bind Tx");
+			//PrintMatrix(inverseBindTxList[j], boneNames[j] + " - Inverse Draw Tx");
+			//PrintMatrix(ConvertToDirectX(&newMesh->mBones[j]->mOffsetMatrix), boneNames[j] + " - Imported Inverse Draw Tx");
 		}
 
 		// Create Bones  TODO: fix for submeshes

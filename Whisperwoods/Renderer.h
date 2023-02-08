@@ -3,6 +3,7 @@
 #include "RenderHandler.h"
 #include "Window.h"
 #include "RenderCore.h"
+#include "MeshRenderable.h"
 
 class GUI;
 
@@ -20,6 +21,8 @@ public:
 	void EndGui();
 	void Present();
 
+	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
+
 	static Renderer& Get();
 
 private:
@@ -30,8 +33,5 @@ private:
 	shared_ptr<Window> m_window;
 	unique_ptr<RenderHandler> m_renderHandler;
 	unique_ptr<GUI> m_gui;
-
-public:
-	unique_ptr<RenderHandler>& GetHandler() { return m_renderHandler; }
 };
 

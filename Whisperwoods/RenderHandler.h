@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "ConstantbufferData.h"
 #include "ModelResource.h"
+#include "MeshRenderable.h"
 
 class RenderHandler sealed
 {
@@ -19,19 +20,14 @@ public:
 
 	const RenderCore* GetCore() const;
 
-	ModelStaticResource* staticModel;
-	//int indexDataSize;
-	
-private:
-	void InitVSConstantBuffers();
+	shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 
 private:
 	unique_ptr<RenderCore> m_renderCore;
-	Camera mainCamera;
 
-	ConstantBuffers cbufferData;
+	uint m_renderableIDCounter;
+	cs::List<shared_ptr<WorldRenderable>> m_worldRenderables;
 
-public: 
-	unique_ptr<RenderCore>& GetRenderCore() { return m_renderCore; };
+	Camera m_mainCamera;
 };
 
