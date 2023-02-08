@@ -38,6 +38,7 @@ private:
 
 	void InitPipelines();
 	void InitConstantBuffers();
+	void InitLightBuffers();
 
 private:
 	shared_ptr<Window> m_window;
@@ -67,4 +68,9 @@ private:
 
 	// Constant buffers
 	ConstantBuffers m_constantBuffers;
+
+	// Light structured buffers
+	ComPtr<ID3D11Buffer> m_lightBufferPoint;
+	ComPtr<ID3D11Buffer> m_lightBufferSpot;
+	ComPtr<ID3D11Buffer> m_lightBufferDir;
 };

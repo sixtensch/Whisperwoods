@@ -13,4 +13,8 @@
 #define WINDOW_NAME		"Whisperwoods"
 #define WINDOW_WIDTH	1280
 #define WINDOW_HEIGHT	720
+
+#define LIGHT_CAPACITY_DIR		1
+#define LIGHT_CAPACITY_POINT	8
+#define LIGHT_CAPACITY_SPOT		8
 	

@@ -7,17 +7,17 @@ LightHandler::LightHandler( ID3D11Device* device )
 	m_maxSize[LightTypeSpotlight]   = START_MAX_LIGHTS;
 	m_maxSize[LightTypePointlight]  = START_MAX_LIGHTS;
 
-	if ( !InitDirSBuffer( device, m_maxSize[LightTypeDirectional] ) )
+	if (!InitDirSBuffer(device, m_maxSize[LightTypeDirectional]))
 	{
-		EXC( "Error creating light resource at LightHandler.cpp, line " + __LINE__ );
+		EXC("Error creating directional light resource.");
 	};
-	if( !InitPointSBuffer( device, m_maxSize[LightTypePointlight]) )
+	if (!InitPointSBuffer(device, m_maxSize[LightTypePointlight]))
 	{
-		EXC( "Error creating light resource at LightHandler.cpp, line " + __LINE__ );
+		EXC("Error creating point light resource.");
 	};
-	if ( !InitSpotSBuffer( device, m_maxSize[LightTypeSpotlight]) )
+	if (!InitSpotSBuffer(device, m_maxSize[LightTypeSpotlight]))
 	{
-		EXC( "Error creating light resource at LightHandler.cpp, line " + __LINE__ );
+		EXC("Error creating light resource.");
 	};
 }
 LightHandler::~LightHandler()

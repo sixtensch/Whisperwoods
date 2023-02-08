@@ -8,7 +8,7 @@ struct VSInput
     float3 tangent      : TANGENT0;
     float3 bitangent    : BITANGENT0;
     float4 UV           : TEXCOORD0;
-};
+}; 
 
 struct VSOutput
 {

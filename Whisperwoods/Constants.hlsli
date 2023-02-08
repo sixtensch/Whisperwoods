@@ -3,6 +3,10 @@
 
 
 
+#include "Constants.h"
+
+
+
 // Sampler states
 
 #define REGISTER_SAMPLER_SYSTEM_0       register(s6)

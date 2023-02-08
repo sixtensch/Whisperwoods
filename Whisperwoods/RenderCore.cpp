@@ -421,6 +421,11 @@ void RenderCore::InitPipelines()
         blob->GetBufferSize(),
         m_pipelines[PipelineTypeStandard].inputLayout.GetAddressOf()
     ));
+
+
+    // 
+
+
 }
 
 void RenderCore::InitConstantBuffers()
@@ -457,4 +462,36 @@ void RenderCore::InitConstantBuffers()
     ));
 
     EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVObjectInfo, 1, m_constantBuffers.objectInfo.GetAddressOf()));
+}
+
+void RenderCore::InitLightBuffers()
+{
+    D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.ByteWidth = LIGHT_CAPACITY_DIR * bufferDesc.StructureByteStride;
+    bufferDesc.StructureByteStride = sizeof(DirectionalLight::DirectionalLightBufferData);
+    bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    EXC_COMCHECK(m_device->CreateBuffer(
+        &bufferDesc,
+        nullptr,
+        m_lightBufferDir.GetAddressOf()
+    ));
+
+    bufferDesc.StructureByteStride = sizeof(PointLight::PointLightBufferData);
+    bufferDesc.ByteWidth = LIGHT_CAPACITY_POINT * bufferDesc.StructureByteStride;
+    EXC_COMCHECK(m_device->CreateBuffer(
+        &bufferDesc,
+        nullptr,
+        m_lightBufferPoint.GetAddressOf()
+    ));
+
+    bufferDesc.StructureByteStride = sizeof(SpotLight::SpotLightBufferData);
+    bufferDesc.ByteWidth = LIGHT_CAPACITY_SPOT * bufferDesc.StructureByteStride;
+    EXC_COMCHECK(m_device->CreateBuffer(
+        &bufferDesc,
+        nullptr,
+        m_lightBufferSpot.GetAddressOf()
+    ));
 }
