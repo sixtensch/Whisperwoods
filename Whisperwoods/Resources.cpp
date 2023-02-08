@@ -194,9 +194,6 @@ void Resources::LoadSounds()
 		{
 			EXC("Failed to load sound '%s'.", filePath.c_str());
 		}
-
-		// TODO: Dudd test code that works. Remove later.
-		//sound.PlaySoundA(soundResource->currentSound, {}, {}, 10.0f);
 	}
 }
 
@@ -230,8 +227,6 @@ void Resources::LoadMaterialResources()
 
 void Resources::LoadModelStaticResources()
 {
-	FBXImporter importer;
-
 	cs::List<fs::path> staticModelPaths = CollectFilePaths(STATIC_MODEL_PATH);
 	
 	for (fs::path& path : staticModelPaths)
@@ -241,7 +236,6 @@ void Resources::LoadModelStaticResources()
 	
 		FBXImporter::LoadWWMStatic(filePath, modelStaticResource);
 	}
-
 }
 
 void Resources::LoadModelRiggedResources()
