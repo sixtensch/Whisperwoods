@@ -24,8 +24,11 @@ Resources::Resources()
 	// TODO: Dudd code. Remove later.
 	FBXImporter importer;
 	AllocateResource(ResourceTypeTexture, "TestPath/Test", "Test name");
-	ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(ResourceTypeModelStatic, "Characters/ShadiiTest.fbx", "Test name"));
-	importer.ImportFBXStatic("Assets/Models/Characters/ShadiiTest.fbx", shadiiTestModel);
+	ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(ResourceTypeModelStatic, "WWM/ShadiiTest.wwm", "Test name"));
+	
+	importer.LoadWWMStatic("Assets/Models/WWM/ShadiiTest.wwm", shadiiTestModel);
+	
+	//importer.ImportFBXStatic("Assets/Models/Characters/ShadiiTest.fbx", shadiiTestModel);
 	//shadiiTestModel->CreateVertexBuffer()
 
 	//ShaderResource* shader = (ShaderResource*)AllocateResource(ResourceTypeShader, "VSMesh.cso", "Test name");

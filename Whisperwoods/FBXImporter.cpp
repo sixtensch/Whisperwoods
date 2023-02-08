@@ -10,6 +10,8 @@
 #include "Armature.h"
 #include "WhisperWoodsModelHead.h"
 #include <fstream>
+#include <filesystem>
+#include <direct.h>
 
 DirectX::XMFLOAT4X4 ConvertToDirectX(aiMatrix4x4* mat)
 {
@@ -155,16 +157,31 @@ bool IsSame(VertexTextured a, VertexTextured b)
 
 struct FixedSizeCharArray 
 {
-	char data[128];
+	char data[128] = { '\0' };
 };
 
-std::string FBXImporter::SaveWMM(ModelStaticResource* inMesh)
+//void print_state(const std::ios& stream) {
+//	std::cout << " good()=" << stream.good();
+//	std::cout << " eof()=" << stream.eof();
+//	std::cout << " fail()=" << stream.fail();
+//	std::cout << " bad()=" << stream.bad();
+//}
+
+std::string FBXImporter::SaveWMM(ModelStaticResource* inMesh, std::string subDir)
 {
 	// Use model name as base for out name
-	std::string outName = "ProcessedModels/" + inMesh->name + ".wwm";
-
+	std::string outName = subDir + inMesh->name + ".wwm";
+	//namespace fs = std::filesystem;
+	_mkdir(subDir.c_str()); // TODO: Maybe remove
 	// Open the writer
-	std::ofstream writer(outName, std::ios::out | std::ios::binary);
+	std::fstream writer;
+	writer.open(outName, std::fstream::out | std::fstream::binary);
+
+	if (!writer)
+	{
+		LOG_WARN("WMM Writer failed to open file: %s", outName.c_str());
+		return "fail";
+	}
 
 	// Gather the head data
 	WhisperWoodsModelHead headData;
@@ -178,6 +195,7 @@ std::string FBXImporter::SaveWMM(ModelStaticResource* inMesh)
 
 	// Write startIndicies
 	writer.write((char*)inMesh->startIndicies.Data(), sizeof(int) * headData.numSubMeshes);
+
 	// Write indexCounts
 	writer.write((char*)inMesh->indexCounts.Data(), sizeof(int) * headData.numSubMeshes);
 	
@@ -186,7 +204,8 @@ std::string FBXImporter::SaveWMM(ModelStaticResource* inMesh)
 	for (int i = 0; i < headData.numSubMeshes; i++)
 	{
 		FixedSizeCharArray buffer;
-		for (int j = 0; j < (inMesh->materialNames[i].length() <= 128) ? inMesh->materialNames[i].length() : 128; j++)
+		int length = (inMesh->materialNames[i].length() <= 128) ? inMesh->materialNames[i].length() : 128;
+		for (int j = 0; j < length; j++)
 		{
 			buffer.data[j] = inMesh->materialNames[i][j];
 		}
@@ -207,7 +226,7 @@ std::string FBXImporter::SaveWMM(ModelStaticResource* inMesh)
 
 	// If an error occured
 	if (!writer.good()) {
-		LOG_WARN("WMM Static Writer error occurred at writing time!");
+		LOG_WARN("WMM Static Writer error occurred at writing time! , EOF: %d, FAILBIT: %d, BADBIT: %d", writer.eof(), writer.fail(), writer.bad());
 		return "fail";
 	}
 
@@ -215,17 +234,17 @@ std::string FBXImporter::SaveWMM(ModelStaticResource* inMesh)
 	return outName;
 }
 
-std::string FBXImporter::SaveWMM(ModelRiggedResource* inMesh)
+std::string FBXImporter::SaveWMM(ModelRiggedResource* inMesh, std::string subDir)
 {
 	// Use model name as base for out name
-	std::string outName = "ProcessedModels/" + inMesh->name + ".wwm";
-
+	std::string outName = subDir + inMesh->name + ".wwm";
+	_mkdir(subDir.c_str());
 	// Open the writer
 	std::ofstream writer(outName, std::ios::out | std::ios::binary);
 
 	// Gather the head data
 	WhisperWoodsModelHead headData;
-	headData.rigged = false;
+	headData.rigged = true;
 	headData.numVerticies = inMesh->verticies.Size();
 	headData.numIndicies = inMesh->indicies.Size();
 	headData.numSubMeshes = inMesh->startIndicies.Size();
@@ -243,7 +262,8 @@ std::string FBXImporter::SaveWMM(ModelRiggedResource* inMesh)
 	for (int i = 0; i < headData.numSubMeshes; i++)
 	{
 		FixedSizeCharArray buffer;
-		for (int j = 0; j < (inMesh->materialNames[i].length() <= 128) ? inMesh->materialNames[i].length() : 128; j++)
+		int length = (inMesh->materialNames[i].length() <= 128) ? inMesh->materialNames[i].length() : 128;
+		for (int j = 0; j < length; j++)
 		{
 			buffer.data[j] = inMesh->materialNames[i][j];
 		}
@@ -264,7 +284,7 @@ std::string FBXImporter::SaveWMM(ModelRiggedResource* inMesh)
 
 	// If an error occured
 	if (!writer.good()) {
-		LOG_WARN("WMM Static Writer error occurred at writing time!");
+		LOG_WARN("WMM Rigged Writer error occurred at writing time! , EOF: %d, FAILBIT: %d, BADBIT: %d", writer.eof(), writer.fail(), writer.bad());
 		return "fail";
 	}
 
@@ -272,9 +292,9 @@ std::string FBXImporter::SaveWMM(ModelRiggedResource* inMesh)
 	return outName;
 }
 
-bool FBXImporter::LoadWWMStatic(std::string filePath, ModelStaticResource* outMesh)
+bool FBXImporter::LoadWWMStatic(std::string filePath, ModelStaticResource* const outMesh)
 {
-	std::ifstream reader(filePath, std::ios::out | std::ios::binary);
+	std::ifstream reader(filePath, std::ifstream::out | std::ifstream::binary);
 
 	if (!reader)
 	{
@@ -293,15 +313,17 @@ bool FBXImporter::LoadWWMStatic(std::string filePath, ModelStaticResource* outMe
 	}
 
 	//Read the startindicies
-	//reader.read((char*)outMesh->startIndicies.MassAdd(), sizeof(int) * headData.numSubMeshes);
+	reader.read((char*)outMesh->startIndicies.MassAdd(headData.numSubMeshes), sizeof(int) * headData.numSubMeshes);
 
 	//Read the indexCounts
-	//reader.read((char*)outMesh->indexCounts.MassAdd(), sizeof(int) * headData.numSubMeshes);
+	reader.read((char*)outMesh->indexCounts.MassAdd(headData.numSubMeshes), sizeof(int) * headData.numSubMeshes);
 
+	// Temp store
 	cs::List<FixedSizeCharArray> readNames;
 
 	//Read the names
-	//reader.read((char*)readNames.MassAdd(), sizeof(char[128]) * headData.numSubMeshes);
+	reader.read((char*)readNames.MassAdd(headData.numSubMeshes), sizeof(FixedSizeCharArray) * headData.numSubMeshes);
+
 	// Convert and add to the outmesh
 	for (int i = 0; i < headData.numSubMeshes; i++)
 	{
@@ -311,11 +333,12 @@ bool FBXImporter::LoadWWMStatic(std::string filePath, ModelStaticResource* outMe
 	}
 
 	//Read the verticies
-	//reader.read((char*)outMesh->verticies.MassAdd(), sizeof(VertexTextured) * headData.numVerticies);
+	reader.read((char*)outMesh->verticies.MassAdd(headData.numVerticies), sizeof(VertexTextured) * headData.numVerticies);
 
 	//Read the indicies
-	//reader.read((char*)outMesh->indicies.MassAdd(), sizeof(int) * headData.numIndicies);
+	reader.read((char*)outMesh->indicies.MassAdd(headData.numIndicies), sizeof(int) * headData.numIndicies);
 
+	// close the reader
 	reader.close();
 
 	if (!reader.good())
@@ -327,7 +350,7 @@ bool FBXImporter::LoadWWMStatic(std::string filePath, ModelStaticResource* outMe
 	return true;
 }
 
-bool FBXImporter::LoadWWMRigged(std::string filePath, ModelRiggedResource* outMesh)
+bool FBXImporter::LoadWWMRigged(std::string filePath, ModelRiggedResource* const outMesh)
 {
 	std::ifstream reader(filePath, std::ios::out | std::ios::binary);
 
@@ -343,20 +366,22 @@ bool FBXImporter::LoadWWMRigged(std::string filePath, ModelRiggedResource* outMe
 
 	if (!headData.rigged)
 	{
-		LOG_WARN("WMM Reader Rigged read file: %s which was saved as static, aborted.", filePath.c_str());
+		LOG_WARN("WMM Reader Rigged read file: %s which was saved as rigged, aborted.", filePath.c_str());
 		return false;
 	}
 
 	//Read the startindicies
-	//reader.read((char*)outMesh->startIndicies.MassAdd(), sizeof(int) * headData.numSubMeshes);
+	reader.read((char*)outMesh->startIndicies.MassAdd(headData.numSubMeshes), sizeof(int) * headData.numSubMeshes);
 
 	//Read the indexCounts
-	//reader.read((char*)outMesh->indexCounts.MassAdd(), sizeof(int) * headData.numSubMeshes);
+	reader.read((char*)outMesh->indexCounts.MassAdd(headData.numSubMeshes), sizeof(int) * headData.numSubMeshes);
 
+	// Temp store
 	cs::List<FixedSizeCharArray> readNames;
 
 	//Read the names
-	//reader.read((char*)readNames.MassAdd(), sizeof(char[128]) * headData.numSubMeshes);
+	reader.read((char*)readNames.MassAdd(headData.numSubMeshes), sizeof(FixedSizeCharArray) * headData.numSubMeshes);
+
 	// Convert and add to the outmesh
 	for (int i = 0; i < headData.numSubMeshes; i++)
 	{
@@ -366,16 +391,16 @@ bool FBXImporter::LoadWWMRigged(std::string filePath, ModelRiggedResource* outMe
 	}
 
 	//Read the verticies
-	//reader.read((char*)outMesh->verticies.MassAdd(), sizeof(VertexRigged) * headData.numVerticies);
+	reader.read((char*)outMesh->verticies.MassAdd(headData.numVerticies), sizeof(VertexRigged) * headData.numVerticies);
 
 	//Read the indicies
-	//reader.read((char*)outMesh->indicies.MassAdd(), sizeof(int) * headData.numIndicies);
+	reader.read((char*)outMesh->indicies.MassAdd(headData.numIndicies), sizeof(int) * headData.numIndicies);
 
 	reader.close();
 
 	if (!reader.good())
 	{
-		LOG_WARN("WMM Static reader, error found at close, data might be garbled.");
+		LOG_WARN("WMM Rigged reader, error found at close, data might be garbled.");
 		return false;
 	}
 
@@ -427,8 +452,8 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 
 	LOG_TRACE( "==STATIC IMPORT PROCESS START==\n", scene->mNumMeshes );
 
-	// Use the scene name as model name
-	outMesh->name = std::string(scene->mName.C_Str());
+	// Get name from the input path
+	outMesh->name = remove_extension(base_name(filePath));
 
 	for (unsigned int i = 0; i < scene->mNumMeshes; i++)
 	{
@@ -566,6 +591,9 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 	}
 
 	LOG_TRACE( "==RIGGED IMPORT PROCESS START==\n");
+
+	// Get name from the input path
+	outMesh->name = remove_extension(base_name(filePath));
 
 	outMesh->armature.globalInverseTransform = ConvertToMat4(&scene->mRootNode->mTransformation.Inverse().Transpose());
 
