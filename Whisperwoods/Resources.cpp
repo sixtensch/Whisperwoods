@@ -1,7 +1,7 @@
 #include "Core.h"
 #include "Resources.h"
 
-#include <filesystem>
+#include <WICTextureLoader.h>
 
 #include "TextureResource.h"
 #include "ShaderResource.h"
@@ -9,20 +9,21 @@
 #include "ModelResource.h"
 #include "FBXImporter.h"
 
+
+// TODO: Can move this into an array that indexes with resource type as we want to have one path per resource type(?)
 #define MODELS_PATH "Assets/Models/"
 #define TEXTURE_PATH "Assets/Textures/"
 #define SOUND_PATH "Assets/Sounds/"
 #define MATERIAL_PATH "Assets/Materials/"
 #define MAP_PATH "Assets/Maps/"
+#define STATIC_MODEL_PATH "Assets/Models/Statics"
+#define RIGGED_MODEL_PATH "Assets/Models/Rigged"
 
 // TODO: Dudd includes. Remove later.
-namespace fs = std::filesystem;
+
 #include <fmod.hpp>
 #include <fmod_common.h>
 #include <fmod_errors.h>
-#include "Sound.h"
-
-
 
 
 Resources* Resources::s_singleton = nullptr;
@@ -39,15 +40,15 @@ Resources::Resources()
 
 	InitMapList();
 
-	// TODO: Dudd code. Remove later.
-	//FBXImporter importer;
-	//AllocateResource(ResourceTypeTexture, "TestPath/Test", "Test name");
-	//ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(ResourceTypeModelStatic, "Characters/ShadiiTest.fbx", "Test name"));
-	//importer.ImportFBXStatic("Assets/Models/Characters/ShadiiTest.fbx", shadiiTestModel);
-	//shadiiTestModel->CreateVertexBuffer()
-
-	//ShaderResource* shader = (ShaderResource*)AllocateResource(ResourceTypeShader, "VSMesh.cso", "Test name");
-	//shader->shaderVar
+#if (_WIN32_WINNT >= 0x0A00 /*_WIN32_WINNT_WIN10*/)
+	Microsoft::WRL::Wrappers::RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);
+	if (FAILED(initialize))
+		EXC("Could not initialize WIC texture loader requirements.");
+#else
+	HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+	if (FAILED(hr))
+		EXC("Could not initialize WIC texture loader requirements.");
+#endif
 }
 
 Resources::~Resources()
@@ -75,11 +76,11 @@ void Resources::InitMapList()
 	}
 }
 
-void Resources::LoadAssetDirectory()
+void Resources::LoadAssetDirectory(Sound& sound, RenderCore* renderCore)
 {
-	LoadSounds();
+	LoadBaseResources(sound, renderCore);
 
-	int a = 0;
+	LoadCompositeResources();
 }
 
 const BasicResource* Resources::GetResource(const ResourceType resourceType, const std::string subPath) const
@@ -106,10 +107,6 @@ BasicResource* Resources::AllocateResource(ResourceType resourceType, const std:
 
 	switch (resourceType)
 	{
-	case ResourceTypeShader:
-		resource = make_shared<ShaderResource>(resourceName);
-		break;
-
 	case ResourceTypeTexture:
 		resource = make_shared<TextureResource>(resourceName);
 		break;
@@ -118,8 +115,17 @@ BasicResource* Resources::AllocateResource(ResourceType resourceType, const std:
 		resource = make_shared<SoundResource>(resourceName);
 		break;
 
+		//case ResourceTypeMaterial:
+		//	resource = make_shared<MaterialResource>(resourceName);
+		//	break;
+
+	
 	case ResourceTypeModelStatic:
-		resource = make_shared<ModelStaticResource>();
+		resource = make_shared<ModelStaticResource>(resourceName);
+		break;
+
+	case ResourceTypeModelRigged:
+		resource = make_shared<ModelRiggedResource>(resourceName);
 		break;
 
 	default:
@@ -145,28 +151,81 @@ BasicResource* Resources::AllocateResource(ResourceType resourceType, const std:
 	return insertionIt->second.get();
 }
 
-void Resources::LoadSounds()
+cs::List<fs::path> Resources::CollectFilePaths(const std::string& assetDirPath)
 {
-	auto sound = Sound::Get();
-	std::string path = SOUND_PATH;
+	cs::List<fs::path> filePaths = {};
 
-	for (const auto& file : fs::directory_iterator(path))
+	for (const auto& file : fs::directory_iterator(assetDirPath))
 	{
-		const fs::path& rawFilePath = file.path();
-
-		if (fs::is_regular_file(rawFilePath))
+		if (fs::is_regular_file(file))
 		{
-			std::string filePath = rawFilePath.string();
-			SoundResource* soundResource = (SoundResource*)AllocateResource(ResourceTypeSound, filePath, rawFilePath.filename().string());
-			
-			if (!sound.LoadSound(filePath, soundResource))
-			{
-				EXC("Failed to load sound %s.", filePath.c_str());
-			}
-			
-			// TODO: Dudd test code that works.
-			//sound.PlaySoundA(soundResource->currentSound, {}, {}, 10.0f);
+			filePaths.Add(file.path());
 		}
 	}
+
+	return filePaths;
+}
+
+void Resources::LoadBaseResources(Sound& sound, RenderCore* renderCore)
+{
+	LoadTextures(renderCore);
+	LoadSounds(sound);
+}
+
+void Resources::LoadSounds(Sound& sound)
+{
+	cs::List<fs::path> soundPaths = CollectFilePaths(SOUND_PATH);
+
+	for (fs::path& path : soundPaths)
+	{
+		std::string filePath = path.string();
+		SoundResource* soundResource = (SoundResource*)AllocateResource(ResourceTypeSound, filePath, path.filename().string());
+
+		if (!sound.LoadSound(filePath, soundResource->currentSound))
+		{
+			EXC("Failed to load sound '%s'.", filePath.c_str());
+		}
+
+		// TODO: Dudd test code that works. Remove later.
+		//sound.PlaySoundA(soundResource->currentSound, {}, {}, 10.0f);
+	}
+}
+
+void Resources::LoadTextures(RenderCore* renderCore)
+{
+	cs::List<fs::path> texturePaths = CollectFilePaths(TEXTURE_PATH);
+
+	for (fs::path& path : texturePaths)
+	{
+		std::string filePath = path.string();
+		TextureResource* textureResource = (TextureResource*)AllocateResource(ResourceTypeTexture, filePath, path.filename().string());
+	
+		//if (!renderCore->LoadTexture(filePath, textureResource))
+		//{
+		//	EXC("Failed to load texture '%s'.", filePath.c_str());
+		//}
+	}
+}
+
+void Resources::LoadCompositeResources()
+{
+	LoadMaterialResources();
+	LoadModelStaticResources();
+	LoadModelRiggedResources();
+}
+
+void Resources::LoadMaterialResources()
+{
+	FBXImporter importer;
+}
+
+void Resources::LoadModelStaticResources()
+{
+	FBXImporter importer;
+}
+
+void Resources::LoadModelRiggedResources()
+{
+	FBXImporter importer;
 }
 

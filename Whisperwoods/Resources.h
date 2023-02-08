@@ -1,9 +1,14 @@
 #pragma once
+#include "Core.h"
 
+#include <filesystem>
 #include <string.h>
 #include <unordered_map>
 
 #include "BasicResource.h"
+
+#include "Sound.h"
+#include "RenderHandler.h"
 
 /*
 	Ett till lager av säkerhet kan läggas på datan genom att returnera weak_ptrs. Dessa kan endast bli
@@ -12,7 +17,6 @@
 
 enum ResourceType 
 {
-	ResourceTypeShader,
 	ResourceTypeTexture,
 	ResourceTypeSound,
 	ResourceTypeMaterial,
@@ -24,6 +28,8 @@ enum ResourceType
 };
 
 typedef std::unordered_map<std::string, shared_ptr<BasicResource>> ResourceMap;
+
+namespace fs = std::filesystem;
 
 class Resources sealed
 {
@@ -39,7 +45,7 @@ public:
 	BasicResource* GetWritableResource(const ResourceType resourceType, std::string subPath) const;
 
 	// This is supposed to be called after all singletons are initialized.
-	void LoadAssetDirectory();
+	void LoadAssetDirectory(Sound& sound, RenderCore* renderCore);
 
 private:
 	void InitMapList();
@@ -47,7 +53,19 @@ private:
 	// Allocates a specific resource type in its specific map and returns a pointer to the allocated memory.
 	BasicResource* AllocateResource(ResourceType resourceType, const std::string subPath, const std::string resourceName);
 
-	void LoadSounds();
+	cs::List<fs::path> CollectFilePaths(const std::string& assetDirPath);
+
+	// TODO: Add the option for this. If a file is not found later, its referenced to its default.
+	void LoadDefaultResources();
+
+	void LoadBaseResources(Sound& sound, RenderCore* renderCore);
+	void LoadSounds(Sound& sound);
+	void LoadTextures(RenderCore* renderCore);
+
+	void LoadCompositeResources();
+	void LoadMaterialResources();
+	void LoadModelStaticResources();
+	void LoadModelRiggedResources();
 
 private:
 	static Resources* s_singleton;
