@@ -13,5 +13,6 @@ struct VertexWeightPair
 struct VertexGroup
 {
 	std::string name;
+	int index;
 	cs::List<VertexWeightPair> verticies;
 };

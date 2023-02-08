@@ -1,8 +1,11 @@
 #include "Core.h"
+
 #include "RenderCore.h"
+#include "imgui_impl_dx11.h"
+#include "imgui_impl_win32.h"
 #include <d3dcompiler.h>
 
-RenderCore::RenderCore(shared_ptr<Window> window, const Camera& camera)
+RenderCore::RenderCore(shared_ptr<Window> window)
 {
     m_window = window;
 
@@ -163,22 +166,22 @@ RenderCore::RenderCore(shared_ptr<Window> window, const Camera& camera)
     EXC_COMCHECK(m_device->CreateBlendState(&bd, &bss));
     EXC_COMINFO(m_context->OMSetBlendState(bss.Get(), nullptr, sampleMask));
 
-    CompileShaders();
+    InitPipelines();
+    InitConstantBuffers();
+
+    m_pipelineCurrent = -1;
 }
 
 RenderCore::~RenderCore()
 {
 }
 
-void RenderCore::NewFrame(ConstantBuffers cData)
+void RenderCore::NewFrame()
 {
-    m_context->ClearDepthStencilView(m_dsDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u);
+    EXC_COMINFO(m_context->ClearDepthStencilView(m_dsDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
 
     EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
-    m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get());
-
-    // Constant buffers
-    m_context->VSSetConstantBuffers(0, 1, cData.vertexShaderCBuffer.GetAddressOf());
+    EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
 }
 
 void RenderCore::EndFrame()
@@ -191,92 +194,202 @@ ID3D11Device* RenderCore::GetDeviceP() const
     return m_device.Get();
 }
 
-ID3D11DeviceContext* RenderCore::GetContext() const
+void RenderCore::UpdateViewInfo(const Camera& camera)
 {
-    return m_context.Get();
-}
-
-ID3D11Device* const* RenderCore::GetDevicePP()
-{
-    return m_device.GetAddressOf();
-}
-
-void RenderCore::BindGPipeline(ID3D11Buffer* const* vertexBufferPP, ID3D11Buffer* indexBufferP, const UINT& stride, const UINT& offset, PIPELINE_TYPE flag)
-{
-    // General binds all pipelines will use
-    
-    // Input Assembly
-    m_context->IASetVertexBuffers(0, 1, vertexBufferPP, &stride, &offset);
-    m_context->IASetIndexBuffer(indexBufferP, DXGI_FORMAT_R32_UINT, 0);
-
-    // Specialised binds
-    switch (flag)
+    CB::VSViewInfo vi =
     {
-        case BLINN_PHONG:
-            BindBlinnPhong();
-            break;
-
-
-        default:
-            LOG_CRITICAL("Incorrect flag, could not bind any new pipeline");
-            break;
-    }
-}
-void RenderCore::DrawIndexed(int indexCount, int startIndexPos, int startVertexPos)
-{
-    m_context->DrawIndexed(indexCount, startIndexPos, startVertexPos);
-
-}
-
-void RenderCore::BindBlinnPhong()
-{
-    // Input Assembly
-    m_context->IASetInputLayout(m_shaders.inputLayout.Get());
-    m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-    // Vertex Shader
-    m_context->VSSetShader(m_shaders.vertexShader.Get(), nullptr, 0);
-
-    // Pixel Shader
-    m_context->PSSetShader(m_shaders.pixelShader.Get(), nullptr, 0);
-}
-
-
-
-void RenderCore::CompileShaders()
-{
-    ID3DBlob* shaderBlob = {};
-
-#if WW_DEBUG
-    wchar_t vsPath[] = L"../Bin/Whisperwoods64-Debug/MeshVS.cso";
-    wchar_t pxPath[] = L"../Bin/Whisperwoods64-Debug/BlinnPhong.cso";
-#endif
-    
-    EXC_COMCHECK(D3DReadFileToBlob(pxPath, &shaderBlob));
-    EXC_COMCHECK(m_device->CreatePixelShader(
-        shaderBlob->GetBufferPointer(),
-        shaderBlob->GetBufferSize(),
-        nullptr,
-        m_shaders.pixelShader.GetAddressOf()
-    ));
-
-    EXC_COMCHECK(D3DReadFileToBlob(vsPath, &shaderBlob));
-    EXC_COMCHECK(m_device->CreateVertexShader(
-        shaderBlob->GetBufferPointer(),
-        shaderBlob->GetBufferSize(),
-        nullptr,
-        m_shaders.vertexShader.GetAddressOf()
-    ));
-
-    // Input Layout
-    D3D11_INPUT_ELEMENT_DESC vShaderInput[] = {
-        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0},
-        {"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}
+        camera.GetViewMatrix(),
+        camera.GetProjectionMatrix().Transpose()
     };
-    EXC_COMCHECK(m_device->CreateInputLayout(
-        vShaderInput, static_cast<UINT>(sizeof(vShaderInput) / sizeof(*vShaderInput)),
-        shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(),
-        m_shaders.inputLayout.GetAddressOf()
+
+    D3D11_MAPPED_SUBRESOURCE msr = {};
+    EXC_COMCHECK(m_context->Map(m_constantBuffers.vsViewInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+    memcpy(msr.pData, &vi, sizeof(CB::VSViewInfo));
+    EXC_COMINFO(m_context->Unmap(m_constantBuffers.vsViewInfo.Get(), 0u));
+}
+
+void RenderCore::UpdateObjectInfo(const WorldRenderable* worldRenderable)
+{
+    CB::VSObjectInfo oi =
+    {
+        worldRenderable->worldMatrix
+    };
+
+    D3D11_MAPPED_SUBRESOURCE msr = {};
+    EXC_COMCHECK(m_context->Map(m_constantBuffers.vsObjectInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+    memcpy(msr.pData, &oi, sizeof(CB::VSObjectInfo));
+    EXC_COMINFO(m_context->Unmap(m_constantBuffers.vsObjectInfo.Get(), 0u));
+}
+
+void RenderCore::DrawObject(const Renderable* renderable)
+{
+    if (renderable->pipelineType != m_pipelineCurrent)
+    {
+        BindPipeline(renderable->pipelineType);
+    }
+
+    DrawInfo drawInfo =
+    {
+        this
+    };
+
+    renderable->Draw(drawInfo);
+}
+
+void RenderCore::SetVertexBuffer(ComPtr<ID3D11Buffer> buffer, uint stride, uint offset)
+{
+    EXC_COMINFO(m_context->IASetVertexBuffers(0, 1, buffer.GetAddressOf(), &stride, &offset));
+}
+
+void RenderCore::SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format)
+{
+    EXC_COMINFO(m_context->IASetIndexBuffer(buffer.Get(), format, offset));
+}
+
+void RenderCore::DrawIndexed(uint indexCount, uint start, uint base)
+{
+    EXC_COMINFO(m_context->DrawIndexed(indexCount, start, base));
+}
+
+void RenderCore::InitImGui() const
+{
+    ImGui_ImplWin32_Init(m_window->Data());
+    ImGui_ImplDX11_Init(m_device.Get(), m_context.Get());
+}
+
+void RenderCore::BindPipeline(PipelineType pipeline)
+{
+    const Pipeline& n = m_pipelines[pipeline];  // New pipeline
+
+    if (m_pipelineCurrent < 0)
+    {
+        EXC_COMINFO(m_context->IASetInputLayout(n.inputLayout.Get()));
+        EXC_COMINFO(m_context->IASetPrimitiveTopology(n.primitiveTopology));
+
+        EXC_COMINFO(m_context->VSSetShader(n.vertexShader.Get(), nullptr, 0));
+        EXC_COMINFO(m_context->GSSetShader(n.geometryShader.Get(), nullptr, 0));
+        EXC_COMINFO(m_context->DSSetShader(n.domainShader.Get(), nullptr, 0));
+        EXC_COMINFO(m_context->HSSetShader(n.hullShader.Get(), nullptr, 0));
+        EXC_COMINFO(m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0));
+
+        return;
+    }
+
+    const Pipeline& o = m_pipelines[m_pipelineCurrent];     // Old pipeline
+    
+    if (n.inputLayout != o.inputLayout)
+    {
+        m_context->IASetInputLayout(n.inputLayout.Get());
+    }
+
+    if (n.primitiveTopology != o.primitiveTopology)
+    {
+        m_context->IASetPrimitiveTopology(n.primitiveTopology);
+    }
+
+    if (n.vertexShader != o.vertexShader)
+    {
+        m_context->VSSetShader(n.vertexShader.Get(), nullptr, 0);
+    }
+
+    if (n.geometryShader != o.geometryShader)
+    {
+        m_context->GSSetShader(n.geometryShader.Get(), nullptr, 0);
+    }
+
+    if (n.domainShader != o.domainShader)
+    {
+        m_context->DSSetShader(n.domainShader.Get(), nullptr, 0);
+    }
+
+    if (n.hullShader != o.hullShader)
+    {
+        m_context->HSSetShader(n.hullShader.Get(), nullptr, 0);
+    }
+
+    if (n.pixelShader != o.pixelShader)
+    {
+        m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0);
+    }
+
+    m_pipelineCurrent = pipeline;
+}
+
+void RenderCore::InitPipelines()
+{
+    ComPtr<ID3DBlob> blob;
+
+
+
+    // Standard pipeline (blinn-phong)
+
+    m_pipelines[PipelineTypeStandard].primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+    EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"PSBlinnPhong.cso", &blob));
+    EXC_COMCHECK(m_device->CreatePixelShader(
+        blob->GetBufferPointer(),
+        blob->GetBufferSize(),
+        nullptr,
+        &m_pipelines[PipelineTypeStandard].pixelShader
     ));
+
+    EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"VSMesh.cso", &blob));
+    EXC_COMCHECK(m_device->CreateVertexShader(
+        blob->GetBufferPointer(),
+        blob->GetBufferSize(),
+        nullptr,
+        &m_pipelines[PipelineTypeStandard].vertexShader
+    ));
+
+    D3D11_INPUT_ELEMENT_DESC inputLayoutStandard[] = 
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, 
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }  
+    }; 
+
+    EXC_COMCHECK(m_device->CreateInputLayout(
+        inputLayoutStandard, 
+        (uint)(sizeof(inputLayoutStandard) / sizeof(*inputLayoutStandard)),
+        blob->GetBufferPointer(), 
+        blob->GetBufferSize(),
+        m_pipelines[PipelineTypeStandard].inputLayout.GetAddressOf()
+    ));
+}
+
+void RenderCore::InitConstantBuffers()
+{
+    // View info
+
+    D3D11_BUFFER_DESC desc = {};
+    desc.Usage = D3D11_USAGE_DYNAMIC;
+    desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    desc.ByteWidth = sizeof(CB::VSViewInfo);
+    desc.StructureByteStride = 0;
+    desc.MiscFlags = 0;
+
+    EXC_COMCHECK(m_device->CreateBuffer(
+        &desc,
+        nullptr,
+        m_constantBuffers.vsViewInfo.GetAddressOf()
+    ));
+
+    EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVViewInfo, 1, m_constantBuffers.vsViewInfo.GetAddressOf()));
+
+
+
+    // Object info
+
+    desc.ByteWidth = sizeof(CB::VSObjectInfo);
+
+    EXC_COMCHECK(m_device->CreateBuffer(
+        &desc,
+        nullptr,
+        m_constantBuffers.vsObjectInfo.GetAddressOf()
+    ));
+
+    EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVObjectInfo, 1, m_constantBuffers.vsObjectInfo.GetAddressOf()));
 }

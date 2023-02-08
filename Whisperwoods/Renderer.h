@@ -3,6 +3,7 @@
 #include "RenderHandler.h"
 #include "Window.h"
 #include "RenderCore.h"
+#include "MeshRenderable.h"
 
 class GUI;
 
@@ -20,7 +21,10 @@ public:
 	void EndGui();
 	void Present();
 
-	static Renderer& Get();
+	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
+	static Camera& GetCamera();
+	static Window& GetWindow();
+	//static Renderer& Get();
 
 private:
 	static Renderer* s_singleton;

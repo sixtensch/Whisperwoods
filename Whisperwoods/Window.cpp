@@ -7,8 +7,6 @@ WNDPROC Window::s_externProcedure = nullptr;
 
 LRESULT CALLBACK Window::WndProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	static Input& inputRef = Input::Get();
-
 	if (s_externProcedure)
 	{
 		if (s_externProcedure(window, message, wParam, lParam))
@@ -18,54 +16,66 @@ LRESULT CALLBACK Window::WndProc(HWND window, UINT message, WPARAM wParam, LPARA
 		}
 	}
 
+	if (Input::Exists())
+	{
+		static Input& inputRef = Input::Get();
+
+		switch (message)
+		{
+			case WM_ACTIVATEAPP: // This activates at destruct
+			{
+				inputRef.ProcessKeyboardMessage(message, wParam, lParam);
+				inputRef.ProcessMouseMessage(message, wParam, lParam);
+				break;
+			}
+
+			case WM_ACTIVATE: // This activates at destruct
+			case WM_INPUT:
+			case WM_MOUSEMOVE:
+			case WM_LBUTTONDOWN:
+			case WM_LBUTTONUP:
+			case WM_RBUTTONDOWN:
+			case WM_RBUTTONUP:
+			case WM_MBUTTONDOWN:
+			case WM_MBUTTONUP:
+			case WM_MOUSEWHEEL:
+			case WM_XBUTTONDOWN:
+			case WM_XBUTTONUP:
+
+			case WM_MOUSEHOVER:
+			{
+				break;
+				inputRef.ProcessMouseMessage(message, wParam, lParam);
+			}
+
+			case WM_KEYDOWN:
+			case WM_KEYUP:
+			case WM_SYSKEYUP:
+			{
+				inputRef.ProcessKeyboardMessage(message, wParam, lParam);
+				break;
+			}
+
+			case WM_SYSKEYDOWN:
+			{
+				inputRef.ProcessKeyboardMessage(message, wParam, lParam);
+				break;
+			}
+
+			default:
+				break;
+		}
+	}
+
 	switch (message)
 	{
-	case WM_DESTROY: //Cross
-	case WM_CLOSE: //Close window
-		PostQuitMessage(0);
-		return 0;
+		case WM_DESTROY: //Cross
+		case WM_CLOSE: //Close window
+			PostQuitMessage(0);
+			return 0;
 
-	case WM_ACTIVATEAPP: // This activates at destruct
-	{
-		inputRef.ProcessKeyboardMessage(message, wParam, lParam);
-		inputRef.ProcessMouseMessage(message, wParam, lParam);
-	}
-	break;
-
-	case WM_ACTIVATE: // This activates at destruct
-	case WM_INPUT:
-	case WM_MOUSEMOVE:
-	case WM_LBUTTONDOWN:
-	case WM_LBUTTONUP:
-	case WM_RBUTTONDOWN:
-	case WM_RBUTTONUP:
-	case WM_MBUTTONDOWN:
-	case WM_MBUTTONUP:
-	case WM_MOUSEWHEEL:
-	case WM_XBUTTONDOWN:
-	case WM_XBUTTONUP:
-	case WM_MOUSEHOVER:
-	{
-		inputRef.ProcessMouseMessage(message, wParam, lParam);
-	}
-	break;
-
-	case WM_KEYDOWN:
-	case WM_KEYUP:
-	case WM_SYSKEYUP:
-	{
-		inputRef.ProcessKeyboardMessage(message, wParam, lParam);
-	}
-	break;
-
-	case WM_SYSKEYDOWN:
-	{
-		inputRef.ProcessKeyboardMessage(message, wParam, lParam);
-	}
-	break;
-
-	default:
-		return DefWindowProc(window, message, wParam, lParam);
+		default:
+			return DefWindowProc(window, message, wParam, lParam);
 	}
 
 	return 0; // This will never be reached and thats ok.

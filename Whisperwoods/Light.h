@@ -9,7 +9,7 @@ struct Light : GameObject // Inherits a transform.
 		Vec3 direction;
 		Vec3 color;
 	};
-	Vec3 color;
+	cs::Color3f color;
 	float intensity;
 	void FillBasicBufferData(LightBufferData* outData, Transform* inTransform);
 };

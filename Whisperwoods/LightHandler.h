@@ -7,14 +7,8 @@ enum LightType
 	LIGHT_TYPE_SPOTLIGHT = 1,
 	LIGHT_TYPE_POINTLIGHT = 2
 };
-constexpr int START_MAX_LIGHTS = 40;
 
-//class PointLight
-//{};
-//class DirectionalLight
-//{};
-//class SpotLight
-//{};
+constexpr int START_MAX_LIGHTS = 40;
 
 class LightHandler sealed
 {
@@ -23,14 +17,12 @@ public:
 	LightHandler( ID3D11Device* device );
 	~LightHandler();
 
-
 	ID3D11Buffer* GetStructuredBufferP( LightType type );
 	ID3D11Buffer* const* GetStructuredBufferPP( LightType type );
-
 	
-	void SetDirectionalLights( ID3D11DeviceContext* context, std::vector<DirectionalLight::DirectionalLightBufferData> data );
-	void SetSpotLights( ID3D11DeviceContext* context, std::vector<SpotLight::SpotLightBufferData> data );
-	void SetPointLights( ID3D11DeviceContext* context, std::vector<PointLight::PointLightBufferData> data );
+	void SetDirectionalLights( ID3D11DeviceContext* context, const cs::List<DirectionalLight::DirectionalLightBufferData>& data);
+	void SetSpotLights( ID3D11DeviceContext* context, const cs::List<SpotLight::SpotLightBufferData>& data );
+	void SetPointLights( ID3D11DeviceContext* context, const cs::List<PointLight::PointLightBufferData>& data );
 
 	bool ReallocLights( ID3D11Device* device, LightType type );
 
@@ -39,8 +31,6 @@ private:
 	bool InitDirSBuffer( ID3D11Device* device, UINT LightCount );
 	bool InitSpotSBuffer( ID3D11Device* device, UINT LightCount );
 
-
-public:
 private:
 	wrl::ComPtr<ID3D11Buffer> m_pointSBuffer;
 	wrl::ComPtr<ID3D11Buffer> m_spotSBuffer;

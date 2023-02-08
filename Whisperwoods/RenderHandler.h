@@ -4,6 +4,9 @@
 #include "Window.h"
 #include "Camera.h"
 #include "ConstantbufferData.h"
+#include "ModelResource.h"
+#include "MeshRenderable.h"
+#include "Light.h"
 
 class RenderHandler sealed
 {
@@ -18,13 +21,16 @@ public:
 
 	const RenderCore* GetCore() const;
 
-private:
-	void InitVSConstantBuffers();
+	Camera& GetCamera();
+
+	shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 
 private:
 	unique_ptr<RenderCore> m_renderCore;
-	Camera mainCamera;
 
-	ConstantBuffers cbufferData;
+	uint m_renderableIDCounter;
+	cs::List<shared_ptr<WorldRenderable>> m_worldRenderables;
+
+	Camera m_mainCamera;
 };
 

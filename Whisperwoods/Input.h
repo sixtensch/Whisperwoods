@@ -11,16 +11,17 @@ typedef dx::Mouse::State MouseState;
 typedef dx::Keyboard::Keys DXKey;
 // TODO: Add DXKey equivalent for mouse so abstract input can be used for mouse as well.
 
-enum ABSTRACT_INPUT_ENUM {
+enum Keybind 
+{
+	KeybindForward = 0,
+	KeybindBackward,
+	KeybindLeft,
+	KeybindRight,
+	KeybindSprint,
+	KeybindCrouch,
+	KeybindPower,
 
-	FORWARD = 0,
-	BACKWARD,
-	LEFT,
-	RIGHT,
-	SPRINT,
-	CROUCH,
-	POWER,
-	INPUT_COUNT // This has to always be at the end of the enum.
+	KeybindCount	// <-- Keep last
 };
 
 class Input sealed
@@ -45,8 +46,8 @@ public:
 	MouseState GetMouseState() const;
 	MouseState GetLastMouseState() const;
 
-	void AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey key);
-	void AddKeysToInput(const ABSTRACT_INPUT_ENUM input, const cs::List<DXKey>& keys);
+	void AddKeyToInput(const Keybind input, const DXKey key);
+	void AddKeysToInput(const Keybind input, const cs::List<DXKey>& keys);
 	/* 
 		TODO: 
 		Add so that variable number of input Enums can be passed to check if all are pressed.
@@ -56,7 +57,7 @@ public:
 		This can also be achieved (but probably shouldnt except given a good reason) 
 		with bit masks if Enums are set to powers of two.
 	*/
-	bool IsInputDown(ABSTRACT_INPUT_ENUM input) const;
+	bool IsKeybindDown(Keybind input) const;
 
 private:
 
@@ -74,6 +75,6 @@ private:
 	unique_ptr<dx::Keyboard> m_keyboard;
 	unique_ptr<dx::Mouse> m_mouse; // Mouse events wont work if BindWindow() has not been called.
 
-	cs::List<cs::List<DXKey>> m_inputList;
+	cs::List<cs::List<DXKey>> m_keybindList;
 };
 

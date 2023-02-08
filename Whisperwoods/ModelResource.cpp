@@ -2,7 +2,7 @@
 #include "ModelResource.h"
 #include "Debug.h"
 
-void ModelResource::CreateIndexBuffer(ComPtr<ID3D11Device>& device)
+void ModelResource::CreateIndexBuffer(ID3D11Device* device)
 {
 	D3D11_BUFFER_DESC bufferDesc;
 	bufferDesc.ByteWidth = sizeof(unsigned int) * indicies.Size();
@@ -10,9 +10,10 @@ void ModelResource::CreateIndexBuffer(ComPtr<ID3D11Device>& device)
 	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	bufferDesc.MiscFlags = 0;
+	//bufferDesc.StructureByteStride 
 
 	D3D11_SUBRESOURCE_DATA data;
-	data.pSysMem = &indicies;
+	data.pSysMem = indicies.Data();
 	data.SysMemPitch = 0;
 	data.SysMemSlicePitch = 0;
 
@@ -23,18 +24,18 @@ void ModelResource::CreateIndexBuffer(ComPtr<ID3D11Device>& device)
 	}
 }
 
-void ModelStaticResource::CreateVertexBuffer(ComPtr<ID3D11Device>& device)
+void ModelStaticResource::CreateVertexBuffer(ID3D11Device* device)
 {
 	D3D11_BUFFER_DESC bufferDesc;
 	bufferDesc.ByteWidth = sizeof(VertexTextured) * verticies.Size();
-	bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	bufferDesc.MiscFlags = 0;
 	bufferDesc.StructureByteStride = 0; // not relevant
 
 	D3D11_SUBRESOURCE_DATA data;
-	data.pSysMem = &verticies;
+	data.pSysMem = verticies.Data();
 	data.SysMemPitch = 0;
 	data.SysMemSlicePitch = 0;
 
@@ -47,18 +48,18 @@ void ModelStaticResource::CreateVertexBuffer(ComPtr<ID3D11Device>& device)
 	CreateIndexBuffer(device);
 }
 
-void ModelRiggedResource::CreateVertexBuffer(ComPtr<ID3D11Device>& device)
+void ModelRiggedResource::CreateVertexBuffer(ID3D11Device* device)
 {
 	D3D11_BUFFER_DESC bufferDesc;
 	bufferDesc.ByteWidth = sizeof(VertexRigged) * verticies.Size();
-	bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
+	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.CPUAccessFlags = 0;
+	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	bufferDesc.MiscFlags = 0;
 	bufferDesc.StructureByteStride = 0; // not relevant
 
 	D3D11_SUBRESOURCE_DATA data;
-	data.pSysMem = &verticies;
+	data.pSysMem = verticies.Data();
 	data.SysMemPitch = 0;
 	data.SysMemSlicePitch = 0;
 

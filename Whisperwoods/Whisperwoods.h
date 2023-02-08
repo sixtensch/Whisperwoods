@@ -15,6 +15,8 @@ public:
 
 	void Run();
 
+	void Move(float dTime);
+
 private:
 	std::unique_ptr<Debug>		m_debug;
 	std::unique_ptr<Resources>	m_resources;

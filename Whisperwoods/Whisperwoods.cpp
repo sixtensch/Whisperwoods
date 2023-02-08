@@ -1,9 +1,10 @@
-#include "core.h"
+#include "Core.h"
 #include "Whisperwoods.h"
 
 #include "Game.h"
 #include "Input.h"
 #include "AudioSource.h"
+#include "FBXImporter.h"
 
 void TestPlay(void*, void*)
 {
@@ -26,12 +27,11 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	m_config = std::make_unique<Config>();
 
-	m_input = std::make_unique<Input>();
-	//m_input->InputInit(HWND windowHandle);
-	// TODO: Add so that window handle can be received from renderer/window.
-
 	m_renderer = std::make_unique<Renderer>(instance);
 	m_renderer->Init(WINDOW_WIDTH, WINDOW_HEIGHT);
+
+	m_input = std::make_unique<Input>();
+	m_input->InputInit(Renderer::GetWindow().Data());
 
 	m_game = std::make_unique<Game>(); 
 }
@@ -50,23 +50,30 @@ void Whisperwoods::Run()
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
+	FBXImporter importer;
 
+	ModelRiggedResource riggedModel;
+	AnimationResource animationResource;
 
+	importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &riggedModel );
+	importer.ImportFBXAnimations( "Assets/Shadii_Animated.fbx", &animationResource );
 
-
+	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Characters/ShadiiTest.fbx");
+	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0);
 
 	int frames = 0;
+	cs::Timer deltaTimer;
 	for (bool running = true; running; frames++)
 	{
 		m_debug->ClearFrameTrace();
-
 		running = !m_renderer->UpdateWindow();
 
-		m_game->Update();
-		
-		m_sound->Update();
+		float dTime = deltaTimer.Lap();
 
-		//m_game->Draw();
+		Move(dTime);
+
+		m_game->Update();
+		m_sound->Update();
 
 		m_renderer->Draw();
 		m_renderer->BeginGui();
@@ -82,4 +89,19 @@ void Whisperwoods::Run()
 	{
 		m_sound->Update();
 	}
+}
+
+void Whisperwoods::Move(float dTime)
+{
+	Camera& camera = Renderer::GetCamera();
+
+	Vec3 movement = Vec3(0, 0, 0);
+
+	if (Input::Get().IsKeybindDown(KeybindForward))		movement.z += 1.0f;
+	if (Input::Get().IsKeybindDown(KeybindBackward))	movement.z -= 1.0f;
+	if (Input::Get().IsKeybindDown(KeybindRight))		movement.x += 1.0f;
+	if (Input::Get().IsKeybindDown(KeybindLeft))		movement.x -= 1.0f;
+
+	camera.SetPosition(camera.GetPosition() + movement * dTime);
+	camera.Update();
 }

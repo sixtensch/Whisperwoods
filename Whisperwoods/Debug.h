@@ -23,8 +23,6 @@ enum DebugLevel
 	// Least verbose. Information related to critical errors and system-breaking behavior likely to cause further errors.
 	DebugLevelCritical,		
 
-
-
 	DebugLevelCommandTrace,	// Information following from commands.
 	DebugLevelCommand,		// Information specifically triggered by user commands for debugging.
 
@@ -183,7 +181,7 @@ private:
 	static constexpr int c_debutOutputTimeout = 100;
 	static constexpr char c_commandChar = '>';
 
-	std::mutex* m_mutex;
+	// std::mutex* m_mutex;
 
 	std::chrono::steady_clock::time_point m_startTime;
 

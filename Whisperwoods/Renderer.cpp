@@ -31,7 +31,7 @@ void Renderer::Init(uint width, uint height)
 	m_renderHandler = make_unique<RenderHandler>();
 	m_renderHandler->InitCore(m_window);
 
-	m_gui = make_unique<GUI>(m_window.get(), m_renderHandler->GetCore(), true, true);
+	m_gui = make_unique<GUI>(m_renderHandler->GetCore(), true, true);
 
 	m_window->Show(true);
 }
@@ -61,14 +61,30 @@ void Renderer::Present()
 	m_renderHandler->Present();
 }
 
-Renderer& Renderer::Get()
+shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpath)
 {
-#ifdef WW_Renderer
-	if (s_singleton == nullptr)
-	{
-		throw "Renderer singleton not found.";	// TODO: Proper exceptions
-	}
-#endif
-
-	return *s_singleton;
+	return s_singleton->m_renderHandler->CreateMeshStatic(subpath);
 }
+
+Camera& Renderer::GetCamera()
+{
+	return s_singleton->m_renderHandler->GetCamera();
+}
+
+Window& Renderer::GetWindow()
+{
+	return *(s_singleton->m_window.get());
+}
+
+//
+//Renderer& Renderer::Get()
+//{
+//#ifdef WW_Renderer
+//	if (s_singleton == nullptr)
+//	{
+//		throw "Renderer singleton not found.";	// TODO: Proper exceptions
+//	}
+//#endif
+//
+//	return *s_singleton;
+//}

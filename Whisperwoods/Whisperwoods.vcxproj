@@ -39,7 +39,9 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightHandler.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MeshRenderable.cpp" />
     <ClCompile Include="ModelResource.cpp" />
+    <ClCompile Include="Renderable.cpp" />
     <ClCompile Include="RenderCore.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RenderHandler.cpp" />
@@ -47,14 +49,17 @@
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="Whisperwoods.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Animation.h" />
+    <ClInclude Include="AnimationResource.h" />
     <ClInclude Include="Animator.h" />
     <ClInclude Include="Armature.h" />
     <ClInclude Include="AudioSource.h" />
+    <ClInclude Include="BasicResource.h" />
+    <ClInclude Include="BindInfo.h" />
     <ClInclude Include="Bone.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Config.h" />
@@ -62,6 +67,7 @@
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Core.h" />
     <ClInclude Include="Debug.h" />
+    <ClInclude Include="DrawInfo.h" />
     <ClInclude Include="FBXImporter.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
@@ -70,13 +76,19 @@
     <ClInclude Include="Input.h" />
     <ClInclude Include="KeyFrame.h" />
     <ClInclude Include="LightHandler.h" />
+    <ClInclude Include="MeshRenderable.h" />
     <ClInclude Include="ModelResource.h" />
+    <ClInclude Include="Pipeline.h" />
     <ClInclude Include="QuadTree.h" />
+    <ClInclude Include="Renderable.h" />
     <ClInclude Include="RenderCore.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderHandler.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="ShaderResource.h" />
     <ClInclude Include="Sound.h" />
+    <ClInclude Include="SoundResource.h" />
+    <ClInclude Include="TextureResource.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="VertexGroup.h" />
@@ -84,20 +96,31 @@
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="BlinnPhong.hlsl">
+    <FxCompile Include="PSBlinnPhong.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)Run\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)Run\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Run\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Run\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="MeshVS.hlsl">
+    <FxCompile Include="VSMesh.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)Run\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)Run\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)Run\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)Run\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Constants.hlsli" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -195,6 +218,9 @@ xcopy /y /q "$(SolutionDir)Libraries\Assimp\assimp-vc143-mtd.dll" "$(SolutionDir
 xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmod.dll" "$(SolutionDir)Run"
 xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmodL.dll" "$(SolutionDir)Run"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <ObjectFileOutput>$(SolutionDir)Run\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -223,6 +249,9 @@ xcopy /y /q "$(SolutionDir)Libraries\Assimp\assimp-vc143-mtd.dll" "$(SolutionDir
 xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmod.dll" "$(SolutionDir)Run"
 xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmodL.dll" "$(SolutionDir)Run"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <ObjectFileOutput>$(SolutionDir)Run\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -247,6 +276,9 @@ xcopy /y /q "$(SolutionDir)Libraries\Assimp\assimp-vc143-mtd.dll" "$(SolutionDir
 xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmod.dll" "$(SolutionDir)Run"
 xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmodL.dll" "$(SolutionDir)Run"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <ObjectFileOutput>$(SolutionDir)Run\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -275,6 +307,9 @@ xcopy /y /q "$(SolutionDir)Libraries\Assimp\assimp-vc143-mtd.dll" "$(SolutionDir
 xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmod.dll" "$(SolutionDir)Run"
 xcopy /y /q "$(SolutionDir)Libraries\FModcore\lib\x64\fmodL.dll" "$(SolutionDir)Run"</Command>
     </PostBuildEvent>
+    <FxCompile>
+      <ObjectFileOutput>$(SolutionDir)Run\Assets\Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
