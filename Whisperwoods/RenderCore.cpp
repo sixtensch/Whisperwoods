@@ -189,9 +189,85 @@ void RenderCore::EndFrame()
     EXC_COMCHECK(m_swapChain->Present(0u, 0u));
 }
 
-ID3D11Device* RenderCore::GetDeviceP() const 
+HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP)
 {
-    return m_device.Get();
+    HRESULT hr = {};
+    
+    D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.ByteWidth = byteWidth;
+    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.MiscFlags = 0;
+    bufferDesc.StructureByteStride = 0; // not relevant
+
+    D3D11_SUBRESOURCE_DATA subData = {};
+    subData.pSysMem = data;
+    subData.SysMemPitch = 0;
+    subData.SysMemSlicePitch = 0;
+
+    hr = m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP);
+    if ( FAILED(hr) )
+    {
+        LOG_ERROR("failed to create static model vertexBuffer");
+    }
+    
+    return hr;
+}
+
+HRESULT RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP)
+{
+    HRESULT hr = {};
+    D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.ByteWidth = byteWidth;
+    bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    bufferDesc.CPUAccessFlags = 0;
+    bufferDesc.MiscFlags = 0;
+    //bufferDesc.StructureByteStride 
+
+    D3D11_SUBRESOURCE_DATA subData = {};
+    subData.pSysMem = data;
+    subData.SysMemPitch = 0;
+    subData.SysMemSlicePitch = 0;
+
+    hr = m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP);
+    if ( FAILED(hr) )
+    {
+        LOG_ERROR("failed to create model indexBuffer");
+    }
+    return hr;
+}
+
+HRESULT RenderCore::CreateImageTexture(char* image, UINT resHeight, UINT resWidth, UINT sysMemPitch, DXGI_FORMAT format, ID3D11Texture2D** out_texturePP)
+{
+    HRESULT hr = {};
+    D3D11_TEXTURE2D_DESC textureDesc = {};
+    textureDesc.Height = resHeight;
+    textureDesc.Width = resWidth;
+    textureDesc.Format = format;
+    textureDesc.Usage = D3D11_USAGE_IMMUTABLE;
+    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    textureDesc.MipLevels = 1;
+    textureDesc.ArraySize = 1;
+    textureDesc.SampleDesc.Count = 1;
+    textureDesc.SampleDesc.Quality = 0;
+    textureDesc.CPUAccessFlags = 0;
+    textureDesc.MiscFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA subData = {};
+    subData.pSysMem = image;
+    subData.SysMemPitch = sysMemPitch;
+    subData.SysMemSlicePitch = 0;
+
+    hr = m_device->CreateTexture2D(
+        &textureDesc,
+        &subData,
+        out_texturePP
+    );
+    if ( FAILED(hr) )
+        LOG_ERROR("Failed to create texture2d");
+    return hr;
 }
 
 void RenderCore::UpdateViewInfo(const Camera& camera)

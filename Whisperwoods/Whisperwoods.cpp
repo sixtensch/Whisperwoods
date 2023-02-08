@@ -64,12 +64,15 @@ void Whisperwoods::Run()
 
 	int frames = 0;
 	cs::Timer deltaTimer;
+
+
 	for (bool running = true; running; frames++)
 	{
 		m_debug->ClearFrameTrace();
 		running = !m_renderer->UpdateWindow();
 
 		float dTime = deltaTimer.Lap();
+		m_debug->CalculateFps(dTime);
 
 		Move(dTime);
 

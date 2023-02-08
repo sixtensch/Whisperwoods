@@ -3,19 +3,19 @@
 
 LightHandler::LightHandler( ID3D11Device* device )
 {
-	m_maxSize[LIGHT_TYPE_DIRECTIONAL] = START_MAX_LIGHTS;
-	m_maxSize[LIGHT_TYPE_SPOTLIGHT]   = START_MAX_LIGHTS;
-	m_maxSize[LIGHT_TYPE_POINTLIGHT]  = START_MAX_LIGHTS;
+	m_maxSize[LightTypeDirectional] = START_MAX_LIGHTS;
+	m_maxSize[LightTypeSpotlight]   = START_MAX_LIGHTS;
+	m_maxSize[LightTypePointlight]  = START_MAX_LIGHTS;
 
-	if ( !InitDirSBuffer( device, m_maxSize[LIGHT_TYPE_DIRECTIONAL] ) )
+	if ( !InitDirSBuffer( device, m_maxSize[LightTypeDirectional] ) )
 	{
 		EXC( "Error creating light resource at LightHandler.cpp, line " + __LINE__ );
 	};
-	if( !InitPointSBuffer( device, START_MAX_LIGHTS ) )
+	if( !InitPointSBuffer( device, m_maxSize[LightTypePointlight]) )
 	{
 		EXC( "Error creating light resource at LightHandler.cpp, line " + __LINE__ );
 	};
-	if ( !InitSpotSBuffer( device, START_MAX_LIGHTS ) )
+	if ( !InitSpotSBuffer( device, m_maxSize[LightTypeSpotlight]) )
 	{
 		EXC( "Error creating light resource at LightHandler.cpp, line " + __LINE__ );
 	};
@@ -28,9 +28,9 @@ ID3D11Buffer* LightHandler::GetStructuredBufferP( LightType type )
 {
 	switch ( type )
 	{
-		case LIGHT_TYPE_DIRECTIONAL: return m_dirSBuffer.Get();
-		case LIGHT_TYPE_POINTLIGHT: return m_pointSBuffer.Get();
-		case LIGHT_TYPE_SPOTLIGHT: return m_spotSBuffer.Get();
+		case LightTypeDirectional: return m_dirSBuffer.Get();
+		case LightTypePointlight: return m_pointSBuffer.Get();
+		case LightTypeSpotlight: return m_spotSBuffer.Get();
 	}
 	return nullptr;
 }
@@ -38,9 +38,9 @@ ID3D11Buffer* const* LightHandler::GetStructuredBufferPP( LightType type )
 {
 	switch ( type )
 	{
-		case LIGHT_TYPE_DIRECTIONAL: return m_dirSBuffer.GetAddressOf();
-		case LIGHT_TYPE_POINTLIGHT: return m_pointSBuffer.GetAddressOf();
-		case LIGHT_TYPE_SPOTLIGHT: return m_spotSBuffer.GetAddressOf();
+		case LightTypeDirectional: return m_dirSBuffer.GetAddressOf();
+		case LightTypePointlight: return m_pointSBuffer.GetAddressOf();
+		case LightTypeSpotlight: return m_spotSBuffer.GetAddressOf();
 	}
 	return nullptr;
 }
@@ -168,22 +168,22 @@ bool LightHandler::ReallocLights( ID3D11Device* device, LightType type )
 	bool toReturn = false;
 	switch ( type )
 	{
-		case LIGHT_TYPE_DIRECTIONAL:
+		case LightTypeDirectional:
 			m_dirSBuffer.Get()->Release();
-			m_maxSize[LIGHT_TYPE_DIRECTIONAL] *= 2;
-			toReturn = InitDirSBuffer( device, m_maxSize[LIGHT_TYPE_DIRECTIONAL] );
+			m_maxSize[LightTypeDirectional] *= 2;
+			toReturn = InitDirSBuffer( device, m_maxSize[LightTypeDirectional] );
 			break;
 
-		case LIGHT_TYPE_SPOTLIGHT:
+		case LightTypeSpotlight:
 			m_dirSBuffer.Get()->Release();
-			m_maxSize[LIGHT_TYPE_SPOTLIGHT] *= 2;
-			toReturn = InitSpotSBuffer( device, m_maxSize[LIGHT_TYPE_SPOTLIGHT] );
+			m_maxSize[LightTypeSpotlight] *= 2;
+			toReturn = InitSpotSBuffer( device, m_maxSize[LightTypeSpotlight] );
 			break;
 
-		case LIGHT_TYPE_POINTLIGHT:
+		case LightTypePointlight:
 			m_dirSBuffer.Get()->Release();
-			m_maxSize[LIGHT_TYPE_POINTLIGHT] *= 2;
-			toReturn = InitPointSBuffer( device, m_maxSize[LIGHT_TYPE_POINTLIGHT] );
+			m_maxSize[LightTypePointlight] *= 2;
+			toReturn = InitPointSBuffer( device, m_maxSize[LightTypePointlight] );
 			break;
 
 		default:

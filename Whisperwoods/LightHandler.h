@@ -3,9 +3,9 @@
 
 enum LightType
 {
-	LIGHT_TYPE_DIRECTIONAL = 0,
-	LIGHT_TYPE_SPOTLIGHT = 1,
-	LIGHT_TYPE_POINTLIGHT = 2
+	LightTypeDirectional = 0,
+	LightTypeSpotlight = 1,
+	LightTypePointlight = 2
 };
 
 constexpr int START_MAX_LIGHTS = 40;
@@ -38,4 +38,3 @@ private:
 
 	int m_maxSize[3];
 };
-
