@@ -216,16 +216,37 @@ void Resources::LoadCompositeResources()
 
 void Resources::LoadMaterialResources()
 {
-	FBXImporter importer;
+
 }
 
 void Resources::LoadModelStaticResources()
 {
 	FBXImporter importer;
+
+	cs::List<fs::path> staticModelPaths = CollectFilePaths(STATIC_MODEL_PATH);
+	
+	for (fs::path& path : staticModelPaths)
+	{
+		std::string filePath = path.string();
+		ModelStaticResource* modelStaticResource = (ModelStaticResource*)AllocateResource(ResourceTypeModelStatic, filePath, path.filename().string());
+	
+		importer.ImportFBXStatic(filePath, modelStaticResource);
+	}
+
 }
 
 void Resources::LoadModelRiggedResources()
 {
 	FBXImporter importer;
+
+	cs::List<fs::path> staticModelPaths = CollectFilePaths(STATIC_MODEL_PATH);
+
+	for (fs::path& path : staticModelPaths)
+	{
+		std::string filePath = path.string();
+		ModelRiggedResource* modelRiggedResource = (ModelRiggedResource*)AllocateResource(ResourceTypeModelRigged, filePath, path.filename().string());
+
+		importer.ImportFBXRigged(filePath, modelRiggedResource);
+	}
 }
 
