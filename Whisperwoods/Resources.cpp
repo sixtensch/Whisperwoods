@@ -81,9 +81,9 @@ void Resources::InitMapList()
 	}
 }
 
-void Resources::LoadAssetDirectory(Sound& sound, RenderCore* renderCore)
+void Resources::LoadAssetDirectory(RenderCore* const renderCore)
 {
-	LoadBaseResources(sound, renderCore);
+	LoadBaseResources(renderCore);
 
 	LoadCompositeResources();
 }
@@ -171,14 +171,18 @@ cs::List<fs::path> Resources::CollectFilePaths(const std::string& assetDirPath)
 	return filePaths;
 }
 
-void Resources::LoadBaseResources(Sound& sound, RenderCore* renderCore)
+void Resources::LoadBaseResources(RenderCore* const renderCore)
 {
 	LoadTextures(renderCore);
-	LoadSounds(sound);
+	LoadSounds();
 }
 
-void Resources::LoadSounds(Sound& sound)
+void Resources::LoadSounds()
 {
+	// TODO: The code below will call the destructor of sound when the function is done, as if it hijacked its instance.
+	// Singletons should return pointers instead.
+	//auto sound = Sound::Get();
+
 	cs::List<fs::path> soundPaths = CollectFilePaths(SOUND_PATH);
 
 	for (fs::path& path : soundPaths)
@@ -186,7 +190,7 @@ void Resources::LoadSounds(Sound& sound)
 		std::string filePath = path.string();
 		SoundResource* soundResource = (SoundResource*)AllocateResource(ResourceTypeSound, filePath, path.filename().string());
 
-		if (!sound.LoadSound(filePath, soundResource->currentSound))
+		if (!Sound::Get().LoadSound(filePath, soundResource->currentSound))
 		{
 			EXC("Failed to load sound '%s'.", filePath.c_str());
 		}
