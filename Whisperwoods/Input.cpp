@@ -18,7 +18,7 @@ Input::Input()
 	}
 
 	s_singleton = this;
-	for (int i = 0; i < INPUT_COUNT; i++)
+	for (int i = 0; i < InputActionCount; i++)
 	{
 		m_inputList.Add({}); // Initializes the container for each input.
 	}
@@ -51,13 +51,13 @@ void Input::InputInit(const HWND windowHandle)
 	BindWindowToMouse(windowHandle);
 
 	// Hard coded binding of input values to DXKey values. Read this from a file later?
-	AddKeysToInput(FORWARD, { DXKey::W, DXKey::Up });
-	AddKeysToInput(BACKWARD, { DXKey::S, DXKey::Down });
-	AddKeysToInput(LEFT, { DXKey::A, DXKey::Left });
-	AddKeysToInput(RIGHT, { DXKey::D, DXKey::Right });
-	AddKeysToInput(SPRINT, { DXKey::LeftShift, DXKey::RightShift });
-	AddKeysToInput(CROUCH, { DXKey::LeftControl, DXKey::RightControl });
-	AddKeysToInput(POWER, { DXKey::Q, DXKey::NumPad0 });
+	AddKeysToInput(InputActionForward, { DXKey::W, DXKey::Up });
+	AddKeysToInput(InputActionBackward, { DXKey::S, DXKey::Down });
+	AddKeysToInput(InputActionLeft, { DXKey::A, DXKey::Left });
+	AddKeysToInput(InputActionRight, { DXKey::D, DXKey::Right });
+	AddKeysToInput(InputActionSprint, { DXKey::LeftShift, DXKey::RightShift });
+	AddKeysToInput(InputActionCrouch, { DXKey::LeftControl, DXKey::RightControl });
+	AddKeysToInput(InputActionPower, { DXKey::Q, DXKey::NumPad0 });
 
 }
 
@@ -123,7 +123,7 @@ MouseState Input::GetLastMouseState() const
 	return m_lastMouseState;
 }
 
-void Input::AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey key)
+void Input::AddKeyToInput(const InputAction input, const DXKey key)
 {
 	if (IsKeyBound(key))
 	{
@@ -134,7 +134,7 @@ void Input::AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey key)
 	m_inputList[input].Add(key);
 }
 
-void Input::AddKeysToInput(const ABSTRACT_INPUT_ENUM input, const cs::List<DXKey>& keys)
+void Input::AddKeysToInput(const InputAction input, const cs::List<DXKey>& keys)
 {
 	for (const DXKey& key : keys)
 	{
@@ -142,7 +142,7 @@ void Input::AddKeysToInput(const ABSTRACT_INPUT_ENUM input, const cs::List<DXKey
 	}
 }
 
-bool Input::IsInputDown(ABSTRACT_INPUT_ENUM input) const
+bool Input::IsInputDown(InputAction input) const
 {
 	bool resultBool = false;
 	const auto& keyList = m_inputList[input];

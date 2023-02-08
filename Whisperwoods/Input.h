@@ -11,16 +11,17 @@ typedef dx::Mouse::State MouseState;
 typedef dx::Keyboard::Keys DXKey;
 // TODO: Add DXKey equivalent for mouse so abstract input can be used for mouse as well.
 
-enum ABSTRACT_INPUT_ENUM {
+enum InputAction {
 
-	FORWARD = 0,
-	BACKWARD,
-	LEFT,
-	RIGHT,
-	SPRINT,
-	CROUCH,
-	POWER,
-	INPUT_COUNT // This has to always be at the end of the enum.
+	InputActionForward = 0,
+	InputActionBackward,
+	InputActionLeft,
+	InputActionRight,
+	InputActionSprint,
+	InputActionCrouch,
+	InputActionPower,
+
+	InputActionCount // This has to always be at the end of the enum.
 };
 
 class Input sealed
@@ -45,8 +46,9 @@ public:
 	MouseState GetMouseState() const;
 	MouseState GetLastMouseState() const;
 
-	void AddKeyToInput(const ABSTRACT_INPUT_ENUM input, const DXKey key);
-	void AddKeysToInput(const ABSTRACT_INPUT_ENUM input, const cs::List<DXKey>& keys);
+	void AddKeyToInput(const InputAction input, const DXKey key);
+	void AddKeysToInput(const InputAction input, const cs::List<DXKey>& keys);
+	
 	/* 
 		TODO: 
 		Add so that variable number of input Enums can be passed to check if all are pressed.
@@ -56,7 +58,7 @@ public:
 		This can also be achieved (but probably shouldnt except given a good reason) 
 		with bit masks if Enums are set to powers of two.
 	*/
-	bool IsInputDown(ABSTRACT_INPUT_ENUM input) const;
+	bool IsInputDown(InputAction input) const;
 
 private:
 
