@@ -17,6 +17,8 @@ Renderer::Renderer(HINSTANCE instance)
 	s_singleton = this;
 
 	m_instance = instance;
+
+
 }
 
 Renderer::~Renderer()
@@ -32,7 +34,7 @@ void Renderer::Init(uint width, uint height)
 	m_renderHandler->InitCore(m_window);
 
 	m_gui = make_unique<GUI>(m_renderHandler->GetCore(), true, true);
-
+	
 	m_window->Show(true);
 }
 
@@ -65,6 +67,13 @@ shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpat
 {
 	return s_singleton->m_renderHandler->CreateMeshStatic(subpath);
 }
+
+shared_ptr<TextRenderable> Renderer::CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font)
+{
+	return s_singleton->m_renderHandler->CreateTextRenderable(text, fontPos, font);
+}
+
+
 
 Camera& Renderer::GetCamera()
 {

@@ -4,7 +4,7 @@
 #include "Window.h"
 #include "RenderCore.h"
 #include "MeshRenderable.h"
-
+#include "TextRenderable.h"
 class GUI;
 
 class Renderer sealed
@@ -22,6 +22,8 @@ public:
 	void Present();
 
 	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
+	static shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font);
+
 	static Camera& GetCamera();
 	static Window& GetWindow();
 	//static Renderer& Get();
@@ -34,5 +36,6 @@ private:
 	shared_ptr<Window> m_window;
 	unique_ptr<RenderHandler> m_renderHandler;
 	unique_ptr<GUI> m_gui;
+
 };
 

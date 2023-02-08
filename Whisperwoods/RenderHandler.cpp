@@ -9,7 +9,8 @@ RenderHandler::RenderHandler()
 }
 
 RenderHandler::~RenderHandler()
-{}
+{
+}
 
 void RenderHandler::InitCore(shared_ptr<Window> window)
 {
@@ -30,6 +31,12 @@ void RenderHandler::Draw()
 {
 	m_renderCore->NewFrame();
     m_renderCore->UpdateViewInfo(m_mainCamera);
+	
+	
+	for (int i = 0; i < m_texts.Size(); i++)
+	{
+		m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont());
+	}
 
     for (int i = 0; i < m_worldRenderables.Size(); i++)
     {
@@ -56,6 +63,7 @@ Camera& RenderHandler::GetCamera()
 	return m_mainCamera;
 }
 
+
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
 {
 	Resources& resources = Resources::Get();
@@ -70,5 +78,12 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 	
 	m_worldRenderables.Add((shared_ptr<WorldRenderable>)newRenderable);
 
+	return newRenderable;
+}
+
+shared_ptr<TextRenderable> RenderHandler::CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font)
+{
+	shared_ptr<TextRenderable> newRenderable = make_shared<TextRenderable>(text, fontPos, font);
+	m_texts.Add(newRenderable);
 	return newRenderable;
 }

@@ -6,6 +6,8 @@
 #include "AudioSource.h"
 #include "FBXImporter.h"
 
+#include "TextRenderable.h"
+
 void TestPlay(void*, void*)
 {
 	// Audio test startup
@@ -60,6 +62,13 @@ void Whisperwoods::Run()
 
 	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Characters/ShadiiTest.fbx");
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0);
+	
+	dx::SimpleMath::Vector2 posTest;
+	posTest.x = 100;
+	posTest.y = 70;
+	const wchar_t* inputText = L"kurwa";
+	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault);
+
 
 	int frames = 0;
 	cs::Timer deltaTimer;

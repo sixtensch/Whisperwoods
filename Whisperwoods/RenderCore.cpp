@@ -168,6 +168,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
     InitPipelines();
     InitConstantBuffers();
+    InitFont(m_fonts, &m_spriteBatch);
 
     m_pipelineCurrent = -1;
 }
@@ -298,10 +299,36 @@ void RenderCore::DrawIndexed(uint indexCount, uint start, uint base)
     EXC_COMINFO(m_context->DrawIndexed(indexCount, start, base));
 }
 
+void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font)
+{
+    m_spriteBatch->Begin();
+    dx::SimpleMath::Vector2 origin = m_fonts[font]->MeasureString(m_text);
+    origin = origin / 2.0f;
+
+    m_fonts[font]->DrawString(m_spriteBatch.get(), m_text,
+        fontPos + dx::SimpleMath::Vector2(1.f, 1.f), dx::Colors::Black, 0.f, origin);
+    m_fonts[font]->DrawString(m_spriteBatch.get(), m_text,
+        fontPos + dx::SimpleMath::Vector2(-1.f, 1.f), dx::Colors::Black, 0.f, origin);
+
+    m_fonts[font]->DrawString(m_spriteBatch.get(), m_text,
+        fontPos, dx::Colors::White, 0.f, origin);
+
+    m_spriteBatch->End();
+}
+
 void RenderCore::InitImGui() const
 {
     ImGui_ImplWin32_Init(m_window->Data());
     ImGui_ImplDX11_Init(m_device.Get(), m_context.Get());
+}
+
+void RenderCore::InitFont(std::unique_ptr<dx::SpriteFont> font[FontCount], std::unique_ptr<dx::SpriteBatch>* batch) const
+{
+    //Push back each font
+    font[FontDefault] = std::make_unique<dx::SpriteFont>(m_device.Get(), L"myfileb.spritefont");
+  
+    // Create spriteBatch;
+    *batch = std::make_unique<dx::SpriteBatch>(m_context.Get());
 }
 
 void RenderCore::BindPipeline(PipelineType pipeline)
