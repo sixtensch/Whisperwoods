@@ -51,8 +51,7 @@ void Resources::InitMapList()
 
 const BasicResource* Resources::GetResource(const RESOURCE_TYPES resourceType, const std::string subPath) const
 {
-	// Implicit cast to const ptr.
-	return GetWritableResource(resourceType, subPath);
+	return (const BasicResource*)GetWritableResource(resourceType, subPath);
 }
 
 BasicResource* Resources::GetWritableResource(const RESOURCE_TYPES resourceType, std::string subPath) const
