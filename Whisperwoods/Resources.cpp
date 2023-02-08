@@ -83,6 +83,10 @@ void Resources::InitMapList()
 
 void Resources::LoadAssetDirectory(RenderCore* const renderCore)
 {
+	// Should always be called first.
+	// Ideally this should be in constructor but cant as loading depends on proper inits of other singletons and such.
+	LoadDefaultResources();
+
 	LoadBaseResources(renderCore);
 
 	LoadCompositeResources();
@@ -171,6 +175,12 @@ cs::List<fs::path> Resources::CollectFilePaths(const std::string& assetDirPath)
 	return filePaths;
 }
 
+void Resources::LoadDefaultResources()
+{
+
+
+}
+
 void Resources::LoadBaseResources(RenderCore* const renderCore)
 {
 	LoadTextures(renderCore);
@@ -234,7 +244,10 @@ void Resources::LoadModelStaticResources()
 		std::string filePath = path.string();
 		ModelStaticResource* modelStaticResource = (ModelStaticResource*)AllocateResource(ResourceTypeModelStatic, filePath, path.filename().string());
 	
-		FBXImporter::LoadWWMStatic(filePath, modelStaticResource);
+		if (!FBXImporter::LoadWWMStatic(filePath, modelStaticResource))
+		{
+			EXC("Failed to load static resource '%s'.", filePath.c_str());
+		}
 	}
 }
 
@@ -247,7 +260,10 @@ void Resources::LoadModelRiggedResources()
 		std::string filePath = path.string();
 		ModelRiggedResource* modelRiggedResource = (ModelRiggedResource*)AllocateResource(ResourceTypeModelRigged, filePath, path.filename().string());
 
-		FBXImporter::LoadWWMRigged(filePath, modelRiggedResource);
+		if (!FBXImporter::LoadWWMRigged(filePath, modelRiggedResource))
+		{
+			EXC("Failed to load rigged resource '%s'.", filePath.c_str());
+		}
 	}
 }
 

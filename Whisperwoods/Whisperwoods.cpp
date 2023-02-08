@@ -6,6 +6,9 @@
 #include "AudioSource.h"
 #include "FBXImporter.h"
 
+// TODO: Dudd include. Only used for getting test sound.
+#include "SoundResource.h"
+
 void TestPlay(void*, void*)
 {
 	// Audio test startup
@@ -37,7 +40,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 
 	// TODO: Change to some init place.
-	m_resources->LoadAssetDirectory();
+	m_resources->LoadAssetDirectory(nullptr);
 }
 
 Whisperwoods::~Whisperwoods()
@@ -49,7 +52,8 @@ void Whisperwoods::Run()
 	// Main frame loop
 
 	// Audio test startup
-	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, "Assets/Duck.mp3");
+	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Assets/Sounds/Duck - Copy.mp3"))->currentSound;
+	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, soundPtr);
 	testSource.Play();
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
