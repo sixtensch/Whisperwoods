@@ -15,8 +15,8 @@ struct VSOutput
     float4 outPosition  : SV_POSITION;
     float4 wsPosition   : WSPOSITION0;
     float3 outNormal    : NORMAL0;
-    float3 outTangent      : TANGENT0;
-    float3 outBitangent    : BITANGENT0;
+    float3 outTangent   : TANGENT0;
+    float3 outBitangent : BITANGENT0;
     float2 outUV        : TEXCOORD0;
 };
 

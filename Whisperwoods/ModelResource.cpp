@@ -44,7 +44,7 @@ void ModelStaticResource::CreateVertexBuffer(ID3D11Device* device)
 	{
 		LOG_ERROR("failed to create static model vertexBuffer");
 	}
-
+	
 	CreateIndexBuffer(device);
 }
 
