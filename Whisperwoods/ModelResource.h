@@ -45,11 +45,8 @@ struct ModelResource : public BasicResource
 	ComPtr<ID3D11Buffer> vertexBuffer;
 	ComPtr<ID3D11Buffer> indexBuffer;
 
-protected:
-	// Index buffer function (is called by CreateVertexBuffer)
-	void CreateIndexBuffer(ID3D11Device* device);
-public:
 
+public:
 	// Constructors.
 	ModelResource() = default;
 	ModelResource(std::string name) : BasicResource(name)
@@ -61,15 +58,14 @@ public:
 		startIndicies(p_startIndicies),
 		indexCounts(p_indexCounts),
 		materialIndicies(p_materialIndicies) {};
+
+	virtual UINT GetVertexByteWidth() const = 0;
 };
 
 struct ModelStaticResource : public ModelResource
 {
 	// Textured verticies, that do not contain rigging data.
 	cs::List<VertexTextured> verticies;
-
-	// Vertex buffer function (unrigged (only textured) verticies)
-	void CreateVertexBuffer(ID3D11Device* device);
 
 	// Constructor.
 	ModelStaticResource() = default;
@@ -78,6 +74,7 @@ struct ModelStaticResource : public ModelResource
 		ModelResource(p_indicies, p_startIndicies,  p_indexCounts, p_materialIndicies),
 		verticies(p_verticies) {};
 
+	UINT GetVertexByteWidth() const override final;
 };
 
 
@@ -90,9 +87,6 @@ struct ModelRiggedResource : public ModelResource
 	Armature armature;
 	//cs::List<VertexGroup> vertexGroups;
 
-	// Vertex buffer function (rigged (and textured) verticies)
-	void CreateVertexBuffer(ID3D11Device* device);
-
 	// Constructor.
 	ModelRiggedResource() = default;
 	ModelRiggedResource(std::string name) : ModelResource(name) {}
@@ -100,4 +94,5 @@ struct ModelRiggedResource : public ModelResource
 		ModelResource(p_indicies, p_startIndicies, p_indexCounts, p_materialIndicies),
 		verticies(p_verticies) {};
 
+	UINT GetVertexByteWidth() const override final;
 };
