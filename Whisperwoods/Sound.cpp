@@ -24,7 +24,7 @@ Sound::Sound()
 {
 	if (s_singleton != nullptr)
 	{
-		throw "Sound singleton re-initialization.";	// TODO: Proper exceptions
+		EXC("Sound singleton re-initialization.");
 	}
 	s_singleton = this; 
 
@@ -45,7 +45,7 @@ Sound& Sound::Get()
 #ifdef WW_DEBUG
 	if (s_singleton == nullptr)
 	{
-		throw "Sound singleton not found.";	// TODO: Proper exceptions
+		EXC("Sound singleton not found (is nullptr).");
 	}
 #endif
 

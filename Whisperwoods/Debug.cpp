@@ -68,7 +68,7 @@ Debug::Debug()
 {
 	if (s_debug != nullptr)
 	{
-		throw "Debug singleton re-initialization.";	// TODO: Proper exceptions
+		EXC("Debug singleton re-initialization.");
 	}
 
 	s_debug = this;
@@ -301,7 +301,7 @@ Debug& Debug::Get()
 #ifdef WW_DEBUG
 	if (s_debug == nullptr)
 	{
-		throw "Debug singleton not found.";	// TODO: Proper exceptions
+		EXC("Debug singleton not found (is nullptr).");
 	}
 #endif
 

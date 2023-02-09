@@ -9,7 +9,7 @@ Config::Config()
 {
 	if (s_singleton != nullptr)
 	{
-		throw "Config singleton re-initialization.";	// TODO: Proper exceptions
+		EXC("Config singleton re-initialization.");
 	}
 
 	s_singleton = this;
@@ -25,7 +25,7 @@ Config& Config::Get()
 #ifdef WW_DEBUG
 	if (s_singleton == nullptr)
 	{
-		throw "Config singleton not found.";	// TODO: Proper exceptions
+		EXC("Config singleton not found (is nullptr).");
 	}
 #endif
 

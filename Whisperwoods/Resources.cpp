@@ -26,7 +26,7 @@ Resources::Resources()
 {
 	if (s_singleton != nullptr)
 	{
-		throw "Resources singleton re-initialization.";	// TODO: Proper exceptions
+		EXC("Resources singleton re-initialization.");
 	}
 
 	s_singleton = this;
@@ -44,7 +44,7 @@ Resources& Resources::Get()
 #ifdef WW_DEBUG
 	if (s_singleton == nullptr)
 	{
-		throw "Resources singleton not found.";	// TODO: Proper exceptions
+		EXC("Resources singleton not found (is nullptr).");
 	}
 #endif
 

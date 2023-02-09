@@ -11,7 +11,7 @@ Renderer::Renderer(HINSTANCE instance)
 {
 	if (s_singleton != nullptr)
 	{
-		throw "Renderer singleton re-initialization.";	// TODO: Proper exceptions
+		EXC("Renderer singleton re-initialization.");
 	}
 
 	s_singleton = this;
@@ -111,7 +111,7 @@ const RenderCore* Renderer::GetRenderCore()
 //#ifdef WW_Renderer
 //	if (s_singleton == nullptr)
 //	{
-//		throw "Renderer singleton not found.";	// TODO: Proper exceptions
+//		EXC("Renderer singleton not found (is nullptr).");
 //	}
 //#endif
 //
