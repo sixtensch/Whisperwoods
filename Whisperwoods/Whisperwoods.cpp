@@ -66,8 +66,9 @@ void Whisperwoods::Run()
 	dx::SimpleMath::Vector2 posTest;
 	posTest.x = 100;
 	posTest.y = 70;
-	const wchar_t* inputText = L"kurwa";
-	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault);
+	const wchar_t* inputText = L"Shadii";
+	cs::Color4f color(0.034f, 0.255f, 0.0f, 1.0f);
+	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color);
 
 
 	int frames = 0;

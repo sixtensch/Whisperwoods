@@ -27,7 +27,7 @@ public:
 
 
 	shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
-	shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font);
+	shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color);
 
 
 private:

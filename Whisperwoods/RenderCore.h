@@ -32,7 +32,7 @@ public:
 	void SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format = DXGI_FORMAT_R32_UINT);
 	void DrawIndexed(uint indexCount, uint start, uint base);
 
-	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font);
+	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color);
 
 	void InitImGui() const;
 

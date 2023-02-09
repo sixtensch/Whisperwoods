@@ -68,9 +68,9 @@ shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpat
 	return s_singleton->m_renderHandler->CreateMeshStatic(subpath);
 }
 
-shared_ptr<TextRenderable> Renderer::CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font)
+shared_ptr<TextRenderable> Renderer::CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color)
 {
-	return s_singleton->m_renderHandler->CreateTextRenderable(text, fontPos, font);
+	return s_singleton->m_renderHandler->CreateTextRenderable(text, fontPos, font, color);
 }
 
 

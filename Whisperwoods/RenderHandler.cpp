@@ -35,7 +35,7 @@ void RenderHandler::Draw()
 	
 	for (int i = 0; i < m_texts.Size(); i++)
 	{
-		m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont());
+		m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont(), m_texts[i].get()->GetColor());
 	}
 
     for (int i = 0; i < m_worldRenderables.Size(); i++)
@@ -81,9 +81,9 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 	return newRenderable;
 }
 
-shared_ptr<TextRenderable> RenderHandler::CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font)
+shared_ptr<TextRenderable> RenderHandler::CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color)
 {
-	shared_ptr<TextRenderable> newRenderable = make_shared<TextRenderable>(text, fontPos, font);
+	shared_ptr<TextRenderable> newRenderable = make_shared<TextRenderable>(text, fontPos, font, color);
 	m_texts.Add(newRenderable);
 	return newRenderable;
 }

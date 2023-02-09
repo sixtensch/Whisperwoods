@@ -209,15 +209,15 @@ private:
 	bool m_showCommandLine;
 
 	// -----------------------------  fps stuff
-	float dTimeAverage16;
-	float dTimeAverage256;
-	float fpsAverage16;
-	float fpsAverage256;
+	float m_dTimeAverage16;
+	float m_dTimeAverage256;
+	float m_fpsAverage16;
+	float m_fpsAverage256;
 
-	float dTimeAccumulator16;
-	float dTimeAccumulator256;
-	cs::Queue<float> dTimeQueue16;
-	cs::Queue<float> dTimeQueue256;
+	float m_dTimeAccumulator16;
+	float m_dTimeAccumulator256;
+	cs::Queue<float> m_dTimeQueue16;
+	cs::Queue<float> m_dTimeQueue256;
 	//-------------------------------
 
 	ComPtr<ID3D11Device> m_deviceRef;
