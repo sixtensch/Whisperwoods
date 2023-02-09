@@ -29,7 +29,7 @@ void Transform::DecomposeWorldMatrixIntoWorldParameters()
 
 Transform::Transform()
 {
-	rotation = Quaternion::GetAxis({ 0,1,0 }, DirectX::XM_PI);
+	rotation = Quaternion::GetIdentity();
 	scale = Vec3(1, 1, 1); // scale 0 as basis isn't great.
 	parent = nullptr;
 }
