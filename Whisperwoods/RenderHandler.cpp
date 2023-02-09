@@ -18,13 +18,6 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	m_mainCamera.Update();
 
 	m_renderCore = make_unique<RenderCore>(window);
-
-	Resources& resources = Resources::Get();
-
-	// TODO: Dudd code. Change to proper usage of get resource. Should not be using writeable.
-	ModelStaticResource* temp = static_cast<ModelStaticResource*>(resources.GetWritableResource(ResourceTypeModelStatic, "WWM/ShadiiTest.wwm"));
-	m_renderCore->CreateVertexBuffer(temp->verticies.Data(), temp->GetVertexByteWidth(), temp->vertexBuffer.GetAddressOf());
-	m_renderCore->CreateIndexBuffer(temp->indicies.Data(), sizeof(int) * temp->indicies.Size(), temp->indexBuffer.GetAddressOf());
 }
 
 void RenderHandler::Draw()
