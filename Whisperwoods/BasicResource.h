@@ -23,6 +23,6 @@ struct BasicResource {
 		: name(name) {};
 
 	// Name is not for any functional reason. Only for identification in debugging.
-	const std::string name;
+	std::string name;
 };
 
