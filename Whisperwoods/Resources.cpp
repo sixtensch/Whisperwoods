@@ -16,7 +16,7 @@
 #define SOUND_PATH "Assets/Sounds/"
 #define MATERIAL_PATH "Assets/Materials/"
 #define MAP_PATH "Assets/Maps/"
-#define STATIC_MODEL_PATH "Assets/Models/Statics/"
+#define STATIC_MODEL_PATH "Assets/Models/Static/"
 #define RIGGED_MODEL_PATH "Assets/Models/Rigged/"
 
 Resources* Resources::s_singleton = nullptr;

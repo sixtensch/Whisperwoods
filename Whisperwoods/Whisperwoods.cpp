@@ -73,8 +73,8 @@ void Whisperwoods::Run()
 	//ModelRiggedResource riggedTestModelRead;
 	//importer.LoadWWMRigged(path2, &riggedTestModelRead);
 
-	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Shadii_Animated.wwm");
-	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
+	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Assets/Models/Rigged/Shadii_Animated.wwm");
+	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("Assets/Models/Static/ShadiiTest.wwm");
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
@@ -100,6 +100,7 @@ void Whisperwoods::Run()
 		m_sound->Update();
 		rotationY += 2 * dTime;
 		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 5) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
 
 		m_renderer->Draw();
 		m_renderer->BeginGui();
