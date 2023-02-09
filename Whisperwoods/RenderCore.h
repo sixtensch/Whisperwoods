@@ -5,6 +5,7 @@
 #include "ConstantbufferData.h"
 #include "Pipeline.h"
 #include "Renderable.h"
+#include "Light.h"
 
 class RenderCore
 {
@@ -13,6 +14,8 @@ public:
 	~RenderCore();
 
 	void NewFrame();
+	void TargetShadowMap(Light* light);
+	void TargetBackBuffer();
 	void EndFrame();
 
 
@@ -22,19 +25,25 @@ public:
 
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
-	void DrawObject(const Renderable* renderable);
+	void DrawObject(const Renderable* renderable, bool shadowing);
 
 	void SetVertexBuffer(ComPtr<ID3D11Buffer> buffer, uint stride, uint offset);
 	void SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format = DXGI_FORMAT_R32_UINT);
 	void DrawIndexed(uint indexCount, uint start, uint base);
 
+	void WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
+		const DirectionalLight& lightDirectional,
+		const cs::List<PointLight>& lightsPoint,
+		const cs::List<SpotLight>& lightsSpot);
+
 	void InitImGui() const;
 
 private:
-	void BindPipeline(PipelineType pipeline);
+	void BindPipeline(PipelineType pipeline, bool shadowing);
 
 	void InitPipelines();
 	void InitConstantBuffers();
+	void InitLightBuffers();
 
 private:
 	shared_ptr<Window> m_window;
@@ -60,7 +69,14 @@ private:
 	// Pipelines
 	Pipeline m_pipelines[PipelineTypeCount];
 	int m_pipelineCurrent;
+	bool m_shadowPSBound;
 
 	// Constant buffers
 	ConstantBuffers m_constantBuffers;
+
+	// Light structured buffers
+	ComPtr<ID3D11Buffer> m_lightBufferPoint;
+	ComPtr<ID3D11Buffer> m_lightBufferSpot;
+	ComPtr<ID3D11Buffer> m_lightBufferDir;
+	ComPtr<ID3D11Buffer> m_lightBufferStaging;
 };

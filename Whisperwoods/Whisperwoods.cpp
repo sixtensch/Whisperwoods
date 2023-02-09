@@ -81,6 +81,8 @@ void Whisperwoods::Run()
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 
 
+	//Quaternion rotation = Quaternion::GetAxis({ 0, 1.0f, 0 }, 1.0f);
+
 	int frames = 0;
 	cs::Timer deltaTimer;
 
@@ -93,7 +95,12 @@ void Whisperwoods::Run()
 		float dTime = deltaTimer.Lap();
 		m_debug->CalculateFps(dTime);
 
+		static float dTimeAcc = 0.0f;
+		dTimeAcc += dTime;
+
 		Move(dTime);
+
+		//mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0) * (rotation.Matrix() * dTimeAcc);
 
 		m_game->Update();
 		m_sound->Update();

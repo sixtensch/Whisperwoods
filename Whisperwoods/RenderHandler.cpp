@@ -13,7 +13,16 @@ RenderHandler::~RenderHandler()
 
 void RenderHandler::InitCore(shared_ptr<Window> window)
 {
-	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(),0.01f, 100.0f );
+	m_lightAmbient = cs::Color3f(0xFFFFFF);
+	m_lightAmbientIntensity = 0.5f;
+
+	m_lightDirectional.transform.position = { 0, 10, 0 };
+	m_lightDirectional.transform.SetRotationEuler({ 0.5f, 0.9f, 0.0f });
+	m_lightDirectional.diameter = 20.0f;
+	m_lightDirectional.intensity = 1.0f;
+	m_lightDirectional.color = cs::Color3f(0xFFFFB0);
+
+	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 100.0f );
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_mainCamera.Update();
 
@@ -35,12 +44,20 @@ void RenderHandler::Draw()
 	m_renderCore->NewFrame();
     m_renderCore->UpdateViewInfo(m_mainCamera);
 
+
+
+	// Main scene rendering
+
+	m_lightDirectional.Update();
+	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
+	m_renderCore->TargetBackBuffer();
+
     for (int i = 0; i < m_worldRenderables.Size(); i++)
     {
         if (m_worldRenderables[i]->enabled)
         {
             m_renderCore->UpdateObjectInfo(m_worldRenderables[i].get());
-			m_renderCore->DrawObject(m_worldRenderables[i].get());
+			m_renderCore->DrawObject(m_worldRenderables[i].get(), false);
         }
     }
 }
