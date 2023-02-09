@@ -25,11 +25,19 @@ public:
 
 	shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 
+	shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
+
 private:
 	unique_ptr<RenderCore> m_renderCore;
 
 	uint m_renderableIDCounter;
 	cs::List<shared_ptr<WorldRenderable>> m_worldRenderables;
+
+	cs::Color3f m_lightAmbient;
+	float m_lightAmbientIntensity;
+	DirectionalLight m_lightDirectional;
+	cs::List<PointLight> m_lightsPoint;
+	cs::List<SpotLight> m_lightsSpot;
 
 	Camera m_mainCamera;
 };

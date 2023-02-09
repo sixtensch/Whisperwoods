@@ -8,7 +8,9 @@ struct VSInput
     float3 tangent      : TANGENT0;
     float3 bitangent    : BITANGENT0;
     float4 UV           : TEXCOORD0;
-}; 
+    int4   Bones        : BONES0;
+    float4 Weights      : WEIGHTS0;
+};
 
 struct VSOutput
 {
@@ -21,13 +23,13 @@ struct VSOutput
     float2 outUV        : TEXCOORD0;
 };
 
-cbuffer ViewInfo : REGISTER_CBV_VIEW_INFO
+cbuffer VSViewInfo : REGISTER_CBV_VIEW_INFO
 {
     matrix ViewMatrix;
     matrix ProjectionMatrix;
 };
 
-cbuffer ObjectInfo : REGISTER_CBV_OBJECT_INFO
+cbuffer VSObjectInfo : REGISTER_CBV_OBJECT_INFO
 {
     matrix WorldMatrix;
 };
@@ -48,7 +50,7 @@ VSOutput main(VSInput input)
 
     output.outBitangent = mul(input.bitangent, (float3x3)WorldMatrix);
     //output.outBitangent = normalize(output.outBitangent);
-    
+
     output.outUV = input.UV;
-	return output;
+    return output;
 }

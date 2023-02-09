@@ -56,22 +56,21 @@ void Whisperwoods::Run()
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
 	//FBXImporter importer;
-
 	//ModelRiggedResource riggedModel;
-	//AnimationResource animationResource;
-
 	//importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &riggedModel );
+	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
+	//AnimationResource animationResource;
 	//importer.ImportFBXAnimations( "Assets/Shadii_Animated.fbx", &animationResource );
 
 	//// Read write test.
 	//ModelStaticResource staticTestModelWrite;
 	//importer.ImportFBXStatic( "Assets/Models/Characters/ShadiiTest.fbx", &staticTestModelWrite);
 
-	//std::string path = importer.SaveWMM(&staticTestModelWrite);
+	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
 	//ModelStaticResource staticTestModelRead;
 	//importer.LoadWWMStatic(path, &staticTestModelRead);
 
-	//std::string path2 = importer.SaveWMM(&riggedModel);
+	//std::string path2 = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
 	//ModelRiggedResource riggedTestModelRead;
 	//importer.LoadWWMRigged(path2, &riggedTestModelRead);
 
@@ -95,13 +94,15 @@ void Whisperwoods::Run()
 		float dTime = deltaTimer.Lap();
 		m_debug->CalculateFps(dTime);
 
+		static float dTimeAcc = 0.0f;
+		dTimeAcc += dTime;
+
 		Move(dTime);
 
 		m_game->Update();
 		m_sound->Update();
-		// TODO: Test code remove later.
-		//rotationY += 2 * dTime;
-		//mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+		rotationY += 2 * dTime;
+		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 
 		m_renderer->Draw();
 		m_renderer->BeginGui();
