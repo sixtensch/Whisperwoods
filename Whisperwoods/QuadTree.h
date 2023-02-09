@@ -167,7 +167,8 @@ inline std::vector<const T>& QuadTree<T>::CullTree(const dx::BoundingFrustum& fr
 }
 /// <summary>
 /// Searches the spatialtree with the use of the frustum.
-/// This uses the index functionality
+/// This uses the index functionality,
+/// <para>It is assumed that the indexes are valid and are not out of bounds</para>
 /// </summary>
 template<typename T>
 inline void QuadTree<T>::CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects) const
