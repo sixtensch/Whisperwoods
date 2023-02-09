@@ -76,6 +76,11 @@ Window& Renderer::GetWindow()
 	return *(s_singleton->m_window.get());
 }
 
+const RenderCore* Renderer::GetRenderCore()
+{
+	return m_renderHandler->GetCore();
+}
+
 //
 //Renderer& Renderer::Get()
 //{
