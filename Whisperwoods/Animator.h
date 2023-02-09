@@ -23,8 +23,18 @@ struct AnimatorCombinedChannel // Datastore for all interpolated values affectin
 	Vec3 collectivePos; // collective pos
 	Quaternion collectiveRot; // collective rot
 	Vec3 collectiveScl; // collective scale
-	AnimatorCombinedChannel() = default;
-	AnimatorCombinedChannel( std::string name ) : name( name ) {};
+	AnimatorCombinedChannel() 
+	{
+		collectivePos = Vec3();
+		collectiveRot = Quaternion::GetIdentity();
+		collectiveScl = Vec3();
+	};
+	AnimatorCombinedChannel( std::string name ) : name( name ) 
+	{
+		collectivePos = Vec3();
+		collectiveRot = Quaternion::GetIdentity();
+		collectiveScl = Vec3();
+	};
 };
 
 
@@ -104,9 +114,9 @@ public:
 		}
 	}
 
-	void AddAnimation(Animation* sourceAnimation)
+	void AddAnimation(Animation* sourceAnimation,float startTime, float speed, float influence)
 	{
-		AnimatorAnimation newAnimation(0, 1, 1, sourceAnimation, modelReference);
+		AnimatorAnimation newAnimation(startTime, speed, influence, sourceAnimation, modelReference);
 		loadedAnimations.Add(newAnimation);
 	}
 
@@ -115,20 +125,44 @@ public:
 		return a * (1.0f - t) + b * t;
 	}
 
-	Quaternion Lerp(Quaternion a, Quaternion b, float t)
+	float Lerp( float a, float b, float t )
 	{
 		return a * (1.0f - t) + b * t;
 	}
+	
+	Quaternion Lerp(Quaternion q0, Quaternion q1, float t)
+	{
+		DirectX::XMVECTOR Q0 = DirectX::XMVectorSet( (float)q0.x, (float)q0.y, (float)q0.z, (float)q0.w );
+		DirectX::XMVECTOR Q1 = DirectX::XMVectorSet( (float)q1.x, (float)q1.y, (float)q1.z, (float)q1.w );
+		DirectX::XMVECTOR OUTPUT = DirectX::XMQuaternionSlerp( Q0, Q1, t );
+		DirectX::XMFLOAT4 FL4;
+		DirectX::XMStoreFloat4( &FL4, OUTPUT );
+		return Quaternion( FL4.x, FL4.y, FL4.z, FL4.w );
+	}
 
 
+
+	
 	// Per frame interpolation of all different animations that might be loaded. TODO: USE BIND POSE AS BASE
 	void CombineAnimations()
 	{
-		for (unsigned int i = 0; i < loadedAnimations.Size(); i++)
+		if (!loadedAnimations.Size()) return;
+
+		// For first animation weight is always 1
+		for (unsigned int j = 0; j < loadedAnimations[0].animationChannels.Size(); j++)
+		{
+			int index = loadedAnimations[0].animationChannels[j].boneIndex;
+			if (index == -1) continue;
+			// Lerp from one to the other
+			combinedChannels[index].collectivePos = loadedAnimations[0].animationChannels[j].iPos;
+			combinedChannels[index].collectiveRot = loadedAnimations[0].animationChannels[j].iRot;
+			combinedChannels[index].collectiveScl = loadedAnimations[0].animationChannels[j].iScl;
+		}
+
+		for (unsigned int i = 1; i < loadedAnimations.Size(); i++)
 		{
 			for (unsigned int j = 0; j < loadedAnimations[i].animationChannels.Size(); j++)
-			{
-				
+			{			
 				int index = loadedAnimations[i].animationChannels[j].boneIndex;
 				if (index == -1) continue;
 				// Lerp from one to the other
@@ -136,9 +170,10 @@ public:
 					Lerp( combinedChannels[index].collectivePos, loadedAnimations[i].animationChannels[j].iPos,
 						loadedAnimations[i].influence );
 
-				combinedChannels[index].collectiveRot = 
-					Lerp(combinedChannels[index].collectiveRot, loadedAnimations[i].animationChannels[j].iRot,
-						loadedAnimations[i].influence );
+				combinedChannels[index].collectiveRot = Lerp(
+					combinedChannels[index].collectiveRot,
+					loadedAnimations[i].animationChannels[j].iRot,
+					loadedAnimations[i].influence );
 
 				combinedChannels[index].collectiveScl =
 					Lerp( combinedChannels[index].collectiveScl, loadedAnimations[i].animationChannels[j].iScl,

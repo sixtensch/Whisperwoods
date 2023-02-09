@@ -6,7 +6,7 @@
 #include "AudioSource.h"
 #include "FBXImporter.h"
 #include "Animator.h"
-
+#include <imgui.h>
 #include "TextRenderable.h"
 
 // TODO: Dudd include. Only used for getting test sound.
@@ -106,8 +106,11 @@ void Whisperwoods::Run()
 	importer.ImportFBXAnimations("Assets/Models/Shadii_Animations.fbx", resource.get());
 
 	Animation* animation = &resource->animations[2];
-	testAnimator.AddAnimation(animation);
-
+	Animation* animation2 = &resource->animations[4];
+	Animation* animation3 = &resource->animations[5];
+	testAnimator.AddAnimation(animation, 0, 1, 1);
+	testAnimator.AddAnimation(animation2, 0, 1, 0.2f);
+	testAnimator.AddAnimation( animation3, 0, 1, 0.0f );
 
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
@@ -146,6 +149,15 @@ void Whisperwoods::Run()
 
 		m_renderer->Draw();
 		m_renderer->BeginGui();
+
+		if (ImGui::Begin( "Animation" ))
+		{
+			ImGui::SliderFloat( "walk influence", &testAnimator.loadedAnimations[1].influence, 0.0f, 1.0f, "ratio = %.3f");
+			ImGui::SliderFloat( "crouch influence", &testAnimator.loadedAnimations[2].influence, 0.0f, 1.0f, "ratio = %.3f" );
+		}
+		ImGui::End();
+
+
 		m_debug->DrawConsole();
 		m_renderer->EndGui();
 		m_renderer->Present();
