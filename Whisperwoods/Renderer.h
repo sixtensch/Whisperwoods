@@ -1,8 +1,8 @@
 #pragma once
 
 #include "RenderHandler.h"
-#include "Window.h"
 #include "RenderCore.h"
+#include "Window.h"
 #include "MeshRenderable.h"
 
 class GUI;
@@ -23,6 +23,10 @@ public:
 
 	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 	static shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
+
+	static shared_ptr<DirectionalLight> GetDirectionalLight();
+	static bool RegisterLight(shared_ptr<PointLight> pointLight);
+	static bool RegisterLight(shared_ptr<SpotLight> spotLight);
 
 	static Camera& GetCamera();
 	static Window& GetWindow();

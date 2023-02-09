@@ -79,7 +79,11 @@ void Whisperwoods::Run()
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-
+	
+	shared_ptr<PointLight> point = make_shared<PointLight>();
+	point->color = cs::Color3f(0x40FFFF);
+	point->intensity = 5.0f;
+	point->transform.position = Vec3(1, 0, 0);
 
 	//Quaternion rotation = Quaternion::GetAxis({ 0, 1.0f, 0 }, 1.0f);
 

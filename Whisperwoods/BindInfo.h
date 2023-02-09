@@ -91,5 +91,5 @@ enum RegSRV : char
 	RegSRVCubemap = 22,
 	RegSRVShadowDepth = 24, // Array of up to FOX_C_MAX_SHADOWS shadowed lights
 
-	RegSRVCount = 32	// <-- Keep last!
+	RegSRVCount = 24 + LIGHT_CAPACITY_DIR + LIGHT_CAPACITY_SPOT	// <-- Keep last!
 };

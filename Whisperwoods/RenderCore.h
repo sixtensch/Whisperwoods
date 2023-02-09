@@ -32,9 +32,9 @@ public:
 	void DrawIndexed(uint indexCount, uint start, uint base);
 
 	void WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
-		const DirectionalLight& lightDirectional,
-		const cs::List<PointLight>& lightsPoint,
-		const cs::List<SpotLight>& lightsSpot);
+		const shared_ptr<DirectionalLight>& lightDirectional,
+		const cs::List<shared_ptr<PointLight>>& lightsPoint,
+		const cs::List<shared_ptr<SpotLight>>& lightsSpot);
 
 	void InitImGui() const;
 

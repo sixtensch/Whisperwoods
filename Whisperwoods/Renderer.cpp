@@ -71,6 +71,21 @@ shared_ptr<MeshRenderableRigged> Renderer::CreateMeshRigged(const string& subpat
 	return s_singleton->m_renderHandler->CreateMeshRigged(subpath);
 }
 
+shared_ptr<DirectionalLight> Renderer::GetDirectionalLight()
+{
+	return s_singleton->GetDirectionalLight();
+}
+
+bool Renderer::RegisterLight(shared_ptr<PointLight> pointLight)
+{
+	return s_singleton->m_renderHandler->RegisterPointLight(pointLight);
+}
+
+bool Renderer::RegisterLight(shared_ptr<SpotLight> spotLight)
+{
+	return s_singleton->m_renderHandler->RegisterSpotLight(spotLight);
+}
+
 Camera& Renderer::GetCamera()
 {
 	return s_singleton->m_renderHandler->GetCamera();

@@ -587,9 +587,9 @@ void RenderCore::InitLightBuffers()
 }
 
 void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
-    const DirectionalLight& lightDirectional,
-    const cs::List<PointLight>& lightsPoint,
-    const cs::List<SpotLight>& lightsSpot)
+    const shared_ptr<DirectionalLight>& lightDirectional,
+    const cs::List<shared_ptr<PointLight>>& lightsPoint,
+    const cs::List<shared_ptr<SpotLight>>& lightsSpot)
 {
     CB::ShadingInfo si = 
     {
@@ -605,16 +605,16 @@ void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, c
     si.pointCount = cs::imin(LIGHT_CAPACITY_POINT, lightsPoint.Size());
     si.spotCount = cs::imin(LIGHT_CAPACITY_SPOT, lightsSpot.Size());
 
-    si.directional = lightDirectional.bufferData;
+    si.directional = lightDirectional->bufferData;
 
     for (int i = 0; i < si.pointCount; i++)
     {
-        si.points[i] = lightsPoint[i].bufferData;
+        si.points[i] = lightsPoint[i]->bufferData;
     }
 
     for (int i = 0; i < si.spotCount; i++)
     {
-        si.spots[i] = lightsSpot[i].bufferData;
+        si.spots[i] = lightsSpot[i]->bufferData;
     }
 
 
