@@ -86,6 +86,8 @@ void Whisperwoods::Run()
 	posTest.y = 710;
 	const wchar_t* inputText = L"Shadii";
 	cs::Color4f color(0.034f, 0.255f, 0.0f, 1.0f);
+	//These are just test values
+
 	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color, { 1.0f, 1.0f });
 
 	int frames = 0;
