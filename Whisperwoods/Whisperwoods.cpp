@@ -5,6 +5,7 @@
 #include "Input.h"
 #include "AudioSource.h"
 #include "FBXImporter.h"
+#include "Animator.h"
 
 #include "TextRenderable.h"
 
@@ -25,15 +26,17 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
-	//FBXImporter importer;
-	//ModelRiggedResource riggedModel;
-	//importer.ImportFBXRigged("Assets/Shadii_Animated.fbx", &riggedModel);
-	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/Rigged/");
+	FBXImporter importer;
+	ModelRiggedResource riggedModel;
+	importer.ImportFBXRigged("Assets/Shadii_Animated2.fbx", &riggedModel);
+	std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/Rigged/");
+	//importer.ImportFBXRigged("Assets/Shadii_Animations.fbx", &riggedModel);
+	//path = importer.SaveWMM(&riggedModel, "Assets/Models/Rigged/");
 
 	////FBXImporter importer;
-	//ModelStaticResource staticTestModelWrite;
-	//importer.ImportFBXStatic( "Assets/Models/FBX/Static/ShadiiTest.fbx", &staticTestModelWrite);
-	//std::string path2 = importer.SaveWMM(&staticTestModelWrite, "Assets/Models/Static/");
+	ModelStaticResource staticTestModelWrite;
+	importer.ImportFBXStatic( "Assets/Debug_Sphere.fbx", &staticTestModelWrite);
+	std::string path2 = importer.SaveWMM(&staticTestModelWrite, "Assets/Models/Static/");
 
 	m_sound = std::make_unique<Sound>();
 	m_debug->CaptureSound(m_sound.get());
@@ -51,6 +54,8 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	m_resources = std::make_unique<Resources>();
 	m_resources->LoadAssetDirectory(m_renderer->GetRenderCore());
 }
+
+
 
 Whisperwoods::~Whisperwoods()
 {
@@ -75,8 +80,41 @@ void Whisperwoods::Run()
 	//ModelRiggedResource riggedTestModelRead;
 	//importer.LoadWWMRigged(path2, &riggedTestModelRead);
 
-	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Assets/Models/Rigged/Shadii_Animated.wwm");
+	
+
+	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Assets/Models/Rigged/Shadii_Animated2.wwm");
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("Assets/Models/Static/ShadiiTest.wwm");
+
+	shared_ptr<MeshRenderableStatic> meshSphere = Renderer::CreateMeshStatic("Assets/Models/Static/Debug_Sphere.wwm");
+
+
+	Resources resources = Resources::Get();
+	Animator testAnimator((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Assets/Models/Rigged/Shadii_Animated2.wwm"));
+
+
+	ModelRiggedResource* ref = (ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Assets/Models/Rigged/Shadii_Animated2.wwm");
+
+	for (int i = 0; i < ref->armature.bones.Size(); i++)
+	{
+		std::string boneName = ref->armature.bones[i].name;
+		DirectX::XMFLOAT4X4 m = ref->armature.bones[i].inverseBindMatrix;
+		LOG_TRACE("Inverse Bind Matrix For: %s\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n",
+			boneName.c_str(),
+			m._11, m._12, m._13, m._14,
+			m._21, m._22, m._23, m._24,
+			m._31, m._32, m._33, m._34,
+			m._41, m._42, m._43, m._44)
+	}
+
+	//FBXImporter importer;
+	FBXImporter importer;
+	shared_ptr<AnimationResource> resource (new AnimationResource);
+	importer.ImportFBXAnimations("Assets/Models/Shadii_Animations.fbx", resource.get());
+
+	Animation* animation = &resource->animations[2];
+	testAnimator.AddAnimation(animation);
+
+
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
@@ -104,6 +142,8 @@ void Whisperwoods::Run()
 
 		Move(dTime);
 
+		testAnimator.Update(dTime);
+
 		m_game->Update();
 		m_sound->Update();
 		rotationY += 2 * dTime;
@@ -120,9 +160,11 @@ void Whisperwoods::Run()
 	// Audio test 2 shutdown
 	testSource.pitch = 0.75f;
 	testSource.Play();
+	int indexer = 0;
 	while (testSource.IsPlaying())
 	{
 		m_sound->Update();
+		indexer++;
 	}
 }
 

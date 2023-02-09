@@ -10,6 +10,8 @@ struct VSInput
     float4 UV           : TEXCOORD0;
     int4   bones        : BONES0;
     float4 weights      : WEIGHTS0;
+    int4   bones1       : BONESTWO0;
+    float4 weights1     : WEIGHTSTWO0;
 };
 
 struct VSOutput
@@ -51,7 +53,7 @@ VSOutput main(VSInput input)
     //output.outPosition = mul(output.position, ViewMatrix);
     //output.outPosition = mul(output.position, ProjectionMatrix);
 
-    output.wPosition = mul(float4(input.position, 1.0f), WorldMatrix);
+    output.wPosition = mul(float4(sumPos, 1.0f), WorldMatrix);
     output.wsPosition = mul(output.wPosition, ViewMatrix);
     output.outPosition = mul(output.wsPosition, ProjectionMatrix);
 

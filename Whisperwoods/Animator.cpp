@@ -1,7 +1,6 @@
 #include "Core.h"
 #include "Animator.h"
 
-
 Vec3 AnimatorAnimation::GetInterpolatedValue( cs::List<Vec3KeyFrame> keys, float time, float duration )
 {
 	//int index = (int)((float)t * (float)keys.size());
@@ -15,23 +14,30 @@ Vec3 AnimatorAnimation::GetInterpolatedValue( cs::List<Vec3KeyFrame> keys, float
 		index = i;
 	}
 
-	// if the chosen key is ahead of the real time
-	if ((keys[index].time / duration) > time)
+	if (keys.Size() <= 2)
 	{
-		// interpolate with the previous key
-		int pIndex = ((index - 1) % keys.Size());
-		float fT = ((duration * time) - keys[pIndex].time) / (keys[index].time - keys[pIndex].time);
-		return Lerp( keys[pIndex].value, keys[index].value, fT ); // TODO: Replace with CHSL, when I figure out where it is
-	}
-	else if ((keys[index].time / duration) < time)
-	{
-		int nIndex = ((index + 1) % keys.Size());
-		float fT = ((duration * time) - keys[index].time) / (keys[nIndex].time - keys[index].time);
-		return Lerp( keys[index].value, keys[nIndex].value, fT ); // TODO: ditto
+		return keys[0].value;
 	}
 	else
 	{
-		return keys[index].value;
+		// if the chosen key is ahead of the real time
+		if ((keys[index].time / duration) > time)
+		{
+			// interpolate with the previous key
+			int pIndex = ((index - 1) % keys.Size());
+			float fT = ((duration * time) - keys[pIndex].time) / (keys[index].time - keys[pIndex].time);
+			return Lerp(keys[pIndex].value, keys[index].value, fT); // TODO: Replace with CHSL, when I figure out where it is
+		}
+		else if ((keys[index].time / duration) < time)
+		{
+			int nIndex = ((index + 1) % keys.Size());
+			float fT = ((duration * time) - keys[index].time) / (keys[nIndex].time - keys[index].time);
+			return Lerp(keys[index].value, keys[nIndex].value, fT); // TODO: ditto
+		}
+		else
+		{
+			return keys[index].value;
+		}
 	}
 }
 
@@ -75,7 +81,7 @@ Quaternion AnimatorAnimation::GetInterpolatedValue( cs::List<QuatKeyFrame> keys,
 			return keys[index].value;
 		}
 	}
-	else // otherwise use slerp
+	else if (keys.Size() >= 3)// otherwise use slerp
 	{
 		// if the chosen key is ahead of the real time
 		if ((keys[index].time / duration) > time)
@@ -83,18 +89,28 @@ Quaternion AnimatorAnimation::GetInterpolatedValue( cs::List<QuatKeyFrame> keys,
 			// interpolate with the previous key
 			int pIndex = ((index - 1) % keys.Size());
 			float fT = ((duration * time) - keys[pIndex].time) / (keys[index].time - keys[pIndex].time);
-			return Quaternion::GetSlerp( keys[pIndex].value, keys[index].value, fT );
+			Quaternion a = keys[pIndex].value;
+			Quaternion b = keys[index].value;
+			Quaternion output = Quaternion::GetSlerp(a, b, fT);
+			return output;
 		}
 		else if ((keys[index].time / duration) < time)
 		{
 			// Interpolate with key ahead
 			int nIndex = ((index + 1) % keys.Size());
 			float fT = ((duration * time) - keys[index].time) / (keys[nIndex].time - keys[index].time);
-			return Quaternion::GetSlerp( keys[index].value, keys[nIndex].value, fT );
+			Quaternion a = keys[index].value;
+			Quaternion b = keys[nIndex].value;
+			Quaternion output = Quaternion::GetSlerp(keys[index].value, keys[nIndex].value, fT);
+			return output;
 		}
 		else
 		{
 			return keys[index].value;
 		}
+	}
+	else
+	{
+		return keys[0].value;
 	}
 }

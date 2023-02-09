@@ -589,6 +589,21 @@ bool Compare( BoneWeightPair i, BoneWeightPair j )
 	return (i > j);
 }
 
+void PrintMatrix(DirectX::XMFLOAT4X4 m, std::string name)
+{
+	LOG_TRACE("Matrix for: %s\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n",
+		name.c_str(),
+		m._11, m._12, m._13, m._14,
+		m._21, m._22, m._23, m._24,
+		m._31, m._32, m._33, m._34,
+		m._41, m._42, m._43, m._44)
+	//std::cout << "Matrix for: " << name << std::endl;
+	//printf("%.2f, %.2f, %.2f, %.2f\n", m._11, m._12, m._13, m._14);
+	//printf("%.2f, %.2f, %.2f, %.2f\n", m._21, m._22, m._23, m._24);
+	//printf("%.2f, %.2f, %.2f, %.2f\n", m._31, m._32, m._33, m._34);
+	//printf("%.2f, %.2f, %.2f, %.2f\n", m._41, m._42, m._43, m._44);
+}
+
 // Quite heavy function.
 bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* const outMesh)
 {
@@ -599,7 +614,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 		aiProcess_CalcTangentSpace |
 		aiProcess_Triangulate |
 		aiProcess_JoinIdenticalVertices |
-		aiProcess_SortByPType*/aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace | aiProcess_PopulateArmatureData);
+		aiProcess_SortByPType*/aiProcess_JoinIdenticalVertices | aiProcess_CalcTangentSpace | aiProcess_PopulateArmatureData );
 	if (scene == nullptr)
 	{
 		LOG_ERROR("THERE WAS AN FBX IMPORT ERROR:");
@@ -621,26 +636,55 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 	// Get name from the input path
 	outMesh->name = remove_extension(base_name(filePath));
 
-	outMesh->armature.globalInverseTransform = ConvertToMat4(&scene->mRootNode->mTransformation.Inverse().Transpose());
-
 	// Armature and vertex groups
 	// Setup some lists for the import.
 	std::vector<aiNode*> nodes = GetNodeVector( scene );
-	std::vector<aiBone*> boneList;
+
+	/*std::vector<aiBone*> boneList;
 	std::vector<std::string> boneNames;
 	std::vector<std::string> parentNames;
 	std::vector<int> parentIndicies;
 	std::vector<Mat4> bindLocalTxList;
 	std::vector<Mat4> bindModelTxList;
-	std::vector<Mat4> inverseBindTxList;
+	std::vector<Mat4> inverseBindTxList;*/
+
+	std::vector<aiBone*> boneList;
+	std::vector<std::string> boneNames;
+	std::vector<std::string> parentNames;
+	std::vector<int> parentIndicies;
+	std::vector<DirectX::XMFLOAT4X4> bindLocalTxList;
+	std::vector<DirectX::XMFLOAT4X4> bindModelTxList;
+	std::vector<DirectX::XMFLOAT4X4> inverseBindTxList;
+
 	aiMatrix4x4 identity = aiMatrix4x4(
 		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, 0,
 		0, 0, 0, 1 );
-	Mat4 identityDx = ConvertToMat4( &identity );
+	DirectX::XMFLOAT4X4 identityDx = ConvertToDirectX( &identity );
 	int numBones = 0;
 
+	// The root transform
+	outMesh->armature.globalInverseTransform = ConvertToDirectX(&scene->mRootNode->mTransformation.Inverse());
+
+	LOG_TRACE("Global Inverse Transform:\n %.3f %.3f %.3f %.3f\n %.3f %.3f %.3f %.3f \n %.3f %.3f %.3f %.3f \n %.3f %.3f %.3f %.3f",
+		outMesh->armature.globalInverseTransform(0, 0),
+		outMesh->armature.globalInverseTransform(1, 0),
+		outMesh->armature.globalInverseTransform(2, 0),
+		outMesh->armature.globalInverseTransform(3, 0),
+		outMesh->armature.globalInverseTransform(0, 1),
+		outMesh->armature.globalInverseTransform(1, 1),
+		outMesh->armature.globalInverseTransform(2, 1),
+		outMesh->armature.globalInverseTransform(3, 1),
+		outMesh->armature.globalInverseTransform(0, 2),
+		outMesh->armature.globalInverseTransform(1, 2),
+		outMesh->armature.globalInverseTransform(2, 2),
+		outMesh->armature.globalInverseTransform(3, 2),
+		outMesh->armature.globalInverseTransform(0, 3),
+		outMesh->armature.globalInverseTransform(1, 3),
+		outMesh->armature.globalInverseTransform(2, 3),
+		outMesh->armature.globalInverseTransform(3, 3));
+	
 	LOG_TRACE( "Retrieving bones from all submeshes ..." );
 	// Step 1: Initalize all the vectors with base data, gathering all the bones from all submeshes.
 	for (int i = 0; i < scene->mNumMeshes; i++)
@@ -666,7 +710,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 			}
 			if (!boneAlreadyExists)
 			{
-				outMesh->armature.boneMatricies.Add(Mat4()); // Init an empty matrix, might be redundant.
+				outMesh->armature.boneMatricies.Add(identityDx); // Init an empty matrix, might be redundant.
 				boneList.push_back( newMesh->mBones[j] );
 				boneNames.push_back( std::string( newMesh->mBones[j]->mName.C_Str() ) );
 				parentNames.push_back( std::string( newMesh->mBones[j]->mNode->mParent->mName.C_Str() ) );
@@ -679,14 +723,17 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 			}
 		}
 	}
+
 	LOG_TRACE( "Done\n" );
 	LOG_TRACE( "Processing local Matricies ..." );
 	// Step 2: Fill local matricies
 	for (int i = 0; i < numBones; i++)
 	{
+		//aiMatrix4x4 localMat = boneList[i]->mNode->mTransformation.Transpose();
 		aiMatrix4x4 localMat = boneList[i]->mNode->mTransformation.Transpose();
-		bindLocalTxList[i] = ConvertToMat4( &localMat );
+		bindLocalTxList[i] = ConvertToDirectX( &localMat );
 	}
+
 	LOG_TRACE( "Done\n" );
 	LOG_TRACE( "Resolving parent indicies ... " );
 	// Step 3: Resolve parent indicies
@@ -702,38 +749,57 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 		}
 		//LOG_TRACE( "Bone[%d]: %s, Parent: %s, Parent index: %d", i, boneNames[i].c_str(), parentNames[i].c_str(), parentIndicies[i]);
 	}
+
+	for (int i = 0; i < numBones; i++)
+	{
+		LOG_TRACE("%d Bone: %s parent: %d - %s ", i, boneNames[i].c_str(), parentIndicies[i], parentNames[i].c_str());
+	}
+	
 	LOG_TRACE( "Done\n" );
 	LOG_TRACE( "Calculating inverse bind matricies ... " );
 	// Step 4: Calculate inverse bind matricies
+	
+	// bindModelTx = parentBindModelTx * bindLocalTx;	
+	// inverseBindModelTx = inverse(bindModelTx)
+	// 
 	// 4.1 Special case for root(s) (no parent index)
-	for (int i = 0; i < numBones; i++)
-	{
-		if (parentIndicies[i] == -1)
-		{
-			// Store the bind matrix as Mat4
-			bindModelTxList[i] = bindLocalTxList[i];
-			// Calculate the inverse
-			DXMAT ibMatXM = DirectX::XMMatrixInverse(nullptr, bindModelTxList[i].XMMatrix());
-			// Store the inverse bind matrix as Mat4
-			inverseBindTxList[i] = Mat4(ibMatXM); // Convert to Mat4 and store as inverse
-		}
-	}
+
+	bindModelTxList[0] = bindLocalTxList[0];
+	DXMAT rootModelXM = DirectX::XMLoadFloat4x4(&bindModelTxList[0]);
+	DXMAT rootInverseBindXM = DirectX::XMMatrixInverse(nullptr, rootModelXM);
+	DirectX::XMStoreFloat4x4(&inverseBindTxList[0], rootInverseBindXM);
+
+	//bindModelTxList[0] = bindLocalTxList[0];
+	//// Calculate the inverse
+	//DXMAT ibMatXM = DirectX::XMMatrixInverse(nullptr, ((Mat4)bindModelTxList[0].Transpose()).XMMatrix());
+	//// Store the inverse bind matrix as Mat4
+	//inverseBindTxList[0] = Mat4(ibMatXM).Transpose(); // Convert to Mat4 and store as inverse
 
 	// 4.2 Resolve rest of bones
 	for (int j = 1; j < numBones; j++)
 	{
+		DXMAT boneParentModelXM = DirectX::XMLoadFloat4x4(&bindModelTxList[parentIndicies[j]]);
+		DXMAT boneLocalXM = DirectX::XMLoadFloat4x4(&bindLocalTxList[j]);
+		DXMAT boneModelXM = DirectX::XMMatrixMultiply(boneLocalXM, boneParentModelXM);
+		DirectX::XMStoreFloat4x4(&bindModelTxList[j], boneModelXM);
+		DXMAT boneInverseBindXM = DirectX::XMMatrixInverse(nullptr, boneModelXM);
+		DirectX::XMStoreFloat4x4(&inverseBindTxList[j], boneInverseBindXM);
+
+		/*Mat4 parentBindModelTx = bindModelTxList[parentIndicies[j]];
+		Mat4 boneLocalTx = bindLocalTxList[j];
+		Mat4 boneModelBindTx = boneLocalTx * parentBindModelTx;
+		bindModelTxList[j] = boneModelBindTx;
+		DXMAT ibMatXM = DirectX::XMMatrixInverse( nullptr, ((Mat4)boneModelBindTx.Transpose()).XMMatrix());
+		inverseBindTxList[j] = Mat4(ibMatXM).Transpose();*/
 		// Get parent matrix as XMMATRIX
-		DXMAT pMatXM = bindModelTxList[parentIndicies[j]].XMMatrix();
+		//DXMAT pMatXM = ((Mat4)bindModelTxList[parentIndicies[j]]).XMMatrix();
 		// Get local matrix as XMMATRIX
-		DXMAT lMatXM = bindLocalTxList[j].XMMatrix();
+		//DXMAT lMatXM = ((Mat4)bindLocalTxList[j]).XMMatrix();
 		// Multiply local and parent matrix.
-		DXMAT mMatXM = DirectX::XMMatrixMultiply( lMatXM, pMatXM );
+		//DXMAT mMatXM = DirectX::XMMatrixMultiply( lMatXM, pMatXM );
 		// Store model bind matrix as Mat4
-		bindModelTxList[j] = Mat4(mMatXM);
 		// Use DirectX to invert the local matrix
-		DXMAT ibMatXM = DirectX::XMMatrixInverse( nullptr, mMatXM );
 		// Store the inverse as Mat4
-		inverseBindTxList[j] = Mat4( ibMatXM );
 	}
 	LOG_TRACE( "Done\n" );
 	LOG_TRACE( "Adding output bones to armature ..." );
@@ -744,8 +810,10 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 		nBone.name = boneNames[i]; // Name
 		nBone.parentName = parentNames[i]; // Parent Name
 		nBone.parentIndex = parentIndicies[i]; // Parent Index
-		nBone.inverseBindMatrix = inverseBindTxList[i]; // Inverse bind matrix TODO: This shows that this is the only matrix that needs to be saved (maybe clean up above).
+		nBone.inverseBindMatrix = inverseBindTxList[i]; // Inverse bind matrix TODO: This shows that this is the only matrix that needs to be saved (maybe clean up above).		
 		outMesh->armature.bones.Add( nBone );
+
+		PrintMatrix(nBone.inverseBindMatrix, nBone.name);
 	}
 	LOG_TRACE( "Done\n" );
 
@@ -803,7 +871,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 				}
 			}
 			std::sort(newWeightVector.bones.begin(), newWeightVector.bones.end(), Compare);
-			while (newWeightVector.bones.size() < 4) // TODO: change to max bones later maybe.
+			while (newWeightVector.bones.size() < 8) // TODO: change to max bones later maybe.
 			{
 				BoneWeightPair newPair;
 				newPair.bone = 0;
@@ -831,17 +899,28 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 				Vec3( currentBiTan.x, currentBiTan.y, currentBiTan.z ), // Bitangent
 				Vec4( currentUV.x, currentUV.y, subMeshCounter, 0), // UV Padding and submesh index
 				Point4 ( 
-					vertexWeights[j].bones[0].bone,
+					vertexWeights[j].bones[0].bone, // Bone indicies 
 					vertexWeights[j].bones[1].bone,
 					vertexWeights[j].bones[2].bone,
 					vertexWeights[j].bones[3].bone
-				), // Bone indicies 
+				), 
 				Vec4 ( 
-					vertexWeights[j].bones[0].weight,
+					vertexWeights[j].bones[0].weight, // Weights 
 					vertexWeights[j].bones[1].weight,
 					vertexWeights[j].bones[2].weight,
 					vertexWeights[j].bones[3].weight
-				)); // Weights 
+				),
+				Point4(
+					vertexWeights[j].bones[4].bone, // Bone indicies 
+					vertexWeights[j].bones[5].bone,
+					vertexWeights[j].bones[6].bone,
+					vertexWeights[j].bones[7].bone),
+				Vec4(
+					vertexWeights[j].bones[4].weight, // Weights 
+					vertexWeights[j].bones[5].weight,
+					vertexWeights[j].bones[6].weight,
+					vertexWeights[j].bones[3].weight)
+			); 
 
 			// Add the vertex to the output list
 			outMesh->verticies.Add( newVertex );

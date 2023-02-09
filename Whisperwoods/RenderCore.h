@@ -9,7 +9,7 @@
 #include "SimpleMath.h"
 #include <SpriteFont.h>
 #include "Light.h"
-
+#include "Bone.h"
 
 class RenderCore
 {
@@ -29,6 +29,8 @@ public:
 	HRESULT CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const;
 	void LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Texture2D>& textureResource) const;
 
+
+
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
 	void DrawObject(const Renderable* renderable, bool shadowing);
@@ -39,6 +41,7 @@ public:
 
 	//void SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer);
 	void SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV);
+	void UpdateBoneMatrixBuffer(ComPtr<ID3D11Buffer> matrixBuffer, cs::List<DirectX::XMFLOAT4X4> bones);
 
 	void WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
 		const DirectionalLight& lightDirectional,

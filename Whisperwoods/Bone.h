@@ -9,8 +9,8 @@ struct Bone
 	Vec3 localPos;
 	Quaternion localRot;
 	Vec3 localScale;
-	Mat4 inverseBindMatrix;	// local Transform
-	Mat4 posedMatrix;
+	DirectX::XMFLOAT4X4 inverseBindMatrix;
+	DirectX::XMFLOAT4X4 posedMatrix;
 	Bone() = default;
 	~Bone() = default;
 	//DirectX::XMFLOAT4X4 bindMatrix; // Inverse Draw matrix
@@ -27,8 +27,8 @@ struct BoneSerialized
 	Vec3 localPos;
 	Quaternion localRot;
 	Vec3 localScale;
-	Mat4 inverseBindMatrix;	// local Transform
-	Mat4 posedMatrix;
+	DirectX::XMFLOAT4X4 inverseBindMatrix;	
+	DirectX::XMFLOAT4X4 posedMatrix;
 	BoneSerialized() : name{ '\0' }, parentName{ '\0' } {}
 	BoneSerialized(const Bone& source)
 	{
