@@ -306,7 +306,7 @@ void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Tex
     EXC_COMCHECK(resource->QueryInterface(IID_ID3D11Texture2D, (void**)textureResource.GetAddressOf()));
 }
 
-HRESULT RenderCore::CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones)
+HRESULT RenderCore::CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const
 {
     D3D11_BUFFER_DESC bufferDesc = {};
     bufferDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * numBones;
@@ -327,7 +327,7 @@ HRESULT RenderCore::CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixB
     return hr;
 }
 
-HRESULT RenderCore::CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones)
+HRESULT RenderCore::CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const
 {
     D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
     shaderResourceViewDesc.Format = DXGI_FORMAT_UNKNOWN;

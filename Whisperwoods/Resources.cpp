@@ -251,6 +251,8 @@ void Resources::LoadModelRiggedResources(const RenderCore* const renderCore)
 		const UINT verticesByteWidth = modelRiggedResource->GetVertexByteWidth();
 		renderCore->CreateIndexBuffer(modelRiggedResource->indicies.Data(), indeciesByteWidth, modelRiggedResource->indexBuffer.GetAddressOf());
 		renderCore->CreateVertexBuffer(modelRiggedResource->verticies.Data(), verticesByteWidth, modelRiggedResource->vertexBuffer.GetAddressOf());
+		renderCore->CreateArmatureStructuredBuffer(modelRiggedResource->armature.matrixBuffer, modelRiggedResource->armature.bones.Size());
+		renderCore->CreateArmatureSRV(modelRiggedResource->armature.matrixSRV, modelRiggedResource->armature.matrixBuffer, modelRiggedResource->armature.bones.Size());
 	}
 }
 
