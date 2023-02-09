@@ -48,7 +48,18 @@ void RenderHandler::Draw()
 
 	// Main scene rendering
 
+	for (int i = 0; i < m_lightsPoint.Size(); i++)
+	{
+		m_lightsPoint[i].Update(); // TODO
+	}
+
+	for (int i = 0; i < m_lightsSpot.Size(); i++)
+	{
+		m_lightsSpot[i].Update(); // TODO
+	}
+
 	m_lightDirectional.Update();
+
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
 	m_renderCore->TargetBackBuffer();
 
