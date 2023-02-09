@@ -82,11 +82,11 @@ void Whisperwoods::Run()
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	
 	dx::SimpleMath::Vector2 posTest;
-	posTest.x = 100;
-	posTest.y = 70;
+	posTest.x = 1270;
+	posTest.y = 710;
 	const wchar_t* inputText = L"Shadii";
 	cs::Color4f color(0.034f, 0.255f, 0.0f, 1.0f);
-	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color);
+	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color, { 1.0f, 1.0f });
 
 	int frames = 0;
 	cs::Timer deltaTimer;

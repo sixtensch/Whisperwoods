@@ -73,9 +73,10 @@ shared_ptr<MeshRenderableRigged> Renderer::CreateMeshRigged(const string& subpat
 	return s_singleton->m_renderHandler->CreateMeshRigged(subpath);
 }
 
-shared_ptr<TextRenderable> Renderer::CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color)
+//															Text seen				screen position				font			color			origin of text (where it alligns)
+shared_ptr<TextRenderable> Renderer::CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin)
 {
-	return s_singleton->m_renderHandler->CreateTextRenderable(text, fontPos, font, color);
+	return s_singleton->m_renderHandler->CreateTextRenderable(text, fontPos, font, color, origin);
 }
 
 

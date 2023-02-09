@@ -45,7 +45,7 @@ public:
 		const cs::List<PointLight>& lightsPoint,
 		const cs::List<SpotLight>& lightsSpot);
 
-	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color);
+	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 origin);
 
 	void InitImGui() const;
 

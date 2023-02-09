@@ -415,14 +415,14 @@ void RenderCore::DrawIndexed(uint indexCount, uint start, uint base)
 	EXC_COMINFO(m_context->DrawIndexed(indexCount, start, base));
 }
 
-void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color)
+void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 originScalar)
 {
    
 	dx::XMVECTOR col = ((Vec4)color).GetXM3(); //converts from cs to xmvector, which Drawstring() needs
 
 	m_spriteBatch->Begin();
     dx::SimpleMath::Vector2 origin = m_fonts[font]->MeasureString(m_text);
-	origin = origin / 2.0f;
+	origin = dx::SimpleMath::Vector2(origin.x * originScalar.x, origin.y * originScalar.y);
 
 	m_fonts[font]->DrawString(m_spriteBatch.get(), m_text,
 		fontPos + dx::SimpleMath::Vector2(1.f, 1.f), dx::Colors::Black, 0.f, origin);
