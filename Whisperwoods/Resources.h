@@ -45,7 +45,7 @@ public:
 	BasicResource* GetWritableResource(const ResourceType resourceType, std::string subPath) const;
 
 	// This is supposed to be called after all singletons are initialized.
-	void LoadAssetDirectory(RenderCore* const renderCore);
+	void LoadAssetDirectory(const RenderCore* const renderCore);
 
 private:
 	void InitMapList();
@@ -58,14 +58,14 @@ private:
 	// TODO: Add the option for this. If a file is not found later, its referenced to its default.
 	void LoadDefaultResources();
 
-	void LoadBaseResources(RenderCore* const renderCore);
+	void LoadBaseResources(const RenderCore* const renderCore);
 	void LoadSounds();
-	void LoadTextures(RenderCore* renderCore);
+	void LoadTextures(const RenderCore* const renderCore);
 
-	void LoadCompositeResources();
+	void LoadCompositeResources(const RenderCore* const renderCore);
 	void LoadMaterialResources();
-	void LoadModelStaticResources();
-	void LoadModelRiggedResources();
+	void LoadModelStaticResources(const RenderCore* const renderCore);
+	void LoadModelRiggedResources(const RenderCore* const renderCore);
 
 private:
 	static Resources* s_singleton;

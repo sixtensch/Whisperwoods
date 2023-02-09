@@ -23,8 +23,6 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
-	m_resources = std::make_unique<Resources>();
-
 	m_sound = std::make_unique<Sound>();
 	m_debug->CaptureSound(m_sound.get());
 
@@ -38,9 +36,8 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	m_game = std::make_unique<Game>(); 
 
-
-	// TODO: Change to some init place.
-	m_resources->LoadAssetDirectory(nullptr);
+	m_resources = std::make_unique<Resources>();
+	m_resources->LoadAssetDirectory(m_renderer->GetRenderCore());
 }
 
 Whisperwoods::~Whisperwoods()
@@ -78,10 +75,13 @@ void Whisperwoods::Run()
 	//ModelRiggedResource riggedTestModelRead;
 	//importer.LoadWWMRigged(path2, &riggedTestModelRead);
 
-	
-	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("WWM/ShadiiTest.wwm");
+	// TODO: JUMP HERE FOR MESH LOGIC
+	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Assets/Models/Statics/ShadiiTest.wwm");
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+
+	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("Assets/Models/Statics/ShadiiTest.wwm");
+	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 
 	int frames = 0;
 	cs::Timer deltaTimer;
@@ -99,8 +99,9 @@ void Whisperwoods::Run()
 
 		m_game->Update();
 		m_sound->Update();
-		rotationY += 2 * dTime;
-		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+		// TODO: Test code remove later.
+		//rotationY += 2 * dTime;
+		//mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 
 		m_renderer->Draw();
 		m_renderer->BeginGui();

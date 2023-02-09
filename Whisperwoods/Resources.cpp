@@ -16,8 +16,8 @@
 #define SOUND_PATH "Assets/Sounds/"
 #define MATERIAL_PATH "Assets/Materials/"
 #define MAP_PATH "Assets/Maps/"
-#define STATIC_MODEL_PATH "Assets/Models/WWM/"
-#define RIGGED_MODEL_PATH "Assets/Models/WWM/"
+#define STATIC_MODEL_PATH "Assets/Models/Statics/"
+#define RIGGED_MODEL_PATH "Assets/Models/Rigged/"
 
 Resources* Resources::s_singleton = nullptr;
 
@@ -32,22 +32,6 @@ Resources::Resources()
 	s_singleton = this;
 
 	InitMapList();
-
-#if (_WIN32_WINNT >= 0x0A00 /*_WIN32_WINNT_WIN10*/)
-	Microsoft::WRL::Wrappers::RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);
-	if (FAILED(initialize))
-		EXC("Could not initialize WIC texture loader requirements.");
-#else
-	HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-	if (FAILED(hr))
-		EXC("Could not initialize WIC texture loader requirements.");
-#endif
-	// TODO: Dudd code. Remove later.
-	FBXImporter importer;
-	AllocateResource(ResourceTypeTexture, "TestPath/Test", "Test name");
-	ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(ResourceTypeModelStatic, "WWM/ShadiiTest.wwm", "Test name"));
-	
-	importer.LoadWWMStatic("Assets/Models/WWM/ShadiiTest.wwm", shadiiTestModel);
 	
 	//importer.ImportFBXStatic("Assets/Models/Characters/ShadiiTest.fbx", shadiiTestModel);
 	//shadiiTestModel->CreateVertexBuffer()
@@ -81,7 +65,7 @@ void Resources::InitMapList()
 	}
 }
 
-void Resources::LoadAssetDirectory(RenderCore* const renderCore)
+void Resources::LoadAssetDirectory(const RenderCore* const renderCore)
 {
 	// Should always be called first.
 	// Ideally this should be in constructor but cant as loading depends on proper inits of other singletons and such.
@@ -89,7 +73,7 @@ void Resources::LoadAssetDirectory(RenderCore* const renderCore)
 
 	LoadBaseResources(renderCore);
 
-	LoadCompositeResources();
+	LoadCompositeResources(renderCore);
 }
 
 const BasicResource* Resources::GetResource(const ResourceType resourceType, const std::string subPath) const
@@ -102,12 +86,13 @@ BasicResource* Resources::GetWritableResource(const ResourceType resourceType, s
 	auto& resourceMap = m_resourceMaps[resourceType];
 	auto it = resourceMap.find(subPath);
 
-	if (it != resourceMap.end())
+	if (it == resourceMap.end())
 	{
-		return it->second.get();
+		EXC("Resource '%s' does not exist. Called with ResourceType = %d.", subPath.c_str(), resourceType)
+			return nullptr;
 	}
 
-	return nullptr;
+	return it->second.get();
 }
 
 BasicResource* Resources::AllocateResource(ResourceType resourceType, const std::string subPath, const std::string resourceName)
@@ -181,7 +166,7 @@ void Resources::LoadDefaultResources()
 
 }
 
-void Resources::LoadBaseResources(RenderCore* const renderCore)
+void Resources::LoadBaseResources(const RenderCore* const renderCore)
 {
 	LoadTextures(renderCore);
 	LoadSounds();
@@ -207,7 +192,7 @@ void Resources::LoadSounds()
 	}
 }
 
-void Resources::LoadTextures(RenderCore* renderCore)
+void Resources::LoadTextures(const RenderCore* const renderCore)
 {
 	cs::List<fs::path> texturePaths = CollectFilePaths(TEXTURE_PATH);
 
@@ -215,19 +200,17 @@ void Resources::LoadTextures(RenderCore* renderCore)
 	{
 		std::string filePath = path.string();
 		TextureResource* textureResource = (TextureResource*)AllocateResource(ResourceTypeTexture, filePath, path.filename().string());
-	
-		//if (!renderCore->LoadTexture(filePath, textureResource))
-		//{
-		//	EXC("Failed to load texture '%s'.", filePath.c_str());
-		//}
+		
+		// Will throw exception if failed.
+		renderCore->LoadImageTexture(wstring(filePath.begin(), filePath.end()), textureResource->texture2D);
 	}
 }
 
-void Resources::LoadCompositeResources()
+void Resources::LoadCompositeResources(const RenderCore* const renderCore)
 {
 	LoadMaterialResources();
-	LoadModelStaticResources();
-	LoadModelRiggedResources();
+	LoadModelStaticResources(renderCore);
+	LoadModelRiggedResources(renderCore);
 }
 
 void Resources::LoadMaterialResources()
@@ -235,7 +218,7 @@ void Resources::LoadMaterialResources()
 
 }
 
-void Resources::LoadModelStaticResources()
+void Resources::LoadModelStaticResources(const RenderCore* const renderCore)
 {
 	cs::List<fs::path> staticModelPaths = CollectFilePaths(STATIC_MODEL_PATH);
 	
@@ -243,15 +226,20 @@ void Resources::LoadModelStaticResources()
 	{
 		std::string filePath = path.string();
 		ModelStaticResource* modelStaticResource = (ModelStaticResource*)AllocateResource(ResourceTypeModelStatic, filePath, path.filename().string());
-	
+
 		if (!FBXImporter::LoadWWMStatic(filePath, modelStaticResource))
 		{
 			EXC("Failed to load static resource '%s'.", filePath.c_str());
 		}
+
+		const UINT indeciesByteWidth = sizeof(UINT) * modelStaticResource->indicies.Size();
+		const UINT verteciesByteWidth = modelStaticResource->GetVertexByteWidth();
+		renderCore->CreateIndexBuffer(modelStaticResource->indicies.Data(), indeciesByteWidth, modelStaticResource->indexBuffer.GetAddressOf());
+		renderCore->CreateVertexBuffer(modelStaticResource->verticies.Data(), verteciesByteWidth, modelStaticResource->vertexBuffer.GetAddressOf());
 	}
 }
 
-void Resources::LoadModelRiggedResources()
+void Resources::LoadModelRiggedResources(const RenderCore* const renderCore)
 {
 	cs::List<fs::path> riggedModelPaths = CollectFilePaths(RIGGED_MODEL_PATH);
 
@@ -264,6 +252,11 @@ void Resources::LoadModelRiggedResources()
 		{
 			EXC("Failed to load rigged resource '%s'.", filePath.c_str());
 		}
+
+		const UINT indeciesByteWidth = sizeof(UINT) * modelRiggedResource->indicies.Size();
+		const UINT verticesByteWidth = modelRiggedResource->GetVertexByteWidth();
+		renderCore->CreateIndexBuffer(modelRiggedResource->indicies.Data(), indeciesByteWidth, modelRiggedResource->indexBuffer.GetAddressOf());
+		renderCore->CreateVertexBuffer(modelRiggedResource->verticies.Data(), verticesByteWidth, modelRiggedResource->vertexBuffer.GetAddressOf());
 	}
 }
 
