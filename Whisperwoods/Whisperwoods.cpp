@@ -26,7 +26,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
-	FBXImporter importer;
+	//FBXImporter importer;
 	//ModelRiggedResource shadiiAnimated;
 	//ModelRiggedResource shadiiAnimated2;
 	//ModelRiggedResource shadiiAnimations;
@@ -36,7 +36,6 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//std::string path1 = importer.SaveWMM(&shadiiAnimated, "Assets/Models/Rigged/");
 	//std::string path2 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 	//std::string path3 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
-
 
 	//importer.ImportFBXRigged("Assets/Shadii_Animations.fbx", &riggedModel);
 	//path = importer.SaveWMM(&riggedModel, "Assets/Models/Rigged/");

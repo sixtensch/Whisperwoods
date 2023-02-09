@@ -13,6 +13,8 @@
 #include <filesystem>
 #include <direct.h>
 
+#define MAX_BONES 4
+
 DirectX::XMFLOAT4X4 ConvertToDirectX(aiMatrix4x4* mat)
 {
 	DirectX::XMFLOAT4X4 returnMat;
@@ -813,7 +815,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 				}
 			}
 
-			while (newWeightVector.bones.size() < 8) // TODO: change to max bones later maybe.
+			while (newWeightVector.bones.size() < MAX_BONES) // TODO: change to max bones later maybe.
 			{
 				BoneWeightPair newPair;
 				newPair.bone = 0;
@@ -835,7 +837,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 			aiVector3D currentUV = newMesh->mTextureCoords[0][j];
 			//aiVector3D currentUV = currentUVSet[0];
 			float sumWeight = 0;
-			for (int i = 0; i < 8; i++)
+			for (int i = 0; i < MAX_BONES; i++)
 			{
 				sumWeight += vertexWeights[j].bones[i].weight;
 			}
@@ -858,7 +860,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 					vertexWeights[j].bones[1].weight * normalizer,
 					vertexWeights[j].bones[2].weight * normalizer,
 					vertexWeights[j].bones[3].weight * normalizer
-				),
+				)/*,
 				Point4(
 					vertexWeights[j].bones[4].bone, // Bone indicies 2
 					vertexWeights[j].bones[5].bone,
@@ -868,7 +870,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 					vertexWeights[j].bones[4].weight * normalizer, // Weights 2
 					vertexWeights[j].bones[5].weight * normalizer,
 					vertexWeights[j].bones[6].weight * normalizer,
-					vertexWeights[j].bones[7].weight * normalizer )
+					vertexWeights[j].bones[7].weight * normalizer ) */
 			); 
 
 			// Add the vertex to the output list

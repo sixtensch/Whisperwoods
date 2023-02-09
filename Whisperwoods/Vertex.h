@@ -33,7 +33,7 @@ struct VertexRigged : VertexTextured
 	int bones1[4];
 	float weights1[4];
 	VertexRigged() = default;
-	VertexRigged(Vec3 p_pos, Vec3 p_nor, Vec3 p_tan, Vec3 p_bitan, Vec4 p_uv, Point4 p_bones, Vec4 p_weights, Point4 p_bones1, Vec4 p_weights1) :
+	VertexRigged(Vec3 p_pos, Vec3 p_nor, Vec3 p_tan, Vec3 p_bitan, Vec4 p_uv, Point4 p_bones, Vec4 p_weights/*, Point4 p_bones1, Vec4 p_weights1*/) :
 		VertexTextured(p_pos, p_nor, p_tan, p_bitan, p_uv)
 	{
 		bones[0] = p_bones.x;
@@ -44,14 +44,14 @@ struct VertexRigged : VertexTextured
 		weights[1] = p_weights.y;
 		weights[2] = p_weights.z;
 		weights[3] = p_weights.w;
-		bones1[0] = p_bones1.x;
-		bones1[1] = p_bones1.y;
-		bones1[2] = p_bones1.z;
-		bones1[3] = p_bones1.w;
-		weights1[0] = p_weights1.x;
-		weights1[1] = p_weights1.y;
-		weights1[2] = p_weights1.z;
-		weights1[3] = p_weights1.w;
+		//bones1[0] = p_bones1.x;
+		//bones1[1] = p_bones1.y;
+		//bones1[2] = p_bones1.z;
+		//bones1[3] = p_bones1.w;
+		//weights1[0] = p_weights1.x;
+		//weights1[1] = p_weights1.y;
+		//weights1[2] = p_weights1.z;
+		//weights1[3] = p_weights1.w;
 	};
 	bool operator==(const VertexRigged& other);
 };
