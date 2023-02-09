@@ -28,6 +28,9 @@ public:
 	static Window& GetWindow();
 	//static Renderer& Get();
 
+	// TODO: Check if there is a better way of gaining access to the render core.
+	const RenderCore* GetRenderCore();
+
 private:
 	static Renderer* s_singleton;
 
