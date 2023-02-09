@@ -14,14 +14,13 @@ RenderHandler::~RenderHandler()
 
 void RenderHandler::InitCore(shared_ptr<Window> window)
 {
-	m_lightAmbient = cs::Color3f(0xFFFFFF);
-	m_lightAmbientIntensity = 0.5f;
+	m_lightAmbient = cs::Color3f(0xB0B0FF);
+	m_lightAmbientIntensity = 0.1f;
 
-	m_lightDirectional.transform.position = { 0, 10, 0 };
-	m_lightDirectional.transform.SetRotationEuler({ 0.5f, 0.9f, 0.0f });
-	m_lightDirectional.diameter = 20.0f;
-	m_lightDirectional.intensity = 1.0f;
-	m_lightDirectional.color = cs::Color3f(0xFFFFB0);
+	m_lightDirectional = make_unique<DirectionalLight>();
+	m_lightDirectional->diameter = 100.0f;
+	m_lightDirectional->intensity = 0.0f;
+	m_lightDirectional->color = cs::Color3f(0xFFFFFF);
 
 	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 100.0f );
 	m_mainCamera.CalculatePerspectiveProjection();
@@ -39,7 +38,18 @@ void RenderHandler::Draw()
 	
 	// Main scene rendering
 
-	m_lightDirectional.Update();
+	for (int i = 0; i < m_lightsPoint.Size(); i++)
+	{
+		m_lightsPoint[i]->Update(); // TODO
+	}
+
+	for (int i = 0; i < m_lightsSpot.Size(); i++)
+	{
+		m_lightsSpot[i]->Update(); // TODO
+	}
+
+	m_lightDirectional->Update(); // TODO
+
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
 	m_renderCore->TargetBackBuffer();
 
@@ -74,7 +84,6 @@ Camera& RenderHandler::GetCamera()
 {
 	return m_mainCamera;
 }
-
 
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
 {
@@ -115,4 +124,31 @@ shared_ptr<TextRenderable> RenderHandler::CreateTextRenderable(const wchar_t* te
 	shared_ptr<TextRenderable> newRenderable = make_shared<TextRenderable>(text, fontPos, font, color, origin);
 	m_texts.Add((shared_ptr<TextRenderable>)newRenderable);
 	return newRenderable;
+}
+
+shared_ptr<DirectionalLight> RenderHandler::GetDirectionalLight()
+{
+	return m_lightDirectional;
+}
+
+bool RenderHandler::RegisterPointLight(shared_ptr<PointLight> pointLight)
+{
+	if (m_lightsPoint.Size() >= LIGHT_CAPACITY_POINT)
+	{
+		return false;
+	}
+
+	m_lightsPoint.Add(pointLight);
+	return true;
+}
+
+bool RenderHandler::RegisterSpotLight(shared_ptr<SpotLight> spotLight)
+{
+	if (m_lightsSpot.Size() >= LIGHT_CAPACITY_SPOT)
+	{
+		return false;
+	}
+
+	m_lightsSpot.Add(spotLight);
+	return true;
 }

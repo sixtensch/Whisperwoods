@@ -41,9 +41,9 @@ public:
 	void SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV);
 
 	void WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
-		const DirectionalLight& lightDirectional,
-		const cs::List<PointLight>& lightsPoint,
-		const cs::List<SpotLight>& lightsSpot);
+		const shared_ptr<DirectionalLight>& lightDirectional,
+		const cs::List<shared_ptr<PointLight>>& lightsPoint,
+		const cs::List<shared_ptr<SpotLight>>& lightsSpot);
 
 	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 origin);
 
