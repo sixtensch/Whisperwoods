@@ -19,6 +19,7 @@ public:
 	HRESULT CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP);
 	HRESULT CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP);
 	HRESULT CreateImageTexture(char* image, UINT resHeight, UINT resWidth, UINT sysMemPitch, DXGI_FORMAT format, ID3D11Texture2D** out_texturePP);
+	void LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Texture2D>& textureResource) const;
 
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
