@@ -21,7 +21,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
     desc.SampleDesc.Count = 1; // one desc
     desc.SampleDesc.Quality = 0; //default
     desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_UNORDERED_ACCESS; //use resource or surface as result of rendering
-    desc.BufferCount = 2; 
+    desc.BufferCount = 3; 
     desc.OutputWindow = window->Data();
     desc.Windowed = true;
     desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; //deletes contents of backup buffer when called on
@@ -67,7 +67,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
     // Setup back buffer
 
-    EXC_COMCHECK(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&m_bbTexture));
+    EXC_COMCHECK(m_swapChain->GetBuffer(0u, __uuidof(ID3D11Texture2D), (void**)&m_bbTexture));
 
     D3D11_RENDER_TARGET_VIEW_DESC rtvd;
     rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -281,6 +281,46 @@ HRESULT RenderCore::CreateImageTexture(char* image, UINT resHeight, UINT resWidt
     return hr;
 }
 
+HRESULT RenderCore::CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones)
+{
+    D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * numBones;
+    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    bufferDesc.StructureByteStride = sizeof(DirectX::XMFLOAT4X4);
+    //	D3D11_SUBRESOURCE_DATA data;
+    //	data.pSysMem = boneMatricies;
+    //	data.SysMemPitch = 0;
+    //	data.SysMemSlicePitch = 0;
+    HRESULT hr = m_device->CreateBuffer(&bufferDesc, nullptr, &matrixBuffer);
+    if (FAILED(hr))
+    {
+        LOG_WARN("Failed to create bone matrix buffer.");
+    }
+    return hr;
+}
+
+HRESULT RenderCore::CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones)
+{
+    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
+    shaderResourceViewDesc.Format = DXGI_FORMAT_UNKNOWN;
+    shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    //shaderResourceViewDesc.Buffer.ElementOffset = 0;
+    shaderResourceViewDesc.Buffer.FirstElement = 0;
+    shaderResourceViewDesc.Buffer.NumElements = numBones;
+    //shaderResourceViewDesc.Buffer.ElementWidth = 64;
+    //ID3D11Buffer* testBuffer = matrixBuffer.Get();
+    HRESULT hr = m_device->CreateShaderResourceView(matrixBuffer.Get(), &shaderResourceViewDesc, &matrixSRV);
+    if (FAILED(hr))
+    {
+        LOG_WARN("Failed to create armature resource view.");
+    }
+    return hr;
+}
+
+
 void RenderCore::UpdateViewInfo(const Camera& camera)
 {
     CB::ViewInfo vi =
@@ -336,6 +376,16 @@ void RenderCore::SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_F
 void RenderCore::DrawIndexed(uint indexCount, uint start, uint base)
 {
     EXC_COMINFO(m_context->DrawIndexed(indexCount, start, base));
+}
+
+//void RenderCore::SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer)
+//{
+//    EXC_COMINFO(m_context->DrawIndexed(indexCount, start, base));
+//}
+
+void RenderCore::SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV)
+{
+    EXC_COMINFO(m_context->VSSetShaderResources(6, 1, matrixSRV.GetAddressOf()));
 }
 
 void RenderCore::InitImGui() const
@@ -626,3 +676,4 @@ void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, c
     memcpy(msr.pData, &si, sizeof(CB::ShadingInfo));
     EXC_COMINFO(m_context->Unmap(m_constantBuffers.shadingInfo.Get(), 0u));
 }
+

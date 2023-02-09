@@ -22,6 +22,8 @@ public:
 	HRESULT CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP);
 	HRESULT CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP);
 	HRESULT CreateImageTexture(char* image, UINT resHeight, UINT resWidth, UINT sysMemPitch, DXGI_FORMAT format, ID3D11Texture2D** out_texturePP);
+	HRESULT CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones);
+	HRESULT CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones);
 
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
@@ -31,10 +33,18 @@ public:
 	void SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format = DXGI_FORMAT_R32_UINT);
 	void DrawIndexed(uint indexCount, uint start, uint base);
 
+	//void SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer);
+	void SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV);
+
 	void WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
 		const DirectionalLight& lightDirectional,
 		const cs::List<PointLight>& lightsPoint,
 		const cs::List<SpotLight>& lightsSpot);
+
+	//ComPtr<ID3D11ShaderResourceView> matrixSRV
+
+
+
 
 	void InitImGui() const;
 

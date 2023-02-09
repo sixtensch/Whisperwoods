@@ -30,13 +30,15 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 
 	Resources& resources = Resources::Get();
 
-	ModelStaticResource* temp = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, "WWM/ShadiiTest.wwm"));
+	ModelStaticResource* temp = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, "ShadiiTest.wwm"));
 	m_renderCore->CreateVertexBuffer(temp->verticies.Data(), temp->GetVertexByteWidth(), temp->vertexBuffer.GetAddressOf());
 	m_renderCore->CreateIndexBuffer(temp->indicies.Data(), sizeof(int) * temp->indicies.Size(), temp->indexBuffer.GetAddressOf());
 
-	ModelRiggedResource* temp2 = static_cast<ModelRiggedResource*>(resources.GetResource(ResourceTypeModelRigged, "WWM/Shadii_Animated.wwm"));
+	ModelRiggedResource* temp2 = static_cast<ModelRiggedResource*>(resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated.wwm"));
 	m_renderCore->CreateVertexBuffer(temp2->verticies.Data(), temp2->GetVertexByteWidth(), temp2->vertexBuffer.GetAddressOf());
 	m_renderCore->CreateIndexBuffer(temp2->indicies.Data(), sizeof(int) * temp2->indicies.Size(), temp2->indexBuffer.GetAddressOf());
+	m_renderCore->CreateArmatureStructuredBuffer(temp2->armature.matrixBuffer, temp2->armature.bones.Size());
+	m_renderCore->CreateArmatureSRV(temp2->armature.matrixSRV, temp2->armature.matrixBuffer, temp2->armature.bones.Size());
 }
 
 void RenderHandler::Draw()

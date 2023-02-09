@@ -50,6 +50,7 @@ void MeshRenderableRigged::Draw(const DrawInfo& drawInfo) const
 
 	drawInfo.core->SetVertexBuffer(m_model->vertexBuffer, vertexStride, vertexOffset);
 	drawInfo.core->SetIndexBuffer(m_model->indexBuffer, indexOffset);
+	drawInfo.core->SetArmatureArmatureSRV(m_model->armature.matrixSRV);
 
 	for (int i = 0; i < m_model->startIndicies.Size(); i++)
 	{

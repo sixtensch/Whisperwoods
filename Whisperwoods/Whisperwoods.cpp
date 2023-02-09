@@ -20,10 +20,15 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
-	/*FBXImporter importer;
-	ModelRiggedResource riggedModel;
-	importer.ImportFBXRigged("Assets/Shadii_Animated.fbx", &riggedModel);
-	std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");*/
+	//FBXImporter importer;
+	//ModelRiggedResource riggedModel;
+	//importer.ImportFBXRigged("Assets/Shadii_Animated.fbx", &riggedModel);
+	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/Rigged/");
+
+	////FBXImporter importer;
+	//ModelStaticResource staticTestModelWrite;
+	//importer.ImportFBXStatic( "Assets/Models/FBX/Static/ShadiiTest.fbx", &staticTestModelWrite);
+	//std::string path2 = importer.SaveWMM(&staticTestModelWrite, "Assets/Models/Static/");
 
 	m_resources = std::make_unique<Resources>();
 
@@ -74,8 +79,8 @@ void Whisperwoods::Run()
 	//ModelRiggedResource riggedTestModelRead;
 	//importer.LoadWWMRigged(path2, &riggedTestModelRead);
 
-	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("WWM/Shadii_Animated.wwm");
-	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("WWM/ShadiiTest.wwm");
+	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Shadii_Animated.wwm");
+	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f

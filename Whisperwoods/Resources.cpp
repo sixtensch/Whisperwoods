@@ -24,8 +24,8 @@ Resources::Resources()
 	// TODO: Dudd code. Remove later.
 	FBXImporter importer;
 	AllocateResource(ResourceTypeTexture, "TestPath/Test", "Test name");
-	ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(ResourceTypeModelStatic, "WWM/ShadiiTest.wwm", "Test name"));	
-	ModelRiggedResource* shadiiTestModelRigged = static_cast<ModelRiggedResource*>(AllocateResource(ResourceTypeModelRigged, "WWM/Shadii_Animated.wwm", "Shadii rigged"));
+	ModelStaticResource* shadiiTestModel = static_cast<ModelStaticResource*>(AllocateResource(ResourceTypeModelStatic, "ShadiiTest.wwm", "Test name"));	
+	ModelRiggedResource* shadiiTestModelRigged = static_cast<ModelRiggedResource*>(AllocateResource(ResourceTypeModelRigged, "Shadii_Animated.wwm", "Shadii rigged"));
 
 	importer.LoadWWMStatic("Assets/Models/Static/ShadiiTest.wwm", shadiiTestModel);
 	importer.LoadWWMRigged("Assets/Models/Rigged/Shadii_Animated.wwm", shadiiTestModelRigged);

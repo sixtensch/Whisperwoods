@@ -8,8 +8,8 @@ struct VSInput
     float3 tangent      : TANGENT0;
     float3 bitangent    : BITANGENT0;
     float4 UV           : TEXCOORD0;
-    int4   Bones        : BONES0;
-    float4 Weights      : WEIGHTS0;
+    int4   bones        : BONES0;
+    float4 weights      : WEIGHTS0;
 };
 
 struct VSOutput
@@ -34,10 +34,23 @@ cbuffer VSObjectInfo : REGISTER_CBV_OBJECT_INFO
     matrix WorldMatrix;
 };
 
+StructuredBuffer<float4x4> Tx : REGISTER_SRV_ARMATURE_MATRIX;
+
 VSOutput main(VSInput input)
 {
     VSOutput output;
 	
+    float4 startPosition = float4(input.position, 1.0f);
+    float3 sumPos = float3(0, 0, 0);
+    sumPos += mul(Tx[input.bones[0]] * input.weights[0], startPosition);
+    sumPos += mul(Tx[input.bones[1]] * input.weights[1], startPosition);
+    sumPos += mul(Tx[input.bones[2]] * input.weights[2], startPosition);
+    sumPos += mul(Tx[input.bones[3]] * input.weights[3], startPosition);
+    //output.outPosition = float4(sumPos, 1.0f);
+    //output.outPosition = mul(output.position, worldMatrix);
+    //output.outPosition = mul(output.position, ViewMatrix);
+    //output.outPosition = mul(output.position, ProjectionMatrix);
+
     output.wPosition = mul(float4(input.position, 1.0f), WorldMatrix);
     output.wsPosition = mul(output.wPosition, ViewMatrix);
     output.outPosition = mul(output.wsPosition, ProjectionMatrix);
