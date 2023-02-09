@@ -20,8 +20,8 @@ void MeshRenderableStatic::Draw(const DrawInfo& drawInfo) const
 	//uint indexCount = m_model->indexCounts[0];
 	uint indexOffset = 0;
 
-	drawInfo.core->SetVertexBuffer(m_model->vertexBuffer, vertexStride, vertexOffset) ; 
-	drawInfo.core->SetIndexBuffer(m_model->indexBuffer, indexOffset) ;
+	drawInfo.core->SetVertexBuffer(m_model->vertexBuffer, vertexStride, vertexOffset); 
+	drawInfo.core->SetIndexBuffer(m_model->indexBuffer, indexOffset);
 
 	for (int i = 0; i < m_model->startIndicies.Size(); i++)
 	{

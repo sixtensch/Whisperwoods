@@ -27,16 +27,6 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	m_mainCamera.Update();
 
 	m_renderCore = make_unique<RenderCore>(window);
-
-	Resources& resources = Resources::Get();
-
-	ModelStaticResource* temp = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, "WWM/ShadiiTest.wwm"));
-	m_renderCore->CreateVertexBuffer(temp->verticies.Data(), temp->GetVertexByteWidth(), temp->vertexBuffer.GetAddressOf());
-	m_renderCore->CreateIndexBuffer(temp->indicies.Data(), sizeof(int) * temp->indicies.Size(), temp->indexBuffer.GetAddressOf());
-
-	ModelRiggedResource* temp2 = static_cast<ModelRiggedResource*>(resources.GetResource(ResourceTypeModelRigged, "WWM/Shadii_Animated.wwm"));
-	m_renderCore->CreateVertexBuffer(temp2->verticies.Data(), temp2->GetVertexByteWidth(), temp2->vertexBuffer.GetAddressOf());
-	m_renderCore->CreateIndexBuffer(temp2->indicies.Data(), sizeof(int) * temp2->indicies.Size(), temp2->indexBuffer.GetAddressOf());
 }
 
 void RenderHandler::Draw()
@@ -81,7 +71,7 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 {
 	Resources& resources = Resources::Get();
 
-	ModelStaticResource* model = static_cast<ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpath));
+	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpath));
 
 	shared_ptr<MeshRenderableStatic> newRenderable = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter++,
@@ -98,7 +88,7 @@ shared_ptr<MeshRenderableRigged> RenderHandler::CreateMeshRigged(const string& s
 {
 	Resources& resources = Resources::Get();
 
-	ModelRiggedResource* model = static_cast<ModelRiggedResource*>(resources.GetResource(ResourceTypeModelRigged, subpath));
+	const ModelRiggedResource* model = static_cast<const ModelRiggedResource*>(resources.GetResource(ResourceTypeModelRigged, subpath));
 
 	shared_ptr<MeshRenderableRigged> newRenderable = make_shared<MeshRenderableRigged>(
 		m_renderableIDCounter++,

@@ -28,7 +28,7 @@
 
 
 
-
+// TODO: Add instantiation of default values for every member.
 struct ModelResource : public BasicResource
 {
 	// Raw verticies and indicies from the model defining the mesh and submeshes
@@ -49,9 +49,8 @@ struct ModelResource : public BasicResource
 public:
 	// Constructors.
 	ModelResource() = default;
-	ModelResource(std::string name) : BasicResource(name)
-	{
-	}
+	ModelResource(std::string name) : BasicResource(name) {}
+
 	ModelResource(cs::List<int> p_indicies, cs::List<int> p_startIndicies, cs::List<int> p_indexCounts, cs::List<int> p_materialIndicies) :
 		BasicResource("Model"),
 		indicies(p_indicies),
@@ -70,6 +69,7 @@ struct ModelStaticResource : public ModelResource
 	// Constructor.
 	ModelStaticResource() = default;
 	ModelStaticResource(std::string name) : ModelResource(name) {}
+
 	ModelStaticResource(cs::List<VertexTextured> p_verticies, cs::List<int> p_indicies, cs::List<int> p_startIndicies, cs::List<int> p_indexCounts, cs::List<int> p_materialIndicies) :
 		ModelResource(p_indicies, p_startIndicies,  p_indexCounts, p_materialIndicies),
 		verticies(p_verticies) {};
@@ -90,6 +90,7 @@ struct ModelRiggedResource : public ModelResource
 	// Constructor.
 	ModelRiggedResource() = default;
 	ModelRiggedResource(std::string name) : ModelResource(name) {}
+
 	ModelRiggedResource(cs::List<VertexRigged> p_verticies, cs::List<int> p_indicies, cs::List<int> p_startIndicies, cs::List<int> p_indexCounts, cs::List<int> p_materialIndicies) :
 		ModelResource(p_indicies, p_startIndicies, p_indexCounts, p_materialIndicies),
 		verticies(p_verticies) {};

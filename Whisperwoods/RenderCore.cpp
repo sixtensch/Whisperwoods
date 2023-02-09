@@ -4,6 +4,7 @@
 #include "imgui_impl_dx11.h"
 #include "imgui_impl_win32.h"
 #include <d3dcompiler.h>
+#include <WICTextureLoader.h>
 
 RenderCore::RenderCore(shared_ptr<Window> window)
 {
@@ -200,7 +201,7 @@ void RenderCore::EndFrame()
     EXC_COMCHECK(m_swapChain->Present(0u, 0u));
 }
 
-HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP)
+HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
 {
     HRESULT hr = {};
     
@@ -226,7 +227,7 @@ HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11B
     return hr;
 }
 
-HRESULT RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP)
+HRESULT RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
 {
     HRESULT hr = {};
     D3D11_BUFFER_DESC bufferDesc = {};
@@ -279,6 +280,30 @@ HRESULT RenderCore::CreateImageTexture(char* image, UINT resHeight, UINT resWidt
     if ( FAILED(hr) )
         LOG_ERROR("Failed to create texture2d");
     return hr;
+}
+
+void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Texture2D>& textureResource) const
+{
+	// Load texture using DXTK from filepath.
+
+    ComPtr<ID3D11Resource> resource;
+    
+	EXC_COMCHECK(
+		dx::CreateWICTextureFromFileEx(
+            m_device.Get(),
+            m_context.Get(),
+            filePath.c_str(),
+			0,
+			D3D11_USAGE_IMMUTABLE,
+			D3D11_BIND_SHADER_RESOURCE,
+			0,
+			0,
+			dx::WIC_LOADER_IGNORE_SRGB | dx::WIC_LOADER_FORCE_RGBA32 | dx::WIC_LOADER_DEFAULT,
+			&resource,
+			nullptr)
+	);
+
+    EXC_COMCHECK(resource->QueryInterface(IID_ID3D11Texture2D, (void**)textureResource.GetAddressOf()));
 }
 
 void RenderCore::UpdateViewInfo(const Camera& camera)
