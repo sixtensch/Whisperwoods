@@ -55,24 +55,7 @@ void Whisperwoods::Run()
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
-	//FBXImporter importer;
-	//ModelRiggedResource riggedModel;
-	//importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &riggedModel );
-	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
-	//AnimationResource animationResource;
-	//importer.ImportFBXAnimations( "Assets/Shadii_Animated.fbx", &animationResource );
 
-	//// Read write test.
-	//ModelStaticResource staticTestModelWrite;
-	//importer.ImportFBXStatic( "Assets/Models/Characters/ShadiiTest.fbx", &staticTestModelWrite);
-
-	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
-	//ModelStaticResource staticTestModelRead;
-	//importer.LoadWWMStatic(path, &staticTestModelRead);
-
-	//std::string path2 = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
-	//ModelRiggedResource riggedTestModelRead;
-	//importer.LoadWWMRigged(path2, &riggedTestModelRead);
 
 	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("WWM/Shadii_Animated.wwm");
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("WWM/ShadiiTest.wwm");
@@ -80,10 +63,32 @@ void Whisperwoods::Run()
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	
+
+
+	// Lights
+
 	shared_ptr<PointLight> point = make_shared<PointLight>();
-	point->color = cs::Color3f(0x40FFFF);
-	point->intensity = 5.0f;
-	point->transform.position = Vec3(1, 0, 0);
+	point->color = cs::Color3f(0x4040FF);
+	point->intensity = 8.0f;
+	point->transform.position = Vec3(2, 0, 0);
+	Renderer::RegisterLight(point);
+
+	shared_ptr<SpotLight> spot = make_shared<SpotLight>();
+	spot->color = cs::Color3f(0x40FF40);
+	spot->intensity = 6.0f;
+	spot->transform.position = Vec3(0, 0, 0);
+	spot->transform.rotation = Quaternion::GetIdentity();
+	spot->fovInner = 0.15f;
+	spot->fovOuter = 0.2f;
+	spot->range = 100.0f;
+	Renderer::RegisterLight(spot);
+
+	shared_ptr<DirectionalLight> directional = Renderer::GetDirectionalLight();
+	directional->transform.position = { 0, 10, 0 };
+	directional->transform.SetRotationEuler({ 0.5f, 0.9f, 0.0f });
+	directional->diameter = 20.0f;
+	directional->intensity = 0.8f;
+	directional->color = cs::Color3f(0xFFFFB0);
 
 	//Quaternion rotation = Quaternion::GetAxis({ 0, 1.0f, 0 }, 1.0f);
 
@@ -110,14 +115,17 @@ void Whisperwoods::Run()
 		m_sound->Update();
 		rotationY += 2 * dTime;
 		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-
 		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
 
 
 		m_renderer->Draw();
+
+//#ifdef WW_DEBUG
 		m_renderer->BeginGui();
 		m_debug->DrawConsole();
 		m_renderer->EndGui();
+//#endif
+
 		m_renderer->Present();
 	}
 

@@ -31,7 +31,9 @@ void Renderer::Init(uint width, uint height)
 	m_renderHandler = make_unique<RenderHandler>();
 	m_renderHandler->InitCore(m_window);
 
+//#ifdef WW_DEBUG
 	m_gui = make_unique<GUI>(m_renderHandler->GetCore(), true, true);
+//#endif
 
 	m_window->Show(true);
 }
@@ -73,7 +75,7 @@ shared_ptr<MeshRenderableRigged> Renderer::CreateMeshRigged(const string& subpat
 
 shared_ptr<DirectionalLight> Renderer::GetDirectionalLight()
 {
-	return s_singleton->GetDirectionalLight();
+	return s_singleton->m_renderHandler->GetDirectionalLight();
 }
 
 bool Renderer::RegisterLight(shared_ptr<PointLight> pointLight)

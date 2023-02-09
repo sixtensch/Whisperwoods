@@ -22,7 +22,7 @@ void Transform::DecomposeWorldMatrixIntoWorldParameters()
 	DirectX::XMStoreFloat3(&f3Translation, outTranslation);
 
 	// Store into parameters.
-	worldPosition = Vec3(f3Translation.x, f3Translation.y, f3Translation.z);
+	worldPosition = Vec3(-f3Translation.x, -f3Translation.y, -f3Translation.z);
 	worldRotation = Quaternion(f4Rotation.x, f4Rotation.y, f4Rotation.z, f4Rotation.w);
 	worldScale = Vec3(f3Scale.x, f3Scale.y, f3Scale.z);
 }

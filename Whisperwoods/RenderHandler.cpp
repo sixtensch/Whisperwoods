@@ -13,15 +13,13 @@ RenderHandler::~RenderHandler()
 
 void RenderHandler::InitCore(shared_ptr<Window> window)
 {
-	m_lightAmbient = cs::Color3f(0xFFFFFF);
-	m_lightAmbientIntensity = 0.5f;
+	m_lightAmbient = cs::Color3f(0xB0B0FF);
+	m_lightAmbientIntensity = 0.1f;
 
 	m_lightDirectional = make_unique<DirectionalLight>();
-	m_lightDirectional->transform.position = { 0, 10, 0 };
-	m_lightDirectional->transform.SetRotationEuler({ 0.5f, 0.9f, 0.0f });
-	m_lightDirectional->diameter = 20.0f;
-	m_lightDirectional->intensity = 1.0f;
-	m_lightDirectional->color = cs::Color3f(0xFFFFB0);
+	m_lightDirectional->diameter = 100.0f;
+	m_lightDirectional->intensity = 0.0f;
+	m_lightDirectional->color = cs::Color3f(0xFFFFFF);
 
 	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 100.0f );
 	m_mainCamera.CalculatePerspectiveProjection();

@@ -23,9 +23,9 @@ namespace CB
 		SpotLight::Data spots[LIGHT_CAPACITY_SPOT];
 
 		Vec3 ambientIntensity;
-		uint spotCount;
-		Vec3 cameraPosition;
 		uint pointCount;
+		Vec3 cameraPosition;
+		uint spotCount;
 	};
 	// etc
 }
