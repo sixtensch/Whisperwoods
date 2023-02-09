@@ -70,26 +70,26 @@ void Resources::LoadAssetDirectory(const RenderCore* const renderCore)
 	LoadCompositeResources(renderCore);
 }
 
-const BasicResource* Resources::GetResource(const ResourceType resourceType, const std::string subPath) const
+const BasicResource* Resources::GetResource(const ResourceType resourceType, std::string filename) const
 {
-	return (const BasicResource*)GetWritableResource(resourceType, subPath);
+	return (const BasicResource*)GetWritableResource(resourceType, filename);
 }
 
-BasicResource* Resources::GetWritableResource(const ResourceType resourceType, std::string subPath) const
+BasicResource* Resources::GetWritableResource(const ResourceType resourceType, std::string filename) const
 {
 	auto& resourceMap = m_resourceMaps[resourceType];
-	auto it = resourceMap.find(subPath);
+	auto it = resourceMap.find(filename);
 
 	if (it == resourceMap.end())
 	{
-		EXC("Resource '%s' does not exist. Called with ResourceType = %d.", subPath.c_str(), resourceType)
+		EXC("Resource '%s' does not exist. Called with ResourceType = %d.", filename.c_str(), resourceType)
 			return nullptr;
 	}
 
 	return it->second.get();
 }
 
-BasicResource* Resources::AllocateResource(ResourceType resourceType, const std::string subPath, const std::string resourceName)
+BasicResource* Resources::AllocateResource(ResourceType resourceType, const std::string filename, const std::string resourceName)
 {
 	std::shared_ptr<BasicResource> resource = nullptr;
 
@@ -122,7 +122,7 @@ BasicResource* Resources::AllocateResource(ResourceType resourceType, const std:
 	}
 
 	auto& resourceMap = m_resourceMaps[resourceType]; 
-	const auto& returnIt = resourceMap.insert({ subPath, std::move(resource) });
+	const auto& returnIt = resourceMap.insert({ filename, std::move(resource) });
 
 	bool isSuccessful = returnIt.second;
 	// Some complicated type that boils down to a Pair structure as { key (string), value (shared ptr) }
@@ -133,7 +133,7 @@ BasicResource* Resources::AllocateResource(ResourceType resourceType, const std:
 		std::string blockerName = insertionIt->second.get()->name;
 		std::string blockerPath = insertionIt->first;
 		EXC("Failed to create resource of type '%s' with path '%s'. Prevented by resource '%s' with path '%s'", 
-			resourceName.c_str(), subPath.c_str(), blockerName.c_str(), blockerPath.c_str());
+			resourceName.c_str(), filename.c_str(), blockerName.c_str(), blockerPath.c_str());
 	}
 	
 	return insertionIt->second.get();
@@ -177,7 +177,8 @@ void Resources::LoadSounds()
 	for (fs::path& path : soundPaths)
 	{
 		std::string filePath = path.string();
-		SoundResource* soundResource = (SoundResource*)AllocateResource(ResourceTypeSound, filePath, path.filename().string());
+		std::string filename = path.filename().string();
+		SoundResource* soundResource = (SoundResource*)AllocateResource(ResourceTypeSound, filename, filename);
 
 		if (!Sound::Get().LoadSound(filePath, soundResource->currentSound))
 		{
@@ -193,7 +194,8 @@ void Resources::LoadTextures(const RenderCore* const renderCore)
 	for (fs::path& path : texturePaths)
 	{
 		std::string filePath = path.string();
-		TextureResource* textureResource = (TextureResource*)AllocateResource(ResourceTypeTexture, filePath, path.filename().string());
+		std::string filename = path.filename().string();
+		TextureResource* textureResource = (TextureResource*)AllocateResource(ResourceTypeTexture, filename, filename);
 		
 		// Will throw exception if failed.
 		renderCore->LoadImageTexture(wstring(filePath.begin(), filePath.end()), textureResource->texture2D);
@@ -219,7 +221,8 @@ void Resources::LoadModelStaticResources(const RenderCore* const renderCore)
 	for (fs::path& path : staticModelPaths)
 	{
 		std::string filePath = path.string();
-		ModelStaticResource* modelStaticResource = (ModelStaticResource*)AllocateResource(ResourceTypeModelStatic, filePath, path.filename().string());
+		std::string filename = path.filename().string();
+		ModelStaticResource* modelStaticResource = (ModelStaticResource*)AllocateResource(ResourceTypeModelStatic, filename, filename);
 
 		if (!FBXImporter::LoadWWMStatic(filePath, modelStaticResource))
 		{
@@ -240,7 +243,8 @@ void Resources::LoadModelRiggedResources(const RenderCore* const renderCore)
 	for (fs::path& path : riggedModelPaths)
 	{
 		std::string filePath = path.string();
-		ModelRiggedResource* modelRiggedResource = (ModelRiggedResource*)AllocateResource(ResourceTypeModelRigged, filePath, path.filename().string());
+		std::string filename = path.filename().string();
+		ModelRiggedResource* modelRiggedResource = (ModelRiggedResource*)AllocateResource(ResourceTypeModelRigged, filename, filename);
 
 		if (!FBXImporter::LoadWWMRigged(filePath, modelRiggedResource))
 		{
