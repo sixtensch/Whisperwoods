@@ -33,7 +33,9 @@ void Renderer::Init(uint width, uint height)
 	m_renderHandler = make_unique<RenderHandler>();
 	m_renderHandler->InitCore(m_window);
 
-	m_gui = make_unique<GUI>(m_renderHandler->GetCore(), true, false);
+//#ifdef WW_DEBUG
+	m_gui = make_unique<GUI>(m_renderHandler->GetCore(), true, true);
+//#endif
 
 	m_window->Show(true);
 }
@@ -77,18 +79,31 @@ shared_ptr<MeshRenderableRigged> Renderer::CreateMeshRigged(const string& subpat
 
 
 /// </summary>
-/// <param name="text"></param> What text you want to render
-/// <param name="fontPos"></param> Where on the screen the text will be shown
-/// <param name="font"></param>Which font (and size) of text
-/// <param name="color"></param> Color of the text
-/// <param name="origin"></param> Origin on the text "window", use for alligment
+/// <param name="text">What text you want to render</param> 
+/// <param name="fontPos">Where on the screen the text will be shown</param> 
+/// <param name="font">Which font (and size) of text</param>
+/// <param name="color">Color of the text</param> 
+/// <param name="origin">Origin on the text "window", use for alligment</param> 
 /// <returns></returns>
 shared_ptr<TextRenderable> Renderer::CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin)
 {
 	return s_singleton->m_renderHandler->CreateTextRenderable(text, fontPos, font, color, origin);
 }
 
+shared_ptr<DirectionalLight> Renderer::GetDirectionalLight()
+{
+	return s_singleton->m_renderHandler->GetDirectionalLight();
+}
 
+bool Renderer::RegisterLight(shared_ptr<PointLight> pointLight)
+{
+	return s_singleton->m_renderHandler->RegisterPointLight(pointLight);
+}
+
+bool Renderer::RegisterLight(shared_ptr<SpotLight> spotLight)
+{
+	return s_singleton->m_renderHandler->RegisterSpotLight(spotLight);
+}
 
 Camera& Renderer::GetCamera()
 {

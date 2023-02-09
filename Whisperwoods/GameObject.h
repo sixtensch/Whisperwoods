@@ -11,7 +11,7 @@ public:
 	cs::List<GameObject*> gameObjects; // Children
 public:
 	// Constructors
-	GameObject() { name = "Nameless GameObject"; }
+	GameObject();
 	GameObject(std::string p_name);
 	GameObject(std::string p_name, Transform p_transform);
 	

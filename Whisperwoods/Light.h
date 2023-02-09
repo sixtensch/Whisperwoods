@@ -11,8 +11,8 @@ enum LightType
 
 struct Light : GameObject // Inherits a transform.
 {
-	cs::Color3f color;
-	float intensity;
+	cs::Color3f color		= cs::Color3f(0xFFFFFF);
+	float intensity			= 1.0f;
 };
 
 struct DirectionalLight : Light
@@ -25,13 +25,13 @@ struct DirectionalLight : Light
 	};
 
 	// Member data
-	float diameter;
+	float diameter		= 100.0f;
 
 	// Processed data
 	Camera camera;
 	Data bufferData;
 
-	void Update();
+	void Update() override;
 };
 
 struct PointLight : Light
@@ -44,12 +44,12 @@ struct PointLight : Light
 	};
 
 	// Member data
-	float range;
+	float range				= 100.0f;
 
 	// Processed data
 	Data bufferData;
 
-	void Update();
+	void Update() override;
 };
 
 struct SpotLight : Light
@@ -66,13 +66,13 @@ struct SpotLight : Light
 	};
 
 	// Member data
-	float fovOuter;
-	float fovInner;
-	float range;
+	float fovOuter			= 0.15f;
+	float fovInner			= 0.20f;
+	float range				= 100.0f;
 
 	// Processed data
 	Camera camera;
 	Data bufferData;
 
-	void Update();
+	void Update() override;
 };
