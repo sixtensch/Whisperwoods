@@ -190,7 +190,7 @@ void RenderCore::EndFrame()
     EXC_COMCHECK(m_swapChain->Present(0u, 0u));
 }
 
-HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP)
+HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
 {
     HRESULT hr = {};
     
@@ -216,7 +216,7 @@ HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11B
     return hr;
 }
 
-HRESULT RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP)
+HRESULT RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
 {
     HRESULT hr = {};
     D3D11_BUFFER_DESC bufferDesc = {};
