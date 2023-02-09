@@ -81,10 +81,6 @@ void Whisperwoods::Run()
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-
-
-	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Characters/ShadiiTest.fbx");
-	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0);
 	
 	dx::SimpleMath::Vector2 posTest;
 	posTest.x = 100;
@@ -93,10 +89,8 @@ void Whisperwoods::Run()
 	cs::Color4f color(0.034f, 0.255f, 0.0f, 1.0f);
 	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color);
 
-
 	int frames = 0;
 	cs::Timer deltaTimer;
-
 
 	for (bool running = true; running; frames++)
 	{

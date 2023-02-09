@@ -61,6 +61,9 @@ private:
 	ComPtr<ID3D11DeviceContext> m_context;
 	ComPtr<IDXGISwapChain> m_swapChain;
 
+	ComPtr<ID3D11RasterizerState> m_rasterizerState;
+	ComPtr<ID3D11BlendState> m_blendState;
+
 	// Back buffer
 	ComPtr<ID3D11Texture2D> m_bbTexture;
 	ComPtr<ID3D11RenderTargetView> m_bbRTV;
@@ -69,6 +72,7 @@ private:
 
 	// Depth stencil
 	ComPtr<ID3D11Texture2D> m_dsTexture;
+	ComPtr<ID3D11DepthStencilState> m_dsDSS;
 	ComPtr<ID3D11DepthStencilView> m_dsDSV;
 	ComPtr<ID3D11ShaderResourceView> m_dsSRV;
 

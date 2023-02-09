@@ -43,17 +43,10 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 void RenderHandler::Draw()
 {
 	m_renderCore->NewFrame();
+
     m_renderCore->UpdateViewInfo(m_mainCamera);
 	
 	
-	for (int i = 0; i < m_texts.Size(); i++)
-	{
-		m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont(), m_texts[i].get()->GetColor());
-	}
-
-
-
-
 	// Main scene rendering
 
 	m_lightDirectional.Update();
@@ -68,7 +61,14 @@ void RenderHandler::Draw()
 			m_renderCore->DrawObject(m_worldRenderables[i].get(), false);
         }
     }
+
+	for (int i = 0; i < m_texts.Size(); i++)
+	{
+		m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont(), m_texts[i].get()->GetColor());
+	}
 }
+
+
 
 void RenderHandler::Present()
 {
@@ -123,6 +123,6 @@ shared_ptr<MeshRenderableRigged> RenderHandler::CreateMeshRigged(const string& s
 shared_ptr<TextRenderable> RenderHandler::CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color)
 {
 	shared_ptr<TextRenderable> newRenderable = make_shared<TextRenderable>(text, fontPos, font, color);
-	m_texts.Add(newRenderable);
+	m_texts.Add((shared_ptr<TextRenderable>)newRenderable);
 	return newRenderable;
 }
