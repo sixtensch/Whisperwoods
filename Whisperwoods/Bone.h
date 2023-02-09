@@ -13,9 +13,6 @@ struct Bone
 	DirectX::XMFLOAT4X4 posedMatrix;
 	Bone() = default;
 	~Bone() = default;
-	//DirectX::XMFLOAT4X4 bindMatrix; // Inverse Draw matrix
-	//aiMatrix4x4 localMatrix;	// local Transform
-	//aiMatrix4x4 modelMatrix;	// model Transform
 };
 
 struct BoneSerialized

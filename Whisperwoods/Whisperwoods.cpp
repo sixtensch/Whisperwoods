@@ -27,16 +27,23 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
 	FBXImporter importer;
-	ModelRiggedResource riggedModel;
-	importer.ImportFBXRigged("Assets/Shadii_Animated2.fbx", &riggedModel);
-	std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/Rigged/");
+	//ModelRiggedResource shadiiAnimated;
+	//ModelRiggedResource shadiiAnimated2;
+	//ModelRiggedResource shadiiAnimations;
+	//importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &shadiiAnimated );
+	//importer.ImportFBXRigged( "Assets/Shadii_Animated2.fbx", &shadiiAnimated2 );
+	//importer.ImportFBXRigged( "Assets/Shadii_Animations.fbx", &shadiiAnimations );
+	//std::string path1 = importer.SaveWMM(&shadiiAnimated, "Assets/Models/Rigged/");
+	//std::string path2 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
+	//std::string path3 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
+
+
 	//importer.ImportFBXRigged("Assets/Shadii_Animations.fbx", &riggedModel);
 	//path = importer.SaveWMM(&riggedModel, "Assets/Models/Rigged/");
 
-	////FBXImporter importer;
-	ModelStaticResource staticTestModelWrite;
+	/*ModelStaticResource staticTestModelWrite;
 	importer.ImportFBXStatic( "Assets/Debug_Sphere.fbx", &staticTestModelWrite);
-	std::string path2 = importer.SaveWMM(&staticTestModelWrite, "Assets/Models/Static/");
+	std::string path4 = importer.SaveWMM(&staticTestModelWrite, "Assets/Models/Static/");*/
 
 	m_sound = std::make_unique<Sound>();
 	m_debug->CaptureSound(m_sound.get());
@@ -72,32 +79,20 @@ void Whisperwoods::Run()
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
-	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
-	//ModelStaticResource staticTestModelRead;
-	//importer.LoadWWMStatic(path, &staticTestModelRead);
-
-	//std::string path2 = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
-	//ModelRiggedResource riggedTestModelRead;
-	//importer.LoadWWMRigged(path2, &riggedTestModelRead);
-
-	
-
-	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Assets/Models/Rigged/Shadii_Animated2.wwm");
+	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Assets/Models/Rigged/Shadii_Animated.wwm");
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("Assets/Models/Static/ShadiiTest.wwm");
-
-	shared_ptr<MeshRenderableStatic> meshSphere = Renderer::CreateMeshStatic("Assets/Models/Static/Debug_Sphere.wwm");
+	//shared_ptr<MeshRenderableStatic> meshSphere = Renderer::CreateMeshStatic("Assets/Models/Static/Debug_Sphere.wwm");
 
 
 	Resources resources = Resources::Get();
-	Animator testAnimator((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Assets/Models/Rigged/Shadii_Animated2.wwm"));
 
+	Animator testAnimator((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Assets/Models/Rigged/Shadii_Animated.wwm"));
+	ModelRiggedResource* printReference = (ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Assets/Models/Rigged/Shadii_Animated2.wwm");
 
-	ModelRiggedResource* ref = (ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Assets/Models/Rigged/Shadii_Animated2.wwm");
-
-	for (int i = 0; i < ref->armature.bones.Size(); i++)
+	for (int i = 0; i < printReference->armature.bones.Size(); i++)
 	{
-		std::string boneName = ref->armature.bones[i].name;
-		DirectX::XMFLOAT4X4 m = ref->armature.bones[i].inverseBindMatrix;
+		std::string boneName = printReference->armature.bones[i].name;
+		DirectX::XMFLOAT4X4 m = printReference->armature.bones[i].inverseBindMatrix;
 		LOG_TRACE("Inverse Bind Matrix For: %s\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n",
 			boneName.c_str(),
 			m._11, m._12, m._13, m._14,

@@ -1,6 +1,22 @@
 #include "Core.h"
 #include "Animator.h"
 
+Quaternion AnimatorAnimation::Squad( Quaternion q0, Quaternion q1, Quaternion q2, Quaternion q3, float t )
+{
+	DirectX::XMVECTOR Q0 = DirectX::XMVectorSet( (float)q0.x, (float)q0.y, (float)q0.z, (float)q0.w );
+	DirectX::XMVECTOR Q1 = DirectX::XMVectorSet( (float)q1.x, (float)q1.y, (float)q1.z, (float)q1.w );
+	DirectX::XMVECTOR Q2 = DirectX::XMVectorSet( (float)q2.x, (float)q2.y, (float)q2.z, (float)q2.w );
+	DirectX::XMVECTOR Q3 = DirectX::XMVectorSet( (float)q3.x, (float)q3.y, (float)q3.z, (float)q3.w );
+	DirectX::XMVECTOR pA = DirectX::XMVectorZero();
+	DirectX::XMVECTOR pB = DirectX::XMVectorZero();
+	DirectX::XMVECTOR pC = DirectX::XMVectorZero();
+	DirectX::XMQuaternionSquadSetup( &pA, &pB, &pC, Q0, Q1, Q2, Q3 );
+	DirectX::XMVECTOR OUTPUT = DirectX::XMQuaternionSquad( Q1, pA, pB, pC, t );
+	DirectX::XMFLOAT4 FL4;
+	DirectX::XMStoreFloat4( &FL4, OUTPUT );
+	return Quaternion( FL4.x, FL4.y, FL4.z, FL4.w );
+}
+
 Vec3 AnimatorAnimation::GetInterpolatedValue( cs::List<Vec3KeyFrame> keys, float time, float duration )
 {
 	//int index = (int)((float)t * (float)keys.size());
@@ -54,31 +70,31 @@ Quaternion AnimatorAnimation::GetInterpolatedValue( cs::List<QuatKeyFrame> keys,
 	}
 	if (keys.Size() >= 4) // if big enough keyset, use squad
 	{
+		float realTime = (keys[index].time / duration);
 		// if the chosen key is ahead of the real time
-		if ((keys[index].time / duration) > time)
+		if (realTime == time)
 		{
-			int q0i = ((index - 2) % keys.Size());
-			int q1i = ((index - 1) % keys.Size());
-			int q2i = ((index) % keys.Size());
-			int q3i = ((index + 1) % keys.Size());
-			float fT = ((duration * time) - keys[q1i].time) / (keys[q2i].time - keys[q1i].time);
-			//return Quaternion::Squad( keys[q0i].value, keys[q1i].value, keys[q2i].value, keys[q3i].value, fT ); // Wheres my squad at >:V *angry quack*
-			return Quaternion::GetSlerp( keys[q1i].value, keys[q2i].value, fT );
-
+			return keys[index].value;
 		}
-		else if ((keys[index].time / duration) < time)
+		else if (realTime > time)
 		{
-			int q0i = ((index - 1) % keys.Size());
-			int q1i = ((index) % keys.Size());
-			int q2i = ((index + 1) % keys.Size());
-			int q3i = ((index + 2) % keys.Size());
+			int size = keys.Size();
+			int q0i = ((index + size - 2) % size);
+			int q1i = ((index + size - 1) % size);
+			int q2i = ((index + size) % size);
+			int q3i = ((index + size + 1) % size);
 			float fT = ((duration * time) - keys[q1i].time) / (keys[q2i].time - keys[q1i].time);
-			//return Quaternion::Squad( keys[q0i].value, keys[q1i].value, keys[q2i].value, keys[q3i].value, fT ); // ditto
-			return Quaternion::GetSlerp( keys[q1i].value, keys[q2i].value, fT );
+			return Squad( keys[q0i].value, keys[q1i].value, keys[q2i].value, keys[q3i].value, fT );
 		}
 		else
 		{
-			return keys[index].value;
+			int size = keys.Size();
+			int q0i = ((index + size - 1) % size);
+			int q1i = ((index + size) % size);
+			int q2i = ((index + size + 1) % size);
+			int q3i = ((index + size + 2) % size);
+			float fT = ((duration * time) - keys[q1i].time) / (keys[q2i].time - keys[q1i].time);
+			return Squad( keys[q0i].value, keys[q1i].value, keys[q2i].value, keys[q3i].value, fT );
 		}
 	}
 	else if (keys.Size() >= 3)// otherwise use slerp

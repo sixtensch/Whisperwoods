@@ -42,6 +42,8 @@ struct AnimatorAnimation // Holds the middleman data for the various playback ti
 		return a * (1.0f - t) + b * t;
 	}
 
+	Quaternion Squad( Quaternion q0, Quaternion q1, Quaternion q2, Quaternion q3, float t );
+
 	AnimatorAnimation() : time( 0.0f ), speed( 1.0f ), influence( 1.0f ) { sourceAnimation = nullptr;  }
 
 	AnimatorAnimation( float initTime, float playbackSpeed, float influence, Animation* sourceAnimation, ModelRiggedResource* modelReference):
@@ -117,6 +119,8 @@ public:
 	{
 		return a * (1.0f - t) + b * t;
 	}
+
+
 	// Per frame interpolation of all different animations that might be loaded. TODO: USE BIND POSE AS BASE
 	void CombineAnimations()
 	{
