@@ -5,7 +5,11 @@
 #include "ConstantbufferData.h"
 #include "Pipeline.h"
 #include "Renderable.h"
+#include "Font.h"
+#include "SimpleMath.h"
+#include <SpriteFont.h>
 #include "Light.h"
+
 
 class RenderCore
 {
@@ -41,12 +45,11 @@ public:
 		const cs::List<PointLight>& lightsPoint,
 		const cs::List<SpotLight>& lightsSpot);
 
-	//ComPtr<ID3D11ShaderResourceView> matrixSRV
-
-
-
+	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color);
 
 	void InitImGui() const;
+
+	void InitFont(std::unique_ptr<dx::SpriteFont> fonts[FontCount], std::unique_ptr<dx::SpriteBatch> * batch) const;
 
 private:
 	void BindPipeline(PipelineType pipeline, bool shadowing);
@@ -63,6 +66,9 @@ private:
 	ComPtr<ID3D11DeviceContext> m_context;
 	ComPtr<IDXGISwapChain> m_swapChain;
 
+	ComPtr<ID3D11RasterizerState> m_rasterizerState;
+	ComPtr<ID3D11BlendState> m_blendState;
+
 	// Back buffer
 	ComPtr<ID3D11Texture2D> m_bbTexture;
 	ComPtr<ID3D11RenderTargetView> m_bbRTV;
@@ -71,6 +77,7 @@ private:
 
 	// Depth stencil
 	ComPtr<ID3D11Texture2D> m_dsTexture;
+	ComPtr<ID3D11DepthStencilState> m_dsDSS;
 	ComPtr<ID3D11DepthStencilView> m_dsDSV;
 	ComPtr<ID3D11ShaderResourceView> m_dsSRV;
 
@@ -89,4 +96,7 @@ private:
 	ComPtr<ID3D11Buffer> m_lightBufferSpot;
 	ComPtr<ID3D11Buffer> m_lightBufferDir;
 	ComPtr<ID3D11Buffer> m_lightBufferStaging;
+
+	std::unique_ptr<dx::SpriteFont> m_fonts[FontCount];
+	std::unique_ptr<dx::SpriteBatch> m_spriteBatch;
 };

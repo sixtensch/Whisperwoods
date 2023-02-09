@@ -6,6 +6,8 @@
 #include "AudioSource.h"
 #include "FBXImporter.h"
 
+#include "TextRenderable.h"
+
 // TODO: Dudd include. Only used for getting test sound.
 #include "SoundResource.h"
 
@@ -78,7 +80,13 @@ void Whisperwoods::Run()
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-
+	
+	dx::SimpleMath::Vector2 posTest;
+	posTest.x = 100;
+	posTest.y = 70;
+	const wchar_t* inputText = L"Shadii";
+	cs::Color4f color(0.034f, 0.255f, 0.0f, 1.0f);
+	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color);
 
 	int frames = 0;
 	cs::Timer deltaTimer;

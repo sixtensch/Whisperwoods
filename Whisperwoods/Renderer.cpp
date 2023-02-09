@@ -17,6 +17,8 @@ Renderer::Renderer(HINSTANCE instance)
 	s_singleton = this;
 
 	m_instance = instance;
+
+
 }
 
 Renderer::~Renderer()
@@ -70,6 +72,13 @@ shared_ptr<MeshRenderableRigged> Renderer::CreateMeshRigged(const string& subpat
 {
 	return s_singleton->m_renderHandler->CreateMeshRigged(subpath);
 }
+
+shared_ptr<TextRenderable> Renderer::CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color)
+{
+	return s_singleton->m_renderHandler->CreateTextRenderable(text, fontPos, font, color);
+}
+
+
 
 Camera& Renderer::GetCamera()
 {
