@@ -108,9 +108,10 @@ void Whisperwoods::Run()
 	Animation* animation = &resource->animations[2];
 	Animation* animation2 = &resource->animations[4];
 	Animation* animation3 = &resource->animations[5];
-	testAnimator.AddAnimation(animation, 0, 1, 1);
-	testAnimator.AddAnimation(animation2, 0, 1, 0.2f);
-	testAnimator.AddAnimation( animation3, 0, 1, 0.0f );
+	float speed = 1.5f;
+	testAnimator.AddAnimation(animation, 0, speed, 1);
+	testAnimator.AddAnimation(animation2, 0, speed, 0.2f);
+	testAnimator.AddAnimation( animation3, 0, speed, 0.0f );
 
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
@@ -152,8 +153,13 @@ void Whisperwoods::Run()
 
 		if (ImGui::Begin( "Animation" ))
 		{
-			ImGui::SliderFloat( "walk influence", &testAnimator.loadedAnimations[1].influence, 0.0f, 1.0f, "ratio = %.3f");
-			ImGui::SliderFloat( "crouch influence", &testAnimator.loadedAnimations[2].influence, 0.0f, 1.0f, "ratio = %.3f" );
+			ImGui::Text( "The base animation is %s", testAnimator.loadedAnimations[0].sourceAnimation->name.c_str());
+			ImGui::SliderFloat( testAnimator.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
+			ImGui::SliderFloat( testAnimator.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f" );
+			ImGui::SliderFloat( "Speed", &speed, 0.0f, 3.0f, "speed = %.3f" );
+			testAnimator.loadedAnimations[0].speed = speed;
+			testAnimator.loadedAnimations[1].speed = speed;
+			testAnimator.loadedAnimations[2].speed = speed;
 		}
 		ImGui::End();
 

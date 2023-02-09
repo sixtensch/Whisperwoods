@@ -3,7 +3,7 @@
 #include "ModelResource.h"
 #include "AnimationResource.h"
 #include "Transform.h"
-
+#include <thread>
 
 struct AnimatorChannel // Datastore for the interpolated animation channel values
 {
@@ -140,9 +140,6 @@ public:
 		return Quaternion( FL4.x, FL4.y, FL4.z, FL4.w );
 	}
 
-
-
-	
 	// Per frame interpolation of all different animations that might be loaded. TODO: USE BIND POSE AS BASE
 	void CombineAnimations()
 	{
@@ -181,7 +178,6 @@ public:
 			}
 		}
 	}
-
 
 	DirectX::XMMATRIX GetTransformationMatrix(Vec3 translation, Quaternion rotation, Vec3 scaling)
 	{
@@ -232,22 +228,6 @@ public:
 		rootBone->localRot = rootC->collectiveRot;
 		rootBone->localScale = rootC->collectiveScl;
 
-		////𝑴𝒐𝒅𝒆𝒍𝑻𝒙𝒊 = 𝑃𝑎𝑟𝑒𝑛𝑡𝑀𝑜𝑑𝑒𝑙𝑇𝑥𝑖∙𝐿𝑜𝑐𝑎𝑙𝑇𝑥𝑖
-		////𝑭𝒊𝒏𝒂𝒍𝑻𝒙𝒊 = 𝑀𝑜𝑑𝑒𝑙𝑇𝑥𝑖∙𝐵𝑖𝑛𝑑𝑀𝑜𝑑𝑒𝑙𝐼𝑛𝑣𝑒𝑟𝑠𝑒𝑇𝑥𝑖
-
-		//Mat4 globalInverse = modelReference->armature.globalInverseTransform;
-		//Mat4 rootModelTx = CalculateMatrix(rootBone->localPos, rootBone->localRot, rootBone->localScale);
-		////Mat4 rootModelTx = Mat4();
-		//Mat4 rootInverseBindTx = rootBone->inverseBindMatrix;
-		//Mat4 rootFinalTx = rootModelTx * rootInverseBindTx;
-		//rootFinalTx =  rootFinalTx * globalInverse;
-		//rootBone->posedMatrix = rootFinalTx;
-		//modelReference->armature.boneMatricies[0] = rootFinalTx;
-		//modelMatrixList[0] = rootModelTx;
-		//rootBone->posedMatrix = Mat4(rfMatXM).Transpose();
-		//modelReference->armature.boneMatricies[0] = rootBone->posedMatrix;
-		//modelMatrixList[0] = Mat4(rmMatXM).Transpose();
-
 		// DX code
 		DXMAT globalInverseXM = DirectX::XMLoadFloat4x4(&modelReference->armature.globalInverseTransform);
 		DXMAT rootModelXM = GetTransformationMatrix( rootBone->localPos, rootBone->localRot, rootBone->localScale );
@@ -277,27 +257,34 @@ public:
 			DirectX::XMStoreFloat4x4(&bone->posedMatrix, boneFinalXM);
 			DirectX::XMStoreFloat4x4(&modelMatrixList[i], boneModelXM);
 			modelReference->armature.boneMatricies[i] = bone->posedMatrix;
-
-			//bone->posedMatrix = Mat4(fMatXM).Transpose();
-			//modelReference->armature.boneMatricies[i] = bone->posedMatrix;
-			//modelMatrixList[i] = Mat4(mMatXM).Transpose();
-			//Mat4 boneLocalTx = CalculateMatrix( bone->localPos, bone->localRot, bone->localScale );
-			////Mat4 boneLocalTx = Mat4();
-			//Mat4 boneModelTx = boneLocalTx * modelMatrixList[bone->parentIndex];
-			//Mat4 boneInverseBindTx = bone->inverseBindMatrix;
-			//Mat4 boneFinalTx =  boneModelTx * boneInverseBindTx;
-			//bone->posedMatrix = boneFinalTx;
-			//modelReference->armature.boneMatricies[i] = bone->posedMatrix;
-			//modelMatrixList[i] = boneModelTx;
 		}
+	}
+
+	
+
+	struct AnimThreadInfo {
+		AnimatorAnimation* animation;
+		float deltaTime;
+		float playSpeed;
+		AnimThreadInfo( AnimatorAnimation* animation, float deltaTime, float playSpeed ) :
+			animation( animation ), deltaTime( deltaTime ), playSpeed( playSpeed ) {}
+	};
+
+	void ThreadedUpdate( AnimThreadInfo& params )
+	{
+		params.animation->UpdateAnimation( params.deltaTime, params.playSpeed );
 	}
 
 	void Update( float deltaTime )
 	{
 		if (modelReference && loadedAnimations.Size())
 		{
+			//std::vector<std::thread> threads;
 			for (unsigned int i = 0; i < loadedAnimations.Size(); i++)
 			{
+				/*AnimThreadInfo p( &loadedAnimations[i], deltaTime, playbackSpeed );
+				std::thread t( ThreadedUpdate, std::ref(p));
+				threads.push_back( t );*/
 				loadedAnimations[i].UpdateAnimation( deltaTime, playbackSpeed );
 			}
 			CombineAnimations();
