@@ -68,17 +68,17 @@ Debug::Debug()
 {
 	if (s_debug != nullptr)
 	{
-		throw "Debug singleton re-initialization.";	// TODO: Proper exceptions
+		EXC("Debug singleton re-initialization.");
 	}
 
 	s_debug = this;
 
-	dTimeAverage16 = 0.0f;
-	dTimeAverage256 = 0.0f;
-	fpsAverage16 = 0.0f;
-	fpsAverage256 = 0.0f;
-	dTimeAccumulator16 = 0.0f;
-	dTimeAccumulator256 = 0.0f;
+	m_dTimeAverage16 = 0.0f;
+	m_dTimeAverage256 = 0.0f;
+	m_fpsAverage16 = 0.0f;
+	m_fpsAverage256 = 0.0f;
+	m_dTimeAccumulator16 = 0.0f;
+	m_dTimeAccumulator256 = 0.0f;
 
 	m_initialized = true;
 	m_tempBuffer = new char[c_tempBufferSize + 1] { '\0' };
@@ -120,10 +120,15 @@ void Debug::DestroyConsole()
 
 void Debug::DrawConsole()
 {
+	if (ImGui::Begin("FPS counter"))
+	{
+		ImGui::Text("Last 16 frames average FPS: %f", m_fpsAverage16);
+		ImGui::Text("Last 256 frames average FPS: %f", m_fpsAverage256);
+	}
+	ImGui::End();
+
 	if (ImGui::Begin("Debug Console", nullptr, ImGuiWindowFlags_MenuBar))
 	{
-		
-
 	
 		if (ImGui::BeginMenuBar())
 		{
@@ -139,12 +144,6 @@ void Debug::DrawConsole()
 					PushMessage("Triggered from console widget.", (DebugLevel)std::max(m_debugLevel, DebugLevelWarn), "Debug level set to %s.", strings[m_debugLevel]);
 				}
 				ImGui::EndMenu();
-			}
-			if (ImGui::Begin("FPS counter"))
-			{
-				ImGui::Text("Last 16 frames average FPS: %f", fpsAverage16);
-				ImGui::Text("Last 256 frames average FPS: %f", fpsAverage256);
-				ImGui::End();
 			}
 			if (ImGui::BeginMenu("Display"))
 			{
@@ -274,25 +273,25 @@ void Debug::WriteLog()
 
 void Debug::CalculateFps(float dTime) // Calculates fps to member variables Imgui uses
 {
-	dTimeAccumulator16 += dTime;
-	dTimeAccumulator256 += dTime;
-	dTimeQueue16.Push(dTime);
-	dTimeQueue256.Push(dTime);
+	m_dTimeAccumulator16 += dTime;
+	m_dTimeAccumulator256 += dTime;
+	m_dTimeQueue16.Push(dTime);
+	m_dTimeQueue256.Push(dTime);
 
-	if (dTimeQueue16.Size() == 16)
+	if (m_dTimeQueue16.Size() == 16)
 	{
-		dTimeAccumulator16 -= dTimeQueue16.Pop();
+		m_dTimeAccumulator16 -= m_dTimeQueue16.Pop();
 	}
 
-	if (dTimeQueue256.Size() == 256)
+	if (m_dTimeQueue256.Size() == 256)
 	{
-		dTimeAccumulator256 -= dTimeQueue256.Pop();
+		m_dTimeAccumulator256 -= m_dTimeQueue256.Pop();
 	}
 
-	dTimeAverage16 = dTimeAccumulator16 / dTimeQueue16.Size();
-	dTimeAverage256 = dTimeAccumulator256 / dTimeQueue256.Size();
-	fpsAverage16 = 1.0f / dTimeAverage16;
-	fpsAverage256 = 1.0f / dTimeAverage256;
+	m_dTimeAverage16 = m_dTimeAccumulator16 / m_dTimeQueue16.Size();
+	m_dTimeAverage256 = m_dTimeAccumulator256 / m_dTimeQueue256.Size();
+	m_fpsAverage16 = 1.0f / m_dTimeAverage16;
+	m_fpsAverage256 = 1.0f / m_dTimeAverage256;
 }
 
 
@@ -302,7 +301,7 @@ Debug& Debug::Get()
 #ifdef WW_DEBUG
 	if (s_debug == nullptr)
 	{
-		throw "Debug singleton not found.";	// TODO: Proper exceptions
+		EXC("Debug singleton not found (is nullptr).");
 	}
 #endif
 

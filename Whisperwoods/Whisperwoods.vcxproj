@@ -48,6 +48,7 @@
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="TextRenderable.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="Whisperwoods.cpp" />
@@ -69,6 +70,7 @@
     <ClInclude Include="Debug.h" />
     <ClInclude Include="DrawInfo.h" />
     <ClInclude Include="FBXImporter.h" />
+    <ClInclude Include="Font.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GUI.h" />
@@ -88,6 +90,7 @@
     <ClInclude Include="ShaderResource.h" />
     <ClInclude Include="Sound.h" />
     <ClInclude Include="SoundResource.h" />
+    <ClInclude Include="TextRenderable.h" />
     <ClInclude Include="TextureResource.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Vertex.h" />
@@ -133,6 +136,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\myfileb.spritefont" />
     <None Include="Constants.hlsli" />
     <None Include="PhongAlg.hlsli" />
   </ItemGroup>

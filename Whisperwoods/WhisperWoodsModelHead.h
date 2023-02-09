@@ -6,4 +6,5 @@ struct WhisperWoodsModelHead
 	int numVerticies;
 	int numIndicies;
 	int numSubMeshes;
+	int numBones;
 };
