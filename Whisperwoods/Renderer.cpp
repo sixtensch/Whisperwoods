@@ -68,12 +68,21 @@ shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpat
 	return s_singleton->m_renderHandler->CreateMeshStatic(subpath);
 }
 
+
 shared_ptr<MeshRenderableRigged> Renderer::CreateMeshRigged(const string& subpath)
 {
 	return s_singleton->m_renderHandler->CreateMeshRigged(subpath);
 }
 
-//															Text seen				screen position				font			color			origin of text (where it alligns)
+
+
+/// </summary>
+/// <param name="text"></param> What text you want to render
+/// <param name="fontPos"></param> Where on the screen the text will be shown
+/// <param name="font"></param>Which font (and size) of text
+/// <param name="color"></param> Color of the text
+/// <param name="origin"></param> Origin on the text "window", use for alligment
+/// <returns></returns>
 shared_ptr<TextRenderable> Renderer::CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin)
 {
 	return s_singleton->m_renderHandler->CreateTextRenderable(text, fontPos, font, color, origin);
