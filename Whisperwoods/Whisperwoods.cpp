@@ -88,7 +88,7 @@ void Whisperwoods::Run()
 
 	shared_ptr<SpotLight> spot = make_shared<SpotLight>();
 	spot->color = cs::Color3f(0x40FF40);
-	spot->intensity = 6.0f;
+	spot->intensity = 1.0f;
 	spot->transform.position = Vec3(0, 0, 0);
 	spot->transform.rotation = Quaternion::GetIdentity();
 	spot->fovInner = 0.15f;
