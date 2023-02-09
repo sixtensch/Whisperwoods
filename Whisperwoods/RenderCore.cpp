@@ -453,7 +453,8 @@ void RenderCore::InitPipelines()
 
     // Standard pipeline rigged (blinn-phong)
 
-    m_pipelines[PipelineTypeStandardRigged] = m_pipelines[PipelineTypeStandard];
+    m_pipelines[PipelineTypeStandardRigged].primitiveTopology = m_pipelines[PipelineTypeStandard].primitiveTopology;
+    m_pipelines[PipelineTypeStandardRigged].pixelShader = m_pipelines[PipelineTypeStandard].pixelShader;
 
     EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"VSMeshRigged.cso", &blob));
     EXC_COMCHECK(m_device->CreateVertexShader(
