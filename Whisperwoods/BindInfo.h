@@ -42,7 +42,7 @@ enum RegCBV : char
 	RegCBVObjectInfo = 10,		// World matrix, etc
 	RegCBVMaterialInfo = 11,
 	RegCBVClientInfo = 12,		// Screen size, etc
-	RegCBVLightInfo = 13,
+	RegCBVShadingInfo = 13,
 
 	RegCBVCount = 14	// <-- Keep last!
 };

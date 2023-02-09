@@ -30,12 +30,20 @@ public:
 	shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color);
 
 
+	shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
+
 private:
 	unique_ptr<RenderCore> m_renderCore;
 
 	uint m_renderableIDCounter;
 	cs::List<shared_ptr<WorldRenderable>> m_worldRenderables;
 	cs::List<shared_ptr<TextRenderable>> m_texts;
+
+	cs::Color3f m_lightAmbient;
+	float m_lightAmbientIntensity;
+	DirectionalLight m_lightDirectional;
+	cs::List<PointLight> m_lightsPoint;
+	cs::List<SpotLight> m_lightsSpot;
 
 	Camera m_mainCamera;
 

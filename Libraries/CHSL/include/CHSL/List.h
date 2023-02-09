@@ -59,6 +59,8 @@ namespace cs
         T& Front() const;
         T& Back() const;
 
+
+
         template<typename T_value>
         int SearchBinary(T_value target, T_value predicate(const T&)) const; // Only works for sorted lists (per the predicate). Returns -1 when the target is not found.
         template<typename T_value>
@@ -71,8 +73,10 @@ namespace cs
 
         void Insert(int index, const T& value);
         void Remove(int index);
-        void MassRemove(const int* indices, int indexCount);
+        void MassRemove(const int indices[], int indexCount);
         void Add(const T& value);
+        void MassAdd(const T values[], int valueCount, bool copy = false);  // Sequentially add, or bulk copy, large volume of data into the array
+        T* MassAdd(int valueCount);                                         // Brace for impact, growing array and returning pointer to where data can be placed.
         void Clear(bool shrink = true);
         T Pop();
 
@@ -84,7 +88,8 @@ namespace cs
     private:
         void BoundArray();
         void ShrinkArray();
-        void GrowArray();
+        void GrowArray(int newCapacity);
+        void GrowToFit(int newCapacity);
 
     private:
         static constexpr int c_dCapacity = 8;
@@ -409,7 +414,7 @@ namespace cs
     }
 
     template<typename T>
-    inline void List<T>::MassRemove(const int* indices, int indexCount)
+    inline void List<T>::MassRemove(const int indices[], int indexCount)
     {
         int currentIndex = 1;
         int backCounter = 1;
@@ -437,6 +442,35 @@ namespace cs
 
         m_size++;
 
+    }
+
+    template<typename T>
+    inline void List<T>::MassAdd(const T values[], int valueCount, bool copy)
+    {
+        if (copy)
+        {
+            memcpy(MassAdd(valueCount), values, valueCount * sizeof(T));
+            return;
+        }
+        
+        GrowToFit(valueCount + m_size);
+
+        for (int i = 0; i < valueCount; i++)
+        {
+            m_elements[m_size + i] = values[i];
+        }
+
+        m_size += valueCount;
+    }
+
+    template<typename T>
+    inline T* List<T>::MassAdd(int valueCount)
+    {
+        GrowToFit(valueCount + m_size);
+        int startSize = m_size;
+        m_size += valueCount;
+
+        return &(m_elements[startSize]);
     }
 
     template<typename T>
@@ -496,7 +530,7 @@ namespace cs
     {
         if (m_size == m_capacity)
         {
-            GrowArray();
+            GrowArray(m_capacity * 2);
             return;
         }
 
@@ -521,9 +555,9 @@ namespace cs
     }
 
     template<typename T>
-    inline void List<T>::GrowArray()
+    inline void List<T>::GrowArray(int newCapacity)
     {
-        T* newElements = new T[m_capacity * 2];
+        T* newElements = new T[newCapacity];
         for (int i = 0; i < m_size; ++i)
         {
             newElements[i] = m_elements[i];
@@ -531,7 +565,20 @@ namespace cs
 
         delete[] m_elements;
         m_elements = newElements;
-        m_capacity *= 2;
+        m_capacity = newCapacity;
+    }
+
+    template<typename T>
+    inline void List<T>::GrowToFit(int newCapacity)
+    {
+        int actual  = m_capacity;
+        do
+        {
+            actual *= 2;
+        } 
+        while (actual < newCapacity);
+
+        GrowArray(actual);
     }
 
     template<typename T>

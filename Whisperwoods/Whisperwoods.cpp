@@ -22,6 +22,11 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
+	/*FBXImporter importer;
+	ModelRiggedResource riggedModel;
+	importer.ImportFBXRigged("Assets/Shadii_Animated.fbx", &riggedModel);
+	std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");*/
+
 	m_resources = std::make_unique<Resources>();
 
 	m_sound = std::make_unique<Sound>();
@@ -52,13 +57,31 @@ void Whisperwoods::Run()
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
-	FBXImporter importer;
+	//FBXImporter importer;
+	//ModelRiggedResource riggedModel;
+	//importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &riggedModel );
+	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
+	//AnimationResource animationResource;
+	//importer.ImportFBXAnimations( "Assets/Shadii_Animated.fbx", &animationResource );
 
-	ModelRiggedResource riggedModel;
-	AnimationResource animationResource;
+	//// Read write test.
+	//ModelStaticResource staticTestModelWrite;
+	//importer.ImportFBXStatic( "Assets/Models/Characters/ShadiiTest.fbx", &staticTestModelWrite);
 
-	importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &riggedModel );
-	importer.ImportFBXAnimations( "Assets/Shadii_Animated.fbx", &animationResource );
+	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
+	//ModelStaticResource staticTestModelRead;
+	//importer.LoadWWMStatic(path, &staticTestModelRead);
+
+	//std::string path2 = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
+	//ModelRiggedResource riggedTestModelRead;
+	//importer.LoadWWMRigged(path2, &riggedTestModelRead);
+
+	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("WWM/Shadii_Animated.wwm");
+	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("WWM/ShadiiTest.wwm");
+	float rotationY = cs::c_pi * 1.0f;
+	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+
 
 	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Characters/ShadiiTest.fbx");
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0);
@@ -83,10 +106,20 @@ void Whisperwoods::Run()
 		float dTime = deltaTimer.Lap();
 		m_debug->CalculateFps(dTime);
 
+		static float dTimeAcc = 0.0f;
+		dTimeAcc += dTime;
+
 		Move(dTime);
+
+		//mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0) * (rotation.Matrix() * dTimeAcc);
 
 		m_game->Update();
 		m_sound->Update();
+		rotationY += 2 * dTime;
+		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+
+		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
+
 
 		m_renderer->Draw();
 		m_renderer->BeginGui();

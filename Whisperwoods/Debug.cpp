@@ -455,14 +455,16 @@ bool Debug::DXGIGet(std::string& out)
 		return false;
 	}
 
-	out = "";
+	out = "\n";
 
 	for (auto i = s_debug->m_dxgiNext; i < end; ++i)
 	{
 		uint64 messageLength = 0;
 
+		DXGI_INFO_QUEUE_MESSAGE msg;
+
 		// get the size of message i in bytes
-		s_debug->m_dxgiInfoQueue->GetMessageA(DXGI_DEBUG_ALL, i, nullptr, &messageLength);
+		s_debug->m_dxgiInfoQueue->GetMessageA(DXGI_DEBUG_ALL, i, &msg, &messageLength);
 
 		// allocate memory for message
 		auto bytes = std::make_unique<byte[]>(messageLength);
@@ -473,6 +475,8 @@ bool Debug::DXGIGet(std::string& out)
 
 		out += pMessage->pDescription;
 		out += "\n";
+
+		static char buf[512] = { '\0' };
 	}
 
 	return true;

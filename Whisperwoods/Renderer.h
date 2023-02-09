@@ -22,6 +22,8 @@ public:
 	void Present();
 
 	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
+	static shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
+
 	static shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color);
 
 	static Camera& GetCamera();

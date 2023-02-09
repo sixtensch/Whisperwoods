@@ -13,3 +13,15 @@ public:
 private:
 	const ModelStaticResource* m_model;
 };
+
+
+class MeshRenderableRigged : public WorldRenderable
+{
+public:
+	MeshRenderableRigged(uint id, const ModelRiggedResource* model, Mat4 worldMatrix);
+
+	void Draw(const DrawInfo& drawInfo) const override;
+
+private:
+	const ModelRiggedResource* m_model;
+};
