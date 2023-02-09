@@ -712,7 +712,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 			{
 				outMesh->armature.boneMatricies.Add(identityDx); // Init an empty matrix, might be redundant.
 				boneList.push_back( newMesh->mBones[j] );
-				boneNames.push_back( std::string( newMesh->mBones[j]->mName.C_Str() ) );
+				boneNames.push_back( std::string( newMesh->mBones[j]->mName.C_Str()));
 				parentNames.push_back( std::string( newMesh->mBones[j]->mNode->mParent->mName.C_Str() ) );
 				parentIndicies.push_back( -1 );
 				bindLocalTxList.push_back( identityDx );
