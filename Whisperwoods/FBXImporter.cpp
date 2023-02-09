@@ -248,6 +248,7 @@ std::string FBXImporter::SaveWMM(ModelRiggedResource* inMesh, std::string subDir
 	headData.numVerticies = inMesh->verticies.Size();
 	headData.numIndicies = inMesh->indicies.Size();
 	headData.numSubMeshes = inMesh->startIndicies.Size();
+	headData.numBones = inMesh->armature.bones.Size();
 
 	// Write the head information
 	writer.write((char*)&headData, sizeof(WhisperWoodsModelHead));
@@ -278,6 +279,18 @@ std::string FBXImporter::SaveWMM(ModelRiggedResource* inMesh, std::string subDir
 
 	// Write indicies
 	writer.write((char*)inMesh->indicies.Data(), sizeof(int) * headData.numIndicies);
+
+	// Write global inverse transform.
+	writer.write((char*)&inMesh->armature.globalInverseTransform, sizeof(Mat4));
+
+	// Write bones
+	cs::List<BoneSerialized> serializedBones;
+	for (int i = 0; i < headData.numBones; i++)
+	{
+		BoneSerialized sBone(inMesh->armature.bones[i]);
+		serializedBones.Add(sBone);
+	}
+	writer.write((char*)serializedBones.Data(), sizeof(BoneSerialized) * headData.numBones);
 
 	// Close the writer
 	writer.close();
@@ -396,6 +409,19 @@ bool FBXImporter::LoadWWMRigged(std::string filePath, ModelRiggedResource* const
 	//Read the indicies
 	reader.read((char*)outMesh->indicies.MassAdd(headData.numIndicies), sizeof(int) * headData.numIndicies);
 
+	// Read the inverseMatrix
+	reader.read((char*)&outMesh->armature.globalInverseTransform, sizeof(Mat4));
+
+	// Read the bones
+	cs::List<BoneSerialized> serializedBones;
+	reader.read((char*)serializedBones.MassAdd(headData.numBones), sizeof(BoneSerialized) * headData.numBones);
+	for (int i = 0; i < headData.numBones; i++)
+	{
+		Bone bone = serializedBones[i].Deserialize();
+		outMesh->armature.bones.Add(bone);
+	}
+
+	// Close
 	reader.close();
 
 	if (!reader.good())

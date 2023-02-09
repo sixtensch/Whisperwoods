@@ -53,7 +53,9 @@
 
 #define REGISTER_UAV_RENDER_TARGET      register(u6)
 
+// Armature shader resource view
 
+#define REGISTER_SRV_ARMATURE_MATRIX    register(t6)
 
 // Shader resource views
 
@@ -71,6 +73,7 @@
 
 #define REGISTER_SRV_CUBE_MAP           register(t22)
 #define REGISTER_SRV_SHADOW_DEPTH       register(t24)
+
 
 
 

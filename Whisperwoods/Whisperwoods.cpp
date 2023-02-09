@@ -8,6 +8,9 @@
 
 #include "TextRenderable.h"
 
+// TODO: Dudd include. Only used for getting test sound.
+#include "SoundResource.h"
+
 void TestPlay(void*, void*)
 {
 	// Audio test startup
@@ -22,12 +25,15 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
-	/*FBXImporter importer;
-	ModelRiggedResource riggedModel;
-	importer.ImportFBXRigged("Assets/Shadii_Animated.fbx", &riggedModel);
-	std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");*/
+	//FBXImporter importer;
+	//ModelRiggedResource riggedModel;
+	//importer.ImportFBXRigged("Assets/Shadii_Animated.fbx", &riggedModel);
+	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/Rigged/");
 
-	m_resources = std::make_unique<Resources>();
+	////FBXImporter importer;
+	//ModelStaticResource staticTestModelWrite;
+	//importer.ImportFBXStatic( "Assets/Models/FBX/Static/ShadiiTest.fbx", &staticTestModelWrite);
+	//std::string path2 = importer.SaveWMM(&staticTestModelWrite, "Assets/Models/Static/");
 
 	m_sound = std::make_unique<Sound>();
 	m_debug->CaptureSound(m_sound.get());
@@ -41,6 +47,9 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	m_input->InputInit(Renderer::GetWindow().Data());
 
 	m_game = std::make_unique<Game>(); 
+
+	m_resources = std::make_unique<Resources>();
+	m_resources->LoadAssetDirectory(m_renderer->GetRenderCore());
 }
 
 Whisperwoods::~Whisperwoods()
@@ -52,21 +61,11 @@ void Whisperwoods::Run()
 	// Main frame loop
 
 	// Audio test startup
-	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, "Assets/Duck.mp3");
+	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Assets/Sounds/Duck - Copy.mp3"))->currentSound;
+	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, soundPtr);
 	testSource.Play();
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
-
-	//FBXImporter importer;
-	//ModelRiggedResource riggedModel;
-	//importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &riggedModel );
-	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
-	//AnimationResource animationResource;
-	//importer.ImportFBXAnimations( "Assets/Shadii_Animated.fbx", &animationResource );
-
-	//// Read write test.
-	//ModelStaticResource staticTestModelWrite;
-	//importer.ImportFBXStatic( "Assets/Models/Characters/ShadiiTest.fbx", &staticTestModelWrite);
 
 	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
 	//ModelStaticResource staticTestModelRead;
@@ -76,8 +75,8 @@ void Whisperwoods::Run()
 	//ModelRiggedResource riggedTestModelRead;
 	//importer.LoadWWMRigged(path2, &riggedTestModelRead);
 
-	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("WWM/Shadii_Animated.wwm");
-	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("WWM/ShadiiTest.wwm");
+	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Assets/Models/Rigged/Shadii_Animated.wwm");
+	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("Assets/Models/Static/ShadiiTest.wwm");
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
@@ -105,15 +104,11 @@ void Whisperwoods::Run()
 
 		Move(dTime);
 
-		//mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0) * (rotation.Matrix() * dTimeAcc);
-
 		m_game->Update();
 		m_sound->Update();
 		rotationY += 2 * dTime;
 		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-
-		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
-
+		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 5) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
 
 		m_renderer->Draw();
 		m_renderer->BeginGui();

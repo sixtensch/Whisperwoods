@@ -33,8 +33,8 @@ void Renderer::Init(uint width, uint height)
 	m_renderHandler = make_unique<RenderHandler>();
 	m_renderHandler->InitCore(m_window);
 
-	m_gui = make_unique<GUI>(m_renderHandler->GetCore(), true, true);
-	
+	m_gui = make_unique<GUI>(m_renderHandler->GetCore(), true, false);
+
 	m_window->Show(true);
 }
 
@@ -88,6 +88,11 @@ Camera& Renderer::GetCamera()
 Window& Renderer::GetWindow()
 {
 	return *(s_singleton->m_window.get());
+}
+
+const RenderCore* Renderer::GetRenderCore()
+{
+	return m_renderHandler->GetCore();
 }
 
 //

@@ -4,6 +4,7 @@
 #include "imgui_impl_dx11.h"
 #include "imgui_impl_win32.h"
 #include <d3dcompiler.h>
+#include <WICTextureLoader.h>
 
 RenderCore::RenderCore(shared_ptr<Window> window)
 {
@@ -11,21 +12,21 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	DXGI_SWAP_CHAIN_DESC desc = {};
 
-	desc.BufferDesc.Width = window->GetWidth();  // width/height of window
-	desc.BufferDesc.Height = window->GetHeight();
-	desc.BufferDesc.RefreshRate.Numerator = 0; // RefreshRate 60 hertz (0 from the beginning) 
-	desc.BufferDesc.RefreshRate.Denominator = 1;
-	desc.BufferDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM; // 32 bits with 8 per channel
-	desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED; // Scanline order unspecified
-	desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED; //  scaling is unspecified
-	desc.SampleDesc.Count = 1; // one desc
-	desc.SampleDesc.Quality = 0; //default
-	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_UNORDERED_ACCESS; //use resource or surface as result of rendering
-	desc.BufferCount = 2; 
-	desc.OutputWindow = window->Data();
-	desc.Windowed = true;
-	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; //deletes contents of backup buffer when called on
-	desc.Flags = 0;
+    desc.BufferDesc.Width = window->GetWidth();  // width/height of window
+    desc.BufferDesc.Height = window->GetHeight();
+    desc.BufferDesc.RefreshRate.Numerator = 0; // RefreshRate 60 hertz (0 from the beginning) 
+    desc.BufferDesc.RefreshRate.Denominator = 1;
+    desc.BufferDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM; // 32 bits with 8 per channel
+    desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED; // Scanline order unspecified
+    desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED; //  scaling is unspecified
+    desc.SampleDesc.Count = 1; // one desc
+    desc.SampleDesc.Quality = 0; //default
+    desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_UNORDERED_ACCESS; //use resource or surface as result of rendering
+    desc.BufferCount = 3; 
+    desc.OutputWindow = window->Data();
+    desc.Windowed = true;
+    desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; //deletes contents of backup buffer when called on
+    desc.Flags = 0;
 
 	UINT flags = 0;
 
@@ -67,7 +68,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	// Setup back buffer
 
-	EXC_COMCHECK(m_swapChain->GetBuffer(0, _uuidof(ID3D11Texture2D), (void**)&m_bbTexture));
+    EXC_COMCHECK(m_swapChain->GetBuffer(0u, __uuidof(ID3D11Texture2D), (void**)&m_bbTexture));
 
 	D3D11_RENDER_TARGET_VIEW_DESC rtvd;
 	rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -212,7 +213,7 @@ void RenderCore::EndFrame()
 	EXC_COMCHECK(m_swapChain->Present(0u, 0u));
 }
 
-HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP)
+HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
 {
 	HRESULT hr = {};
 	
@@ -238,7 +239,7 @@ HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11B
 	return hr;
 }
 
-HRESULT RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP)
+HRESULT RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
 {
 	HRESULT hr = {};
 	D3D11_BUFFER_DESC bufferDesc = {};
@@ -292,6 +293,70 @@ HRESULT RenderCore::CreateImageTexture(char* image, UINT resHeight, UINT resWidt
 		LOG_ERROR("Failed to create texture2d");
 	return hr;
 }
+
+void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Texture2D>& textureResource) const
+{
+	// Load texture using DXTK from filepath.
+
+    ComPtr<ID3D11Resource> resource;
+    
+	EXC_COMCHECK(
+		dx::CreateWICTextureFromFileEx(
+            m_device.Get(),
+            m_context.Get(),
+            filePath.c_str(),
+			0,
+			D3D11_USAGE_IMMUTABLE,
+			D3D11_BIND_SHADER_RESOURCE,
+			0,
+			0,
+			dx::WIC_LOADER_IGNORE_SRGB | dx::WIC_LOADER_FORCE_RGBA32 | dx::WIC_LOADER_DEFAULT,
+			&resource,
+			nullptr)
+	);
+
+    EXC_COMCHECK(resource->QueryInterface(IID_ID3D11Texture2D, (void**)textureResource.GetAddressOf()));
+}
+
+HRESULT RenderCore::CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones)
+{
+    D3D11_BUFFER_DESC bufferDesc = {};
+    bufferDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * numBones;
+    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+    bufferDesc.StructureByteStride = sizeof(DirectX::XMFLOAT4X4);
+    //	D3D11_SUBRESOURCE_DATA data;
+    //	data.pSysMem = boneMatricies;
+    //	data.SysMemPitch = 0;
+    //	data.SysMemSlicePitch = 0;
+    HRESULT hr = m_device->CreateBuffer(&bufferDesc, nullptr, &matrixBuffer);
+    if (FAILED(hr))
+    {
+        LOG_WARN("Failed to create bone matrix buffer.");
+    }
+    return hr;
+}
+
+HRESULT RenderCore::CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones)
+{
+    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
+    shaderResourceViewDesc.Format = DXGI_FORMAT_UNKNOWN;
+    shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+    //shaderResourceViewDesc.Buffer.ElementOffset = 0;
+    shaderResourceViewDesc.Buffer.FirstElement = 0;
+    shaderResourceViewDesc.Buffer.NumElements = numBones;
+    //shaderResourceViewDesc.Buffer.ElementWidth = 64;
+    //ID3D11Buffer* testBuffer = matrixBuffer.Get();
+    HRESULT hr = m_device->CreateShaderResourceView(matrixBuffer.Get(), &shaderResourceViewDesc, &matrixSRV);
+    if (FAILED(hr))
+    {
+        LOG_WARN("Failed to create armature resource view.");
+    }
+    return hr;
+}
+
 
 void RenderCore::UpdateViewInfo(const Camera& camera)
 {
@@ -369,7 +434,15 @@ void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text
 	m_spriteBatch->End();
 }
 
+//void RenderCore::SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer)
+//{
+//    EXC_COMINFO(m_context->DrawIndexed(indexCount, start, base));
+//}
 
+void RenderCore::SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV)
+{
+    EXC_COMINFO(m_context->VSSetShaderResources(6, 1, matrixSRV.GetAddressOf()));
+}
 
 void RenderCore::InitImGui() const
 {
@@ -668,3 +741,4 @@ void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, c
 	memcpy(msr.pData, &si, sizeof(CB::ShadingInfo));
 	EXC_COMINFO(m_context->Unmap(m_constantBuffers.shadingInfo.Get(), 0u));
 }
+
