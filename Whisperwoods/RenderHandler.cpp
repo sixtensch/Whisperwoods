@@ -88,7 +88,7 @@ shared_ptr<MeshRenderableRigged> RenderHandler::CreateMeshRigged(const string& s
 {
 	Resources& resources = Resources::Get();
 
-	ModelRiggedResource* model = static_cast<ModelRiggedResource*>(resources.GetResource(ResourceTypeModelRigged, subpath));
+	const ModelRiggedResource* model = static_cast<const ModelRiggedResource*>(resources.GetResource(ResourceTypeModelRigged, subpath));
 
 	shared_ptr<MeshRenderableRigged> newRenderable = make_shared<MeshRenderableRigged>(
 		m_renderableIDCounter++,

@@ -122,10 +122,6 @@ BasicResource* Resources::AllocateResource(ResourceType resourceType, const std:
 		resource = make_shared<ModelRiggedResource>(resourceName);
 		break;
 
-	case ResourceTypeModelRigged:
-		resource = make_shared<ModelRiggedResource>();
-		break;
-
 	default:
 		return nullptr; // If not valid type, return nullptr.
 		break;
