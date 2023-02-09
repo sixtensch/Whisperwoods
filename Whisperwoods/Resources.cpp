@@ -32,12 +32,6 @@ Resources::Resources()
 	s_singleton = this;
 
 	InitMapList();
-	
-	//importer.ImportFBXStatic("Assets/Models/Characters/ShadiiTest.fbx", shadiiTestModel);
-	//shadiiTestModel->CreateVertexBuffer()
-
-	//ShaderResource* shader = (ShaderResource*)AllocateResource(ResourceTypeShader, "VSMesh.cso", "Test name");
-	//shader->shaderVar
 }
 
 Resources::~Resources()

@@ -55,17 +55,6 @@ void Whisperwoods::Run()
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
-	//FBXImporter importer;
-	//ModelRiggedResource riggedModel;
-	//importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &riggedModel );
-	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
-	//AnimationResource animationResource;
-	//importer.ImportFBXAnimations( "Assets/Shadii_Animated.fbx", &animationResource );
-
-	//// Read write test.
-	//ModelStaticResource staticTestModelWrite;
-	//importer.ImportFBXStatic( "Assets/Models/Characters/ShadiiTest.fbx", &staticTestModelWrite);
-
 	//std::string path = importer.SaveWMM(&riggedModel, "Assets/Models/WWM/");
 	//ModelStaticResource staticTestModelRead;
 	//importer.LoadWWMStatic(path, &staticTestModelRead);
@@ -74,7 +63,8 @@ void Whisperwoods::Run()
 	//ModelRiggedResource riggedTestModelRead;
 	//importer.LoadWWMRigged(path2, &riggedTestModelRead);
 
-	// TODO: JUMP HERE FOR MESH LOGIC
+
+	// TODO: Dudd code. Remove later.
 	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Assets/Models/Statics/ShadiiTest.wwm");
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
@@ -82,9 +72,9 @@ void Whisperwoods::Run()
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("Assets/Models/Statics/ShadiiTest.wwm");
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 
+
 	int frames = 0;
 	cs::Timer deltaTimer;
-
 
 	for (bool running = true; running; frames++)
 	{
