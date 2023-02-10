@@ -84,7 +84,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	//
 	//EXC_COMCHECK(m_device->CreateShaderResourceView(m_bbTexture.Get(), &srvd, &m_bbSRV));
 
-	m_bbClearColor = cs::Color4f(0.1f, 0.1f, 0.2f, 1.0f);
+	m_bbClearColor = cs::Color4f(0.0f, 0.0f, 0.0f, 1.0f);
 
 
 
