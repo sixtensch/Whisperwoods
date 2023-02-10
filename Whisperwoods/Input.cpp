@@ -55,6 +55,8 @@ void Input::InputInit(const HWND windowHandle)
 	AddKeysToInput(KeybindBackward, { DXKey::S, DXKey::Down });
 	AddKeysToInput(KeybindLeft, { DXKey::A, DXKey::Left });
 	AddKeysToInput(KeybindRight, { DXKey::D, DXKey::Right });
+	AddKeysToInput(KeybindUp, { DXKey::Space });
+	AddKeysToInput(KeybindDown, { DXKey::LeftControl });
 	AddKeysToInput(KeybindSprint, { DXKey::LeftShift, DXKey::RightShift });
 	AddKeysToInput(KeybindCrouch, { DXKey::LeftControl, DXKey::RightControl });
 	AddKeysToInput(KeybindPower, { DXKey::Q, DXKey::NumPad0 });
@@ -88,9 +90,14 @@ void Input::ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	if (s_singleton == nullptr)
 		return;
 
-	m_lastKeyboardState = m_keyboard->GetState();
 	m_keyboard->ProcessMessage(message, wParam, lParam);
 	m_currentKeyboardState = m_keyboard->GetState();
+}
+
+void Input::Update()
+{
+	m_lastKeyboardState = m_keyboard->GetState();
+	m_lastMouseState = m_mouse->GetState();
 }
 
 void Input::ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
@@ -98,7 +105,6 @@ void Input::ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	if (s_singleton == nullptr)
 		return;
 
-	m_lastMouseState = m_mouse->GetState();
 	m_mouse->ProcessMessage(message, wParam, lParam);
 	m_currentMouseState = m_mouse->GetState();
 }
