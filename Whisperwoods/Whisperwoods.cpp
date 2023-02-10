@@ -90,12 +90,12 @@ void Whisperwoods::Run()
 	shared_ptr<SpotLight> spot = make_shared<SpotLight>();
 	spot->color = cs::Color3f(0x40FF40);
 	spot->intensity = 0.8f;
-	spot->transform.position = Vec3(0, 0, 0);
+	spot->transform.position = Vec3(-0.4f, 0.2f, 0);
 	spot->transform.rotation = Quaternion::GetIdentity();
 	spot->fovInner = 0.15f;
 	spot->fovOuter = 0.2f;
 	spot->range = 100.0f;
-	//Renderer::RegisterLight(spot);
+	Renderer::RegisterLight(spot);
 
 	shared_ptr<DirectionalLight> directional = Renderer::GetDirectionalLight();
 	directional->transform.position = { 0, 10, 0 };
