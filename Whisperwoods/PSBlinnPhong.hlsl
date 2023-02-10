@@ -60,6 +60,8 @@ cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
     float glossiness;
     float3 emissive;
     float height;
+    float3 pad;
+    float tiling;
 };
 
 SamplerState textureSampler : REGISTER_SAMPLER_STANDARD;
@@ -73,10 +75,12 @@ Texture2D textureNormal : REGISTER_SRV_TEX_NORMAL;
 
 float4 main(VSOutput input) : SV_TARGET
 {
-    float4 diffuseSample = textureDiffuse.Sample(textureSampler, input.outUV);
-    float4 specularSample = textureSpecular.Sample(textureSampler, input.outUV);
-    float4 emissiveSample = textureEmissive.Sample(textureSampler, input.outUV);
-    float4 normalSample = textureNormal.Sample(textureSampler, input.outUV);
+    float2 uv = input.outUV * tiling;
+	
+    float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
+    float4 specularSample = textureSpecular.Sample(textureSampler, uv);
+    float4 emissiveSample = textureEmissive.Sample(textureSampler, uv);
+    float4 normalSample = textureNormal.Sample(textureSampler, uv);
     normalSample.g = 1.0f - normalSample.g;
 	
     float4 colorAlbedoOpacity = float4(diffuse * diffuseSample.xyz, alpha * diffuseSample.a);

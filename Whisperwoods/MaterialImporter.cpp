@@ -148,6 +148,11 @@ bool MaterialImporter::ImportWWMT(string filepath, MaterialResource* const outMa
 			ReadOne(outMaterial->height);
 			break;
 
+		case 't':
+			LOG_TRACE("[%i] Tiling modifier", lineNumber);
+			ReadOne(outMaterial->tiling);
+			break;
+
 		case 'D':
 			LOG_TRACE("[%i] Diffuse texture", lineNumber);
 			ReadTexture(outMaterial->textureDiffuse);
