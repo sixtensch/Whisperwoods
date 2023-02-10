@@ -157,11 +157,19 @@ void Whisperwoods::Move(float dTime)
 	Camera& camera = Renderer::GetCamera();
 
 	Vec3 movement = Vec3(0, 0, 0);
+	Vec3 forwardDirection = camera.GetDirection();
+	Vec3 rightDirection = camera.GetRight();
+	Vec3 upDirection = camera.GetUp();
 
-	if (Input::Get().IsKeybindDown(KeybindForward))		movement.z += 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindBackward))	movement.z -= 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindRight))		movement.x += 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindLeft))		movement.x -= 1.0f;
+	if (Input::Get().IsKeybindDown(KeybindForward))		movement += forwardDirection;
+	if (Input::Get().IsKeybindDown(KeybindBackward))	movement -= forwardDirection;
+	if (Input::Get().IsKeybindDown(KeybindRight))		movement += rightDirection;
+	if (Input::Get().IsKeybindDown(KeybindLeft))		movement -= rightDirection;
+
+	KeyboardState keyboardState = Input::Get().GetKeyboardState();
+	
+	if (keyboardState.Space) movement += upDirection;
+	if (keyboardState.LeftControl) movement -= upDirection;
 
 	MouseState mouseState = Input::Get().GetMouseState();
 
