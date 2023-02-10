@@ -48,14 +48,14 @@ public: // Core functionality
 	void AddElement(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox);
 	void AddElementIndexed(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, int index);
 
-	std::vector<const T>& CullTree(const dx::BoundingFrustum& frustum) const;
+	std::vector<const T*>& CullTree(const dx::BoundingFrustum& frustum) const;
 	void CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects) const;
 
 private: // Recursive callers
 	void AddToNode(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, const shared_ptr<Node>& currentNode, int depth, int index = -1);
 
 	void CullNode(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, std::vector<const T*>& out_validElements) const;
-	void CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, cs::List<cs::List<const T*>>& out_indexedList);
+	void CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, cs::List<cs::List<const T*>>& out_indexedList) const;
 	
 	void FreeNode(shared_ptr<Node>& currentNode);
 
@@ -157,9 +157,9 @@ inline void QuadTree<T>::Reconstruct(float top, float left)
 /// This does not use the index functionality
 /// </summary>
 template<typename T>
-inline std::vector<const T>& QuadTree<T>::CullTree(const dx::BoundingFrustum& frustum) const
+inline std::vector<const T*>& QuadTree<T>::CullTree(const dx::BoundingFrustum& frustum) const
 {
-	std::vector<const T> toReturn;
+	std::vector<const T*> toReturn;
 	// Treverse the tree from root
 	CullNode(frustum, m_root, toReturn);
 
@@ -280,7 +280,7 @@ inline void QuadTree<T>::CullNode(const dx::BoundingFrustum& frustum, const shar
 }
 
 template<typename T>
-inline void QuadTree<T>::CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& node, cs::List<cs::List<const T*>>& out_indexedList)
+inline void QuadTree<T>::CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& node, cs::List<cs::List<const T*>>& out_indexedList) const
 {
 	bool collision = frustum.Contains(node->rootPartition);
 	if (!collision)
