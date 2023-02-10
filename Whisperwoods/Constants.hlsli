@@ -59,10 +59,10 @@
 
 // Shader resource views
 
-#define REGISTER_SRV_TEX_COLOR          register(t7)
-#define REGISTER_SRV_TEX_SPECULARITY    register(t8)
-#define REGISTER_SRV_TEX_NORMAL         register(t9)
-#define REGISTER_SRV_TEX_DISPLACEMENT   register(t10)
+#define REGISTER_SRV_TEX_DIFFUSE        register(t7)
+#define REGISTER_SRV_TEX_SPECULAR       register(t8)
+#define REGISTER_SRV_TEX_EMISSIVE       register(t9)
+#define REGISTER_SRV_TEX_NORMAL         register(t10)
 
 #define REGISTER_SRV_LIGHTS_DIRECTIONAL register(t11)
 #define REGISTER_SRV_LIGHTS_POINT       register(t12)

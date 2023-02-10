@@ -76,10 +76,10 @@ enum RegSRV : char
 	RegSRVUser4 = 5,
 	RegSRVUser5 = 6,
 
-	RegSRVTexColor = 7,
-	RegSRVTexSpecularity = 8,
-	RegSRVTexNormal = 9,
-	RegSRVTexDisplacement = 10,
+	RegSRVTexDiffuse = 7,
+	RegSRVTexSpecular = 8,
+	RegSRVTexEmissive = 9,
+	RegSRVTexNormal = 10,
 
 	RegSRVLightsDirectional = 11,
 	RegSRVLightsPoint = 12,

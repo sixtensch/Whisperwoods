@@ -9,7 +9,8 @@ struct TextureResource : public BasicResource {
 		: TextureResource("Default texture resource") {}
 
 	TextureResource(const std::string name)
-		: BasicResource(name), texture2D(nullptr) {}
+		: BasicResource(name), texture2D(nullptr), shaderResourceView(nullptr) {}
 
 	ComPtr<ID3D11Texture2D> texture2D;
+	ComPtr<ID3D11ShaderResourceView> shaderResourceView;
 };

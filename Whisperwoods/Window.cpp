@@ -41,11 +41,10 @@ LRESULT CALLBACK Window::WndProc(HWND window, UINT message, WPARAM wParam, LPARA
 			case WM_MOUSEWHEEL:
 			case WM_XBUTTONDOWN:
 			case WM_XBUTTONUP:
-
 			case WM_MOUSEHOVER:
 			{
-				break;
 				inputRef.ProcessMouseMessage(message, wParam, lParam);
+				break;
 			}
 
 			case WM_KEYDOWN:
