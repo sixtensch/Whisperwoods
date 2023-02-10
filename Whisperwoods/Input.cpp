@@ -14,7 +14,7 @@ Input::Input()
 {
 	if (s_singleton != nullptr)
 	{
-		throw "Input singleton re-initialization.";	// TODO: Proper exceptions
+		EXC("Input singleton re-initialization.");
 	}
 
 	s_singleton = this;
@@ -34,7 +34,7 @@ Input& Input::Get()
 #ifdef WW_DEBUG
 	if (s_singleton == nullptr)
 	{
-		throw "Input singleton not found.";	// TODO: Proper exceptions
+		EXC("Input singleton not found (is nullptr).");
 	}
 #endif
 

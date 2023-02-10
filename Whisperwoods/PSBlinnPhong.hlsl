@@ -1,5 +1,6 @@
 
 #include "Constants.hlsli"
+#include "PhongAlg.hlsli"
 
 struct VSOutput
 {
@@ -39,26 +40,88 @@ struct LightSpot
 
 cbuffer ShadingInfo : REGISTER_CBV_SHADING_INFO
 {
-	LightDirectional DirectionalLight;
-	LightPoint PointLights[LIGHT_CAPACITY_POINT];
-	LightSpot SpotLights[LIGHT_CAPACITY_SPOT];
+	LightDirectional	directionalLight;
+	LightPoint			pointLights[LIGHT_CAPACITY_POINT];
+	LightSpot			spotLights[LIGHT_CAPACITY_SPOT];
 	
 	float3 ambient;
-    uint spotCount;
-    float3 cameraPosition;
     uint pointCount;
+    float3 cameraPosition;
+    uint spotCount;
 };
 
 
 float4 main(VSOutput input) : SV_TARGET
 {
-    float magnitude = dot(input.outNormal, -DirectionalLight.direction);
-    return float4(DirectionalLight.intensity * magnitude, 1.0f);
+    float4 colorAlbedoOpacity = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    float4 colorSpecularSpecularity = float4(0.6f, 0.6f, 0.6f, 20.0f);
+    float3 colorEmissive = float3(0.0f, 0.0f, 0.0f);
 	
-	//float3 normalColor = input.outNormal;
-	//float3x3 TBN = float3x3(input.outTangent, input.outBitangent, input.outNormal);
-	//// make normal in range -1 to 1
-	//normalColor = (2.0f * normalColor) - 1.0f;
-	//return  float4(mul(normalColor, TBN), 1.0);
-	////return float4(input.outTangent,1);
+    float3 cameraDirection = normalize(cameraPosition - input.wPosition.xyz);
+	
+	// Cumulative color
+    float4 color = float4(colorAlbedoOpacity.xyz * ambient, colorAlbedoOpacity.w);
+	
+    color += phong(
+		input.wPosition.xyz,
+		input.outNormal,
+		directionalLight.intensity,
+		-directionalLight.direction,
+		1.0f,
+		cameraDirection,
+		colorAlbedoOpacity.xyz,
+		colorSpecularSpecularity.xyz,
+		colorEmissive,
+		colorAlbedoOpacity.w,
+		colorSpecularSpecularity.w
+	);
+	
+    for (uint i = 0; i < pointCount; i++)
+    {
+        float3 lightVector = pointLights[i].position - input.wPosition.xyz;
+        float lightDistanceInv = 1.0f / length(lightVector);
+		
+        color += phong(
+			input.wPosition.xyz,
+			input.outNormal,
+			pointLights[i].intensity,
+			lightVector * lightDistanceInv,
+			lightDistanceInv * lightDistanceInv,
+			cameraDirection,
+			colorAlbedoOpacity.xyz,
+			colorSpecularSpecularity.xyz,
+			colorEmissive,
+			colorAlbedoOpacity.w,
+			colorSpecularSpecularity.w
+		);
+    }
+	
+    for (uint j = 0; j < spotCount; j++)
+    {
+        float3 lightVector = spotLights[j].position - input.wPosition.xyz;
+        float lightDistanceInv = 1.0f / length(lightVector);
+        float3 lightDirection = lightVector * lightDistanceInv;
+		
+        float spotFadeWidth = (spotLights[j].cosInner - spotLights[j].cosOuter);
+		
+        float x = dot(lightDirection, -spotLights[j].direction);
+        float k = 1.0f / (spotLights[j].cosInner - spotLights[j].cosOuter);
+        float spotScalar = saturate(k * (x - spotLights[j].cosOuter));
+		
+        color += phong(
+			input.wPosition.xyz,
+			input.outNormal,
+			spotLights[j].intensity,
+			lightDirection,
+			lightDistanceInv * lightDistanceInv * spotScalar,
+			cameraDirection,
+			colorAlbedoOpacity.xyz,
+			colorSpecularSpecularity.xyz,
+			colorEmissive,
+			colorAlbedoOpacity.w,
+			colorSpecularSpecularity.w
+		);
+    }
+	
+    return saturate(color);
 }

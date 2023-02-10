@@ -26,7 +26,7 @@ void PointLight::Update()
 void SpotLight::Update()
 {
 	camera.CopyTransform(transform);
-	camera.SetValues(0, 0, LIGHT_NEAR, range);
+	camera.SetValues(fovOuter, 1, LIGHT_NEAR, range);
 	camera.CalculatePerspectiveProjection();
 	camera.Update();
 

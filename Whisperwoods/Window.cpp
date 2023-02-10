@@ -98,22 +98,42 @@ Window::Window( LPCSTR windowName, HINSTANCE instance, UINT width, UINT height )
 	//Init window
 	const char CLASS_NAME[] = "WindowClassName";
 
-	WNDCLASS wc = {};
-	wc.cbClsExtra;
-	wc.cbWndExtra;
-	wc.hbrBackground;
-	wc.hCursor;
-	wc.hIcon;
-	wc.hInstance = instance;
-	wc.lpfnWndProc = WndProc;
-	wc.lpszMenuName;
-	wc.lpszClassName = CLASS_NAME;
-	wc.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+	WNDCLASSEX wc = {};
 
-	RegisterClass( &wc );
-	m_window = CreateWindowExA( 0, CLASS_NAME, windowName, WS_OVERLAPPEDWINDOW,
-							   CW_USEDEFAULT, 0, m_width, m_height, 
-							   nullptr, nullptr, instance, nullptr );
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = 0x20;
+	wc.lpfnWndProc = WndProc;
+	wc.lpszClassName = CLASS_NAME;
+	wc.hInstance = instance;
+	wc.cbClsExtra = 0;
+	wc.cbWndExtra = 0;
+	wc.hIcon = nullptr;
+	wc.hIconSm = nullptr;
+	wc.hCursor = nullptr;
+	wc.hbrBackground = nullptr;
+
+	DWORD windowStyles = WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU;
+
+	RECT r;
+	r.left = 50;
+	r.top = 50;
+	r.right = width + r.left;
+	r.bottom = height + r.top;
+	AdjustWindowRect(&r, windowStyles, FALSE);
+
+	RegisterClassExA(&wc);
+	m_window = CreateWindowExA( 
+		0, 
+		CLASS_NAME, 
+		windowName, 
+		windowStyles /*WS_OVERLAPPEDWINDOW*/,
+		CW_USEDEFAULT, 
+		CW_USEDEFAULT,
+		r.right - r.left, r.bottom - r.top,
+		nullptr, nullptr, 
+		instance, 
+		nullptr 
+	);
 	
 	if ( m_window == nullptr )
 	{

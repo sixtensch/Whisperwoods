@@ -15,7 +15,7 @@
 void TestPlay(void*, void*)
 {
 	// Audio test startup
-	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.3f, 0, 10, "Assets/Duck.mp3");
+	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.3f, 0, 10, "Duck.mp3");
 	testSource.Play();
 }
 
@@ -72,7 +72,7 @@ void Whisperwoods::Run()
 	// Main frame loop
 
 	// Audio test startup
-	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Assets/Sounds/Duck - Copy.mp3"))->currentSound;
+	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck - Copy.mp3"))->currentSound;
 	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, soundPtr);
 	testSource.Play();
 
@@ -117,12 +117,45 @@ void Whisperwoods::Run()
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	
+
+
+	// Text
+
 	dx::SimpleMath::Vector2 posTest;
-	posTest.x = 100;
-	posTest.y = 70;
+	posTest.x = 1270;
+	posTest.y = 710;
 	const wchar_t* inputText = L"Shadii";
 	cs::Color4f color(0.034f, 0.255f, 0.0f, 1.0f);
-	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color);
+	//These are just test values
+	
+
+
+	// Lights
+
+	shared_ptr<PointLight> point = make_shared<PointLight>();
+	point->color = cs::Color3f(0x4040FF);
+	point->intensity = 8.0f;
+	point->transform.position = Vec3(2, 0, 0);
+	Renderer::RegisterLight(point);
+
+	shared_ptr<SpotLight> spot = make_shared<SpotLight>();
+	spot->color = cs::Color3f(0x40FF40);
+	spot->intensity = 1.0f;
+	spot->transform.position = Vec3(0, 0, 0);
+	spot->transform.rotation = Quaternion::GetIdentity();
+	spot->fovInner = 0.15f;
+	spot->fovOuter = 0.2f;
+	spot->range = 100.0f;
+	Renderer::RegisterLight(spot);
+
+	shared_ptr<DirectionalLight> directional = Renderer::GetDirectionalLight();
+	directional->transform.position = { 0, 10, 0 };
+	directional->transform.SetRotationEuler({ 0.5f, 0.9f, 0.0f });
+	directional->diameter = 20.0f;
+	directional->intensity = 0.8f;
+	directional->color = cs::Color3f(0xFFFFB0);
+
+	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color, { 1.0f, 1.0f });
 
 	int frames = 0;
 	cs::Timer deltaTimer;
@@ -146,9 +179,15 @@ void Whisperwoods::Run()
 		m_sound->Update();
 		rotationY += 2 * dTime;
 		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 5) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
+		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
+
+
+
+		// Draw step
 
 		m_renderer->Draw();
+
+//#ifdef WW_DEBUG
 		m_renderer->BeginGui();
 
 		if (ImGui::Begin( "Animation" ))
@@ -166,6 +205,8 @@ void Whisperwoods::Run()
 
 		m_debug->DrawConsole();
 		m_renderer->EndGui();
+//#endif
+
 		m_renderer->Present();
 	}
 

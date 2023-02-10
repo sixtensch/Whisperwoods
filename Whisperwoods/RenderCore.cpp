@@ -12,21 +12,21 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	DXGI_SWAP_CHAIN_DESC desc = {};
 
-    desc.BufferDesc.Width = window->GetWidth();  // width/height of window
-    desc.BufferDesc.Height = window->GetHeight();
-    desc.BufferDesc.RefreshRate.Numerator = 0; // RefreshRate 60 hertz (0 from the beginning) 
-    desc.BufferDesc.RefreshRate.Denominator = 1;
-    desc.BufferDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM; // 32 bits with 8 per channel
-    desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED; // Scanline order unspecified
-    desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED; //  scaling is unspecified
-    desc.SampleDesc.Count = 1; // one desc
-    desc.SampleDesc.Quality = 0; //default
-    desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_UNORDERED_ACCESS; //use resource or surface as result of rendering
-    desc.BufferCount = 3; 
-    desc.OutputWindow = window->Data();
-    desc.Windowed = true;
-    desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; //deletes contents of backup buffer when called on
-    desc.Flags = 0;
+	desc.BufferDesc.Width = window->GetWidth();  // width/height of window
+	desc.BufferDesc.Height = window->GetHeight();
+	desc.BufferDesc.RefreshRate.Numerator = 0; // RefreshRate 60 hertz (0 from the beginning) 
+	desc.BufferDesc.RefreshRate.Denominator = 1;
+	desc.BufferDesc.Format = DXGI_FORMAT::DXGI_FORMAT_R8G8B8A8_UNORM; // 32 bits with 8 per channel
+	desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED; // Scanline order unspecified
+	desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED; //  scaling is unspecified
+	desc.SampleDesc.Count = 1; // one desc
+	desc.SampleDesc.Quality = 0; //default
+	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_UNORDERED_ACCESS; //use resource or surface as result of rendering
+	desc.BufferCount = 3; 
+	desc.OutputWindow = window->Data();
+	desc.Windowed = true;
+	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; //deletes contents of backup buffer when called on
+	desc.Flags = 0;
 
 	UINT flags = 0;
 
@@ -68,7 +68,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	// Setup back buffer
 
-    EXC_COMCHECK(m_swapChain->GetBuffer(0u, __uuidof(ID3D11Texture2D), (void**)&m_bbTexture));
+	EXC_COMCHECK(m_swapChain->GetBuffer(0u, __uuidof(ID3D11Texture2D), (void**)&m_bbTexture));
 
 	D3D11_RENDER_TARGET_VIEW_DESC rtvd;
 	rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -298,13 +298,13 @@ void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Tex
 {
 	// Load texture using DXTK from filepath.
 
-    ComPtr<ID3D11Resource> resource;
-    
+	ComPtr<ID3D11Resource> resource;
+	
 	EXC_COMCHECK(
 		dx::CreateWICTextureFromFileEx(
-            m_device.Get(),
-            m_context.Get(),
-            filePath.c_str(),
+			m_device.Get(),
+			m_context.Get(),
+			filePath.c_str(),
 			0,
 			D3D11_USAGE_IMMUTABLE,
 			D3D11_BIND_SHADER_RESOURCE,
@@ -315,46 +315,46 @@ void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Tex
 			nullptr)
 	);
 
-    EXC_COMCHECK(resource->QueryInterface(IID_ID3D11Texture2D, (void**)textureResource.GetAddressOf()));
+	EXC_COMCHECK(resource->QueryInterface(IID_ID3D11Texture2D, (void**)textureResource.GetAddressOf()));
 }
 
 HRESULT RenderCore::CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const
 {
-    D3D11_BUFFER_DESC bufferDesc = {};
-    bufferDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * numBones;
-    bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-    bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-    bufferDesc.StructureByteStride = sizeof(DirectX::XMFLOAT4X4);
-    //	D3D11_SUBRESOURCE_DATA data;
-    //	data.pSysMem = boneMatricies;
-    //	data.SysMemPitch = 0;
-    //	data.SysMemSlicePitch = 0;
-    HRESULT hr = m_device->CreateBuffer(&bufferDesc, nullptr, &matrixBuffer);
-    if (FAILED(hr))
-    {
-        LOG_WARN("Failed to create bone matrix buffer.");
-    }
-    return hr;
+	D3D11_BUFFER_DESC bufferDesc = {};
+	bufferDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * numBones;
+	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+	bufferDesc.StructureByteStride = sizeof(DirectX::XMFLOAT4X4);
+	//	D3D11_SUBRESOURCE_DATA data;
+	//	data.pSysMem = boneMatricies;
+	//	data.SysMemPitch = 0;
+	//	data.SysMemSlicePitch = 0;
+	HRESULT hr = m_device->CreateBuffer(&bufferDesc, nullptr, &matrixBuffer);
+	if (FAILED(hr))
+	{
+		LOG_WARN("Failed to create bone matrix buffer.");
+	}
+	return hr;
 }
 
 HRESULT RenderCore::CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const
 {
-    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
-    shaderResourceViewDesc.Format = DXGI_FORMAT_UNKNOWN;
-    shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-    //shaderResourceViewDesc.Buffer.ElementOffset = 0;
-    shaderResourceViewDesc.Buffer.FirstElement = 0;
-    shaderResourceViewDesc.Buffer.NumElements = numBones;
-    //shaderResourceViewDesc.Buffer.ElementWidth = 64;
-    //ID3D11Buffer* testBuffer = matrixBuffer.Get();
-    HRESULT hr = m_device->CreateShaderResourceView(matrixBuffer.Get(), &shaderResourceViewDesc, &matrixSRV);
-    if (FAILED(hr))
-    {
-        LOG_WARN("Failed to create armature resource view.");
-    }
-    return hr;
+	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
+	shaderResourceViewDesc.Format = DXGI_FORMAT_UNKNOWN;
+	shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
+	//shaderResourceViewDesc.Buffer.ElementOffset = 0;
+	shaderResourceViewDesc.Buffer.FirstElement = 0;
+	shaderResourceViewDesc.Buffer.NumElements = numBones;
+	//shaderResourceViewDesc.Buffer.ElementWidth = 64;
+	//ID3D11Buffer* testBuffer = matrixBuffer.Get();
+	HRESULT hr = m_device->CreateShaderResourceView(matrixBuffer.Get(), &shaderResourceViewDesc, &matrixSRV);
+	if (FAILED(hr))
+	{
+		LOG_WARN("Failed to create armature resource view.");
+	}
+	return hr;
 }
 
 void RenderCore::UpdateViewInfo(const Camera& camera)
@@ -414,14 +414,14 @@ void RenderCore::DrawIndexed(uint indexCount, uint start, uint base)
 	EXC_COMINFO(m_context->DrawIndexed(indexCount, start, base));
 }
 
-void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color)
+void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 originScalar)
 {
    
 	dx::XMVECTOR col = ((Vec4)color).GetXM3(); //converts from cs to xmvector, which Drawstring() needs
 
 	m_spriteBatch->Begin();
-    dx::SimpleMath::Vector2 origin = m_fonts[font]->MeasureString(m_text);
-	origin = origin / 2.0f;
+	dx::SimpleMath::Vector2 origin = m_fonts[font]->MeasureString(m_text);
+	origin = dx::SimpleMath::Vector2(origin.x * originScalar.x, origin.y * originScalar.y);
 
 	m_fonts[font]->DrawString(m_spriteBatch.get(), m_text,
 		fontPos + dx::SimpleMath::Vector2(1.f, 1.f), dx::Colors::Black, 0.f, origin);
@@ -440,7 +440,7 @@ void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text
 
 void RenderCore::SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV)
 {
-    EXC_COMINFO(m_context->VSSetShaderResources(6, 1, matrixSRV.GetAddressOf()));
+	EXC_COMINFO(m_context->VSSetShaderResources(6, 1, matrixSRV.GetAddressOf()));
 }
 
 void RenderCore::UpdateBoneMatrixBuffer(ComPtr<ID3D11Buffer> matrixBuffer, cs::List<DirectX::XMFLOAT4X4> bones)
@@ -711,9 +711,9 @@ void RenderCore::InitLightBuffers()
 }
 
 void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
-	const DirectionalLight& lightDirectional,
-	const cs::List<PointLight>& lightsPoint,
-	const cs::List<SpotLight>& lightsSpot)
+	const shared_ptr<DirectionalLight>& lightDirectional,
+	const cs::List<shared_ptr<PointLight>>& lightsPoint,
+	const cs::List<shared_ptr<SpotLight>>& lightsSpot)
 {
 	CB::ShadingInfo si = 
 	{
@@ -729,16 +729,16 @@ void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, c
 	si.pointCount = cs::imin(LIGHT_CAPACITY_POINT, lightsPoint.Size());
 	si.spotCount = cs::imin(LIGHT_CAPACITY_SPOT, lightsSpot.Size());
 
-	si.directional = lightDirectional.bufferData;
+	si.directional = lightDirectional->bufferData;
 
 	for (int i = 0; i < si.pointCount; i++)
 	{
-		si.points[i] = lightsPoint[i].bufferData;
+		si.points[i] = lightsPoint[i]->bufferData;
 	}
 
 	for (int i = 0; i < si.spotCount; i++)
 	{
-		si.spots[i] = lightsSpot[i].bufferData;
+		si.spots[i] = lightsSpot[i]->bufferData;
 	}
 
 
