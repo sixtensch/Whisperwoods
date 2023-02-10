@@ -77,6 +77,7 @@ float4 main(VSOutput input) : SV_TARGET
     float4 specularSample = textureSpecular.Sample(textureSampler, input.outUV);
     float4 emissiveSample = textureEmissive.Sample(textureSampler, input.outUV);
     float4 normalSample = textureNormal.Sample(textureSampler, input.outUV);
+    normalSample.g = 1.0f - normalSample.g;
 	
     float4 colorAlbedoOpacity = float4(diffuse * diffuseSample.xyz, alpha * diffuseSample.a);
     float4 colorSpecularSpecularity = float4(specular, glossiness) * specularSample;
