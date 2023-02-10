@@ -146,7 +146,7 @@ cs::List<fs::path> Resources::CollectFilePaths(const std::string& assetDirPath)
 {
 	cs::List<fs::path> filePaths = {};
 
-	for (const auto& file : fs::directory_iterator(assetDirPath))
+	for (const auto& file : fs::recursive_directory_iterator(assetDirPath))
 	{
 		if (fs::is_regular_file(file))
 		{
@@ -176,7 +176,7 @@ void Resources::LoadSounds()
 	//auto sound = Sound::Get();
 
 	cs::List<fs::path> soundPaths = CollectFilePaths(SOUND_PATH);
-
+	
 	for (fs::path& path : soundPaths)
 	{
 		std::string filePath = path.string();

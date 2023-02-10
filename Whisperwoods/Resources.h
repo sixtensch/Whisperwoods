@@ -53,6 +53,7 @@ private:
 	// Allocates a specific resource type in its specific map and returns a pointer to the allocated memory.
 	BasicResource* AllocateResource(ResourceType resourceType, const std::string filename, const std::string resourceName);
 
+	// As this searches recursively in directories; make sure that all files in the subdirectories are the correct match with its resource.
 	cs::List<fs::path> CollectFilePaths(const std::string& assetDirPath);
 
 	// TODO: Add the option for this. If a file is not found later, its referenced to its default.
