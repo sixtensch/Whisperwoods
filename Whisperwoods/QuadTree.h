@@ -3,11 +3,6 @@
 #include "Core.h"
 #include <vector>
 
-// TODO:
-//		* Fix errors
-//		* GraphViz print function for debugging
-//		
-
 template <typename T>
 class QuadTree
 {
@@ -41,7 +36,7 @@ public: // Methods
 	void Init(float maxHeight, float minHeight, float top, float left);
 	void Reconstruct(float top, float left);
 #if WW_DEBUG
-	const string PrintTree() const;
+	//const string PrintTree() const;
 #endif
 
 public: // Core functionality
@@ -60,12 +55,12 @@ private: // Recursive callers
 	void FreeNode(shared_ptr<Node>& currentNode);
 
 #if WW_DEBUG
-	string PrintNode(const shared_ptr<Node>& currentNode) const;
+	//string PrintNode(const shared_ptr<Node>& currentNode) const;
 #endif
 
 private: // Helpers
 	bool IsLeaf(const shared_ptr<Node>& currentNode) const;
-	bool IsFull(const shared_ptr<Node>& currentNode, int& out_index) const;
+	bool IsFull(const shared_ptr<Node>& currentNode) const;
 	bool PartitionIntoChild(const dx::BoundingBox& elementVolume, const shared_ptr<Node>& currentNode, int& out_childNr) const;
 	void SplitNode(const shared_ptr<Node>& currentNode);
 
@@ -210,8 +205,7 @@ inline void QuadTree<T>::AddToNode(shared_ptr<const T*> elementAddress, const dx
 	int newDepth = ++depth;
 	if ( IsLeaf(currentNode) )
 	{
-		int nodeElements = 0;
-		if ( !IsFull(currentNode, nodeElements ) )
+		if ( !IsFull(currentNode) )
 		{
 			currentNode->data.push_back( { elementAddress, boundingBox, index } );
 			return;
@@ -331,33 +325,28 @@ inline bool QuadTree<T>::IsLeaf(const shared_ptr<Node>& currentNode) const
 }
 
 template<typename T>
-inline bool QuadTree<T>::IsFull(const shared_ptr<Node>& currentNode, int& out_index) const
+inline bool QuadTree<T>::IsFull(const shared_ptr<Node>& currentNode) const
 {
-	out_index = 0;
-	for ( int i = 0; i < s_maxLeafElements; ++i )
-	{
-		if (currentNode->data[i].element == nullptr)
-		{
-			out_index = i;
-			break;
-		}
-	}
-	return out_index == (s_maxLeafElements);
+	return currentNode->data.size() >= s_maxLeafElements;
 }
 
 template<typename T>
 inline bool QuadTree<T>::PartitionIntoChild(const dx::BoundingBox& elementVolume, const shared_ptr<Node>& currentNode, int& out_childNr) const
 {
 	out_childNr = -1;
-	bool collision = {};
+	bool collision = false;
 	for( int i = 0; i < 4; ++i )
 	{
 		// check if there is a collision between element and child bounding volume
 		collision = currentNode->child[i]->rootPartition.Contains(elementVolume);
-		if (collision && out_childNr < 0)
+		if ( collision )
+		{
+			if ( out_childNr > 0 )
+			{
+				return false;
+			}
 			out_childNr = i;
-		else
-			return false;
+		}
 	}
 	return true;
 }
@@ -416,9 +405,6 @@ inline void QuadTree<T>::SplitNode(const shared_ptr<Node>& currentNode)
 		for (int j = 0; j < s_maxLeafElements; ++j)
 		{
 			currentNode->child[i]->data.reserve(s_maxLeafElements);
-			currentNode->child[i]->data[j].element = nullptr;
-			currentNode->child[i]->data[j].boundedVolume = {};
-			currentNode->child[i]->data[j].id = -1;
 		}
 	}
 }
