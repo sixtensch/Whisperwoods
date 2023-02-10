@@ -29,6 +29,10 @@ LRESULT CALLBACK Window::WndProc(HWND window, UINT message, WPARAM wParam, LPARA
 				break;
 			}
 
+			case WM_MOUSEACTIVATE:
+				// When you click activate the window, we want Mouse to ignore it.
+				return MA_ACTIVATEANDEAT;
+
 			case WM_ACTIVATE: // This activates at destruct
 			case WM_INPUT:
 			case WM_MOUSEMOVE:
