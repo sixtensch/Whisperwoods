@@ -16,7 +16,7 @@ void Transform::DecomposeWorldMatrixIntoWorldParameters()
 	// Convert into readable data
 	DirectX::XMFLOAT3 f3Scale;
 	DirectX::XMFLOAT4 f4Rotation;
-	DirectX::XMFLOAT3 f3Translation;
+	DirectX::XMFLOAT3 f3Translation; 
 	DirectX::XMStoreFloat3(&f3Scale, outScale);
 	DirectX::XMStoreFloat4(&f4Rotation, outRotation);
 	DirectX::XMStoreFloat3(&f3Translation, outTranslation);

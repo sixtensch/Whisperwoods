@@ -388,7 +388,6 @@ HRESULT RenderCore::CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSR
 	return hr;
 }
 
-
 void RenderCore::UpdateViewInfo(const Camera& camera)
 {
 	CB::ViewInfo vi =
@@ -495,6 +494,14 @@ void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text
 void RenderCore::SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV)
 {
 	EXC_COMINFO(m_context->VSSetShaderResources(6, 1, matrixSRV.GetAddressOf()));
+}
+
+void RenderCore::UpdateBoneMatrixBuffer(ComPtr<ID3D11Buffer> matrixBuffer, cs::List<DirectX::XMFLOAT4X4> bones)
+{
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	m_context->Map(matrixBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	memcpy(mappedResource.pData, bones.Data(), bones.Size() * sizeof(DirectX::XMFLOAT4X4));
+	m_context->Unmap(matrixBuffer.Get(), 0);
 }
 
 void RenderCore::InitImGui() const
@@ -640,7 +647,9 @@ void RenderCore::InitPipelines()
 		{ "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "BONES", 0, DXGI_FORMAT_R32G32B32A32_SINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }/*,
+		{ "BONESTWO", 0, DXGI_FORMAT_R32G32B32A32_SINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "WEIGHTSTWO", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }*/
 	};
 
 	EXC_COMCHECK(m_device->CreateInputLayout(
