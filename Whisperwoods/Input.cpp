@@ -61,6 +61,15 @@ void Input::InputInit(const HWND windowHandle)
 
 }
 
+void Input::Update()
+{
+	m_lastKeyboardState = m_currentKeyboardState;
+	m_currentKeyboardState = m_keyboard->GetState();
+
+	m_lastMouseState = m_currentMouseState;
+	m_currentMouseState = m_mouse->GetState();
+}
+
 void Input::BindWindowToMouse(const HWND windowHandle)
 {
 	m_mouse->SetWindow(windowHandle);
@@ -88,9 +97,7 @@ void Input::ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	if (s_singleton == nullptr)
 		return;
 
-	m_lastKeyboardState = m_keyboard->GetState();
 	m_keyboard->ProcessMessage(message, wParam, lParam);
-	m_currentKeyboardState = m_keyboard->GetState();
 }
 
 void Input::ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
@@ -98,9 +105,7 @@ void Input::ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
 	if (s_singleton == nullptr)
 		return;
 
-	m_lastMouseState = m_mouse->GetState();
 	m_mouse->ProcessMessage(message, wParam, lParam);
-	m_currentMouseState = m_mouse->GetState();
 }
 
 KeyboardState Input::GetKeyboardState() const

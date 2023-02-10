@@ -35,6 +35,7 @@ public:
 	static bool Exists();
 
 	void InputInit(const HWND windowHandle);
+	void Update();
 
 	// These functions should only exists inside Windows Callback function.
 	void ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam);
