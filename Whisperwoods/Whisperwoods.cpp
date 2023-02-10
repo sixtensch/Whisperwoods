@@ -112,7 +112,7 @@ void Whisperwoods::Run()
 	//shared_ptr<MeshRenderableStatic> meshSphere = Renderer::CreateMeshStatic("Assets/Models/Static/Debug_Sphere.wwm");
 	shared_ptr<MeshRenderableRigged> grafiki = Renderer::CreateMeshRigged("Grafiki_Animated.wwm");
 
-	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
+	Mat4 worldScale = Mat::scale3(0.2f, 0.2f, 0.2f);
 	Mat4 worldPos = Mat::translation3(0, -3.5f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	shared_ptr<MeshRenderableStatic> ground = Renderer::CreateMeshStatic("Ground.wwm");
