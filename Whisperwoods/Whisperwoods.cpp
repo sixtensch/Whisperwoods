@@ -181,7 +181,7 @@ void Whisperwoods::Run()
 
 		m_game->Update();
 		m_sound->Update();
-		rotationY += 2 * dTime;
+		rotationY += 0.2f * dTime;
 		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
 
