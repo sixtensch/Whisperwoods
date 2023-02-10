@@ -48,7 +48,7 @@ LRESULT CALLBACK Window::WndProc(HWND window, UINT message, WPARAM wParam, LPARA
 			case WM_MOUSEHOVER:
 			{
 				inputRef.ProcessMouseMessage(message, wParam, lParam);
-				break;	
+				break;
 			}
 
 			case WM_KEYDOWN:

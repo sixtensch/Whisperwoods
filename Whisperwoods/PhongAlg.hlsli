@@ -8,7 +8,6 @@ float4 phong(
     float3 cameraDirection,
     float3 materialAlbedo,
     float3 materialSpecular,
-    float3 materialEmissive,
     float materialOpacity,
     float materialSpecularity)
 {

@@ -117,12 +117,12 @@ FMOD::Channel* Sound::PlaySound(FMOD::Sound* sound, FMOD_VECTOR pos, FMOD_VECTOR
 
 FMOD::Channel* Sound::PlaySound(FMOD::Sound* sound, FMOD::Channel* channel, FMOD_VECTOR pos, FMOD_VECTOR vel, float maxRange)
 {
-	bool exists = false;
+	/*bool exists = false;
 	for (int i = 0; i < m_sounds.size(); i++)
 	{
 		if (m_sounds[i] == sound) exists = true;
 	}
-	if (!exists) return channel;
+	if (!exists) return channel;*/
 
 	succeededOrWarn("Failed to play sound", m_system->playSound(sound, nullptr, false, &channel));
 	succeededOrWarn("Failed to set channel 3D Attributes", channel->set3DAttributes(&pos, &vel));

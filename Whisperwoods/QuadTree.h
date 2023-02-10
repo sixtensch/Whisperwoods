@@ -1,23 +1,15 @@
 #pragma once
 #include <DirectXCollision.h>
-
+#include "Core.h"
 #include <vector>
-#include <set>
-
-
-namespace dx = DirectX;
-
-#define MAX_DEPTH 8
-#define NODE_MAX_ELEMENTS 10
-
 
 template <typename T>
-class quadTree
+class QuadTree
 {
 private: // Misc
 	struct NodeData
 	{
-		T* element;
+		shared_ptr<const T*> element;
 		dx::BoundingBox boundedVolume;
 		int id;
 	};
@@ -25,327 +17,377 @@ private: // Misc
 	{
 		std::vector< NodeData > data;
 
-		dx::BoundingBox nodeBox;
-		Node* children[4];
+		dx::BoundingBox rootPartition;
+		shared_ptr<Node> child[4];
 	};
 public: // Methods
-	quadTree();
-	~quadTree();
-	void Init( float maxHeight, float minHeight, float multiplier );
-	//void Reconstruct( float hieght, float width );
+	/// <summary>The tree works like a binary tree with a constant of 4 children per node. 
+	/// <para>The parent and-leaf nodes will have items added to them, therefore disallowing duplication.</para>
+	/// <para>There are two core functionalities:</para>
+	/// 
+	///	<para>1. CullTree() - Culls the tree and returns a vector of all the found elements</para>
+	///	<para>2. CullTreeIndexed() - Culls the tree and returns the values by their assigned index in the out_list passed as parameter. (no item is added if index is non positive)</para>
+	/// 
+	/// <para>!Beware that if the positions of the object pointed to by the tree are changed, UB is due</para>
+	/// </summary>
+	QuadTree();
+	~QuadTree();
 
+	void Init(float maxHeight, float minHeight, float top, float left);
+	void Reconstruct(float top, float left);
+#if WW_DEBUG
+	//const string PrintTree() const;
+#endif
 
-	void AddElement( T* elementAddress, const dx::BoundingBox& boundingBox );
-	void AddIndexed( T* elementAddress, const dx::BoundingBox& boundingBox, int index );
+public: // Core functionality
+	void AddElement(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox);
+	void AddElementIndexed(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, int index);
 
-	std::vector<const T>& CullTree( const dx::BoundingFrustum& frustum ) const;
-	//void CullIndexed( const dx::BoundingFrustum& frustum, void** out_culledObjects );
-private:
-	void AddToNode( T* elementAddress, const dx::BoundingBox& boundingBox, Node* nodeToProcess, int depth, int index = -1 );
-	void CheckNode( const dx::BoundingFrustum& frustum, Node* node, std::set<const T*>& out_validElements ) const;
-	//void CheckIndexed( const dx::BoundingFrustum& frustum, Node* node, int index, std::vector<const T*>& out_validElements );
+	std::vector<const T*>& CullTree(const dx::BoundingFrustum& frustum) const;
+	void CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects) const;
+
+private: // Recursive callers
+	void AddToNode(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, const shared_ptr<Node>& currentNode, int depth, int index = -1);
+
+	void CullNode(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, std::vector<const T*>& out_validElements) const;
+	void CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, cs::List<cs::List<const T*>>& out_indexedList) const;
 	
+	void FreeNode(shared_ptr<Node>& currentNode);
 
-	void FreeNode( Node* node );
+#if WW_DEBUG
+	//string PrintNode(const shared_ptr<Node>& currentNode) const;
+#endif
 
-	bool isLeaf( Node* nodeToProcess ) const;
-	bool isFull( Node* nodeToProcess, int& out_index ) const;
-	void SplitNode( Node* nodeToProcess );
+private: // Helpers
+	bool IsLeaf(const shared_ptr<Node>& currentNode) const;
+	bool IsFull(const shared_ptr<Node>& currentNode) const;
+	bool PartitionIntoChild(const dx::BoundingBox& elementVolume, const shared_ptr<Node>& currentNode, int& out_childNr) const;
+	void SplitNode(const shared_ptr<Node>& currentNode);
 
-public: // Variables
 private:
-	Node* m_root;
+	shared_ptr<Node> m_root;
+	//bool m_lock;
 	float m_maxHeight;
 	float m_minHeight;
+
+private: // Settings
+	static const UINT s_maxLeafElements = 10;
+	static const UINT s_maxDepth = 8;
 };
 
-
-
 template<typename T>
-inline quadTree<T>::quadTree() : m_minHeight( -20.0f ), m_maxHeight( 20.0f )
+inline QuadTree<T>::QuadTree() : m_minHeight( -20.0f ), m_maxHeight( 20.0f )
 {
 	m_root = nullptr;
 }
 template<typename T>
-inline quadTree<T>::~quadTree()
+inline QuadTree<T>::~QuadTree()
 {
 	//Recursively go through the tree to free every node
 	FreeNode( m_root );
 }
 
 
+
 // ################################### Definitions ###################################
+
 template<typename T>
-inline void quadTree<T>::Init( float maxHeight, float minHeight, float multiplier )
+inline void QuadTree<T>::Init(float maxHeight, float minHeight, float top, float left)
 {
 	m_maxHeight = maxHeight;
 	m_minHeight = minHeight;
 
 	// Creates the root bounding box
-	// from (-1, min_height, -1) to (1, max_height, 1)
+	dx::XMVECTOR topleft = { left, m_minHeight, top };
+	dx::XMVECTOR bottomRigh = { -left, m_maxHeight, -top };
 
-	dx::XMVECTOR topleft = { -1.0f * multiplier, m_minHeight, -1.0f * multiplier };
-	dx::XMVECTOR bottomRigh = { 1.0f * multiplier, m_maxHeight, 1.0f * multiplier };
 	dx::BoundingBox rootBox;
 	dx::BoundingBox::CreateFromPoints( rootBox, topleft, bottomRigh );
 
 
-	m_root = (Node*)malloc( sizeof( Node ) );
+	m_root = make_shared<Node>();
 	if ( !m_root )
 	{
-		exit( 1 );
+		EXC("Failed creating the root for quadtree.");
 	}
 
 	for ( int i = 0; i < 4; i++ )
 	{
-		m_root->children[i] = nullptr;
-	}
-	for ( int i = 0; i < NODE_MAX_ELEMENTS; ++i )
-	{
-		m_root->data[i].element = nullptr;
-		m_root->data[i].boundedVolume = {};
+		m_root->child[i] = nullptr;
 	}
 
-
-	m_root->nodeBox = rootBox;
+	m_root->data.reserve(s_maxLeafElements);
+	m_root->rootPartition = rootBox;
 }
+template<typename T>
+inline void QuadTree<T>::Reconstruct(float top, float left)
+{
+	// Clear the entire tree
+	FreeNode(m_root);
 
+	// Create a new tree
+	dx::XMVECTOR topleft = { left, m_minHeight, top };
+	dx::XMVECTOR bottomRigh = { -left, m_maxHeight, -top };
+
+	dx::BoundingBox rootBox;
+	dx::BoundingBox::CreateFromPoints(rootBox, topleft, bottomRigh);
+
+
+	m_root = make_shared<Node>();
+	if ( !m_root )
+	{
+		EXC("Failed mallocing the root for quadtree in Reconstruction function call.");
+	}
+
+	for ( int i = 0; i < 4; i++ )
+	{
+		m_root->child[i] = nullptr;
+	}
+	m_root->data.clear();
+	m_root->rootPartition = rootBox;
+}
 
 /// <summary>
-/// Calls Free() on all the nodes in the tree and destroys the tree.
-/// After the tree is destroyed it is recreated with the new height and width parameters.
+/// Searches the spatialtree with the use of the frustum.
+/// This does not use the index functionality
 /// </summary>
-/// <typeparam name="T"></typeparam>
-/// <param name="Height"></param>
-/// <param name="Width"></param>
-//template<typename T>
-//inline void quadTree<T>::Reconstruct( float height, float width )
-//{
-//
-//}
-
-
 template<typename T>
-inline void quadTree<T>::FreeNode( Node* node )
+inline std::vector<const T*>& QuadTree<T>::CullTree(const dx::BoundingFrustum& frustum) const
 {
-	if ( node == nullptr )
-	{
-		return;
-	}
-	if ( isLeaf( node ) )
-	{
-		free( node );
-		node = nullptr;
-		return;
-	}
-	// This is an initialized parent
-	for ( int i = 0; i < 4; ++i )
-	{
-		FreeNode( node->children[i] );
-	}
-	free( node );
+	std::vector<const T*> toReturn;
+	// Treverse the tree from root
+	CullNode(frustum, m_root, toReturn);
+
+	return toReturn;
 }
-
-
 /// <summary>
-/// Add a non indexed item to the tree, if this is used the non indexed CullTree function should be used
+/// Searches the spatialtree with the use of the frustum.
+/// This uses the index functionality,
+/// <para>It is assumed that the indexes are valid and are not out of bounds</para>
 /// </summary>
-/// <typeparam name="T"></typeparam>
-/// <param name="ElementAddress"></param>
-/// <param name="BoundingBox"></param>
 template<typename T>
-inline void quadTree<T>::AddElement( T* elementAddress, const dx::BoundingBox& boundingBox )
+inline void QuadTree<T>::CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects) const
 {
-	AddToNode( elementAddress, boundingBox, m_root, 0, -1 );
+	CullNodeIndexed(frustum, m_root, out_culledObjects);
+}
+
+template<typename T>
+inline void QuadTree<T>::AddElement(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox)
+{
+	AddToNode(elementAddress, boundingBox, m_root, 0, -1);
 }
 template<typename T>
-inline void quadTree<T>::AddIndexed( T* elementAddress, const dx::BoundingBox& boundingBox, int index )
+inline void QuadTree<T>::AddElementIndexed(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, int index)
 {
-	AddToNode( elementAddress, boundingBox,m_root, 0, index );
+	AddToNode(elementAddress, boundingBox,m_root, 0, index);
 }
+
+
+
+
+// ########################   RECURSIVE CALLS   ########################
+
+
 template<typename T>
-inline void quadTree<T>::AddToNode( T* elementAddress, const dx::BoundingBox& boundingBox, Node* nodeToProcess, int depth, int index )
+inline void QuadTree<T>::AddToNode(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, const shared_ptr<Node>& currentNode, int depth, int index)
 {
-	bool collision = nodeToProcess->nodeBox.Intersects( boundingBox );
+	bool collision = currentNode->rootPartition.Contains(boundingBox);
 	if ( !collision )
 		return;
 
-	int newDepth = ++depth;
-	if ( isLeaf( nodeToProcess ) )
+	// Max depth is reached
+	if ((depth >= s_maxDepth))
 	{
-		int nodeElements = 0;
-		if ( (depth >= MAX_DEPTH) )
+		currentNode->data.push_back({ elementAddress, boundingBox, index });
+		return;
+	}
+
+	int newDepth = ++depth;
+	if ( IsLeaf(currentNode) )
+	{
+		if ( !IsFull(currentNode) )
 		{
-			//extend node
-			nodeToProcess->data.push_back( { elementAddress, boundingBox, index } );
-			return;
-		}
-		else if ( !isFull( nodeToProcess, nodeElements ) )
-		{
-			// Add element to this node
-			nodeToProcess->data[nodeElements].element = elementAddress;
-			nodeToProcess->data[nodeElements].boundedVolume = boundingBox;
-			nodeToProcess->data[nodeElements].id = index;
+			currentNode->data.push_back( { elementAddress, boundingBox, index } );
 			return;
 		}
 		else
 		{
 			// Make this node a parent
-			SplitNode( nodeToProcess );
+			SplitNode( currentNode );
 
-			// Add the current nodes element to a child node
-			for ( int elementIndex = 0; elementIndex < NODE_MAX_ELEMENTS; elementIndex++ )
+			int partitionIndex = -1;
+			for (int i = 0; i < currentNode->data.size();) 
 			{
-				for ( int childIndex = 0; childIndex < 4; ++childIndex )
+				if (PartitionIntoChild(currentNode->data[i].boundedVolume, currentNode, partitionIndex))
 				{
-					AddToNode( nodeToProcess->data[elementIndex].element, nodeToProcess->data[elementIndex].boundedVolume, nodeToProcess->children[childIndex], newDepth );
+					// Only one child fits this node, therefore send it into that node
+					AddToNode(currentNode->data[i].element, currentNode->data[i].boundedVolume, currentNode->child[partitionIndex], newDepth, currentNode->data[i].id);
+					
+					// Clear node
+					currentNode->data.erase(currentNode->data.begin() + i);
+				}
+				else
+				{
+					++i;
 				}
 			}
-			// Clear node
-			for ( int i = 0; i < NODE_MAX_ELEMENTS; ++i )
-			{
-				nodeToProcess->data[i].element = nullptr;
-				nodeToProcess->data[i].boundedVolume = {};
-				nodeToProcess->data[i].id = index;
-			}
+
 		}
 	}
 
-	// Node is either parent or was made into one, pass along to next nodes
-	AddToNode( elementAddress, boundingBox, nodeToProcess->children[0], newDepth, index );
-	AddToNode( elementAddress, boundingBox, nodeToProcess->children[1], newDepth, index );
-	AddToNode( elementAddress, boundingBox, nodeToProcess->children[2], newDepth, index );
-	AddToNode( elementAddress, boundingBox, nodeToProcess->children[3], newDepth, index );
-	return;
-}
-
-
-/// <summary>
-/// Searches the spatialtree with the use of the frustum.
-/// No duplicate objects are returned in the vector.
-/// </summary>
-/// <typeparam name="T"></typeparam>
-/// <param name="Frustum"></param>
-/// <returns></returns>
-template<typename T>
-inline std::vector<const T>& quadTree<T>::CullTree( const dx::BoundingFrustum& frustum ) const
-{
-	std::vector<const T> toReturn;
-	std::set<const T*> validElements;
-
-	// Treverse the tree from root
-	CheckNode( frustum, m_root, validElements );
-
-	for ( auto& element : validElements )
+	// Node is either parent or was made into one, continue with the adding of a new element
+	int partitionIndex = -1;
+	if (PartitionIntoChild(boundingBox, currentNode, partitionIndex))
 	{
-		toReturn.push_back( *element );
-	}
-	return toReturn;
-}
-template<typename T>
-inline void quadTree<T>::CheckNode( const dx::BoundingFrustum& frustum, Node* node, std::set<const T*>& out_validElements ) const
-{
-	//Check if node bounding volume is in the frustum
-	bool collision = frustum.Contains( node->nodeBox );
-	if ( !collision )
-	{
-		return;
-	}
-
-	if ( isLeaf( node ) )
-	{
-		for ( int i = 0; i < NODE_MAX_ELEMENTS; ++i )
-		{
-			if ( node->data[i].element == nullptr )
-			{
-				break;
-			}
-
-			// Check if element bounding volume is in the frustum
-			collision = frustum.Contains( node->data[i].boundedVolume );
-			if ( !collision )
-			{
-				continue;
-			}
-
-			out_validElements.insert( node->data[i].element );
-		}
+		// Only one child fits this node, therefore send it into that node
+		AddToNode(elementAddress, boundingBox, currentNode->child[partitionIndex], newDepth, index);
 	}
 	else
 	{
-		for ( int i = 0; i < 4; ++i )
+		// It does not fit into any child partition, put it in this parent node
+		currentNode->data.push_back({ elementAddress, boundingBox, index });
+	}
+	return;
+}
+
+template<typename T>
+inline void QuadTree<T>::CullNode(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& node, std::vector<const T*>& out_validElements) const
+{
+	//Check if node bounding volume is in the frustum
+	bool collision = frustum.Contains(node->rootPartition);
+	if (!collision)
+		return;
+
+	for (auto& nodeData : node->data)
+	{
+		collision = frustum.Contains(nodeData.boundedVolume);
+		if (collision)
+			out_validElements.push_back(*nodeData.element);
+	}
+	if (!IsLeaf(node))
+	{
+		for (int i = 0; i < 4; ++i)
 		{
-			CheckNode( frustum, node->children[i], out_validElements );
+			CullNode(frustum, node->child[i], out_validElements);
 		}
 	}
+}
 
+template<typename T>
+inline void QuadTree<T>::CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& node, cs::List<cs::List<const T*>>& out_indexedList) const
+{
+	bool collision = frustum.Contains(node->rootPartition);
+	if (!collision)
+		return;
+
+	for (auto& nodeData : node->data)
+	{
+		collision = frustum.Contains(nodeData.boundedVolume);
+		if (collision)
+			out_indexedList[nodeData.id].Add(*nodeData.element);
+	}
+	if (!IsLeaf(node))
+	{
+		for (int i = 0; i < 4; ++i)
+		{
+			CullNodeIndexed(frustum, node->child[i], out_indexedList);
+		}
+	}
 }
 
 
+template<typename T>
+inline void QuadTree<T>::FreeNode(shared_ptr<Node>& node)
+{
+	if (node)
+	{
+		return;
+	}
+	if (!IsLeaf(node))
+	{
+		// This is an initialized parent
+		for (int i = 0; i < 4; ++i)
+		{
+			FreeNode(node->child[i]);
+		}
+	}
+	node.reset();
+}
+
+// ######################## RECURSIVE CALLS END ########################
 
 // Helper functions
 
 template<typename T>
-inline bool quadTree<T>::isLeaf( Node* nodeToProcess ) const
+inline bool QuadTree<T>::IsLeaf(const shared_ptr<Node>& currentNode) const
 {
-	return nodeToProcess->children[0] == nullptr;
+	return currentNode->child[0] == nullptr;
 }
 
 template<typename T>
-inline bool quadTree<T>::isFull( Node* nodeToProcess, int& out_index ) const
+inline bool QuadTree<T>::IsFull(const shared_ptr<Node>& currentNode) const
 {
-	out_index = 0;
-	for ( int i = 0; i < NODE_MAX_ELEMENTS; ++i )
+	return currentNode->data.size() >= s_maxLeafElements;
+}
+
+template<typename T>
+inline bool QuadTree<T>::PartitionIntoChild(const dx::BoundingBox& elementVolume, const shared_ptr<Node>& currentNode, int& out_childNr) const
+{
+	out_childNr = -1;
+	bool collision = false;
+	for( int i = 0; i < 4; ++i )
 	{
-		if ( nodeToProcess->data[i].element != nullptr )
+		// check if there is a collision between element and child bounding volume
+		collision = currentNode->child[i]->rootPartition.Contains(elementVolume);
+		if ( collision )
 		{
-			++out_index;
-		}
-		else
-		{
-			break;
+			if ( out_childNr > 0 )
+			{
+				return false;
+			}
+			out_childNr = i;
 		}
 	}
-	return out_index == (NODE_MAX_ELEMENTS);
+	return true;
 }
 
 template<typename T>
-inline void quadTree<T>::SplitNode( Node* nodeToProcess )
+inline void QuadTree<T>::SplitNode(const shared_ptr<Node>& currentNode)
 {
 	dx::BoundingBox tempBox;
-	dx::XMFLOAT3 CenterPoint = nodeToProcess->nodeBox.Center;
-	dx::XMFLOAT3 radiusExtend = nodeToProcess->nodeBox.Extents;
+	dx::XMFLOAT3 CenterPoint = currentNode->rootPartition.Center;
+	dx::XMFLOAT3 radiusExtend = currentNode->rootPartition.Extents;
 
 
 	// boundingbox topleft
-	nodeToProcess->children[0] = (Node*)malloc( sizeof( Node ) );
-	if ( nodeToProcess->children[0] )
+	currentNode->child[0] = make_shared<Node>();
+	if ( currentNode->child[0] )
 	{
-		tempBox.CreateFromPoints( nodeToProcess->children[0]->nodeBox,
+		tempBox.CreateFromPoints( currentNode->child[0]->rootPartition,
 								  { CenterPoint.x - radiusExtend.x, m_minHeight, CenterPoint.z + radiusExtend.z },
 								  { CenterPoint.x,                  m_maxHeight, CenterPoint.z } );
 	}
 	// boundingbox topright
-	nodeToProcess->children[1] = (Node*)malloc( sizeof( Node ) );
-	if ( nodeToProcess->children[1] )
+	currentNode->child[1] = make_shared<Node>();
+	if ( currentNode->child[1] )
 	{
-		tempBox.CreateFromPoints( nodeToProcess->children[1]->nodeBox,
+		tempBox.CreateFromPoints( currentNode->child[1]->rootPartition,
 								  { CenterPoint.x,                  m_minHeight, CenterPoint.z + radiusExtend.z },
 								  { CenterPoint.x + radiusExtend.x, m_maxHeight, CenterPoint.z } );
 	}
 	// boundingbox bottomleft
-	nodeToProcess->children[2] = (Node*)malloc( sizeof( Node ) );
-	if ( nodeToProcess->children[2] )
+	currentNode->child[2] = make_shared<Node>();
+	if ( currentNode->child[2] )
 	{
-		tempBox.CreateFromPoints( nodeToProcess->children[2]->nodeBox,
+		tempBox.CreateFromPoints( currentNode->child[2]->rootPartition,
 								  { CenterPoint.x - radiusExtend.x, m_minHeight, CenterPoint.z },
 								  { CenterPoint.x,                  m_maxHeight, CenterPoint.z - radiusExtend.z } );
 	}
 	// boundingbox bottomright
-	nodeToProcess->children[3] = (Node*)malloc( sizeof( Node ) );
-	if ( nodeToProcess->children[3] )
+	currentNode->child[3] = make_shared<Node>();
+	if ( currentNode->child[3] )
 	{
-		tempBox.CreateFromPoints( nodeToProcess->children[3]->nodeBox,
+		tempBox.CreateFromPoints( currentNode->child[3]->rootPartition,
 								  { CenterPoint.x,                  m_minHeight, CenterPoint.z },
 								  { CenterPoint.x + radiusExtend.x, m_maxHeight, CenterPoint.z - radiusExtend.z } );
 	}
@@ -355,17 +397,14 @@ inline void quadTree<T>::SplitNode( Node* nodeToProcess )
 	// Created children for the node, sanitise the new nodes for future use
 	for ( int i = 0; i < 4; ++i )
 	{
-		nodeToProcess->children[i]->children[0] = nullptr;
-		nodeToProcess->children[i]->children[1] = nullptr;
-		nodeToProcess->children[i]->children[2] = nullptr;
-		nodeToProcess->children[i]->children[3] = nullptr;
-	}
-	for ( int i = 0; i < 4; ++i )
-	{
-		for ( int j = 0; j < NODE_MAX_ELEMENTS; ++j )
+		currentNode->child[i]->child[0] = nullptr;
+		currentNode->child[i]->child[1] = nullptr;
+		currentNode->child[i]->child[2] = nullptr;
+		currentNode->child[i]->child[3] = nullptr;
+		
+		for (int j = 0; j < s_maxLeafElements; ++j)
 		{
-			nodeToProcess->children[i]->data[j].element = nullptr;
-			nodeToProcess->children[i]->data[j].boundedVolume = {};
+			currentNode->child[i]->data.reserve(s_maxLeafElements);
 		}
 	}
 }

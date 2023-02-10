@@ -26,9 +26,9 @@ struct BoneWeightPair
 
 struct Armature
 {
-	Mat4 globalInverseTransform;
+	DirectX::XMFLOAT4X4 globalInverseTransform;
 	cs::List<Bone> bones;
-	cs::List<Mat4> boneMatricies; // For updating the buffer
+	cs::List<DirectX::XMFLOAT4X4> boneMatricies; // For updating the buffer
 	int numBones;
 
 	ComPtr<ID3D11Buffer> matrixBuffer;

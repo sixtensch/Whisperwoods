@@ -16,7 +16,9 @@ enum Keybind
 	KeybindForward = 0,
 	KeybindBackward,
 	KeybindLeft,
-	KeybindRight,
+	KeybindRight,	
+	KeybindUp,		// Debugging
+	KeybindDown,	// Debugging
 	KeybindSprint,
 	KeybindCrouch,
 	KeybindPower,
@@ -37,6 +39,8 @@ public:
 	static bool Exists();
 
 	void InputInit(const HWND windowHandle);
+	void Update();
+
 	void Update();
 
 	// These functions should only exists inside Windows Callback function.

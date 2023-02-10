@@ -10,6 +10,8 @@ struct VSInput
     float4 UV           : TEXCOORD0;
     int4   bones        : BONES0;
     float4 weights      : WEIGHTS0;
+    //int4   bones1       : BONESTWO0;
+    //float4 weights1     : WEIGHTSTWO0;
 };
 
 struct VSOutput
@@ -42,16 +44,16 @@ VSOutput main(VSInput input)
 	
     float4 startPosition = float4(input.position, 1.0f);
     float3 sumPos = float3(0, 0, 0);
-    sumPos += mul(Tx[input.bones[0]] * input.weights[0], startPosition);
-    sumPos += mul(Tx[input.bones[1]] * input.weights[1], startPosition);
-    sumPos += mul(Tx[input.bones[2]] * input.weights[2], startPosition);
-    sumPos += mul(Tx[input.bones[3]] * input.weights[3], startPosition);
-    //output.outPosition = float4(sumPos, 1.0f);
-    //output.outPosition = mul(output.position, worldMatrix);
-    //output.outPosition = mul(output.position, ViewMatrix);
-    //output.outPosition = mul(output.position, ProjectionMatrix);
+    sumPos += mul( Tx[input.bones[0]]  * input.weights[0], startPosition ).xyz;
+    sumPos += mul( Tx[input.bones[1]]  * input.weights[1], startPosition ).xyz;
+    sumPos += mul( Tx[input.bones[2]]  * input.weights[2], startPosition ).xyz;
+    sumPos += mul( Tx[input.bones[3]]  * input.weights[3], startPosition ).xyz;
+    //sumPos += mul( Tx[input.bones1[0]] * input.weights1[0], startPosition ); // for extra bone blend at a performance hit
+    //sumPos += mul( Tx[input.bones1[1]] * input.weights1[1], startPosition ); // must be matched in pipeline and vertex struct
+    //sumPos += mul( Tx[input.bones1[2]] * input.weights1[2], startPosition ); // as well as in the fbx importer, 
+    //sumPos += mul( Tx[input.bones1[3]] * input.weights1[3], startPosition ); // requiring a .wmm re-serialization
 
-    output.wPosition = mul(float4(input.position, 1.0f), WorldMatrix);
+    output.wPosition = mul(float4(sumPos, 1.0f), WorldMatrix);
     output.wsPosition = mul(output.wPosition, ViewMatrix);
     output.outPosition = mul(output.wsPosition, ProjectionMatrix);
 

@@ -177,8 +177,32 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	InitPipelines();
 	InitConstantBuffers();
 	InitFont(m_fonts, &m_spriteBatch);
+	InitDefaultMaterials();
 
 	m_pipelineCurrent = -1;
+
+
+
+	// Samplers
+
+	D3D11_SAMPLER_DESC sd = {};
+
+	sd.Filter = D3D11_FILTER_ANISOTROPIC;
+	sd.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.MipLODBias = 0.0f;
+	sd.MaxAnisotropy = 1u;
+	sd.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	sd.BorderColor[0] = 0.0f;
+	sd.BorderColor[1] = 0.0f;
+	sd.BorderColor[2] = 0.0f;
+	sd.BorderColor[3] = 0.0f;
+	sd.MinLOD = 0.0f;
+	sd.MaxLOD = D3D11_FLOAT32_MAX;
+
+	EXC_COMCHECK(m_device->CreateSamplerState(&sd, &m_sampler));
+	EXC_COMINFO(m_context->PSSetSamplers(RegSamplerStandard, 1, m_sampler.GetAddressOf()));
 }
 
 RenderCore::~RenderCore()
@@ -294,7 +318,7 @@ HRESULT RenderCore::CreateImageTexture(char* image, UINT resHeight, UINT resWidt
 	return hr;
 }
 
-void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Texture2D>& textureResource) const
+void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Texture2D>& textureResource, ComPtr<ID3D11ShaderResourceView>& srv) const
 {
 	// Load texture using DXTK from filepath.
 
@@ -316,6 +340,13 @@ void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Tex
 	);
 
 	EXC_COMCHECK(resource->QueryInterface(IID_ID3D11Texture2D, (void**)textureResource.GetAddressOf()));
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
+	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvd.Texture2D = { 0, 1 };
+
+	EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &srvd, &srv));
 }
 
 HRESULT RenderCore::CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const
@@ -357,7 +388,6 @@ HRESULT RenderCore::CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSR
 	return hr;
 }
 
-
 void RenderCore::UpdateViewInfo(const Camera& camera)
 {
 	CB::ViewInfo vi =
@@ -383,6 +413,28 @@ void RenderCore::UpdateObjectInfo(const WorldRenderable* worldRenderable)
 	EXC_COMCHECK(m_context->Map(m_constantBuffers.objectInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
 	memcpy(msr.pData, &oi, sizeof(CB::ObjectInfo));
 	EXC_COMINFO(m_context->Unmap(m_constantBuffers.objectInfo.Get(), 0u));
+}
+
+void RenderCore::UpdateMaterialInfo(const MaterialResource* material) const
+{
+	if (material == nullptr)
+	{
+		UpdateMaterialInfo(&m_defaultMaterial);
+		return;
+	}
+
+	// KEEP IN MIND that this relies on the fact that MaterialResource and MaterialInfo are aligned identically!
+	const CB::MaterialInfo* mi = (const CB::MaterialInfo*)&(material->diffuse);
+
+	D3D11_MAPPED_SUBRESOURCE msr = {};
+	EXC_COMCHECK(m_context->Map(m_constantBuffers.materialInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+	memcpy(msr.pData, mi, sizeof(CB::MaterialInfo));
+	EXC_COMINFO(m_context->Unmap(m_constantBuffers.materialInfo.Get(), 0u));
+
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexDiffuse,	1,	(material->textureDiffuse	? material->textureDiffuse->shaderResourceView	: m_defaultDiffuseSRV)	.GetAddressOf()));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexSpecular,	1,	(material->textureSpecular	? material->textureSpecular->shaderResourceView	: m_defaultSpecularSRV)	.GetAddressOf()));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexEmissive,	1,	(material->textureEmissive	? material->textureEmissive->shaderResourceView	: m_defaultEmissiveSRV)	.GetAddressOf()));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexNormal,	1,	(material->textureNormal	? material->textureNormal->shaderResourceView	: m_defaultNormalSRV)	.GetAddressOf()));
 }
 
 void RenderCore::DrawObject(const Renderable* renderable, bool shadowing)
@@ -442,6 +494,14 @@ void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text
 void RenderCore::SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV)
 {
 	EXC_COMINFO(m_context->VSSetShaderResources(6, 1, matrixSRV.GetAddressOf()));
+}
+
+void RenderCore::UpdateBoneMatrixBuffer(ComPtr<ID3D11Buffer> matrixBuffer, cs::List<DirectX::XMFLOAT4X4> bones)
+{
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	m_context->Map(matrixBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	memcpy(mappedResource.pData, bones.Data(), bones.Size() * sizeof(DirectX::XMFLOAT4X4));
+	m_context->Unmap(matrixBuffer.Get(), 0);
 }
 
 void RenderCore::InitImGui() const
@@ -587,7 +647,9 @@ void RenderCore::InitPipelines()
 		{ "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "BONES", 0, DXGI_FORMAT_R32G32B32A32_SINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }/*,
+		{ "BONESTWO", 0, DXGI_FORMAT_R32G32B32A32_SINT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "WEIGHTSTWO", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }*/
 	};
 
 	EXC_COMCHECK(m_device->CreateInputLayout(
@@ -649,6 +711,20 @@ void RenderCore::InitConstantBuffers()
 	));
 
 	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVShadingInfo, 1, m_constantBuffers.shadingInfo.GetAddressOf()));
+
+
+
+	// Material info
+
+	desc.ByteWidth = sizeof(CB::MaterialInfo);
+
+	EXC_COMCHECK(m_device->CreateBuffer(
+		&desc,
+		nullptr,
+		m_constantBuffers.materialInfo.GetAddressOf()
+	));
+
+	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVMaterialInfo, 1, m_constantBuffers.materialInfo.GetAddressOf()));
 }
 
 void RenderCore::InitLightBuffers()
@@ -699,6 +775,60 @@ void RenderCore::InitLightBuffers()
 	bufferDesc.StructureByteStride = sizeof(DirectionalLight::Data);
 	bufferDesc.ByteWidth = LIGHT_CAPACITY_DIR * bufferDesc.StructureByteStride;
 	bufferDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;*/
+}
+
+void RenderCore::InitDefaultMaterials()
+{
+	cs::Color4 dData(255,	255,	255,	255);	// Diffuse, alpha
+	cs::Color4 sData(255,	255,	255,	255);	// Specular, glossiness
+	cs::Color4 eData(0,		0,		0,		255);	// Emissive, -
+	cs::Color4 nData(127,	127,	255,	0);		// Normal, height/displacement
+
+	D3D11_TEXTURE2D_DESC td;
+	td.Width = 1;
+	td.Height = 1;
+	td.MipLevels = 1;
+	td.ArraySize = 1;
+	td.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	td.SampleDesc = { 1, 0 };
+	td.Usage = D3D11_USAGE_IMMUTABLE;
+	td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	td.CPUAccessFlags = 0;
+	td.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA srd;
+	srd.SysMemPitch = 4;
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
+	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvd.Texture2D = { 0, 1 };
+
+
+
+	// Create textures
+
+	srd.pSysMem = &dData;
+	EXC_COMCHECK(m_device->CreateTexture2D(&td, &srd, &m_defaultDiffuse));
+	EXC_COMCHECK(m_device->CreateShaderResourceView(m_defaultDiffuse.Get(), &srvd, &m_defaultDiffuseSRV));
+
+	srd.pSysMem = &sData;
+	EXC_COMCHECK(m_device->CreateTexture2D(&td, &srd, &m_defaultSpecular));
+	EXC_COMCHECK(m_device->CreateShaderResourceView(m_defaultSpecular.Get(), &srvd, &m_defaultSpecularSRV));
+
+	srd.pSysMem = &eData;
+	EXC_COMCHECK(m_device->CreateTexture2D(&td, &srd, &m_defaultEmissive));
+	EXC_COMCHECK(m_device->CreateShaderResourceView(m_defaultEmissive.Get(), &srvd, &m_defaultEmissiveSRV));
+
+	srd.pSysMem = &nData;
+	EXC_COMCHECK(m_device->CreateTexture2D(&td, &srd, &m_defaultNormal));
+	EXC_COMCHECK(m_device->CreateShaderResourceView(m_defaultNormal.Get(), &srvd, &m_defaultNormalSRV));
+
+
+
+	// Default material
+
+	m_defaultMaterial = MaterialResource {};
 }
 
 void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
