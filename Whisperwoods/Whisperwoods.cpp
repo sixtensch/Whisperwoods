@@ -154,22 +154,34 @@ void Whisperwoods::Run()
 
 void Whisperwoods::Move(float dTime)
 {
+	static bool cameraLock = false;
+
 	Camera& camera = Renderer::GetCamera();
 
+	// TODO: Little ugly. Maybe pretty it up.
 	Vec3 movement = Vec3(0, 0, 0);
 	Vec3 forwardDirection = camera.GetDirection();
+	forwardDirection.y = 0;
+	forwardDirection.Normalize();
 	Vec3 rightDirection = camera.GetRight();
-	Vec3 upDirection = camera.GetUp();
+	Vec3 upDirection = Vec3(0.0f, 1.0f, 0.0f);
 
 	if (Input::Get().IsKeybindDown(KeybindForward))		movement += forwardDirection;
 	if (Input::Get().IsKeybindDown(KeybindBackward))	movement -= forwardDirection;
 	if (Input::Get().IsKeybindDown(KeybindRight))		movement += rightDirection;
 	if (Input::Get().IsKeybindDown(KeybindLeft))		movement -= rightDirection;
+	if (Input::Get().IsKeybindDown(KeybindUp))			movement += upDirection;
+	if (Input::Get().IsKeybindDown(KeybindDown))		movement -= upDirection;
 
-	KeyboardState keyboardState = Input::Get().GetKeyboardState();
-	
-	if (keyboardState.Space) movement += upDirection;
-	if (keyboardState.LeftControl) movement -= upDirection;
+	if (Input::Get().IsDXKeyPressed(DXKey::R))
+	{
+		cameraLock = !cameraLock;
+	}
+
+	if (Input::Get().IsKeybindDown(KeybindSprint))
+	{
+		movement *= 5.0f;
+	}
 
 	MouseState mouseState = Input::Get().GetMouseState();
 
@@ -178,11 +190,11 @@ void Whisperwoods::Move(float dTime)
 	{
 		cs::Vec3 delta = Vec3(mouseState.y, mouseState.x, 0.0f);
 
-		rotationVec -= delta * dTime * 2.0f;
+		rotationVec -= delta * dTime * 4.0f;
 		camera.SetRotation(Quaternion::GetEuler(rotationVec));
 	}
 
-	Input::Get().SetMode(mouseState.leftButton ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
+	Input::Get().SetMode(cameraLock ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
 
 	camera.SetPosition(camera.GetPosition() + movement * dTime);
 	camera.Update();
