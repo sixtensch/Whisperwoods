@@ -20,6 +20,8 @@ enum Keybind
 	KeybindSprint,
 	KeybindCrouch,
 	KeybindPower,
+	KeybindUp,
+	KeybindDown,
 
 	KeybindCount	// <-- Keep last
 };
@@ -51,6 +53,7 @@ public:
 
 	void AddKeyToInput(const Keybind input, const DXKey key);
 	void AddKeysToInput(const Keybind input, const cs::List<DXKey>& keys);
+
 	/* 
 		TODO: 
 		Add so that variable number of input Enums can be passed to check if all are pressed.
@@ -61,7 +64,10 @@ public:
 		with bit masks if Enums are set to powers of two.
 	*/
 	bool IsKeybindDown(Keybind input) const;
-
+	bool IsDXKeyDown(DXKey dxKey) const;
+	bool IsKeyPressed(Keybind input) const;
+	bool IsDXKeyPressed(DXKey dxKey) const;
+	
 private:
 
 	void BindWindowToMouse(const HWND windowHandle);
@@ -77,6 +83,9 @@ private:
 
 	unique_ptr<dx::Keyboard> m_keyboard;
 	unique_ptr<dx::Mouse> m_mouse; // Mouse events wont work if BindWindow() has not been called.
+	dx::Keyboard::KeyboardStateTracker m_keyTracker;
+	dx::Mouse::ButtonStateTracker m_mouseTracker;
+
 
 	cs::List<cs::List<DXKey>> m_keybindList;
 };

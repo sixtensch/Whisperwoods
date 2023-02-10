@@ -56,8 +56,10 @@ void Input::InputInit(const HWND windowHandle)
 	AddKeysToInput(KeybindLeft, { DXKey::A, DXKey::Left });
 	AddKeysToInput(KeybindRight, { DXKey::D, DXKey::Right });
 	AddKeysToInput(KeybindSprint, { DXKey::LeftShift, DXKey::RightShift });
-	AddKeysToInput(KeybindCrouch, { DXKey::LeftControl, DXKey::RightControl });
+	AddKeysToInput(KeybindCrouch, { DXKey::C, DXKey::RightControl });
 	AddKeysToInput(KeybindPower, { DXKey::Q, DXKey::NumPad0 });
+	AddKeysToInput(KeybindUp, { DXKey::Space});
+	AddKeysToInput(KeybindDown, { DXKey::LeftControl });
 
 }
 
@@ -65,9 +67,11 @@ void Input::Update()
 {
 	m_lastKeyboardState = m_currentKeyboardState;
 	m_currentKeyboardState = m_keyboard->GetState();
+	m_keyTracker.Update(m_currentKeyboardState);
 
 	m_lastMouseState = m_currentMouseState;
 	m_currentMouseState = m_mouse->GetState();
+	m_mouseTracker.Update(m_currentMouseState);
 }
 
 void Input::BindWindowToMouse(const HWND windowHandle)
@@ -137,7 +141,7 @@ void Input::AddKeyToInput(const Keybind input, const DXKey key)
 {
 	if (IsKeyBound(key))
 	{
-		LOG_ERROR("Key failed to bind as it is already bound to other input.");
+		LOG_ERROR("Key failed to bind with input (Keybind value = '%d') as its already bound to other input.", input);
 		return;
 	}
 
@@ -162,4 +166,26 @@ bool Input::IsKeybindDown(Keybind input) const
 	}
 	
 	return resultBool;
+}
+
+bool Input::IsDXKeyDown(DXKey dxKey) const
+{
+	return m_currentKeyboardState.IsKeyDown(dxKey);
+}
+
+bool Input::IsKeyPressed(Keybind input) const
+{
+	bool resultBool = false;
+	const auto& keyList = m_keybindList[input];
+	for (DXKey key : keyList)
+	{
+		resultBool |= m_keyTracker.IsKeyPressed(key);
+	}
+
+	return resultBool;
+}
+
+bool Input::IsDXKeyPressed(DXKey dxKey) const
+{
+	return m_keyTracker.IsKeyPressed(dxKey);
 }
