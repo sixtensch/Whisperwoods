@@ -24,14 +24,12 @@ struct BoneWeightPair
 	}
 };
 
-
 struct Armature
 {
 	Mat4 globalInverseTransform;
 	cs::List<Bone> bones;
 	cs::List<Mat4> boneMatricies; // For updating the buffer
 	int numBones;
-	bool initialized;
 
 	ComPtr<ID3D11Buffer> matrixBuffer;
 	ComPtr<ID3D11ShaderResourceView> matrixSRV;
@@ -39,18 +37,8 @@ struct Armature
 	Armature();
 	~Armature();
 
-	//void InitializeMatrix(int numB);
-
-	void InitializeGPUResources(ComPtr<ID3D11Device>& device);
-	
-	void UpdateBoneMatrixBuffer(ComPtr<ID3D11DeviceContext>& immediateContext);
-	
-	//IS DONE IN THE IMPORTER NOW.
-	//static void CalculateVertexBoneInfo(cs::List<VertexRigged>* verticies, cs::List<VertexGroup>* vertexGroups);
-
 	void ResolveBoneParentIndicies();
 	
-
 	//void PrintMatrix(DirectX::XMFLOAT4X4 m, std::string name)
 	//{
 	//	std::cout << "Matrix for: " << name << std::endl;

@@ -6,10 +6,15 @@
 #include "AudioSource.h"
 #include "FBXImporter.h"
 
+#include "TextRenderable.h"
+
+// TODO: Dudd include. Only used for getting test sound.
+#include "SoundResource.h"
+
 void TestPlay(void*, void*)
 {
 	// Audio test startup
-	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.3f, 0, 10, "Assets/Duck.mp3");
+	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.3f, 0, 10, "Duck.mp3");
 	testSource.Play();
 }
 
@@ -19,8 +24,6 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	m_debug->CaptureStreams(true, true, true);
 
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
-
-	m_resources = std::make_unique<Resources>();
 
 	m_sound = std::make_unique<Sound>();
 	m_debug->CaptureSound(m_sound.get());
@@ -34,6 +37,9 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	m_input->InputInit(Renderer::GetWindow().Data());
 
 	m_game = std::make_unique<Game>(); 
+
+	m_resources = std::make_unique<Resources>();
+	m_resources->LoadAssetDirectory(m_renderer->GetRenderCore());
 }
 
 Whisperwoods::~Whisperwoods()
@@ -45,25 +51,62 @@ void Whisperwoods::Run()
 	// Main frame loop
 
 	// Audio test startup
-	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, "Assets/Duck.mp3");
+	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck - Copy.mp3"))->currentSound;
+	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, soundPtr);
 	testSource.Play();
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
-	FBXImporter importer;
 
-	ModelRiggedResource riggedModel;
-	AnimationResource animationResource;
 
-	importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &riggedModel );
-	importer.ImportFBXAnimations( "Assets/Shadii_Animated.fbx", &animationResource );
+	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Shadii_Animated.wwm");
+	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
+	float rotationY = cs::c_pi * 1.0f;
+	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+	
 
-	shared_ptr<MeshRenderableStatic> mesh = Renderer::CreateMeshStatic("Characters/ShadiiTest.fbx");
-	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.9f, 0);
+
+	// Text
+
+	dx::SimpleMath::Vector2 posTest;
+	posTest.x = 1270;
+	posTest.y = 710;
+	const wchar_t* inputText = L"Shadii";
+	cs::Color4f color(0.034f, 0.255f, 0.0f, 1.0f);
+	//These are just test values
+	
+
+
+	// Lights
+
+	shared_ptr<PointLight> point = make_shared<PointLight>();
+	point->color = cs::Color3f(0x4040FF);
+	point->intensity = 8.0f;
+	point->transform.position = Vec3(2, 0, 0);
+	Renderer::RegisterLight(point);
+
+	shared_ptr<SpotLight> spot = make_shared<SpotLight>();
+	spot->color = cs::Color3f(0x40FF40);
+	spot->intensity = 1.0f;
+	spot->transform.position = Vec3(0, 0, 0);
+	spot->transform.rotation = Quaternion::GetIdentity();
+	spot->fovInner = 0.15f;
+	spot->fovOuter = 0.2f;
+	spot->range = 100.0f;
+	Renderer::RegisterLight(spot);
+
+	shared_ptr<DirectionalLight> directional = Renderer::GetDirectionalLight();
+	directional->transform.position = { 0, 10, 0 };
+	directional->transform.SetRotationEuler({ 0.5f, 0.9f, 0.0f });
+	directional->diameter = 20.0f;
+	directional->intensity = 0.8f;
+	directional->color = cs::Color3f(0xFFFFB0);
+
+	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color, { 1.0f, 1.0f });
 
 	int frames = 0;
 	cs::Timer deltaTimer;
-
 
 	for (bool running = true; running; frames++)
 	{
@@ -73,15 +116,29 @@ void Whisperwoods::Run()
 		float dTime = deltaTimer.Lap();
 		m_debug->CalculateFps(dTime);
 
+		static float dTimeAcc = 0.0f;
+		dTimeAcc += dTime;
+
 		Move(dTime);
 
 		m_game->Update();
 		m_sound->Update();
+		rotationY += 2 * dTime;
+		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
+
+
+
+		// Draw step
 
 		m_renderer->Draw();
+
+//#ifdef WW_DEBUG
 		m_renderer->BeginGui();
 		m_debug->DrawConsole();
 		m_renderer->EndGui();
+//#endif
+
 		m_renderer->Present();
 	}
 

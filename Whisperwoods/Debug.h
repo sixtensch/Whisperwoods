@@ -209,15 +209,15 @@ private:
 	bool m_showCommandLine;
 
 	// -----------------------------  fps stuff
-	float dTimeAverage16;
-	float dTimeAverage256;
-	float fpsAverage16;
-	float fpsAverage256;
+	float m_dTimeAverage16;
+	float m_dTimeAverage256;
+	float m_fpsAverage16;
+	float m_fpsAverage256;
 
-	float dTimeAccumulator16;
-	float dTimeAccumulator256;
-	cs::Queue<float> dTimeQueue16;
-	cs::Queue<float> dTimeQueue256;
+	float m_dTimeAccumulator16;
+	float m_dTimeAccumulator256;
+	cs::Queue<float> m_dTimeQueue16;
+	cs::Queue<float> m_dTimeQueue256;
 	//-------------------------------
 
 	ComPtr<ID3D11Device> m_deviceRef;
@@ -248,6 +248,6 @@ private:
 #define EXC_COMCHECK(comcall)		{ HRESULT _hres = (comcall); if (_hres != 0) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres); } }
 #define EXC_COMINFO(call)			{ (call); }
 #else
-#define EXC_COMCHECK(comcall)		{ string _message; Debug::DXGISet(); HRESULT _hres = (comcall); if (FAILED(_hres) || Debug::DXGIGet(_message)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres, _message); } }
+#define EXC_COMCHECK(comcall)		{ string _message; Debug::DXGISet(); HRESULT _hres = (comcall); if (Debug::DXGIGet(_message) || FAILED(_hres)) { throw cs::ExceptionWindows(__FILE__, __FUNCTION__, __LINE__, _hres, _message); } }
 #define EXC_COMINFO(call)			{ string _message; Debug::DXGISet(); (call); if (Debug::DXGIGet(_message)) { throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, _message); } }
 #endif

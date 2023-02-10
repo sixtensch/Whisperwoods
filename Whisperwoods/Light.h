@@ -1,48 +1,78 @@
 #pragma once
 #include "GameObject.h"
+#include "Camera.h"
+
+enum LightType
+{
+	LightTypeDirectional = 0,
+	LightTypeSpotlight = 1,
+	LightTypePointlight = 2
+};
 
 struct Light : GameObject // Inherits a transform.
 {
-	struct LightBufferData // Data structure base 
-	{
-		Vec3 position;
-		Vec3 direction;
-		Vec3 color;
-	};
-	cs::Color3f color;
-	float intensity;
-	void FillBasicBufferData(LightBufferData* outData, Transform* inTransform);
-};
-
-struct PointLight : Light
-{
-	struct PointLightBufferData : LightBufferData // Data structure to be stored in the structured buffer for point lights { vec3 vec3 vec3 vec3 } 3*4*4 = 48
-	{
-		Vec3 intensity; // In practice only uses x value.
-	};
-	PointLightBufferData bufferData;
-	float range;
-	void Update();
-};
-
-struct SpotLight : Light
-{
-	struct SpotLightBufferData : LightBufferData // Data structure to be stored in the structured buffer for spot lights { vec3 vec3 vec3 vec3 } 3*4*4 = 48
-	{
-		Vec3 intensityInnerOuter; // (intensity, FOVInner, FOVOuter)
-	};
-	SpotLightBufferData bufferData;
-	float fovOuter;
-	float fovInner;
-	void Update();
+	cs::Color3f color		= cs::Color3f(0xFFFFFF);
+	float intensity			= 1.0f;
 };
 
 struct DirectionalLight : Light
 {
-	struct DirectionalLightBufferData : LightBufferData // Data structure to be stored in the structured buffer for directional lights { vec3 vec3 vec3 vec3 } 3*4*4 = 48
+	struct Data // Data structure to be stored in the structured buffer for directional lights { vec3 vec3 vec3 vec3 } 3*4*4 = 48
 	{
-		Vec3 intensity; // Mostly padding as with point.
+		Mat4 clipMatrix;
+		Vec3 direction;		PAD(4, 0);
+		Vec3 intensity; 	PAD(4, 1);
 	};
-	DirectionalLightBufferData bufferData;
-	void Update();
+
+	// Member data
+	float diameter		= 100.0f;
+
+	// Processed data
+	Camera camera;
+	Data bufferData;
+
+	void Update() override;
+};
+
+struct PointLight : Light
+{
+	struct Data// Data structure to be stored in the structured buffer for point lights { vec3 vec3 vec3 vec3 } 3*4*4 = 48
+	{
+		Vec3 position;
+		float range;
+		Vec3 intensity;		PAD(4, 0);
+	};
+
+	// Member data
+	float range				= 100.0f;
+
+	// Processed data
+	Data bufferData;
+
+	void Update() override;
+};
+
+struct SpotLight : Light
+{
+	struct Data // Data structure to be stored in the structured buffer for spot lights { vec3 vec3 vec3 vec3 } 3*4*4 = 48
+	{
+		Mat4 clipMatrix;
+		Vec3 direction;
+		float range;
+		Vec3 position;
+		float cosInner;
+		Vec3 intensity;
+		float cosOuter;
+	};
+
+	// Member data
+	float fovOuter			= 0.15f;
+	float fovInner			= 0.20f;
+	float range				= 100.0f;
+
+	// Processed data
+	Camera camera;
+	Data bufferData;
+
+	void Update() override;
 };

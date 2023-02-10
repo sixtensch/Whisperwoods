@@ -10,7 +10,7 @@ void Transform::DecomposeWorldMatrixIntoWorldParameters()
 	DirectX::XMVECTOR outScale;
 	DirectX::XMVECTOR outRotation;
 	DirectX::XMVECTOR outTranslation;
-	DirectX::XMMATRIX inMatrix = worldMatrix.XMMatrix();
+	DirectX::XMMATRIX inMatrix = ((Mat4)worldMatrix.Transpose()).XMMatrix();
 	DirectX::XMMatrixDecompose(&outScale, &outRotation, &outTranslation, inMatrix);
 
 	// Convert into readable data
@@ -22,14 +22,14 @@ void Transform::DecomposeWorldMatrixIntoWorldParameters()
 	DirectX::XMStoreFloat3(&f3Translation, outTranslation);
 
 	// Store into parameters.
-	worldPosition = Vec3(f3Translation.x, f3Translation.y, f3Translation.z);
+	worldPosition = Vec3(-f3Translation.x, -f3Translation.y, -f3Translation.z);
 	worldRotation = Quaternion(f4Rotation.x, f4Rotation.y, f4Rotation.z, f4Rotation.w);
 	worldScale = Vec3(f3Scale.x, f3Scale.y, f3Scale.z);
 }
 
 Transform::Transform()
 {
-	rotation = Quaternion::GetAxis({ 0,1,0 }, DirectX::XM_PI);
+	rotation = Quaternion::GetIdentity();
 	scale = Vec3(1, 1, 1); // scale 0 as basis isn't great.
 	parent = nullptr;
 }
@@ -83,9 +83,7 @@ void Transform::CalculateWorldMatrix(Mat4 parentWorldMatrix)
 
 void Transform::SetRotationEuler(Vec3 p_rotation)
 {
-	DirectX::XMFLOAT4 dxquat;
-	DirectX::XMStoreFloat4(&dxquat, DirectX::XMQuaternionRotationRollPitchYaw(p_rotation.z, p_rotation.x, p_rotation.y));
-	rotation = Quaternion(dxquat.x, dxquat.y, dxquat.z, dxquat.w);
+	rotation = Quaternion::GetEuler(p_rotation.x, p_rotation.y, p_rotation.z);
 }
 
 Vec3 Transform::GetWorldPosition()

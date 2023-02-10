@@ -3,6 +3,10 @@
 
 
 
+#include "Constants.h"
+
+
+
 // Sampler states
 
 #define REGISTER_SAMPLER_SYSTEM_0       register(s6)
@@ -32,7 +36,7 @@
 #define REGISTER_CBV_OBJECT_INFO        register(b10)
 #define REGISTER_CBV_MATERIAL_INFO      register(b11)
 #define REGISTER_CBV_CLIENT_INFO        register(b12)
-#define REGISTER_CBV_LIGHT_INFO         register(b13)
+#define REGISTER_CBV_SHADING_INFO       register(b13)
 
 
 
@@ -49,7 +53,9 @@
 
 #define REGISTER_UAV_RENDER_TARGET      register(u6)
 
+// Armature shader resource view
 
+#define REGISTER_SRV_ARMATURE_MATRIX    register(t6)
 
 // Shader resource views
 
@@ -67,6 +73,7 @@
 
 #define REGISTER_SRV_CUBE_MAP           register(t22)
 #define REGISTER_SRV_SHADOW_DEPTH       register(t24)
+
 
 
 

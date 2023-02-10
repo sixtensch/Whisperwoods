@@ -1,19 +1,22 @@
 #pragma once
+#include "Core.h"
 
+#include <filesystem>
 #include <string.h>
 #include <unordered_map>
 
 #include "BasicResource.h"
 
+#include "Sound.h"
+#include "RenderHandler.h"
+
 /*
 	Ett till lager av säkerhet kan läggas på datan genom att returnera weak_ptrs. Dessa kan endast bli
 	castade till en shared_ptr OM den underliggande shared_ptr faktiskt existerar. Den äger på så sätt aldrig datan.
-
 */
 
 enum ResourceType 
 {
-	ResourceTypeShader,
 	ResourceTypeTexture,
 	ResourceTypeSound,
 	ResourceTypeMaterial,
@@ -26,9 +29,7 @@ enum ResourceType
 
 typedef std::unordered_map<std::string, shared_ptr<BasicResource>> ResourceMap;
 
-// Define functions that COULD be defined if its too wordy to use casting etc etc.
-#define GET_TEXTURE(subPath) GetResource(ResourceTypeTexture, subPath);
-#define GET_SOUND(subPath) GetResource(ResourceTypeSound, subPath);
+namespace fs = std::filesystem;
 
 class Resources sealed
 {
@@ -38,14 +39,33 @@ public:
 
 	static Resources& Get();
 
-	BasicResource* GetResource(ResourceType resourceType, std::string subPath);
+	// This should be how resources are acquired. Writable pointers are used when allocating or when having to write for a special reason.
+	const BasicResource* GetResource(const ResourceType resourceType, std::string filename) const;
+	// Available if acquisition of a resource needs to be writable.
+	BasicResource* GetWritableResource(const ResourceType resourceType, std::string filename) const;
+
+	// This is supposed to be called after all singletons are initialized.
+	void LoadAssetDirectory(const RenderCore* const renderCore);
 
 private:
 	void InitMapList();
-	void InitializeTextures();
 
 	// Allocates a specific resource type in its specific map and returns a pointer to the allocated memory.
-	BasicResource* AllocateResource(ResourceType resourceType, const std::string subPath, const std::string resourceName);
+	BasicResource* AllocateResource(ResourceType resourceType, const std::string filename, const std::string resourceName);
+
+	cs::List<fs::path> CollectFilePaths(const std::string& assetDirPath);
+
+	// TODO: Add the option for this. If a file is not found later, its referenced to its default.
+	void LoadDefaultResources();
+
+	void LoadBaseResources(const RenderCore* const renderCore);
+	void LoadSounds();
+	void LoadTextures(const RenderCore* const renderCore);
+
+	void LoadCompositeResources(const RenderCore* const renderCore);
+	void LoadMaterialResources();
+	void LoadModelStaticResources(const RenderCore* const renderCore);
+	void LoadModelRiggedResources(const RenderCore* const renderCore);
 
 private:
 	static Resources* s_singleton;

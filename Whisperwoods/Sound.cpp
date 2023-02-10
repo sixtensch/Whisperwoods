@@ -24,7 +24,7 @@ Sound::Sound()
 {
 	if (s_singleton != nullptr)
 	{
-		throw "Sound singleton re-initialization.";	// TODO: Proper exceptions
+		EXC("Sound singleton re-initialization.");
 	}
 	s_singleton = this; 
 
@@ -45,7 +45,7 @@ Sound& Sound::Get()
 #ifdef WW_DEBUG
 	if (s_singleton == nullptr)
 	{
-		throw "Sound singleton not found.";	// TODO: Proper exceptions
+		EXC("Sound singleton not found (is nullptr).");
 	}
 #endif
 
@@ -71,6 +71,12 @@ FMOD::Sound* Sound::LoadSound(std::string filePath)
 	return newSound;
 }
 
+bool Sound::LoadSound(const std::string filePath, FMOD::Sound*& sound)
+{
+	FMOD_RESULT result = m_system->createSound(filePath.c_str(), FMOD_LOOP_OFF + FMOD_3D, nullptr, &sound);
+	return result == FMOD_OK;
+}
+
 FMOD::Channel* Sound::PlaySound(int index)
 {
 	//if (soundVector.size() < index)
@@ -92,12 +98,12 @@ FMOD::Channel* Sound::PlaySound(int index)
 
 FMOD::Channel* Sound::PlaySound(FMOD::Sound* sound, FMOD_VECTOR pos, FMOD_VECTOR vel, float maxRange)
 {
-	bool exists = false;
-	for (int i = 0; i < m_sounds.size(); i++)
-	{
-		if (m_sounds[i] == sound) exists = true;
-	}
-	if (!exists) return nullptr;
+	//bool exists = false;
+	//for (int i = 0; i < m_sounds.size(); i++)
+	//{
+	//	if (m_sounds[i] == sound) exists = true;
+	//}
+	//if (!exists) return nullptr;
 
 	FMOD::Channel* ch;
 	m_channels.push_back(ch);

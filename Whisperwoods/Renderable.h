@@ -10,6 +10,8 @@ public:
 	bool enabled;
 	PipelineType pipelineType;
 
+
+
 	virtual void Draw(const DrawInfo& drawInfo) const = 0;
 };
 

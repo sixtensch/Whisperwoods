@@ -3,32 +3,38 @@
 #include "Light.h"
 
 
-void Light::FillBasicBufferData(LightBufferData* outData, Transform* inTransform)
-{
-	outData->position = inTransform->GetWorldPosition();
-	Quaternion worldRot = inTransform->GetWorldRotation();
-	Quaternion direction = worldRot * Quaternion(0, 0, 1, 0) * worldRot.Inverse(); // Quaternion rotation magic.
-	outData->direction = Vec3(direction.x, direction.y, direction.z);
-	outData->color = color;
-}
 
+void DirectionalLight::Update()
+{
+	camera.CopyTransform(transform);
+	camera.SetValues(0, 0, LIGHT_NEAR, LIGHT_FAR);
+	camera.CalculateOrthoProjection(diameter, diameter);
+	camera.Update();
+
+	bufferData.intensity = (Vec3)color * intensity;
+	bufferData.clipMatrix = camera.GetProjectionMatrix().Transpose() * camera.GetViewMatrix();
+	bufferData.direction = transform.GetWorldRotation() * Vec3(0, 0, 1.0f);
+}
 
 void PointLight::Update()
 {
-	FillBasicBufferData(&bufferData, &transform);
-	bufferData.intensity.x = intensity;
+	bufferData.intensity = (Vec3)color * intensity;
+	bufferData.position = transform.GetWorldPosition();
+	bufferData.range = range;
 }
 
 void SpotLight::Update()
 {
-	FillBasicBufferData(&bufferData, &transform);
-	bufferData.intensityInnerOuter.x = intensity;
-	bufferData.intensityInnerOuter.y = fovInner;
-	bufferData.intensityInnerOuter.z = fovOuter;
-}
+	camera.CopyTransform(transform);
+	camera.SetValues(fovOuter, 1, LIGHT_NEAR, range);
+	camera.CalculatePerspectiveProjection();
+	camera.Update();
 
-void DirectionalLight::Update()
-{
-	FillBasicBufferData(&bufferData, &transform);
-	bufferData.intensity.x = intensity;
+	bufferData.intensity = (Vec3)color * intensity;
+	bufferData.clipMatrix = camera.GetProjectionMatrix().Transpose() * camera.GetViewMatrix();
+	bufferData.direction = transform.GetWorldRotation() * Vec3(0, 0, 1.0f);
+	bufferData.range = range;
+	bufferData.position = transform.GetWorldPosition();
+	bufferData.cosInner = std::cosf(fovInner);
+	bufferData.cosOuter = std::cosf(fovOuter);
 }
