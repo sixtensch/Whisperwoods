@@ -43,7 +43,7 @@ public: // Core functionality
 	void AddElement(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox);
 	void AddElementIndexed(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, int index);
 
-	std::vector<const T*>& CullTree(const dx::BoundingFrustum& frustum) const;
+	std::vector<const T*> CullTree(const dx::BoundingFrustum& frustum) const;
 	void CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects) const;
 
 private: // Recursive callers
@@ -152,12 +152,10 @@ inline void QuadTree<T>::Reconstruct(float top, float left)
 /// This does not use the index functionality
 /// </summary>
 template<typename T>
-inline std::vector<const T*>& QuadTree<T>::CullTree(const dx::BoundingFrustum& frustum) const
+inline std::vector<const T*> QuadTree<T>::CullTree(const dx::BoundingFrustum& frustum) const
 {
 	std::vector<const T*> toReturn;
-	// Treverse the tree from root
 	CullNode(frustum, m_root, toReturn);
-
 	return toReturn;
 }
 /// <summary>
