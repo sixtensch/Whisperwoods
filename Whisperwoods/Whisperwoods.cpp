@@ -37,16 +37,41 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//std::string path2 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 	//std::string path3 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 
-	ModelRiggedResource grafikiAnimated;
+	/*ModelRiggedResource grafikiAnimated;
 	importer.ImportFBXRigged("Assets/Models/FBX/Rigged/Grafiki_Animated.fbx", &grafikiAnimated);
-	std::string path1 = importer.SaveWMM(&grafikiAnimated, "Assets/Models/Rigged/");
+	std::string path1 = importer.SaveWMM(&grafikiAnimated, "Assets/Models/Rigged/");*/
 
 	//importer.ImportFBXRigged("Assets/Shadii_Animations.fbx", &riggedModel);
 	//path = importer.SaveWMM(&riggedModel, "Assets/Models/Rigged/");
 
-	/*ModelStaticResource staticTestModelWrite;
-	importer.ImportFBXStatic( "Assets/Debug_Sphere.fbx", &staticTestModelWrite);
-	std::string path4 = importer.SaveWMM(&staticTestModelWrite, "Assets/Models/Static/");*/
+	//ModelStaticResource staticTestModelWrite;
+	//ModelStaticResource staticTestModelWrite2;
+	//ModelStaticResource staticTestModelWrite3;
+	//ModelStaticResource staticTestModelWrite4;
+	//ModelStaticResource staticTestModelWrite5;
+	//ModelStaticResource staticTestModelWrite6;
+	//ModelStaticResource staticTestModelWrite7;
+	//importer.ImportFBXStatic( "Assets/Models/FBX/Static/Ground.fbx", &staticTestModelWrite);
+	//std::string path4 = importer.SaveWMM(&staticTestModelWrite, "Assets/Models/Static/");
+
+	//importer.ImportFBXStatic("Assets/Models/FBX/Static/BigTrees.fbx", &staticTestModelWrite2);
+	//std::string path5 = importer.SaveWMM(&staticTestModelWrite2, "Assets/Models/Static/");
+
+	//importer.ImportFBXStatic("Assets/Models/FBX/Static/BigPlants.fbx", &staticTestModelWrite3);
+	//std::string path6 = importer.SaveWMM(&staticTestModelWrite3, "Assets/Models/Static/");
+
+	//importer.ImportFBXStatic("Assets/Models/FBX/Static/SmallPlants.fbx", &staticTestModelWrite4);
+	//std::string path7 = importer.SaveWMM(&staticTestModelWrite4, "Assets/Models/Static/");
+
+	//importer.ImportFBXStatic("Assets/Models/FBX/Static/MediumTrees.fbx", &staticTestModelWrite5);
+	//std::string path8 = importer.SaveWMM(&staticTestModelWrite5, "Assets/Models/Static/");
+
+	//importer.ImportFBXStatic("Assets/Models/FBX/Static/Stones.fbx", &staticTestModelWrite6);
+	//std::string path9 = importer.SaveWMM(&staticTestModelWrite6, "Assets/Models/Static/");
+
+	//importer.ImportFBXStatic("Assets/Models/FBX/Static/Grafitree.fbx", &staticTestModelWrite7);
+	//std::string path10 = importer.SaveWMM(&staticTestModelWrite7, "Assets/Models/Static/");
+
 
 	m_sound = std::make_unique<Sound>();
 	m_debug->CaptureSound(m_sound.get());
@@ -86,6 +111,31 @@ void Whisperwoods::Run()
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
 	//shared_ptr<MeshRenderableStatic> meshSphere = Renderer::CreateMeshStatic("Assets/Models/Static/Debug_Sphere.wwm");
 	shared_ptr<MeshRenderableRigged> grafiki = Renderer::CreateMeshRigged("Grafiki_Animated.wwm");
+
+	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
+	Mat4 worldPos = Mat::translation3(0, -3.5f, -2);
+	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
+	shared_ptr<MeshRenderableStatic> ground = Renderer::CreateMeshStatic("Ground.wwm");
+	ground->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+
+	shared_ptr<MeshRenderableStatic> bigTrees = Renderer::CreateMeshStatic("BigTrees.wwm");
+	bigTrees->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+
+	shared_ptr<MeshRenderableStatic> bigPlants = Renderer::CreateMeshStatic("BigPlants.wwm");
+	bigPlants->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+
+	shared_ptr<MeshRenderableStatic> smallPlants = Renderer::CreateMeshStatic("SmallPlants.wwm");
+	smallPlants->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+
+	shared_ptr<MeshRenderableStatic> mediumTrees = Renderer::CreateMeshStatic("MediumTrees.wwm");
+	mediumTrees->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+
+	shared_ptr<MeshRenderableStatic> stones = Renderer::CreateMeshStatic("Stones.wwm");
+	stones->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+
+	shared_ptr<MeshRenderableStatic> grafiTree = Renderer::CreateMeshStatic("Grafitree.wwm");
+	grafiTree->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+
 
 	Resources resources = Resources::Get();
 
