@@ -13,8 +13,8 @@
 
 void TestPlay(void*, void*)
 {
-	// Audio test startup
-	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.3f, 0, 10, "Duck.mp3");
+	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
+	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 0.5f, 0, 10, soundPtr);
 	testSource.Play();
 }
 
@@ -51,7 +51,7 @@ void Whisperwoods::Run()
 	// Main frame loop
 
 	// Audio test startup
-	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck - Copy.mp3"))->currentSound;
+	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
 	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, soundPtr);
 	testSource.Play();
 
@@ -159,8 +159,6 @@ void Whisperwoods::Move(float dTime)
 {
 	static bool lock = false;
 	static Vec3 euler = { 0, 0, 0 };
-	static MouseState ms = Input::Get().GetMouseState();
-	static MouseState ms2 = Input::Get().GetMouseState();
 
 	Camera& camera = Renderer::GetCamera();
 

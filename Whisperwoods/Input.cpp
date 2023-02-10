@@ -85,19 +85,21 @@ bool Input::IsKeyBound(const DXKey key)
 	return false;
 }
 
+void Input::Update()
+{
+	m_lastKeyboardState = m_currentKeyboardState;
+	m_lastMouseState = m_currentMouseState;
+
+	m_currentKeyboardState = m_keyboard->GetState();
+	m_currentMouseState = m_mouse->GetState();
+}
+
 void Input::ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	if (s_singleton == nullptr)
 		return;
 
 	m_keyboard->ProcessMessage(message, wParam, lParam);
-	m_currentKeyboardState = m_keyboard->GetState();
-}
-
-void Input::Update()
-{
-	m_lastKeyboardState = m_keyboard->GetState();
-	m_lastMouseState = m_mouse->GetState();
 }
 
 void Input::ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
@@ -106,7 +108,6 @@ void Input::ProcessMouseMessage(UINT message, WPARAM wParam, LPARAM lParam)
 		return;
 
 	m_mouse->ProcessMessage(message, wParam, lParam);
-	m_currentMouseState = m_mouse->GetState();
 }
 
 KeyboardState Input::GetKeyboardState() const
