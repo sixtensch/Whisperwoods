@@ -25,6 +25,8 @@ void MeshRenderableStatic::Draw(const DrawInfo& drawInfo) const
 
 	for (int i = 0; i < m_model->startIndicies.Size(); i++)
 	{
+		m_materials.BindIndex(drawInfo.core, i);
+
 		int currentSize = m_model->indexCounts[i];
 		int currentStart = (uint)m_model->startIndicies[i];
 		drawInfo.core->DrawIndexed(currentSize, currentStart, 0);
