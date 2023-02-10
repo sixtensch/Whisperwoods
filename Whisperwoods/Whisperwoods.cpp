@@ -26,7 +26,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
-	//FBXImporter importer;
+	FBXImporter importer;
 	//ModelRiggedResource shadiiAnimated;
 	//ModelRiggedResource shadiiAnimated2;
 	//ModelRiggedResource shadiiAnimations;
@@ -36,6 +36,10 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//std::string path1 = importer.SaveWMM(&shadiiAnimated, "Assets/Models/Rigged/");
 	//std::string path2 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 	//std::string path3 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
+
+	ModelRiggedResource grafikiAnimated;
+	importer.ImportFBXRigged("Assets/Models/FBX/Rigged/Grafiki_Animated.fbx", &grafikiAnimated);
+	std::string path1 = importer.SaveWMM(&grafikiAnimated, "Assets/Models/Rigged/");
 
 	//importer.ImportFBXRigged("Assets/Shadii_Animations.fbx", &riggedModel);
 	//path = importer.SaveWMM(&riggedModel, "Assets/Models/Rigged/");
@@ -81,48 +85,66 @@ void Whisperwoods::Run()
 	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Shadii_Animated.wwm");
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
 	//shared_ptr<MeshRenderableStatic> meshSphere = Renderer::CreateMeshStatic("Assets/Models/Static/Debug_Sphere.wwm");
-
+	shared_ptr<MeshRenderableRigged> grafiki = Renderer::CreateMeshRigged("Grafiki_Animated.wwm");
 
 	Resources resources = Resources::Get();
 
 	Animator testAnimator((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated.wwm"));
-	ModelRiggedResource* printReference = (ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated2.wwm");
+	Animator testAnimatorGrafiki((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Grafiki_Animated.wwm"));
 
-	for (int i = 0; i < printReference->armature.bones.Size(); i++)
-	{
-		std::string boneName = printReference->armature.bones[i].name;
-		DirectX::XMFLOAT4X4 m = printReference->armature.bones[i].inverseBindMatrix;
-		LOG_TRACE("Inverse Bind Matrix For: %s\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n",
-			boneName.c_str(),
-			m._11, m._12, m._13, m._14,
-			m._21, m._22, m._23, m._24,
-			m._31, m._32, m._33, m._34,
-			m._41, m._42, m._43, m._44)
-	}
+	//ModelRiggedResource* printReference = (ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated2.wwm");
+
+	//for (int i = 0; i < printReference->armature.bones.Size(); i++)
+	//{
+	//	std::string boneName = printReference->armature.bones[i].name;
+	//	DirectX::XMFLOAT4X4 m = printReference->armature.bones[i].inverseBindMatrix;
+	//	LOG_TRACE("Inverse Bind Matrix For: %s\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n",
+	//		boneName.c_str(),
+	//		m._11, m._12, m._13, m._14,
+	//		m._21, m._22, m._23, m._24,
+	//		m._31, m._32, m._33, m._34,
+	//		m._41, m._42, m._43, m._44)
+	//}
 
 	//FBXImporter importer;
 	FBXImporter importer;
 	shared_ptr<AnimationResource> resource (new AnimationResource);
 	importer.ImportFBXAnimations("Assets/Models/Shadii_Animations.fbx", resource.get());
 
+	shared_ptr<AnimationResource> resource2(new AnimationResource);
+	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Grafiki_Animations.fbx", resource2.get());
+
 	Animation* animation = &resource->animations[2];
 	Animation* animation2 = &resource->animations[4];
 	Animation* animation3 = &resource->animations[5];
+
+	Animation* animation4 = &resource2->animations[2]; 
+	Animation* animation5 = &resource2->animations[3];
+
 	float speed = 1.5f;
 	testAnimator.AddAnimation(animation, 0, speed, 1);
 	testAnimator.AddAnimation(animation2, 0, speed, 0.2f);
 	testAnimator.AddAnimation( animation3, 0, speed, 0.0f );
+	
+	float speed2 = 0.5f;
+	testAnimatorGrafiki.AddAnimation(animation4, 0, speed2, 1.0f);
+	testAnimatorGrafiki.AddAnimation(animation5, 0, speed2, 0.0f);
 
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	
+	grafiki->worldMatrix = Mat::translation3(2, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+
+	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
 	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiBody.wwmt"));
 	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt"));
 	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPupil.wwmt"));
 	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPants.wwmt"));
 	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiSpikes.wwmt"));
 	//mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
+
+	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
 
 
 
@@ -179,9 +201,11 @@ void Whisperwoods::Run()
 		static float dTimeAcc = 0.0f;
 		dTimeAcc += dTime;
 
+		Input::Get().Update();
 		Move(dTime);
 
 		testAnimator.Update(dTime);
+		testAnimatorGrafiki.Update(dTime);
 
 		m_game->Update();
 		m_sound->Update();
@@ -204,9 +228,13 @@ void Whisperwoods::Run()
 			ImGui::SliderFloat( testAnimator.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat( testAnimator.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f" );
 			ImGui::SliderFloat( "Speed", &speed, 0.0f, 3.0f, "speed = %.3f" );
+			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
+			ImGui::SliderFloat("Speed2", &speed2, 0.0f, 3.0f, "speed = %.3f");
 			testAnimator.loadedAnimations[0].speed = speed;
 			testAnimator.loadedAnimations[1].speed = speed;
 			testAnimator.loadedAnimations[2].speed = speed;
+			testAnimatorGrafiki.loadedAnimations[0].speed = speed2;
+			testAnimatorGrafiki.loadedAnimations[1].speed = speed2;
 		}
 		ImGui::End();
 
@@ -231,49 +259,48 @@ void Whisperwoods::Run()
 
 void Whisperwoods::Move(float dTime)
 {
-	static bool lock = false;
-	static Vec3 euler = { 0, 0, 0 };
+	static bool cameraLock = false;
 
 	Camera& camera = Renderer::GetCamera();
 
+	// TODO: Little ugly. Maybe pretty it up.
 	Vec3 movement = Vec3(0, 0, 0);
+	Vec3 forwardDirection = camera.GetDirection();
+	forwardDirection.y = 0;
+	forwardDirection.Normalize();
+	Vec3 rightDirection = camera.GetRight();
+	Vec3 upDirection = Vec3(0.0f, 1.0f, 0.0f);
 
-	float lookSpeed = 0.0002f;
+	if (Input::Get().IsKeybindDown(KeybindForward))		movement += forwardDirection;
+	if (Input::Get().IsKeybindDown(KeybindBackward))	movement -= forwardDirection;
+	if (Input::Get().IsKeybindDown(KeybindRight))		movement += rightDirection;
+	if (Input::Get().IsKeybindDown(KeybindLeft))		movement -= rightDirection;
+	if (Input::Get().IsKeybindDown(KeybindUp))			movement += upDirection;
+	if (Input::Get().IsKeybindDown(KeybindDown))		movement -= upDirection;
 
-	if (Input::Get().IsKeybindDown(KeybindForward))		movement.z += 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindBackward))	movement.z -= 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindRight))		movement.x += 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindLeft))		movement.x -= 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindUp))			movement.y += 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindDown))		movement.y -= 1.0f;
-
-	if (Input::Get().IsKeybindDown(KeybindSprint))		movement *= 2.0f;
-
-	if (Input::Get().GetKeyboardState().R && !Input::Get().GetLastKeyboardState().R)
+	if (Input::Get().IsDXKeyPressed(DXKey::R))
 	{
-		lock = !lock;
+		cameraLock = !cameraLock;
 	}
 
-	if (lock)
+	if (Input::Get().IsKeybindDown(KeybindSprint))
 	{
-		POINT center = { WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 };
-
-		Point2 mouseMove = 
-		{
-			Input::Get().GetMouseState().x - center.x,
-			Input::Get().GetMouseState().y - center.y
-		};
-
-		if (mouseMove != Point2 { 0, 0 })
-		{
-			euler += Vec3(-mouseMove.y * lookSpeed, -mouseMove.x * lookSpeed, 0.0f);
-			camera.SetRotation(Quaternion::GetEuler(euler));
-		}
-
-		ClientToScreen(Renderer::GetWindow().Data(), &center);
-		SetCursorPos(center.x, center.y);
+		movement *= 5.0f;
 	}
 
-	camera.SetPosition(camera.GetPosition() + Quaternion::GetAxisNormalized({ 0, 1, 0 }, -euler.y) * (movement * dTime));
+	MouseState mouseState = Input::Get().GetMouseState();
+
+	static Vec3 rotationVec = {};
+	if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
+	{
+		cs::Vec3 delta = Vec3(mouseState.y, mouseState.x, 0.0f);
+
+		rotationVec -= delta * dTime * 4.0f;
+		camera.SetRotation(Quaternion::GetEuler(rotationVec));
+	}
+
+	Input::Get().SetMode(cameraLock ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
+
+	camera.SetPosition(camera.GetPosition() + movement * dTime);
 	camera.Update();
 }
