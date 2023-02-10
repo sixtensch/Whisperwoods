@@ -119,6 +119,7 @@ void Whisperwoods::Run()
 		static float dTimeAcc = 0.0f;
 		dTimeAcc += dTime;
 
+		Input::Get().Update();
 		Move(dTime);
 
 		m_game->Update();
@@ -161,6 +162,19 @@ void Whisperwoods::Move(float dTime)
 	if (Input::Get().IsKeybindDown(KeybindBackward))	movement.z -= 1.0f;
 	if (Input::Get().IsKeybindDown(KeybindRight))		movement.x += 1.0f;
 	if (Input::Get().IsKeybindDown(KeybindLeft))		movement.x -= 1.0f;
+
+	MouseState mouseState = Input::Get().GetMouseState();
+
+	static Vec3 rotationVec = {};
+	if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
+	{
+		cs::Vec3 delta = Vec3(mouseState.y, mouseState.x, 0.0f);
+
+		rotationVec -= delta * dTime * 2.0f;
+		camera.SetRotation(Quaternion::GetEuler(rotationVec));
+	}
+
+	Input::Get().SetMode(mouseState.leftButton ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
 
 	camera.SetPosition(camera.GetPosition() + movement * dTime);
 	camera.Update();
