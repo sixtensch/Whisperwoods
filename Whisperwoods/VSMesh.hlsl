@@ -49,6 +49,6 @@ VSOutput main(VSInput input)
     output.outBitangent = mul(input.bitangent, (float3x3)WorldMatrix);
     //output.outBitangent = normalize(output.outBitangent);
     
-    output.outUV = input.UV;
+    output.outUV = float2(input.UV.x, -input.UV.y);
 	return output;
 }

@@ -188,8 +188,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	D3D11_SAMPLER_DESC sd = {};
 
 	sd.Filter = D3D11_FILTER_ANISOTROPIC;
-	sd.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	sd.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	sd.MipLODBias = 0.0f;
 	sd.MaxAnisotropy = 1u;
