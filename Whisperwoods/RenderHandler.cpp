@@ -14,8 +14,8 @@ RenderHandler::~RenderHandler()
 
 void RenderHandler::InitCore(shared_ptr<Window> window)
 {
-	m_lightAmbient = cs::Color3f(0xB0B0FF);
-	m_lightAmbientIntensity = 0.1f;
+	m_lightAmbient = cs::Color3f(0xD0D0FF);
+	m_lightAmbientIntensity = 0.15f;
 
 	m_lightDirectional = make_unique<DirectionalLight>();
 	m_lightDirectional->diameter = 100.0f;
