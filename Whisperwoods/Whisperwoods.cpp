@@ -175,6 +175,7 @@ void Whisperwoods::Run()
 		static float dTimeAcc = 0.0f;
 		dTimeAcc += dTime;
 
+		Input::Get().Update();
 		Move(dTime);
 
 		testAnimator.Update(dTime);
@@ -227,49 +228,48 @@ void Whisperwoods::Run()
 
 void Whisperwoods::Move(float dTime)
 {
-	static bool lock = false;
-	static Vec3 euler = { 0, 0, 0 };
+	static bool cameraLock = false;
 
 	Camera& camera = Renderer::GetCamera();
 
+	// TODO: Little ugly. Maybe pretty it up.
 	Vec3 movement = Vec3(0, 0, 0);
+	Vec3 forwardDirection = camera.GetDirection();
+	forwardDirection.y = 0;
+	forwardDirection.Normalize();
+	Vec3 rightDirection = camera.GetRight();
+	Vec3 upDirection = Vec3(0.0f, 1.0f, 0.0f);
 
-	float lookSpeed = 0.0002f;
+	if (Input::Get().IsKeybindDown(KeybindForward))		movement += forwardDirection;
+	if (Input::Get().IsKeybindDown(KeybindBackward))	movement -= forwardDirection;
+	if (Input::Get().IsKeybindDown(KeybindRight))		movement += rightDirection;
+	if (Input::Get().IsKeybindDown(KeybindLeft))		movement -= rightDirection;
+	if (Input::Get().IsKeybindDown(KeybindUp))			movement += upDirection;
+	if (Input::Get().IsKeybindDown(KeybindDown))		movement -= upDirection;
 
-	if (Input::Get().IsKeybindDown(KeybindForward))		movement.z += 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindBackward))	movement.z -= 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindRight))		movement.x += 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindLeft))		movement.x -= 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindUp))			movement.y += 1.0f;
-	if (Input::Get().IsKeybindDown(KeybindDown))		movement.y -= 1.0f;
-
-	if (Input::Get().IsKeybindDown(KeybindSprint))		movement *= 2.0f;
-
-	if (Input::Get().GetKeyboardState().R && !Input::Get().GetLastKeyboardState().R)
+	if (Input::Get().IsDXKeyPressed(DXKey::R))
 	{
-		lock = !lock;
+		cameraLock = !cameraLock;
 	}
 
-	if (lock)
+	if (Input::Get().IsKeybindDown(KeybindSprint))
 	{
-		POINT center = { WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 };
-
-		Point2 mouseMove = 
-		{
-			Input::Get().GetMouseState().x - center.x,
-			Input::Get().GetMouseState().y - center.y
-		};
-
-		if (mouseMove != Point2 { 0, 0 })
-		{
-			euler += Vec3(-mouseMove.y * lookSpeed, -mouseMove.x * lookSpeed, 0.0f);
-			camera.SetRotation(Quaternion::GetEuler(euler));
-		}
-
-		ClientToScreen(Renderer::GetWindow().Data(), &center);
-		SetCursorPos(center.x, center.y);
+		movement *= 5.0f;
 	}
 
-	camera.SetPosition(camera.GetPosition() + Quaternion::GetAxisNormalized({ 0, 1, 0 }, -euler.y) * (movement * dTime));
+	MouseState mouseState = Input::Get().GetMouseState();
+
+	static Vec3 rotationVec = {};
+	if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
+	{
+		cs::Vec3 delta = Vec3(mouseState.y, mouseState.x, 0.0f);
+
+		rotationVec -= delta * dTime * 4.0f;
+		camera.SetRotation(Quaternion::GetEuler(rotationVec));
+	}
+
+	Input::Get().SetMode(cameraLock ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
+
+	camera.SetPosition(camera.GetPosition() + movement * dTime);
 	camera.Update();
 }
