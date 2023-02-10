@@ -65,6 +65,7 @@ void Whisperwoods::Run()
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	
+	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
 
 
 	// Text
@@ -82,26 +83,26 @@ void Whisperwoods::Run()
 
 	shared_ptr<PointLight> point = make_shared<PointLight>();
 	point->color = cs::Color3f(0x4040FF);
-	point->intensity = 8.0f;
+	point->intensity = 0.0f;
 	point->transform.position = Vec3(2, 0, 0);
 	Renderer::RegisterLight(point);
 
 	shared_ptr<SpotLight> spot = make_shared<SpotLight>();
 	spot->color = cs::Color3f(0x40FF40);
-	spot->intensity = 1.0f;
+	spot->intensity = 0.8f;
 	spot->transform.position = Vec3(0, 0, 0);
 	spot->transform.rotation = Quaternion::GetIdentity();
 	spot->fovInner = 0.15f;
 	spot->fovOuter = 0.2f;
 	spot->range = 100.0f;
-	Renderer::RegisterLight(spot);
+	//Renderer::RegisterLight(spot);
 
 	shared_ptr<DirectionalLight> directional = Renderer::GetDirectionalLight();
 	directional->transform.position = { 0, 10, 0 };
 	directional->transform.SetRotationEuler({ 0.5f, 0.9f, 0.0f });
 	directional->diameter = 20.0f;
-	directional->intensity = 0.8f;
-	directional->color = cs::Color3f(0xFFFFB0);
+	directional->intensity = 0.7f;
+	directional->color = cs::Color3f(0xFFFFD0);
 
 	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color, { 1.0f, 1.0f });
 

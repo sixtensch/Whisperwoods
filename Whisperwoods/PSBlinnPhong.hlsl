@@ -51,27 +51,54 @@ cbuffer ShadingInfo : REGISTER_CBV_SHADING_INFO
 };
 
 
+
+cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
+{
+    float3 diffuse;
+    float alpha;
+    float3 specular;
+    float glossiness;
+    float3 emissive;
+    float height;
+};
+
+SamplerState textureSampler : REGISTER_SAMPLER_STANDARD;
+
+Texture2D textureDiffuse : REGISTER_SRV_TEX_DIFFUSE;
+Texture2D textureSpecular : REGISTER_SRV_TEX_SPECULAR;
+Texture2D textureEmissive : REGISTER_SRV_TEX_EMISSIVE;
+Texture2D textureNormal : REGISTER_SRV_TEX_NORMAL;
+
+
+
 float4 main(VSOutput input) : SV_TARGET
 {
-    float4 colorAlbedoOpacity = float4(1.0f, 1.0f, 1.0f, 1.0f);
-    float4 colorSpecularSpecularity = float4(0.6f, 0.6f, 0.6f, 20.0f);
-    float3 colorEmissive = float3(0.0f, 0.0f, 0.0f);
+    float4 diffuseSample = textureDiffuse.Sample(textureSampler, input.outUV);
+    float4 specularSample = textureSpecular.Sample(textureSampler, input.outUV);
+    float4 emissiveSample = textureEmissive.Sample(textureSampler, input.outUV);
+    float4 normalSample = textureNormal.Sample(textureSampler, input.outUV);
+	
+    float4 colorAlbedoOpacity = float4(diffuse * diffuseSample.xyz, alpha * diffuseSample.a);
+    float4 colorSpecularSpecularity = float4(specular, glossiness) * specularSample;
+    float3 colorEmissive = emissive * emissiveSample.xyz;
 	
     float3 cameraDirection = normalize(cameraPosition - input.wPosition.xyz);
+	
+    float3x3 texSpace = float3x3(input.outTangent, input.outBitangent, input.outNormal);
+    float3 normal = normalize(mul(2.0f * normalSample.xyz - float3(1.0f, 1.0f, 1.0f), texSpace));
 	
 	// Cumulative color
     float4 color = float4(colorAlbedoOpacity.xyz * ambient, colorAlbedoOpacity.w);
 	
     color += phong(
 		input.wPosition.xyz,
-		input.outNormal,
+		normal,
 		directionalLight.intensity,
 		-directionalLight.direction,
 		1.0f,
 		cameraDirection,
 		colorAlbedoOpacity.xyz,
 		colorSpecularSpecularity.xyz,
-		colorEmissive,
 		colorAlbedoOpacity.w,
 		colorSpecularSpecularity.w
 	);
@@ -83,14 +110,13 @@ float4 main(VSOutput input) : SV_TARGET
 		
         color += phong(
 			input.wPosition.xyz,
-			input.outNormal,
+			normal,
 			pointLights[i].intensity,
 			lightVector * lightDistanceInv,
 			lightDistanceInv * lightDistanceInv,
 			cameraDirection,
 			colorAlbedoOpacity.xyz,
 			colorSpecularSpecularity.xyz,
-			colorEmissive,
 			colorAlbedoOpacity.w,
 			colorSpecularSpecularity.w
 		);
@@ -110,18 +136,19 @@ float4 main(VSOutput input) : SV_TARGET
 		
         color += phong(
 			input.wPosition.xyz,
-			input.outNormal,
+			normal,
 			spotLights[j].intensity,
 			lightDirection,
 			lightDistanceInv * lightDistanceInv * spotScalar,
 			cameraDirection,
 			colorAlbedoOpacity.xyz,
 			colorSpecularSpecularity.xyz,
-			colorEmissive,
 			colorAlbedoOpacity.w,
 			colorSpecularSpecularity.w
 		);
     }
 	
-    return saturate(color);
+    color += float4(colorEmissive.xyz, 0.0f);
+	
+    return saturate(color );
 }

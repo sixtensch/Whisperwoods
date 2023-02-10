@@ -109,18 +109,6 @@
     <Filter Include="%2a Code\%2a Core\Transform">
       <UniqueIdentifier>{f9410f4e-3352-4a93-87e1-7a57129d9377}</UniqueIdentifier>
     </Filter>
-    <Filter Include="%2a Code\%2a Core\%2a Model Importing">
-      <UniqueIdentifier>{8bb0f31a-6913-4e38-8378-50616860337c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="%2a Code\%2a Core\%2a Model Importing\FBX Importer">
-      <UniqueIdentifier>{ea1cc5c0-1d9b-4aa5-8686-b8a4c015228b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="%2a Code\%2a Core\%2a Model Importing\Vertex">
-      <UniqueIdentifier>{fb614285-53ee-4ead-97d1-f481f08b28ec}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="%2a Code\%2a Core\%2a Model Importing\VertexGroup">
-      <UniqueIdentifier>{2a24318d-516c-442f-bd54-20c28aa81a1d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="%2a Code\%2a Core\%2a Animation\Animator">
       <UniqueIdentifier>{5fac8100-97fc-47a5-9ebf-46e6dffb041b}</UniqueIdentifier>
     </Filter>
@@ -160,6 +148,24 @@
     <Filter Include="%2a Code\%2a Rendering\DrawInfo">
       <UniqueIdentifier>{85fb15ca-ad66-459a-b27f-bcf3a2206781}</UniqueIdentifier>
     </Filter>
+    <Filter Include="%2a Code\%2a Resources\MaterialResource">
+      <UniqueIdentifier>{4676d17c-df40-4b47-895d-9fe8b0df274b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Importing">
+      <UniqueIdentifier>{8bb0f31a-6913-4e38-8378-50616860337c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Importing\FBX Importer">
+      <UniqueIdentifier>{ea1cc5c0-1d9b-4aa5-8686-b8a4c015228b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Importing\Vertex">
+      <UniqueIdentifier>{fb614285-53ee-4ead-97d1-f481f08b28ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Importing\VertexGroup">
+      <UniqueIdentifier>{2a24318d-516c-442f-bd54-20c28aa81a1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Importing\Material Importer">
+      <UniqueIdentifier>{df966b15-8a03-4f1d-8a77-2d8f2bb087be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -193,7 +199,7 @@
       <Filter>%2a Code\%2a Rendering\RendererCore</Filter>
     </ClCompile>
     <ClCompile Include="FBXImporter.cpp">
-      <Filter>%2a Code\%2a Core\%2a Model Importing\FBX Importer</Filter>
+      <Filter>%2a Code\%2a Core\%2a Importing\FBX Importer</Filter>
     </ClCompile>
     <ClCompile Include="Armature.cpp">
       <Filter>%2a Code\%2a Core\%2a Animation\Armature</Filter>
@@ -243,6 +249,13 @@
     </ClCompile>
     <ClCompile Include="Renderable.cpp">
       <Filter>%2a Code\%2a Rendering\%2a Renderable</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRenderable.cpp" />
+    <ClCompile Include="MaterialResource.cpp">
+      <Filter>%2a Code\%2a Resources\MaterialResource</Filter>
+    </ClCompile>
+    <ClCompile Include="MaterialImporter.cpp">
+      <Filter>%2a Code\%2a Core\%2a Importing\Material Importer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -308,13 +321,13 @@
       <Filter>%2a Code\%2a Rendering\Window</Filter>
     </ClInclude>
     <ClInclude Include="FBXImporter.h">
-      <Filter>%2a Code\%2a Core\%2a Model Importing\FBX Importer</Filter>
+      <Filter>%2a Code\%2a Core\%2a Importing\FBX Importer</Filter>
     </ClInclude>
     <ClInclude Include="Vertex.h">
-      <Filter>%2a Code\%2a Core\%2a Model Importing\Vertex</Filter>
+      <Filter>%2a Code\%2a Core\%2a Importing\Vertex</Filter>
     </ClInclude>
     <ClInclude Include="VertexGroup.h">
-      <Filter>%2a Code\%2a Core\%2a Model Importing\VertexGroup</Filter>
+      <Filter>%2a Code\%2a Core\%2a Importing\VertexGroup</Filter>
     </ClInclude>
     <ClInclude Include="ModelResource.h">
       <Filter>%2a Code\%2a Resources\ModelResource</Filter>
@@ -365,7 +378,15 @@
       <Filter>%2a Code\%2a Rendering\DrawInfo</Filter>
     </ClInclude>
     <ClInclude Include="WhisperWoodsModelHead.h">
-      <Filter>%2a Code\%2a Core\%2a Model Importing</Filter>
+      <Filter>%2a Code\%2a Core\%2a Importing</Filter>
+    </ClInclude>
+    <ClInclude Include="Font.h" />
+    <ClInclude Include="TextRenderable.h" />
+    <ClInclude Include="MaterialResource.h">
+      <Filter>%2a Code\%2a Resources\MaterialResource</Filter>
+    </ClInclude>
+    <ClInclude Include="MaterialImporter.h">
+      <Filter>%2a Code\%2a Core\%2a Importing\Material Importer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -375,9 +396,16 @@
     <FxCompile Include="PSBlinnPhong.hlsl">
       <Filter>%2a Code\%2a Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="VSMeshRigged.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Constants.hlsli">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </None>
+    <None Include="..\myfileb.spritefont" />
+    <None Include="PhongAlg.hlsli">
       <Filter>%2a Code\%2a Shaders</Filter>
     </None>
   </ItemGroup>
