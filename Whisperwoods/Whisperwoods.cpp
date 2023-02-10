@@ -270,6 +270,6 @@ void Whisperwoods::Move(float dTime)
 
 	Input::Get().SetMode(cameraLock ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
 
-	camera.SetPosition(camera.GetPosition() + Quaternion::GetAxisNormalized({ 0, 1, 0 }, -euler.y) * (movement * dTime));
+	camera.SetPosition(camera.GetPosition() + movement * dTime);
 	camera.Update();
 }

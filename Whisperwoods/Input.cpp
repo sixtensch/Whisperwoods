@@ -60,8 +60,6 @@ void Input::InputInit(const HWND windowHandle)
 	AddKeysToInput(KeybindSprint, { DXKey::LeftShift, DXKey::RightShift });
 	AddKeysToInput(KeybindCrouch, { DXKey::C, DXKey::RightControl });
 	AddKeysToInput(KeybindPower, { DXKey::Q, DXKey::NumPad0 });
-	AddKeysToInput(KeybindUp, { DXKey::Space});
-	AddKeysToInput(KeybindDown, { DXKey::LeftControl });
 
 }
 
@@ -96,15 +94,6 @@ bool Input::IsKeyBound(const DXKey key)
 	}
 
 	return false;
-}
-
-void Input::Update()
-{
-	m_lastKeyboardState = m_currentKeyboardState;
-	m_lastMouseState = m_currentMouseState;
-
-	m_currentKeyboardState = m_keyboard->GetState();
-	m_currentMouseState = m_mouse->GetState();
 }
 
 void Input::ProcessKeyboardMessage(UINT message, WPARAM wParam, LPARAM lParam)
