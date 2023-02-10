@@ -67,6 +67,30 @@ void Camera::CopyTransform(const Transform& transform)
 	m_transform = transform;
 }
 
+const Vec3 Camera::GetDirection() const
+{
+	// TODO: This should be a "globally" defined vector that transform makes use of.
+	const Vec4 forward = Vec4(0.0f, 0.0f, 1.0f, 0.0f);
+
+	return (Mat4)m_transform.rotation.Matrix().Transpose() * forward;
+}
+
+const Vec3 Camera::GetUp()
+{
+	// TODO: This should be a "globally" defined vector that transform makes use of.
+	const Vec4 up = Vec4(0.0f, 1.0f, 0.0f, 0.0f);
+
+	return (Mat4)m_transform.rotation.Matrix().Transpose() * up;
+}
+
+const Vec3 Camera::GetRight()
+{
+	// TODO: This should be a "globally" defined vector that transform makes use of.
+	const Vec4 right = Vec4(1.0f, 0.0f, 0.0f, 0.0f);
+
+	return (Mat4)m_transform.rotation.Matrix().Transpose() * right;
+}
+
 const Vec3 Camera::GetPosition() const
 {
 	return m_transform.position;
