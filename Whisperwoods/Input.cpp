@@ -128,6 +128,11 @@ MouseState Input::GetLastMouseState() const
 	return m_lastMouseState;
 }
 
+void Input::SetMode(dx::Mouse::Mode mouseMode)
+{
+	m_mouse->SetMode(mouseMode);
+}
+
 void Input::AddKeyToInput(const Keybind input, const DXKey key)
 {
 	if (IsKeyBound(key))
