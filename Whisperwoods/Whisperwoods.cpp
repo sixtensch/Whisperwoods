@@ -117,24 +117,31 @@ void Whisperwoods::Run()
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	shared_ptr<MeshRenderableStatic> ground = Renderer::CreateMeshStatic("Ground.wwm");
 	ground->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+	ground->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneGround.wwmt"));
 
 	shared_ptr<MeshRenderableStatic> bigTrees = Renderer::CreateMeshStatic("BigTrees.wwm");
 	bigTrees->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+	bigTrees->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneBigTree.wwmt"));
 
 	shared_ptr<MeshRenderableStatic> bigPlants = Renderer::CreateMeshStatic("BigPlants.wwm");
 	bigPlants->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+	bigPlants->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneBanana.wwmt"));
 
 	shared_ptr<MeshRenderableStatic> smallPlants = Renderer::CreateMeshStatic("SmallPlants.wwm");
 	smallPlants->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+	smallPlants->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneTopDownPlant.wwmt"));
 
 	shared_ptr<MeshRenderableStatic> mediumTrees = Renderer::CreateMeshStatic("MediumTrees.wwm");
 	mediumTrees->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+	mediumTrees->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneMediumTree.wwmt"));
 
 	shared_ptr<MeshRenderableStatic> stones = Renderer::CreateMeshStatic("Stones.wwm");
 	stones->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+	stones->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneStones.wwmt"));
 
 	shared_ptr<MeshRenderableStatic> grafiTree = Renderer::CreateMeshStatic("Grafitree.wwm");
 	grafiTree->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
+	grafiTree->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneGrafitree.wwmt"));
 
 
 	Resources resources = Resources::Get();

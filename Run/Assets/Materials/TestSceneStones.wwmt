@@ -5,6 +5,6 @@ g   16
 a   1
 h   0
 
-D   TestScene/stonesDiffuse.png
-E   TestScene/stonesEmission.png
-N   TestScene/stonesNormal.png
+D   stonesDiffuse.png
+E   stonesEmission.png
+N   stonesNormal.png
