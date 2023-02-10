@@ -7,12 +7,15 @@
 #include "ShaderResource.h"
 #include "SoundResource.h"
 #include "ModelResource.h"
+#include "MaterialResource.h"
 #include "FBXImporter.h"
+#include "MaterialImporter.h"
 
 
 // TODO: Can move this into an array that indexes with resource type as we want to have one path per resource type(?)
 #define MODELS_PATH "Assets/Models/"
 #define TEXTURE_PATH "Assets/Textures/"
+#define MATERIAL_PATH "Assets/Materials/"
 #define SOUND_PATH "Assets/Sounds/"
 #define MATERIAL_PATH "Assets/Materials/"
 #define MAP_PATH "Assets/Maps/"
@@ -103,9 +106,9 @@ BasicResource* Resources::AllocateResource(ResourceType resourceType, const std:
 		resource = make_shared<SoundResource>(resourceName);
 		break;
 
-		//case ResourceTypeMaterial:
-		//	resource = make_shared<MaterialResource>(resourceName);
-		//	break;
+	case ResourceTypeMaterial:
+		resource = make_shared<MaterialResource>(resourceName);
+		break;
 
 	
 	case ResourceTypeModelStatic:
@@ -198,7 +201,7 @@ void Resources::LoadTextures(const RenderCore* const renderCore)
 		TextureResource* textureResource = (TextureResource*)AllocateResource(ResourceTypeTexture, filename, filename);
 		
 		// Will throw exception if failed.
-		renderCore->LoadImageTexture(wstring(filePath.begin(), filePath.end()), textureResource->texture2D);
+		renderCore->LoadImageTexture(wstring(filePath.begin(), filePath.end()), textureResource->texture2D, textureResource->shaderResourceView);
 	}
 }
 
@@ -211,7 +214,20 @@ void Resources::LoadCompositeResources(const RenderCore* const renderCore)
 
 void Resources::LoadMaterialResources()
 {
+	cs::List<fs::path> materialPaths = CollectFilePaths(MATERIAL_PATH);
 
+	for (fs::path& path : materialPaths)
+	{
+		std::string filePath = path.string();
+		std::string filename = path.filename().string();
+		MaterialResource* materialResource = (MaterialResource*)AllocateResource(ResourceTypeMaterial, filename, filename);
+
+		// Will throw exception if failed.
+		if (!MaterialImporter::ImportWWMT(filePath, materialResource))
+		{
+			EXC("Failed to load material '%s'.", filePath.c_str());
+		}
+	}
 }
 
 void Resources::LoadModelStaticResources(const RenderCore* const renderCore)

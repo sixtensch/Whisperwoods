@@ -15,7 +15,6 @@ namespace CB
 		Mat4 worldMatrix;
 	};
 
-	//...
 	struct ShadingInfo
 	{
 		DirectionalLight::Data directional;
@@ -27,7 +26,17 @@ namespace CB
 		Vec3 cameraPosition;
 		uint spotCount;
 	};
-	// etc
+
+	struct MaterialInfo
+	{
+		// Do not reorder
+		Vec3 diffuse;
+		float alpha;
+		Vec3 specular;
+		float glossiness;
+		Vec3 emissive;
+		float height;
+	};
 }
 
 struct ConstantBuffers
@@ -36,4 +45,5 @@ struct ConstantBuffers
 	ComPtr<ID3D11Buffer> objectInfo;
 	
 	ComPtr<ID3D11Buffer> shadingInfo;
+	ComPtr<ID3D11Buffer> materialInfo;
 };

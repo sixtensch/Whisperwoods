@@ -16,13 +16,13 @@ void Transform::DecomposeWorldMatrixIntoWorldParameters()
 	// Convert into readable data
 	DirectX::XMFLOAT3 f3Scale;
 	DirectX::XMFLOAT4 f4Rotation;
-	DirectX::XMFLOAT3 f3Translation;
+	DirectX::XMFLOAT3 f3Translation; 
 	DirectX::XMStoreFloat3(&f3Scale, outScale);
 	DirectX::XMStoreFloat4(&f4Rotation, outRotation);
 	DirectX::XMStoreFloat3(&f3Translation, outTranslation);
 
 	// Store into parameters.
-	worldPosition = Vec3(-f3Translation.x, -f3Translation.y, -f3Translation.z);
+	worldPosition = Vec3(f3Translation.x, f3Translation.y, f3Translation.z);
 	worldRotation = Quaternion(f4Rotation.x, f4Rotation.y, f4Rotation.z, f4Rotation.w);
 	worldScale = Vec3(f3Scale.x, f3Scale.y, f3Scale.z);
 }

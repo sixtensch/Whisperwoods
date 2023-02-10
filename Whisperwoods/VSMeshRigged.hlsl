@@ -44,10 +44,10 @@ VSOutput main(VSInput input)
 	
     float4 startPosition = float4(input.position, 1.0f);
     float3 sumPos = float3(0, 0, 0);
-    sumPos += mul( Tx[input.bones[0]]  * input.weights[0], startPosition );
-    sumPos += mul( Tx[input.bones[1]]  * input.weights[1], startPosition );
-    sumPos += mul( Tx[input.bones[2]]  * input.weights[2], startPosition );
-    sumPos += mul( Tx[input.bones[3]]  * input.weights[3], startPosition );
+    sumPos += mul( Tx[input.bones[0]]  * input.weights[0], startPosition ).xyz;
+    sumPos += mul( Tx[input.bones[1]]  * input.weights[1], startPosition ).xyz;
+    sumPos += mul( Tx[input.bones[2]]  * input.weights[2], startPosition ).xyz;
+    sumPos += mul( Tx[input.bones[3]]  * input.weights[3], startPosition ).xyz;
     //sumPos += mul( Tx[input.bones1[0]] * input.weights1[0], startPosition ); // for extra bone blend at a performance hit
     //sumPos += mul( Tx[input.bones1[1]] * input.weights1[1], startPosition ); // must be matched in pipeline and vertex struct
     //sumPos += mul( Tx[input.bones1[2]] * input.weights1[2], startPosition ); // as well as in the fbx importer, 

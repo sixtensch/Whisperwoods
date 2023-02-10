@@ -14,8 +14,8 @@
 
 void TestPlay(void*, void*)
 {
-	// Audio test startup
-	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.3f, 0, 10, "Duck.mp3");
+	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
+	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 0.5f, 0, 10, soundPtr);
 	testSource.Play();
 }
 
@@ -72,7 +72,7 @@ void Whisperwoods::Run()
 	// Main frame loop
 
 	// Audio test startup
-	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck - Copy.mp3"))->currentSound;
+	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
 	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, soundPtr);
 	testSource.Play();
 
@@ -117,6 +117,9 @@ void Whisperwoods::Run()
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	
+	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
+	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
+
 
 
 	// Text
@@ -134,14 +137,14 @@ void Whisperwoods::Run()
 
 	shared_ptr<PointLight> point = make_shared<PointLight>();
 	point->color = cs::Color3f(0x4040FF);
-	point->intensity = 8.0f;
+	point->intensity = 0.0f;
 	point->transform.position = Vec3(2, 0, 0);
 	Renderer::RegisterLight(point);
 
 	shared_ptr<SpotLight> spot = make_shared<SpotLight>();
 	spot->color = cs::Color3f(0x40FF40);
-	spot->intensity = 1.0f;
-	spot->transform.position = Vec3(0, 0, 0);
+	spot->intensity = 0.8f;
+	spot->transform.position = Vec3(-0.4f, 0.2f, 0);
 	spot->transform.rotation = Quaternion::GetIdentity();
 	spot->fovInner = 0.15f;
 	spot->fovOuter = 0.2f;
@@ -152,8 +155,8 @@ void Whisperwoods::Run()
 	directional->transform.position = { 0, 10, 0 };
 	directional->transform.SetRotationEuler({ 0.5f, 0.9f, 0.0f });
 	directional->diameter = 20.0f;
-	directional->intensity = 0.8f;
-	directional->color = cs::Color3f(0xFFFFB0);
+	directional->intensity = 0.7f;
+	directional->color = cs::Color3f(0xFFFFD0);
 
 	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color, { 1.0f, 1.0f });
 
@@ -163,6 +166,7 @@ void Whisperwoods::Run()
 	for (bool running = true; running; frames++)
 	{
 		m_debug->ClearFrameTrace();
+		m_input->Update();
 		running = !m_renderer->UpdateWindow();
 
 		float dTime = deltaTimer.Lap();
@@ -223,15 +227,49 @@ void Whisperwoods::Run()
 
 void Whisperwoods::Move(float dTime)
 {
+	static bool lock = false;
+	static Vec3 euler = { 0, 0, 0 };
+
 	Camera& camera = Renderer::GetCamera();
 
 	Vec3 movement = Vec3(0, 0, 0);
+
+	float lookSpeed = 0.0002f;
 
 	if (Input::Get().IsKeybindDown(KeybindForward))		movement.z += 1.0f;
 	if (Input::Get().IsKeybindDown(KeybindBackward))	movement.z -= 1.0f;
 	if (Input::Get().IsKeybindDown(KeybindRight))		movement.x += 1.0f;
 	if (Input::Get().IsKeybindDown(KeybindLeft))		movement.x -= 1.0f;
+	if (Input::Get().IsKeybindDown(KeybindUp))			movement.y += 1.0f;
+	if (Input::Get().IsKeybindDown(KeybindDown))		movement.y -= 1.0f;
 
-	camera.SetPosition(camera.GetPosition() + movement * dTime);
+	if (Input::Get().IsKeybindDown(KeybindSprint))		movement *= 2.0f;
+
+	if (Input::Get().GetKeyboardState().R && !Input::Get().GetLastKeyboardState().R)
+	{
+		lock = !lock;
+	}
+
+	if (lock)
+	{
+		POINT center = { WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 };
+
+		Point2 mouseMove = 
+		{
+			Input::Get().GetMouseState().x - center.x,
+			Input::Get().GetMouseState().y - center.y
+		};
+
+		if (mouseMove != Point2 { 0, 0 })
+		{
+			euler += Vec3(-mouseMove.y * lookSpeed, -mouseMove.x * lookSpeed, 0.0f);
+			camera.SetRotation(Quaternion::GetEuler(euler));
+		}
+
+		ClientToScreen(Renderer::GetWindow().Data(), &center);
+		SetCursorPos(center.x, center.y);
+	}
+
+	camera.SetPosition(camera.GetPosition() + Quaternion::GetAxisNormalized({ 0, 1, 0 }, -euler.y) * (movement * dTime));
 	camera.Update();
 }

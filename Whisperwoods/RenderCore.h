@@ -9,6 +9,7 @@
 #include "SimpleMath.h"
 #include <SpriteFont.h>
 #include "Light.h"
+#include "MaterialResource.h"
 #include "Bone.h"
 
 class RenderCore
@@ -27,17 +28,20 @@ public:
 	HRESULT CreateImageTexture(char* image, UINT resHeight, UINT resWidth, UINT sysMemPitch, DXGI_FORMAT format, ID3D11Texture2D** out_texturePP);
 	HRESULT CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const;
 	HRESULT CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const;
-	void LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Texture2D>& textureResource) const;
+	void LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Texture2D>& textureResource, ComPtr<ID3D11ShaderResourceView>& srv) const;
 
 
 
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
+	void UpdateMaterialInfo(const MaterialResource* material) const;
 	void DrawObject(const Renderable* renderable, bool shadowing);
 
 	void SetVertexBuffer(ComPtr<ID3D11Buffer> buffer, uint stride, uint offset);
 	void SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format = DXGI_FORMAT_R32_UINT);
+
 	void DrawIndexed(uint indexCount, uint start, uint base);
+
 
 	//void SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer);
 	void SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV);
@@ -52,7 +56,7 @@ public:
 
 	void InitImGui() const;
 
-	void InitFont(std::unique_ptr<dx::SpriteFont> fonts[FontCount], std::unique_ptr<dx::SpriteBatch> * batch) const;
+	void InitFont(std::unique_ptr<dx::SpriteFont> fonts[FontCount], std::unique_ptr<dx::SpriteBatch>* batch) const;
 
 private:
 	void BindPipeline(PipelineType pipeline, bool shadowing);
@@ -60,6 +64,7 @@ private:
 	void InitPipelines();
 	void InitConstantBuffers();
 	void InitLightBuffers();
+	void InitDefaultMaterials();
 
 private:
 	shared_ptr<Window> m_window;
@@ -85,6 +90,20 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_dsSRV;
 
 	D3D11_VIEWPORT m_viewport;
+
+	MaterialResource m_defaultMaterial;
+
+	ComPtr<ID3D11Texture2D> m_defaultDiffuse;
+	ComPtr<ID3D11Texture2D> m_defaultSpecular;
+	ComPtr<ID3D11Texture2D> m_defaultEmissive;
+	ComPtr<ID3D11Texture2D> m_defaultNormal;
+
+	ComPtr<ID3D11ShaderResourceView> m_defaultDiffuseSRV;
+	ComPtr<ID3D11ShaderResourceView> m_defaultSpecularSRV;
+	ComPtr<ID3D11ShaderResourceView> m_defaultEmissiveSRV;
+	ComPtr<ID3D11ShaderResourceView> m_defaultNormalSRV;
+
+	ComPtr<ID3D11SamplerState> m_sampler;
 
 	// Pipelines
 	Pipeline m_pipelines[PipelineTypeCount];
