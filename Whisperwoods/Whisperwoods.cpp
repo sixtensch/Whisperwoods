@@ -9,6 +9,8 @@
 #include <imgui.h>
 #include "TextRenderable.h"
 
+#include "LevelImporter.h"
+
 // TODO: Dudd include. Only used for getting test sound.
 #include "SoundResource.h"
 
@@ -99,6 +101,9 @@ Whisperwoods::~Whisperwoods()
 void Whisperwoods::Run()
 {
 	// Main frame loop
+
+	LevelResource level = {};
+	LevelImporter::ImportImage("Examplemap.png", m_renderer->GetRenderCore(), &level);
 
 	// Audio test startup
 	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;

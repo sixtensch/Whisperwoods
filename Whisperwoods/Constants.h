@@ -22,5 +22,14 @@
 
 #define LIGHT_NEAR		0.05f
 #define LIGHT_FAR		100.0f
-	
+
+#define BM_PIXELS_PER_UNIT	5
+#define BM_PIXEL_SIZE		(1.0f / BM_PIXELS_PER_UNIT)
+#define BM_MIN_SIZE			BM_PIXELS_PER_UNIT * 5
+
+#define BM_C_EMPTY					0xffffff
+#define BM_C_TERRAIN_OUT			0x00ff00
+#define BM_C_TERRAIN_IN				0x007f00
+#define BM_C_EXIT					0x000000
+
 #endif
