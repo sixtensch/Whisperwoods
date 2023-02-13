@@ -498,43 +498,28 @@ void Whisperwoods::Move(float dTime, Player* player)
 		Vec3 lerped = Lerp(cameraCurrentPos, cameraTargetPos, dTime * 5);
 		camera.SetPosition(lerped);
 
+		// same as in player only using the bigass function above.
 		Vec3 direction = player->transform.position - cameraTargetPos;
 		direction.Normalize();
-
 		Quaternion cameraCurrentRot = camera.GetRotation();
 		//Quaternion cameraTargetRot = Quaternion::GetDirection(direction, Vec3(0,1,0));
 		Vec3 upVector(0.0f, 1.0f, 0.0f);
 		Quaternion cameraTargetRot = QuaternionLookRotation(direction, upVector);
 
-		//DirectX::XMFLOAT3 camPosSrc(cameraTargetPos.x, cameraTargetPos.y, cameraTargetPos.z);
-		//DirectX::XMVECTOR camPos = DirectX::XMLoadFloat3(&camPosSrc);
 
-		//DirectX::XMFLOAT3 playerPosSrc(player->transform.position.x, player->transform.position.y, player->transform.position.z);
-		//DirectX::XMVECTOR plrPos = DirectX::XMLoadFloat3(&playerPosSrc);
-
-		//DirectX::XMFLOAT3 upSrc(0, 1, 0);
-		//DirectX::XMVECTOR up = DirectX::XMLoadFloat3(&upSrc);
-
-		//DirectX::XMMATRIX rotMat = DirectX::XMMatrixLookAtLH(camPos, plrPos, up);
-
-		//Mat4 matrix(rotMat);
-		//Quaternion rotQuat = Quaternion::GetDeconstruct(matrix);
-		////Quaternion lookAtRotation()
-		////Quaternion::GetDirection()
-
+		Quaternion conj1 = cameraTargetRot.Conjugate();
+		Quaternion conj2 = player->cameraLookRotationTarget.Conjugate();
 		if (ImGui::Begin("RotationThing"))
 		{
 			ImGui::Text("Dir: %f, %f, %f", direction.x, direction.y, direction.z);
-			ImGui::Text("Rot: %f, %f, %f, %f", cameraTargetRot.x, cameraTargetRot.y, cameraTargetRot.z, cameraTargetRot.w);
+			ImGui::Text("Rot: %f, %f, %f, %f", conj1.x, conj1.y, conj1.z, conj1.w);
+			ImGui::Text("RotP: %f, %f, %f, %f", conj2.x, conj2.y, conj2.z, conj2.w);
 		}
 		ImGui::End();
 
 		//Quaternion slerped = Quaternion::GetSlerp(cameraCurrentRot, cameraTargetRot.Conjugate(), dTime * 5);
-		Quaternion slerped = Lerp(cameraCurrentRot, cameraTargetRot.Conjugate(), dTime * 5);
-		//player->cameraLookRotationTarget
+		Quaternion slerped = Lerp(cameraCurrentRot, conj2, dTime * 5);
 		camera.SetRotation(slerped);
-
-
 	}
 	camera.Update();
 }

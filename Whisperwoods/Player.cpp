@@ -38,12 +38,11 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 	if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
 	{
 		cs::Vec3 delta = Vec3(0.0f, mouseState.x, 0.0f);
-		LOG_TRACE("Mouse state X: %d", mouseState.x);
+		//LOG_TRACE("Mouse state X: %d", mouseState.x);
 		transform.rotation = transform.rotation * Quaternion::GetEuler(delta * delta_time * 4);
 	}
 
 	transform.position += inputVector * delta_time * movementMultiplier;
-
 
 	Vec3 followPoint = -(forward * 3);
 	followPoint += Vec3(0, 2, 0);
@@ -51,7 +50,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 	Vec3 currentPos = transform.GetWorldPosition();
 	cameraFollowTarget = currentPos + cameraFollowTarget;
 
-	Vec3 lookDir = cameraFollowTarget - currentPos;
+	Vec3 lookDir = currentPos - cameraFollowTarget;
 	lookDir.Normalize();
 
 	cameraLookRotationTarget = Quaternion::GetDirection(lookDir);
