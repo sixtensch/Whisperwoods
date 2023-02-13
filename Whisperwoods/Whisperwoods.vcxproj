@@ -43,6 +43,7 @@
     <ClCompile Include="MaterialResource.cpp" />
     <ClCompile Include="MeshRenderable.cpp" />
     <ClCompile Include="ModelResource.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="Renderable.cpp" />
     <ClCompile Include="RenderCore.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -86,6 +87,7 @@
     <ClInclude Include="MeshRenderable.h" />
     <ClInclude Include="ModelResource.h" />
     <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="QuadTree.h" />
     <ClInclude Include="Renderable.h" />
     <ClInclude Include="RenderCore.h" />
