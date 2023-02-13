@@ -8,6 +8,8 @@
 #include "Animator.h"
 #include <imgui.h>
 #include "TextRenderable.h"
+#include "Player.h"
+#include "Empty.h"
 
 // TODO: Dudd include. Only used for getting test sound.
 #include "SoundResource.h"
@@ -111,6 +113,13 @@ void Whisperwoods::Run()
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
 	//shared_ptr<MeshRenderableStatic> meshSphere = Renderer::CreateMeshStatic("Assets/Models/Static/Debug_Sphere.wwm");
 	shared_ptr<MeshRenderableRigged> grafiki = Renderer::CreateMeshRigged("Grafiki_Animated.wwm");
+
+
+
+	Player testPlayer("Shadii_Animated.wwm", "Assets/Models/FBX/Rigged/Shadii_Animations.fbx", Mat::translation3(0, -0.5f, 0) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	Empty testEmpty;
+	testEmpty.AddChild(&testPlayer);
+
 
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0, -5.5f, -2);
@@ -260,6 +269,8 @@ void Whisperwoods::Run()
 
 	int frames = 0;
 	cs::Timer deltaTimer;
+	// Test empty rotation imgui euler
+	Vec3 inputRotation;
 
 	for (bool running = true; running; frames++)
 	{
@@ -274,7 +285,7 @@ void Whisperwoods::Run()
 		dTimeAcc += dTime;
 
 		Input::Get().Update();
-		Move(dTime);
+		Move(dTime, &testPlayer);
 
 		testAnimator.Update(dTime);
 		testAnimatorGrafiki.Update(dTime);
@@ -285,21 +296,23 @@ void Whisperwoods::Run()
 		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
 
+		testEmpty.Update(dTime);
+		testPlayer.Update(dTime);
 
 
 		// Draw step
 
 		m_renderer->Draw();
 
-//#ifdef WW_DEBUG
+		//#ifdef WW_DEBUG
 		m_renderer->BeginGui();
 
-		if (ImGui::Begin( "Animation" ))
+		if (ImGui::Begin("Animation"))
 		{
-			ImGui::Text( "The base animation is %s", testAnimator.loadedAnimations[0].sourceAnimation->name.c_str());
-			ImGui::SliderFloat( testAnimator.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
-			ImGui::SliderFloat( testAnimator.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f" );
-			ImGui::SliderFloat( "Speed", &speed, 0.0f, 3.0f, "speed = %.3f" );
+			ImGui::Text("The base animation is %s", testAnimator.loadedAnimations[0].sourceAnimation->name.c_str());
+			ImGui::SliderFloat(testAnimator.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
+			ImGui::SliderFloat(testAnimator.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f");
+			ImGui::SliderFloat("Speed", &speed, 0.0f, 3.0f, "speed = %.3f");
 			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat("Speed2", &speed2, 0.0f, 3.0f, "speed = %.3f");
@@ -312,6 +325,17 @@ void Whisperwoods::Run()
 		}
 		ImGui::End();
 
+
+		if (ImGui::Begin("EmptyTransform"))
+		{
+			
+			ImGui::Text("Player Parent transform stuff");
+			ImGui::DragFloat3("position", (float*)&testEmpty.transform.position, 0.1f);
+			ImGui::DragFloat3("rotation", (float*)&inputRotation, 0.1f);
+			ImGui::DragFloat3("scale", (float*)&testEmpty.transform.scale, 0.1f);
+			testEmpty.transform.rotation = Quaternion::GetEuler(inputRotation);
+		}
+		ImGui::End();
 
 		m_debug->DrawConsole();
 		m_renderer->EndGui();
@@ -331,9 +355,15 @@ void Whisperwoods::Run()
 	}
 }
 
-void Whisperwoods::Move(float dTime)
+Vec3 Lerp(Vec3 a, Vec3 b, float t)
+{
+	return a * (1.0f - t) + b * t;
+}
+
+void Whisperwoods::Move(float dTime, Player* player)
 {
 	static bool cameraLock = false;
+	static bool cameraPlayer = false;
 
 	Camera& camera = Renderer::GetCamera();
 
@@ -357,6 +387,11 @@ void Whisperwoods::Move(float dTime)
 		cameraLock = !cameraLock;
 	}
 
+	if (Input::Get().IsDXKeyPressed(DXKey::P))
+	{
+		cameraPlayer = !cameraPlayer;
+	}
+
 	if (Input::Get().IsKeybindDown(KeybindSprint))
 	{
 		movement *= 5.0f;
@@ -370,11 +405,38 @@ void Whisperwoods::Move(float dTime)
 		cs::Vec3 delta = Vec3(mouseState.y, mouseState.x, 0.0f);
 
 		rotationVec -= delta * dTime * 4.0f;
-		camera.SetRotation(Quaternion::GetEuler(rotationVec));
+		if (!cameraPlayer)
+		{
+			camera.SetRotation(Quaternion::GetEuler(rotationVec));
+		}
 	}
 
 	Input::Get().SetMode(cameraLock ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
 
-	camera.SetPosition(camera.GetPosition() + movement * dTime);
+	if (!cameraPlayer)
+	{
+		camera.SetPosition(camera.GetPosition() + movement * dTime);
+	}
+	else
+	{
+		Vec3 cameraCurrentPos = camera.GetPosition();
+		Vec3 cameraTargetPos = player->cameraFollowTarget;
+		Vec3 lerped = Lerp(cameraCurrentPos, cameraTargetPos, dTime * 5);
+		camera.SetPosition(lerped);
+
+		Vec3 direction = cameraTargetPos - player->transform.GetWorldPosition();
+		direction.Normalize();
+
+		Quaternion cameraCurrentRot = camera.GetRotation();
+		Quaternion cameraTargetRot = Quaternion::GetDirection(direction);
+
+		DirectX::XMFLOAT3 camPosSrc(cameraTargetPos.x, cameraTargetPos.y, cameraTargetPos.z);
+		DirectX::XMVECTOR camPos = DirectX::XMLoadFloat3(&camPosSrc);
+
+
+
+		Quaternion slerped = Quaternion::GetSlerp(cameraCurrentRot, cameraTargetRot, dTime * 5);
+		camera.SetRotation(slerped);
+	}
 	camera.Update();
 }

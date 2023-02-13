@@ -72,6 +72,7 @@
     <ClInclude Include="Core.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="DrawInfo.h" />
+    <ClInclude Include="Empty.h" />
     <ClInclude Include="FBXImporter.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="Game.h" />

@@ -91,6 +91,12 @@ const Vec3 Camera::GetRight()
 	return (Mat4)m_transform.rotation.Matrix().Transpose() * right;
 }
 
+
+const Quaternion Camera::GetRotation()
+{
+	return m_transform.rotation;
+}
+
 const Vec3 Camera::GetPosition() const
 {
 	return m_transform.position;
