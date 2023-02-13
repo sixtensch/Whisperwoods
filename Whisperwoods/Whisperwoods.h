@@ -6,6 +6,7 @@
 #include "Config.h"
 #include "Input.h"
 #include "Debug.h"
+#include "Enemy.h"
 
 class Whisperwoods sealed
 {

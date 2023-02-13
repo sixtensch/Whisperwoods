@@ -261,6 +261,16 @@ void Whisperwoods::Run()
 	int frames = 0;
 	cs::Timer deltaTimer;
 
+
+	//std::shared_ptr<Enemy> testEnemy;
+	Enemy testEnemy("Shadii_Animated.wwm", "Assets/Models/FBX/Rigged/Shadii_Animations.fbx", Mat::translation3(0, -0.5f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	//testEnemy->AddModel("Shadii_Animated.wwm", "Assets/Models/FBX/Rigged/Shadii_Animations.fbx", Mat::translation3(0, -0.5f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	testEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -3), true);
+	testEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, 3), true);
+	testEnemy.AddCoordinateToPatrolPath(Vec2(0, 0), true);
+
+	
+
 	for (bool running = true; running; frames++)
 	{
 		m_debug->ClearFrameTrace();
@@ -278,6 +288,8 @@ void Whisperwoods::Run()
 
 		testAnimator.Update(dTime);
 		testAnimatorGrafiki.Update(dTime);
+
+		testEnemy.Update(dTime);
 
 		m_game->Update();
 		m_sound->Update();
