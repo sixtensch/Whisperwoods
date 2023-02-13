@@ -2,6 +2,7 @@
 #include <DirectXCollision.h>
 #include "Core.h"
 #include <vector>
+#include <map>
 
 template <typename T>
 class QuadTree
@@ -43,8 +44,8 @@ public: // Core functionality
 	void AddElement(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox);
 	void AddElementIndexed(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, int index);
 
-	std::vector<const T*> CullTree(const dx::BoundingFrustum& frustum) const;
-	void CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects) const;
+	std::vector<const T*> CullTree(const dx::BoundingFrustum& frustum);
+	void CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects);
 
 private: // Recursive callers
 	void AddToNode(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, const shared_ptr<Node>& currentNode, int depth, int index = -1);
@@ -63,12 +64,15 @@ private: // Helpers
 	bool IsFull(const shared_ptr<Node>& currentNode) const;
 	bool PartitionIntoChild(const dx::BoundingBox& elementVolume, const shared_ptr<Node>& currentNode, int& out_childNr) const;
 	void SplitNode(const shared_ptr<Node>& currentNode);
+	void CalcQuadOrder(const dx::BoundingFrustum& frustum);
 
 private:
 	shared_ptr<Node> m_root;
 	//bool m_lock;
 	float m_maxHeight;
 	float m_minHeight;
+
+	int m_quadSearch[4];
 
 private: // Settings
 	static const UINT s_maxLeafElements = 10;
@@ -79,6 +83,10 @@ template<typename T>
 inline QuadTree<T>::QuadTree() : m_minHeight( -20.0f ), m_maxHeight( 20.0f )
 {
 	m_root = nullptr;
+	m_quadSearch[0] = 0;
+	m_quadSearch[1] = 1;
+	m_quadSearch[2] = 2;
+	m_quadSearch[3] = 3;
 }
 template<typename T>
 inline QuadTree<T>::~QuadTree()
@@ -152,9 +160,10 @@ inline void QuadTree<T>::Reconstruct(float top, float left)
 /// This does not use the index functionality
 /// </summary>
 template<typename T>
-inline std::vector<const T*> QuadTree<T>::CullTree(const dx::BoundingFrustum& frustum) const
+inline std::vector<const T*> QuadTree<T>::CullTree(const dx::BoundingFrustum& frustum)
 {
 	std::vector<const T*> toReturn;
+	CalcQuadOrder(frustum);
 	CullNode(frustum, m_root, toReturn);
 	return toReturn;
 }
@@ -164,8 +173,9 @@ inline std::vector<const T*> QuadTree<T>::CullTree(const dx::BoundingFrustum& fr
 /// <para>It is assumed that the indexes are valid and are not out of bounds</para>
 /// </summary>
 template<typename T>
-inline void QuadTree<T>::CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects) const
+inline void QuadTree<T>::CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects)
 {
+	CalcQuadOrder(frustum);
 	CullNodeIndexed(frustum, m_root, out_culledObjects);
 }
 
@@ -266,7 +276,7 @@ inline void QuadTree<T>::CullNode(const dx::BoundingFrustum& frustum, const shar
 	{
 		for (int i = 0; i < 4; ++i)
 		{
-			CullNode(frustum, node->child[i], out_validElements);
+			CullNode(frustum, node->child[m_quadSearch[i]], out_validElements);
 		}
 	}
 }
@@ -288,7 +298,7 @@ inline void QuadTree<T>::CullNodeIndexed(const dx::BoundingFrustum& frustum, con
 	{
 		for (int i = 0; i < 4; ++i)
 		{
-			CullNodeIndexed(frustum, node->child[i], out_indexedList);
+			CullNodeIndexed(frustum, node->child[m_quadSearch[i]], out_indexedList);
 		}
 	}
 }
@@ -404,5 +414,28 @@ inline void QuadTree<T>::SplitNode(const shared_ptr<Node>& currentNode)
 		{
 			currentNode->child[i]->data.reserve(s_maxLeafElements);
 		}
+	}
+}
+
+template<typename T>
+inline void QuadTree<T>::CalcQuadOrder(const dx::BoundingFrustum& frustum)
+{
+	cs::Vec3 directionalVec = cs::Quaternion(
+		frustum.Orientation.x,
+		frustum.Orientation.y,
+		frustum.Orientation.z,
+		frustum.Orientation.w
+	) * cs::Vec3(0,0,1.0f);
+	cs::Vec2 xzVec = {directionalVec.x, directionalVec.z};
+	
+	std::map<float, int> rbTree;
+	rbTree.emplace(xzVec.Dot({ -1,  1 }), 0); // topleft
+	rbTree.emplace(xzVec.Dot({  1,  1 }), 1); // topright
+	rbTree.emplace(xzVec.Dot({ -1, -1 }), 2); // bottomleft
+	rbTree.emplace(xzVec.Dot({  1, -1 }), 3); // bottomright
+
+	for ( int i = 0; i < 4; ++i )
+	{
+		m_quadSearch[i] = rbTree[i];
 	}
 }
