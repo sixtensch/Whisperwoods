@@ -78,6 +78,10 @@ float4 main(VSOutput input) : SV_TARGET
     float2 uv = input.outUV * tiling;
 	
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
+	
+    if (diffuseSample.a < 0.1f)
+        discard;
+	
     float4 specularSample = textureSpecular.Sample(textureSampler, uv);
     float4 emissiveSample = textureEmissive.Sample(textureSampler, uv);
     float4 normalSample = textureNormal.Sample(textureSampler, uv);
@@ -93,7 +97,7 @@ float4 main(VSOutput input) : SV_TARGET
     float3 normal = normalize(mul(2.0f * normalSample.xyz - float3(1.0f, 1.0f, 1.0f), texSpace));
 	
 	// Cumulative color
-    float4 color = float4(colorAlbedoOpacity.xyz * ambient, colorAlbedoOpacity.w); 
+    float4 color = float4(colorAlbedoOpacity.xyz * ambient, colorAlbedoOpacity.w);
 	
     color += phong(
 		input.wPosition.xyz,

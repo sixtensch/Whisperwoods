@@ -175,7 +175,7 @@ void Whisperwoods::Run()
 	//FBXImporter importer;
 	FBXImporter importer;
 	shared_ptr<AnimationResource> resource (new AnimationResource);
-	importer.ImportFBXAnimations("Assets/Models/Shadii_Animations.fbx", resource.get());
+	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Shadii_Animations.fbx", resource.get());
 
 	shared_ptr<AnimationResource> resource2(new AnimationResource);
 	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Grafiki_Animations.fbx", resource2.get());
@@ -189,6 +189,7 @@ void Whisperwoods::Run()
 
 	Animation* animation4 = &resource2->animations[2]; 
 	Animation* animation5 = &resource2->animations[3];
+	Animation* animation6 = &resource2->animations[4];
 
 	Animation* carcinAnim0 = &resource3->animations[0];
 	Animation* carcinAnim1 = &resource3->animations[1];
@@ -203,6 +204,7 @@ void Whisperwoods::Run()
 	float speed2 = 0.5f;
 	testAnimatorGrafiki.AddAnimation(animation4, 0, speed2, 1.0f);
 	testAnimatorGrafiki.AddAnimation(animation5, 0, speed2, 0.0f);
+	testAnimatorGrafiki.AddAnimation(animation6, 0, speed2, 0.0f);
 
 	float speed3 = 0.6f;
 	testAnimatorCarcinian.AddAnimation(carcinAnim0, 0, speed3, 0.0f);
@@ -257,8 +259,8 @@ void Whisperwoods::Run()
 	// Lights
 
 	shared_ptr<PointLight> point = make_shared<PointLight>();
-	point->color = cs::Color3f(0x4040FF);
-	point->intensity = 0.0f;
+	point->color = cs::Color3f(0xFFFFFF);
+	point->intensity = 5.0f;
 	point->transform.position = Vec3(2, 0, 0);
 	Renderer::RegisterLight(point);
 
@@ -325,6 +327,7 @@ void Whisperwoods::Run()
 			ImGui::SliderFloat( testAnimator.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f" );
 			ImGui::SliderFloat( "Speed", &speed, 0.0f, 3.0f, "speed = %.3f" );
 			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
+			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat("Speed2", &speed2, 0.0f, 3.0f, "speed = %.3f");
 			ImGui::SliderFloat(testAnimatorCarcinian.loadedAnimations[0].sourceAnimation->name.c_str(), &testAnimatorCarcinian.loadedAnimations[0].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat(testAnimatorCarcinian.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimatorCarcinian.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
@@ -336,6 +339,7 @@ void Whisperwoods::Run()
 			testAnimator.loadedAnimations[2].speed = speed;
 			testAnimatorGrafiki.loadedAnimations[0].speed = speed2;
 			testAnimatorGrafiki.loadedAnimations[1].speed = speed2;
+			testAnimatorGrafiki.loadedAnimations[2].speed = speed2;
 			testAnimatorCarcinian.loadedAnimations[0].speed = speed3;
 			testAnimatorCarcinian.loadedAnimations[1].speed = speed3;
 			testAnimatorCarcinian.loadedAnimations[2].speed = speed3;
