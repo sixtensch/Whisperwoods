@@ -57,13 +57,31 @@ VSOutput main(VSInput input)
     output.wsPosition = mul(output.wPosition, ViewMatrix);
     output.outPosition = mul(output.wsPosition, ProjectionMatrix);
 
-    output.outNormal = mul(input.normal, (float3x3)WorldMatrix);
-    //output.outNormal = normalize(output.outNormal);
+    float4 startNormal = float4(input.normal, 0.0f);
+    float3 sumNormal = float3(0, 0, 0);
+    sumNormal += mul(Tx[input.bones[0]] * input.weights[0], startNormal).xyz;
+    sumNormal += mul(Tx[input.bones[1]] * input.weights[1], startNormal).xyz;
+    sumNormal += mul(Tx[input.bones[2]] * input.weights[2], startNormal).xyz;
+    sumNormal += mul(Tx[input.bones[3]] * input.weights[3], startNormal).xyz;
+    output.outNormal = mul(sumNormal, (float3x3)WorldMatrix);
 
-    output.outTangent = mul(input.tangent, (float3x3)WorldMatrix);
+    //output.outNormal = normalize(output.outNormal);
+    float4 startTangent = float4(input.tangent, 1.0f);
+    float3 sumTangent = float3(0, 0, 0);
+    sumTangent += mul(Tx[input.bones[0]] * input.weights[0], startTangent).xyz;
+    sumTangent += mul(Tx[input.bones[1]] * input.weights[1], startTangent).xyz;
+    sumTangent += mul(Tx[input.bones[2]] * input.weights[2], startTangent).xyz;
+    sumTangent += mul(Tx[input.bones[3]] * input.weights[3], startTangent).xyz;
+    output.outTangent = mul(sumTangent, (float3x3)WorldMatrix);
     //output.outTangent = normalize(output.outTangent);
 
-    output.outBitangent = mul(input.bitangent, (float3x3)WorldMatrix);
+    float4 startBiTangent = float4(input.bitangent, 1.0f);
+    float3 sumBiTangent = float3(0, 0, 0);
+    sumBiTangent += mul(Tx[input.bones[0]] * input.weights[0], startBiTangent).xyz;
+    sumBiTangent += mul(Tx[input.bones[1]] * input.weights[1], startBiTangent).xyz;
+    sumBiTangent += mul(Tx[input.bones[2]] * input.weights[2], startBiTangent).xyz;
+    sumBiTangent += mul(Tx[input.bones[3]] * input.weights[3], startBiTangent).xyz;
+    output.outBitangent = mul(sumBiTangent, (float3x3)WorldMatrix);
     //output.outBitangent = normalize(output.outBitangent);
 
     output.outUV = float2(input.UV.x, -input.UV.y);
