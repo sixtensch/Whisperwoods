@@ -237,7 +237,7 @@ void RenderCore::EndFrame()
 	EXC_COMCHECK(m_swapChain->Present(0u, 0u));
 }
 
-HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
+void RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
 {
 	HRESULT hr = {};
 	
@@ -254,16 +254,10 @@ HRESULT RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11B
 	subData.SysMemPitch = 0;
 	subData.SysMemSlicePitch = 0;
 
-	hr = m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP);
-	if ( FAILED(hr) )
-	{
-		LOG_ERROR("failed to create static model vertexBuffer");
-	}
-	
-	return hr;
+	EXC_COMCHECK(m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP));
 }
 
-HRESULT RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
+void RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
 {
 	HRESULT hr = {};
 	D3D11_BUFFER_DESC bufferDesc = {};
@@ -279,15 +273,10 @@ HRESULT RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Bu
 	subData.SysMemPitch = 0;
 	subData.SysMemSlicePitch = 0;
 
-	hr = m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP);
-	if ( FAILED(hr) )
-	{
-		LOG_ERROR("failed to create model indexBuffer");
-	}
-	return hr;
+	EXC_COMCHECK(m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP));
 }
 
-HRESULT RenderCore::CreateImageTexture(char* image, UINT resHeight, UINT resWidth, UINT sysMemPitch, DXGI_FORMAT format, ID3D11Texture2D** out_texturePP)
+void RenderCore::CreateImageTexture(char* image, UINT resHeight, UINT resWidth, UINT sysMemPitch, DXGI_FORMAT format, ID3D11Texture2D** out_texturePP)
 {
 	HRESULT hr = {};
 	D3D11_TEXTURE2D_DESC textureDesc = {};
@@ -308,14 +297,11 @@ HRESULT RenderCore::CreateImageTexture(char* image, UINT resHeight, UINT resWidt
 	subData.SysMemPitch = sysMemPitch;
 	subData.SysMemSlicePitch = 0;
 
-	hr = m_device->CreateTexture2D(
+	EXC_COMCHECK(m_device->CreateTexture2D(
 		&textureDesc,
 		&subData,
 		out_texturePP
-	);
-	if ( FAILED(hr) )
-		LOG_ERROR("Failed to create texture2d");
-	return hr;
+	));
 }
 
 void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Texture2D>& textureResource, ComPtr<ID3D11ShaderResourceView>& srv) const
@@ -349,7 +335,7 @@ void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Tex
 	EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &srvd, &srv));
 }
 
-HRESULT RenderCore::CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const
+void RenderCore::CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const
 {
 	D3D11_BUFFER_DESC bufferDesc = {};
 	bufferDesc.ByteWidth = sizeof(DirectX::XMFLOAT4X4) * numBones;
@@ -367,10 +353,10 @@ HRESULT RenderCore::CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixB
 	{
 		LOG_WARN("Failed to create bone matrix buffer.");
 	}
-	return hr;
+	EXC_COMCHECK(hr);
 }
 
-HRESULT RenderCore::CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const
+void RenderCore::CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const
 {
 	D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
 	shaderResourceViewDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -380,12 +366,7 @@ HRESULT RenderCore::CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSR
 	shaderResourceViewDesc.Buffer.NumElements = numBones;
 	//shaderResourceViewDesc.Buffer.ElementWidth = 64;
 	//ID3D11Buffer* testBuffer = matrixBuffer.Get();
-	HRESULT hr = m_device->CreateShaderResourceView(matrixBuffer.Get(), &shaderResourceViewDesc, &matrixSRV);
-	if (FAILED(hr))
-	{
-		LOG_WARN("Failed to create armature resource view.");
-	}
-	return hr;
+	EXC_COMCHECK(m_device->CreateShaderResourceView(matrixBuffer.Get(), &shaderResourceViewDesc, &matrixSRV));
 }
 
 void RenderCore::UpdateViewInfo(const Camera& camera)

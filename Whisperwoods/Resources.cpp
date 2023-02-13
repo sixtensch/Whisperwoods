@@ -245,6 +245,8 @@ void Resources::LoadModelStaticResources(const RenderCore* const renderCore)
 			EXC("Failed to load static resource '%s'.", filePath.c_str());
 		}
 
+		LOG("Now importing rigged resource: %s", filePath.c_str());
+
 		const UINT indeciesByteWidth = sizeof(UINT) * modelStaticResource->indicies.Size();
 		const UINT verteciesByteWidth = modelStaticResource->GetVertexByteWidth();
 		renderCore->CreateIndexBuffer(modelStaticResource->indicies.Data(), indeciesByteWidth, modelStaticResource->indexBuffer.GetAddressOf());
@@ -266,6 +268,8 @@ void Resources::LoadModelRiggedResources(const RenderCore* const renderCore)
 		{
 			EXC("Failed to load rigged resource '%s'.", filePath.c_str());
 		}
+
+		LOG("Now importing rigged resource: %s", filePath.c_str());
 
 		const UINT indeciesByteWidth = sizeof(UINT) * modelRiggedResource->indicies.Size();
 		const UINT verticesByteWidth = modelRiggedResource->GetVertexByteWidth();
