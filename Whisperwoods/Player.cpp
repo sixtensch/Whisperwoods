@@ -51,15 +51,16 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 	Vec3 currentPos = transform.GetWorldPosition();
 	cameraFollowTarget = currentPos + cameraFollowTarget;
 
-	Vec3 lookDir = (cameraFollowTarget) - currentPos;
+	Vec3 lookDir = cameraFollowTarget - currentPos;
 	lookDir.Normalize();
+
 	cameraLookRotationTarget = Quaternion::GetDirection(lookDir);
 }
 
 void Player::Update(float delta_time)
 {
 	// Handle the input and movement (beta) TODO: collision shit.
+	PlayerMovement(delta_time, 5);
 	transform.CalculateWorldMatrix();
-	PlayerMovement(delta_time, 1);
 	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
 }

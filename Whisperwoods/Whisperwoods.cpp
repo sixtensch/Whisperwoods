@@ -285,8 +285,7 @@ void Whisperwoods::Run()
 		dTimeAcc += dTime;
 
 		Input::Get().Update();
-		Move(dTime, &testPlayer);
-
+		
 		testAnimator.Update(dTime);
 		testAnimatorGrafiki.Update(dTime);
 
@@ -306,6 +305,8 @@ void Whisperwoods::Run()
 
 		//#ifdef WW_DEBUG
 		m_renderer->BeginGui();
+		Move(dTime, &testPlayer);
+
 
 		if (ImGui::Begin("Animation"))
 		{
@@ -360,6 +361,78 @@ Vec3 Lerp(Vec3 a, Vec3 b, float t)
 	return a * (1.0f - t) + b * t;
 }
 
+
+Quaternion QuaternionLookRotation(Vec3 forward, Vec3 up)
+{
+	forward.Normalize();
+
+	Vec3 vector = forward.Normalize();
+	Vec3 vector2 = up.Cross(vector).Normalize();
+	Vec3 vector3 = vector.Cross(vector2);
+	float m00 = vector2.x;
+	float m01 = vector2.y;
+	float m02 = vector2.z;
+	float m10 = vector3.x;
+	float m11 = vector3.y;
+	float m12 = vector3.z;
+	float m20 = vector.x;
+	float m21 = vector.y;
+	float m22 = vector.z;
+
+
+	float num8 = (m00 + m11) + m22;
+	Quaternion quaternion;
+	if (num8 > 0.0f)
+	{
+		float num = (float)std::sqrt(num8 + 1.0f);
+		quaternion.w = num * 0.5f;
+		num = 0.5f / num;
+		quaternion.x = (m12 - m21) * num;
+		quaternion.y = (m20 - m02) * num;
+		quaternion.z = (m01 - m10) * num;
+		return quaternion;
+	}
+	if ((m00 >= m11) && (m00 >= m22))
+	{
+		float num7 = (float)std::sqrt(((1.0f + m00) - m11) - m22);
+		float num4 = 0.5f / num7;
+		quaternion.x = 0.5f * num7;
+		quaternion.y = (m01 + m10) * num4;
+		quaternion.z = (m02 + m20) * num4;
+		quaternion.w = (m12 - m21) * num4;
+		return quaternion;
+	}
+	if (m11 > m22)
+	{
+		float num6 = (float)std::sqrt(((1.0f + m11) - m00) - m22);
+		float num3 = 0.5f / num6;
+		quaternion.x = (m10 + m01) * num3;
+		quaternion.y = 0.5f * num6;
+		quaternion.z = (m21 + m12) * num3;
+		quaternion.w = (m20 - m02) * num3;
+		return quaternion;
+	}
+	float num5 = (float)std::sqrt(((1.0f + m22) - m00) - m11);
+	float num2 = 0.5f / num5;
+	quaternion.x = (m20 + m02) * num2;
+	quaternion.y = (m21 + m12) * num2;
+	quaternion.z = 0.5f * num5;
+	quaternion.w = (m01 - m10) * num2;
+	return quaternion;
+}
+
+Quaternion Lerp(Quaternion q0, Quaternion q1, float t)
+{
+	DirectX::XMVECTOR Q0 = DirectX::XMVectorSet((float)q0.x, (float)q0.y, (float)q0.z, (float)q0.w);
+	DirectX::XMVECTOR Q1 = DirectX::XMVectorSet((float)q1.x, (float)q1.y, (float)q1.z, (float)q1.w);
+	DirectX::XMVECTOR OUTPUT = DirectX::XMQuaternionSlerp(Q0, Q1, t);
+	DirectX::XMFLOAT4 FL4;
+	DirectX::XMStoreFloat4(&FL4, OUTPUT);
+	return Quaternion(FL4.x, FL4.y, FL4.z, FL4.w);
+}
+
+
+
 void Whisperwoods::Move(float dTime, Player* player)
 {
 	static bool cameraLock = false;
@@ -409,6 +482,7 @@ void Whisperwoods::Move(float dTime, Player* player)
 		{
 			camera.SetRotation(Quaternion::GetEuler(rotationVec));
 		}
+		//camera.SetRotation(Quaternion::GetEuler(rotationVec));
 	}
 
 	Input::Get().SetMode(cameraLock ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
@@ -424,19 +498,43 @@ void Whisperwoods::Move(float dTime, Player* player)
 		Vec3 lerped = Lerp(cameraCurrentPos, cameraTargetPos, dTime * 5);
 		camera.SetPosition(lerped);
 
-		Vec3 direction = cameraTargetPos - player->transform.GetWorldPosition();
+		Vec3 direction = player->transform.position - cameraTargetPos;
 		direction.Normalize();
 
 		Quaternion cameraCurrentRot = camera.GetRotation();
-		Quaternion cameraTargetRot = Quaternion::GetDirection(direction);
+		//Quaternion cameraTargetRot = Quaternion::GetDirection(direction, Vec3(0,1,0));
+		Vec3 upVector(0.0f, 1.0f, 0.0f);
+		Quaternion cameraTargetRot = QuaternionLookRotation(direction, upVector);
 
-		DirectX::XMFLOAT3 camPosSrc(cameraTargetPos.x, cameraTargetPos.y, cameraTargetPos.z);
-		DirectX::XMVECTOR camPos = DirectX::XMLoadFloat3(&camPosSrc);
+		//DirectX::XMFLOAT3 camPosSrc(cameraTargetPos.x, cameraTargetPos.y, cameraTargetPos.z);
+		//DirectX::XMVECTOR camPos = DirectX::XMLoadFloat3(&camPosSrc);
 
+		//DirectX::XMFLOAT3 playerPosSrc(player->transform.position.x, player->transform.position.y, player->transform.position.z);
+		//DirectX::XMVECTOR plrPos = DirectX::XMLoadFloat3(&playerPosSrc);
 
+		//DirectX::XMFLOAT3 upSrc(0, 1, 0);
+		//DirectX::XMVECTOR up = DirectX::XMLoadFloat3(&upSrc);
 
-		Quaternion slerped = Quaternion::GetSlerp(cameraCurrentRot, cameraTargetRot, dTime * 5);
+		//DirectX::XMMATRIX rotMat = DirectX::XMMatrixLookAtLH(camPos, plrPos, up);
+
+		//Mat4 matrix(rotMat);
+		//Quaternion rotQuat = Quaternion::GetDeconstruct(matrix);
+		////Quaternion lookAtRotation()
+		////Quaternion::GetDirection()
+
+		if (ImGui::Begin("RotationThing"))
+		{
+			ImGui::Text("Dir: %f, %f, %f", direction.x, direction.y, direction.z);
+			ImGui::Text("Rot: %f, %f, %f, %f", cameraTargetRot.x, cameraTargetRot.y, cameraTargetRot.z, cameraTargetRot.w);
+		}
+		ImGui::End();
+
+		//Quaternion slerped = Quaternion::GetSlerp(cameraCurrentRot, cameraTargetRot.Conjugate(), dTime * 5);
+		Quaternion slerped = Lerp(cameraCurrentRot, cameraTargetRot.Conjugate(), dTime * 5);
+		//player->cameraLookRotationTarget
 		camera.SetRotation(slerped);
+
+
 	}
 	camera.Update();
 }
