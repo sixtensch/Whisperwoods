@@ -38,5 +38,6 @@ private:
 	float m_distanceToPatrolPoint; // To handle edge cases where frames causes the enemy to walk to far
 	Vec2 m_walkingDirection; // Which direction enemies walk
 	bool m_firstTrigger;
+	Vec2 m_notNormalDirection;
 };
 

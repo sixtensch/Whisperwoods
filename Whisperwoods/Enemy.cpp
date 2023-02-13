@@ -38,7 +38,6 @@ void Enemy::Update(float dTime)
 		m_firstTrigger = true;
 		first = true;
 	}
-
 	// Movement:
 	if (first || (m_currentPosition.x == m_patrolPath[m_currentPatrolIndex].x && m_currentPosition.y == m_patrolPath[m_currentPatrolIndex].y)) // Enemy reached patrol point, find new one to walk towards
 	{
@@ -62,6 +61,7 @@ void Enemy::Update(float dTime)
 		}
 		else if(!first)// in the middle of the loop, find next index
 		{
+
 			m_currentPatrolIndex += m_indexChanger;
 			if (m_currentPatrolIndex < 0)
 			{
@@ -71,9 +71,13 @@ void Enemy::Update(float dTime)
 		}
 
 		m_walkingDirection = m_patrolPath[m_currentPatrolIndex] - m_currentPosition; // Direction to walk towards
+		m_notNormalDirection = m_walkingDirection;
 		m_walkingDirection.Normalize();
-	}
 
+
+	}
+		
+	
 	// Time to walk
 	Vec2 newPosition = Vec2(m_currentPosition.x + m_walkingDirection.x * m_walkingSpeed * dTime, m_currentPosition.y + m_walkingDirection.y * m_walkingSpeed * dTime);
 	
@@ -92,9 +96,15 @@ void Enemy::Update(float dTime)
 	//update transform
 	transform.position.x = m_currentPosition.x;
 	transform.position.z = m_currentPosition.y; //because transform is Vec3, y would be "height"
+	
+
 	transform.CalculateWorldMatrix();
 
-	m_carcinian->worldMatrix = transform.worldMatrix;//Mat::translation3(m_currentPosition.x, -0.8f, m_currentPosition.y) * Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 1.0f, 0); //transform.worldMatrix;
+	//Mat::rotation3(cs::c_pi * -0.5f, 0, 0)
+	float angle = atan2(m_notNormalDirection.y, m_notNormalDirection.x) * 180 / cs::c_pi;
+	float angleDecimal = angle / 180;
+	
+	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset * Mat::rotation3(0, -cs::c_pi * angleDecimal + cs::c_pi * 0.5, 0);
 }
 
 void Enemy::AddCoordinateToPatrolPath(Vec2 coord, bool enclosed) // Make sure the Coordinates are sent in the correct order of the path
