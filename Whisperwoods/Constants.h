@@ -2,7 +2,7 @@
 #define H_CONSTANTS
 
 #define CATCH_PROGRAM	1
-#define WW_NODXGI
+//#define WW_NODXGI
 
 #define MAJOR_VERSION	0
 #define MINOR_VERSION	1

@@ -168,7 +168,7 @@ void Whisperwoods::Run()
 	//FBXImporter importer;
 	FBXImporter importer;
 	shared_ptr<AnimationResource> resource (new AnimationResource);
-	importer.ImportFBXAnimations("Assets/Models/Shadii_Animations.fbx", resource.get());
+	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Shadii_Animations.fbx", resource.get());
 
 	shared_ptr<AnimationResource> resource2(new AnimationResource);
 	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Grafiki_Animations.fbx", resource2.get());
