@@ -168,7 +168,7 @@ void Whisperwoods::Run()
 	//FBXImporter importer;
 	FBXImporter importer;
 	shared_ptr<AnimationResource> resource (new AnimationResource);
-	importer.ImportFBXAnimations("Assets/Models/Shadii_Animations.fbx", resource.get());
+	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Shadii_Animations.fbx", resource.get());
 
 	shared_ptr<AnimationResource> resource2(new AnimationResource);
 	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Grafiki_Animations.fbx", resource2.get());
@@ -179,6 +179,7 @@ void Whisperwoods::Run()
 
 	Animation* animation4 = &resource2->animations[2]; 
 	Animation* animation5 = &resource2->animations[3];
+	Animation* animation6 = &resource2->animations[4];
 
 	float speed = 1.5f;
 	testAnimator.AddAnimation(animation, 0, speed, 1);
@@ -188,6 +189,7 @@ void Whisperwoods::Run()
 	float speed2 = 0.5f;
 	testAnimatorGrafiki.AddAnimation(animation4, 0, speed2, 1.0f);
 	testAnimatorGrafiki.AddAnimation(animation5, 0, speed2, 0.0f);
+	testAnimatorGrafiki.AddAnimation(animation6, 0, speed2, 0.0f);
 
 	float rotationY = cs::c_pi * 1.0f;
 	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
@@ -299,12 +301,14 @@ void Whisperwoods::Run()
 			ImGui::SliderFloat( testAnimator.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f" );
 			ImGui::SliderFloat( "Speed", &speed, 0.0f, 3.0f, "speed = %.3f" );
 			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
+			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat("Speed2", &speed2, 0.0f, 3.0f, "speed = %.3f");
 			testAnimator.loadedAnimations[0].speed = speed;
 			testAnimator.loadedAnimations[1].speed = speed;
 			testAnimator.loadedAnimations[2].speed = speed;
 			testAnimatorGrafiki.loadedAnimations[0].speed = speed2;
 			testAnimatorGrafiki.loadedAnimations[1].speed = speed2;
+			testAnimatorGrafiki.loadedAnimations[2].speed = speed2;
 		}
 		ImGui::End();
 
