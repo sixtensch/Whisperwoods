@@ -7,12 +7,33 @@
 
 class Player : public GameObject
 {
+	std::string m_modelResource;
 	Mat4 m_modelOffset;
+	Vec3 m_velocity;
+	Vec3 m_targetVelocity;
+	float m_walkSpeed;
+	float m_runSpeed;
+	float m_animationSpeed;
+	bool m_isCrouch;
+
+	Vec3 Lerp( Vec3 a, Vec3 b, float t )
+	{
+		return a * (1.0f - t) + b * t;
+	}
 public:
+
+	bool cameraIsLocked;
+
+	float cameraFollowDistance;
+	float cameraFollowTilt;
+	Vec3 cameraLookTargetOffset;
+
+	//float walkSpeed = 2;
+	//float runSpeed = 5;
 	
 	shared_ptr<MeshRenderableRigged> characterModel;
 	shared_ptr<AnimationResource> animationSet;
-	unique_ptr<Animator> characterAnimator;
+	shared_ptr<Animator> characterAnimator;
 	
 	Vec3 cameraFollowTarget;
 	Vec3 cameraLookAtTarget;

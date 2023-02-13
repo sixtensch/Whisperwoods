@@ -81,6 +81,7 @@ struct AnimatorAnimation // Holds the middleman data for the various playback ti
 	{
 		time += speed * deltaTime; // TODO: Maybe % in some way.
 		if (time > 1) time = 0;
+		if (time < 0) time = 1;
 
 		// Interpolate and shit
 		for (unsigned int i = 0; i < animationChannels.Size(); i++)

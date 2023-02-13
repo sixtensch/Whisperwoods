@@ -109,7 +109,7 @@ void Whisperwoods::Run()
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
-	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Shadii_Animated.wwm");
+	//shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Shadii_Animated.wwm");
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
 	//shared_ptr<MeshRenderableStatic> meshSphere = Renderer::CreateMeshStatic("Assets/Models/Static/Debug_Sphere.wwm");
 	shared_ptr<MeshRenderableRigged> grafiki = Renderer::CreateMeshRigged("Grafiki_Animated.wwm");
@@ -124,6 +124,8 @@ void Whisperwoods::Run()
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0, -5.5f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
+
+	Resources& resources2 = Resources::Get();
 
 	shared_ptr<MeshRenderableStatic> ground = Renderer::CreateMeshStatic("Ground.wwm");
 	ground->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
@@ -157,7 +159,7 @@ void Whisperwoods::Run()
 
 	Resources resources = Resources::Get();
 
-	Animator testAnimator((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated.wwm"));
+	//Animator testAnimator((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated.wwm"));
 	Animator testAnimatorGrafiki((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Grafiki_Animated.wwm"));
 
 	//ModelRiggedResource* printReference = (ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated2.wwm");
@@ -176,41 +178,41 @@ void Whisperwoods::Run()
 
 	//FBXImporter importer;
 	FBXImporter importer;
-	shared_ptr<AnimationResource> resource (new AnimationResource);
-	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Shadii_Animations.fbx", resource.get());
+	/*shared_ptr<AnimationResource> resource (new AnimationResource);
+	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Shadii_Animations.fbx", resource.get());*/
 
 	shared_ptr<AnimationResource> resource2(new AnimationResource);
 	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Grafiki_Animations.fbx", resource2.get());
 
-	Animation* animation = &resource->animations[2];
-	Animation* animation2 = &resource->animations[4];
-	Animation* animation3 = &resource->animations[5];
+	//Animation* animation = &resource->animations[2];
+	//Animation* animation2 = &resource->animations[4];
+	//Animation* animation3 = &resource->animations[5];
 
 	Animation* animation4 = &resource2->animations[2]; 
 	Animation* animation5 = &resource2->animations[3];
 	Animation* animation6 = &resource2->animations[4];
 
-	float speed = 1.5f;
+	/*float speed = 1.5f;
 	testAnimator.AddAnimation(animation, 0, speed, 1);
 	testAnimator.AddAnimation(animation2, 0, speed, 0.2f);
 	testAnimator.AddAnimation( animation3, 0, speed, 0.0f );
-	
+	*/
 	float speed2 = 0.5f;
 	testAnimatorGrafiki.AddAnimation(animation4, 0, speed2, 1.0f);
 	testAnimatorGrafiki.AddAnimation(animation5, 0, speed2, 0.0f);
 	testAnimatorGrafiki.AddAnimation(animation6, 0, speed2, 0.0f);
 
 	float rotationY = cs::c_pi * 1.0f;
-	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+	//mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	
 	grafiki->worldMatrix = Mat::translation3(2.5f, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 
-	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
+	/*mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
 	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt")); 
 	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPupil.wwmt"));
 	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPants.wwmt"));
-	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiSpikes.wwmt"));
+	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiSpikes.wwmt"));*/
 
 	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
 	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt"));
@@ -286,13 +288,13 @@ void Whisperwoods::Run()
 
 		Input::Get().Update();
 		
-		testAnimator.Update(dTime);
+		//testAnimator.Update(dTime);
 		testAnimatorGrafiki.Update(dTime);
 
 		m_game->Update();
 		m_sound->Update();
 		rotationY += 0.2f * dTime;
-		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+		//mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
 
 		testEmpty.Update(dTime);
@@ -310,16 +312,16 @@ void Whisperwoods::Run()
 
 		if (ImGui::Begin("Animation"))
 		{
-			ImGui::Text("The base animation is %s", testAnimator.loadedAnimations[0].sourceAnimation->name.c_str());
-			ImGui::SliderFloat(testAnimator.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
-			ImGui::SliderFloat(testAnimator.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f");
-			ImGui::SliderFloat("Speed", &speed, 0.0f, 3.0f, "speed = %.3f");
+			//ImGui::Text("The base animation is %s", testAnimator.loadedAnimations[0].sourceAnimation->name.c_str());
+			//ImGui::SliderFloat(testAnimator.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
+			//ImGui::SliderFloat(testAnimator.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f");
+			//ImGui::SliderFloat("Speed", &speed, 0.0f, 3.0f, "speed = %.3f");
 			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat("Speed2", &speed2, 0.0f, 3.0f, "speed = %.3f");
-			testAnimator.loadedAnimations[0].speed = speed;
-			testAnimator.loadedAnimations[1].speed = speed;
-			testAnimator.loadedAnimations[2].speed = speed;
+			//testAnimator.loadedAnimations[0].speed = speed;
+			//testAnimator.loadedAnimations[1].speed = speed;
+			//testAnimator.loadedAnimations[2].speed = speed;
 			testAnimatorGrafiki.loadedAnimations[0].speed = speed2;
 			testAnimatorGrafiki.loadedAnimations[1].speed = speed2;
 			testAnimatorGrafiki.loadedAnimations[2].speed = speed2;
@@ -436,7 +438,7 @@ Quaternion Lerp(Quaternion q0, Quaternion q1, float t)
 void Whisperwoods::Move(float dTime, Player* player)
 {
 	static bool cameraLock = false;
-	static bool cameraPlayer = false;
+	static bool cameraPlayer = true;
 
 	Camera& camera = Renderer::GetCamera();
 
@@ -463,6 +465,7 @@ void Whisperwoods::Move(float dTime, Player* player)
 	if (Input::Get().IsDXKeyPressed(DXKey::P))
 	{
 		cameraPlayer = !cameraPlayer;
+		player->cameraIsLocked = cameraPlayer;
 	}
 
 	if (Input::Get().IsKeybindDown(KeybindSprint))
@@ -509,17 +512,29 @@ void Whisperwoods::Move(float dTime, Player* player)
 
 		Quaternion conj1 = cameraTargetRot.Conjugate();
 		Quaternion conj2 = player->cameraLookRotationTarget.Conjugate();
-		if (ImGui::Begin("RotationThing"))
+		if (ImGui::Begin("Camera rotation player"))
 		{
 			ImGui::Text("Dir: %f, %f, %f", direction.x, direction.y, direction.z);
 			ImGui::Text("Rot: %f, %f, %f, %f", conj1.x, conj1.y, conj1.z, conj1.w);
 			ImGui::Text("RotP: %f, %f, %f, %f", conj2.x, conj2.y, conj2.z, conj2.w);
+			ImGui::DragFloat( "Camera Follow Distance", &player->cameraFollowDistance, 0.05f, 0.1f, 10.0f );
+			ImGui::DragFloat( "Camera Follow Tilt", &player->cameraFollowTilt, 0.05f, 0.1f, cs::c_pi/2-0.1f );
+			ImGui::DragFloat3( "Camera lookAt offset", (float*)&player->cameraLookTargetOffset, 0.1f );
 		}
 		ImGui::End();
 
 		//Quaternion slerped = Quaternion::GetSlerp(cameraCurrentRot, cameraTargetRot.Conjugate(), dTime * 5);
-		Quaternion slerped = Lerp(cameraCurrentRot, conj2, dTime * 5);
-		camera.SetRotation(slerped);
+		//Quaternion slerped = Lerp((cameraCurrentRot.x != NAN) ? cameraCurrentRot : conj2, conj2, dTime * 5); // sometimes turns black
+		//Quaternion slerped = Lerp(cameraCurrentRot, conj2, dTime * 5); // sometimes turns black
+		if (std::isnan( cameraCurrentRot.x ) || std::isnan( cameraCurrentRot.y ) || std::isnan( cameraCurrentRot.z ) || std::isnan( cameraCurrentRot.w ))
+		{
+			camera.SetRotation( conj2 );
+		}
+		else
+		{
+			Quaternion slerped = Lerp( cameraCurrentRot, conj2, dTime * 5 );
+			camera.SetRotation(slerped);
+		}
 	}
 	camera.Update();
 }
