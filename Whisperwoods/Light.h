@@ -31,7 +31,7 @@ struct DirectionalLight : Light
 	Camera camera;
 	Data bufferData;
 
-	void Update() override;
+	void Update(float delta_time) override;
 };
 
 struct PointLight : Light
@@ -49,7 +49,7 @@ struct PointLight : Light
 	// Processed data
 	Data bufferData;
 
-	void Update() override;
+	void Update(float delta_time) override;
 };
 
 struct SpotLight : Light
@@ -74,5 +74,5 @@ struct SpotLight : Light
 	Camera camera;
 	Data bufferData;
 
-	void Update() override;
+	void Update(float delta_time) override;
 };

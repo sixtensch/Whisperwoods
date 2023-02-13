@@ -14,6 +14,8 @@ struct MaterialResource : public BasicResource
 	float	glossiness	= 10.0f;
 	Vec3	emissive	= Vec3(1.0f, 1.0f, 1.0f);
 	float	height		= 0.0f;
+	Vec3	pad;
+	float	tiling		= 1.0f;
 
 	const TextureResource* textureDiffuse	= nullptr;
 	const TextureResource* textureSpecular	= nullptr;

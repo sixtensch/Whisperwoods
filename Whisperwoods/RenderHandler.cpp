@@ -14,8 +14,8 @@ RenderHandler::~RenderHandler()
 
 void RenderHandler::InitCore(shared_ptr<Window> window)
 {
-	m_lightAmbient = cs::Color3f(0xB0B0FF);
-	m_lightAmbientIntensity = 0.1f;
+	m_lightAmbient = cs::Color3f(0xD0D0FF);
+	m_lightAmbientIntensity = 0.15f;
 
 	m_lightDirectional = make_unique<DirectionalLight>();
 	m_lightDirectional->diameter = 100.0f;
@@ -40,15 +40,15 @@ void RenderHandler::Draw()
 
 	for (int i = 0; i < m_lightsPoint.Size(); i++)
 	{
-		m_lightsPoint[i]->Update(); // TODO
+		m_lightsPoint[i]->Update(0); // TODO
 	}
 
 	for (int i = 0; i < m_lightsSpot.Size(); i++)
 	{
-		m_lightsSpot[i]->Update(); // TODO
+		m_lightsSpot[i]->Update(0); // TODO
 	}
 
-	m_lightDirectional->Update(); // TODO
+	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
 	m_renderCore->TargetBackBuffer();

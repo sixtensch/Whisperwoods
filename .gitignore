@@ -360,3 +360,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /Run/Assets/Shaders/VSMeshRigged.cso
+/Run/Assets/Shaders/PSBlinnPhong.cso
+/Run/Assets/Shaders/VSMesh.cso
+/Run/Assets/Shaders/VSMeshRigged.cso

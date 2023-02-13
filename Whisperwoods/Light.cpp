@@ -4,7 +4,7 @@
 
 
 
-void DirectionalLight::Update()
+void DirectionalLight::Update(float delta_time)
 {
 	camera.CopyTransform(transform);
 	camera.SetValues(0, 0, LIGHT_NEAR, LIGHT_FAR);
@@ -16,14 +16,14 @@ void DirectionalLight::Update()
 	bufferData.direction = transform.GetWorldRotation() * Vec3(0, 0, 1.0f);
 }
 
-void PointLight::Update()
+void PointLight::Update(float delta_time)
 {
 	bufferData.intensity = (Vec3)color * intensity;
 	bufferData.position = transform.GetWorldPosition();
 	bufferData.range = range;
 }
 
-void SpotLight::Update()
+void SpotLight::Update(float delta_time)
 {
 	camera.CopyTransform(transform);
 	camera.SetValues(fovOuter, 1, LIGHT_NEAR, range);

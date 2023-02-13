@@ -26,5 +26,5 @@ public:
 	GameObject& operator- (GameObject& other);
 
 	// Core update function - virtual
-	virtual void Update() = 0;
+	virtual void Update(float delta_time) = 0;
 };
