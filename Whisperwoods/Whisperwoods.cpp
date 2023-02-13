@@ -145,7 +145,7 @@ void Whisperwoods::Run()
 	grafiTree->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
 	grafiTree->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneGrafitree.wwmt"));
 
-
+	
 	Resources resources = Resources::Get();
 
 	Animator testAnimator((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated.wwm"));
@@ -194,7 +194,7 @@ void Whisperwoods::Run()
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	
 	grafiki->worldMatrix = Mat::translation3(2.5f, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-
+	
 	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
 	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt")); 
 	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPupil.wwmt"));
