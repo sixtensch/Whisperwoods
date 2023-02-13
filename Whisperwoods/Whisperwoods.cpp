@@ -232,8 +232,8 @@ void Whisperwoods::Run()
 	// Lights
 
 	shared_ptr<PointLight> point = make_shared<PointLight>();
-	point->color = cs::Color3f(0x4040FF);
-	point->intensity = 0.0f;
+	point->color = cs::Color3f(0xFFFFFF);
+	point->intensity = 5.0f;
 	point->transform.position = Vec3(2, 0, 0);
 	Renderer::RegisterLight(point);
 
