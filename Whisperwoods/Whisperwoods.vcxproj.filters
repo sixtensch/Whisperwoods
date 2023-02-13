@@ -257,6 +257,9 @@
     <ClCompile Include="MaterialImporter.cpp">
       <Filter>%2a Code\%2a Core\%2a Importing\Material Importer</Filter>
     </ClCompile>
+    <ClCompile Include="Player.cpp">
+      <Filter>%2a Code\%2a World\%2a GameObject\Player</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -387,6 +390,9 @@
     </ClInclude>
     <ClInclude Include="MaterialImporter.h">
       <Filter>%2a Code\%2a Core\%2a Importing\Material Importer</Filter>
+    </ClInclude>
+    <ClInclude Include="Player.h">
+      <Filter>%2a Code\%2a World\%2a GameObject\Player</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
