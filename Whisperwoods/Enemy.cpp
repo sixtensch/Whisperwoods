@@ -106,7 +106,7 @@ void Enemy::Update(float dTime)
 		
 	Vec2 newPosition = m_currentPosition;
 	// Time to walk
-	if (m_rotation == false)
+	if (m_rotation == false) // keep this for stop->rotate, remove for rotate while moving?
 	{
 		newPosition = Vec2(m_currentPosition.x + m_walkingDirection.x * m_walkingSpeed * dTime, m_currentPosition.y + m_walkingDirection.y * m_walkingSpeed * dTime);
 	}
