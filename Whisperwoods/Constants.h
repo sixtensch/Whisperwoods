@@ -23,4 +23,7 @@
 #define LIGHT_NEAR		0.05f
 #define LIGHT_FAR		100.0f
 	
+#define LIGHT_DIRECTIONAL_WIDTH 800
+#define LIGHT_DIRECTIONAL_HEIGHT 800
+
 #endif

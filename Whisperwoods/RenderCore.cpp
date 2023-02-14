@@ -136,8 +136,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	shadowMapDesc.ArraySize = 1;
 	shadowMapDesc.SampleDesc.Count = 1;
 	shadowMapDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
-	shadowMapDesc.Height;
-	shadowMapDesc.Width;
+	shadowMapDesc.Height = LIGHT_DIRECTIONAL_HEIGHT;
+	shadowMapDesc.Width = LIGHT_DIRECTIONAL_WIDTH;
 
 	EXC_COMCHECK(m_device->CreateTexture2D(
 		&shadowMapDesc,

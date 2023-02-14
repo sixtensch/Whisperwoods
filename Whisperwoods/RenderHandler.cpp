@@ -21,6 +21,11 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	m_lightDirectional->diameter = 100.0f;
 	m_lightDirectional->intensity = 0.0f;
 	m_lightDirectional->color = cs::Color3f(0xFFFFFF);
+	
+	m_lightDirectional->camera.SetValues(90, 1.0f, LIGHT_NEAR, LIGHT_FAR);
+	m_lightDirectional->camera.Update();
+	m_lightDirectional->camera.CalculateOrthoProjection(LIGHT_DIRECTIONAL_WIDTH, LIGHT_DIRECTIONAL_HEIGHT);
+
 
 	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 100.0f );
 	m_mainCamera.CalculatePerspectiveProjection();
