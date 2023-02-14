@@ -5,8 +5,6 @@
 
 #include "Constants.h"
 
-
-
 // Sampler states
 
 #define REGISTER_SAMPLER_SYSTEM_0       register(s6)
@@ -17,8 +15,6 @@
 #define REGISTER_SAMPLER_STANDARD       register(s10)
 #define REGISTER_SAMPLER_POINT          register(s11)
 #define REGISTER_SAMPLER_SHADOW         register(s12)
-
-
 
 // Constant buffer views
 
