@@ -13,6 +13,9 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_distanceToPatrolPoint = 0.0f;
 	m_walkingDirection = Vec2(0.0f, 0.0f);
 	m_enemyAlive = false; // Default false, has to be manually turned on
+	m_rotation = false;
+	m_rotationSpeed = 0.005f;
+	m_offset = 0;
 
 
 	m_carcinian = Renderer::CreateMeshRigged(modelResource);
@@ -41,6 +44,10 @@ void Enemy::Update(float dTime)
 	// Movement:
 	if (first || (m_currentPosition.x == m_patrolPath[m_currentPatrolIndex].x && m_currentPosition.y == m_patrolPath[m_currentPatrolIndex].y)) // Enemy reached patrol point, find new one to walk towards
 	{
+		if (!first)
+		{
+			m_rotation = true;
+		}
 		if (m_currentPatrolIndex == m_patrolPath.size() - 1 && !first) // Current position is at the end of the patrol index vector
 		{
 			if (m_enclosedLoop) // Enemy walks in a circle
@@ -70,16 +77,39 @@ void Enemy::Update(float dTime)
 			}
 		}
 
+		if (!first)
+		{
+			m_lastWalkingDirection = m_walkingDirection;
+		}
 		m_walkingDirection = m_patrolPath[m_currentPatrolIndex] - m_currentPosition; // Direction to walk towards
-		m_notNormalDirection = m_walkingDirection;
 		m_walkingDirection.Normalize();
-
-
-	}
+		if (first)
+		{
+			m_lastWalkingDirection = m_walkingDirection;
+		}
 		
+		//rotate clockwise or counter clockwise?   if result is positive, then v is on the left side of u. If negative, right side. If 0, parallell(doesn't matter)
+		//u x v = u1 * v2 - u2 * v1
+		//old x new 
+		float cross = m_lastWalkingDirection.x * m_walkingDirection.y - m_lastWalkingDirection.y * m_walkingDirection.x;
+		if (cross >= 0) //rotate counter clockwise, new vector is to the left of old one
+		{
+			m_rotateClockWise = false;
+		}
+		else //rotate clockwise as the vector is to the right of the new one
+		{
+			m_rotateClockWise = true;
+		}
+	}
+
 	
+		
+	Vec2 newPosition = m_currentPosition;
 	// Time to walk
-	Vec2 newPosition = Vec2(m_currentPosition.x + m_walkingDirection.x * m_walkingSpeed * dTime, m_currentPosition.y + m_walkingDirection.y * m_walkingSpeed * dTime);
+	if (m_rotation == false)
+	{
+		newPosition = Vec2(m_currentPosition.x + m_walkingDirection.x * m_walkingSpeed * dTime, m_currentPosition.y + m_walkingDirection.y * m_walkingSpeed * dTime);
+	}
 	
 	
 	// Did we walk too far? 
@@ -100,11 +130,49 @@ void Enemy::Update(float dTime)
 
 	transform.CalculateWorldMatrix();
 
-	//Mat::rotation3(cs::c_pi * -0.5f, 0, 0)
-	float angle = atan2(m_notNormalDirection.y, m_notNormalDirection.x) * 180 / cs::c_pi;
+	//handle rotation:
+	float angle = atan2(m_walkingDirection.y, m_walkingDirection.x) * 180 / cs::c_pi;
 	float angleDecimal = angle / 180;
+	//m_offset = angleDecimal;
+	if (m_rotation == false)
+	{
+		m_rotationCounter = angleDecimal;
+		m_offset = angleDecimal;
+	}
+	else
+	{
+		if (m_rotateClockWise == false)//counter clockwise, add onto the offset
+		{
+			if (m_rotationCounter > angleDecimal + m_rotationSpeed * 1.1) //DO NOT CHANGE THIS
+			{
+				angle = 90 - angle;
+				angleDecimal = angle / 180;
+			}
+			m_rotationCounter += m_rotationSpeed;
+			if (m_rotationCounter >= angleDecimal)
+			{
+				m_rotationCounter = angleDecimal;
+				m_rotation = false;
+			}
+		}
+		else // clockwise,   take away from offset
+		{
+			if (m_rotationCounter < angleDecimal - m_rotationSpeed * 1.1) // DO NOT CHANGE THIS
+			{
+				angle = 90 + angle;
+				angleDecimal = angle / 180;
+			}
+			m_rotationCounter -= m_rotationSpeed;
+			if (m_rotationCounter <= angleDecimal)
+			{
+				m_rotationCounter = angleDecimal;
+				m_rotation = false;
+			}
+		}
+		m_offset = m_rotationCounter;
+	}
 	
-	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset * Mat::rotation3(0, -cs::c_pi * angleDecimal + cs::c_pi * 0.5, 0);
+	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset * Mat::rotation3(0, -cs::c_pi * m_offset + cs::c_pi * 0.5, 0);
 }
 
 void Enemy::AddCoordinateToPatrolPath(Vec2 coord, bool enclosed) // Make sure the Coordinates are sent in the correct order of the path

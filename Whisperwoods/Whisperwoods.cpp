@@ -268,7 +268,8 @@ void Whisperwoods::Run()
 	testEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -3), true);
 	testEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, 3), true);
 	testEnemy.AddCoordinateToPatrolPath(Vec2(0, 0), true);
-	
+	testEnemy.AddCoordinateToPatrolPath(Vec2(-1.0f, -4.0f), false);
+
 	
 
 	for (bool running = true; running; frames++)
