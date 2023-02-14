@@ -65,13 +65,13 @@ cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
 };
 
 SamplerState textureSampler : REGISTER_SAMPLER_STANDARD;
+SamplerState shadowSampler : REGISTER_SAMPLER_SHADOW;
 
 Texture2D textureDiffuse : REGISTER_SRV_TEX_DIFFUSE;
 Texture2D textureSpecular : REGISTER_SRV_TEX_SPECULAR;
 Texture2D textureEmissive : REGISTER_SRV_TEX_EMISSIVE;
 Texture2D textureNormal : REGISTER_SRV_TEX_NORMAL;
-
-
+texture2D shadowTexture : REGISTER_SRV_SHADOW_DEPTH;
 
 float4 main(VSOutput input) : SV_TARGET
 {
