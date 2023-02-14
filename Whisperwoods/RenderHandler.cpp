@@ -33,34 +33,34 @@ void RenderHandler::Draw()
 {
 	m_renderCore->NewFrame();
 
-    m_renderCore->UpdateViewInfo(m_mainCamera);
-	
-	
-	// Main scene rendering
+	// Cull (TODO)
+
+	// Light updates
 
 	for (int i = 0; i < m_lightsPoint.Size(); i++)
 	{
 		m_lightsPoint[i]->Update(0); // TODO
 	}
-
 	for (int i = 0; i < m_lightsSpot.Size(); i++)
 	{
 		m_lightsSpot[i]->Update(0); // TODO
 	}
-
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	m_renderCore->TargetBackBuffer();
 
-    for (int i = 0; i < m_worldRenderables.Size(); i++)
-    {
-        if (m_worldRenderables[i]->enabled)
-        {
-            m_renderCore->UpdateObjectInfo(m_worldRenderables[i].get());
-			m_renderCore->DrawObject(m_worldRenderables[i].get(), false);
-        }
-    }
+
+	// ShadowPass
+
+	ExecuteDraw(m_lightDirectional->camera, true);
+
+
+	// Main scene rendering
+
+	ExecuteDraw(m_mainCamera, false);
+
+
+	// Text rendering
 
 	for (int i = 0; i < m_texts.Size(); i++)
 	{
@@ -73,6 +73,29 @@ void RenderHandler::Draw()
 void RenderHandler::Present()
 {
 	m_renderCore->EndFrame();
+}
+
+void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
+{
+	m_renderCore->UpdateViewInfo(povCamera);
+
+	if ( !shadows )
+	{
+		m_renderCore->TargetBackBuffer();
+	}
+	else
+	{
+		m_renderCore->TargetShadowMap();
+	}
+
+	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
+	{
+		if ( m_worldRenderables[i]->enabled )
+		{
+			m_renderCore->UpdateObjectInfo(m_worldRenderables[i].get());
+			m_renderCore->DrawObject(m_worldRenderables[i].get(), shadows);
+		}
+	}
 }
 
 const RenderCore* RenderHandler::GetCore() const

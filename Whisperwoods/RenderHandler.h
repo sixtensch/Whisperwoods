@@ -21,6 +21,8 @@ public:
 	void Draw();
 	void Present();
 
+	void ExecuteDraw(const Camera& povCamera, bool shadows);
+
 	const RenderCore* GetCore() const;
 
 	Camera& GetCamera();
@@ -48,7 +50,7 @@ private:
 	shared_ptr<DirectionalLight> m_lightDirectional;
 	cs::List<shared_ptr<PointLight>> m_lightsPoint;
 	cs::List<shared_ptr<SpotLight>> m_lightsSpot;
-
+	
 	Camera m_mainCamera;
 
 

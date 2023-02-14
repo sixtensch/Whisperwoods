@@ -19,7 +19,7 @@ public:
 	~RenderCore();
 
 	void NewFrame();
-	void TargetShadowMap(Light* light);
+	void TargetShadowMap();
 	void TargetBackBuffer();
 	void EndFrame();
 
@@ -118,6 +118,13 @@ private:
 	ComPtr<ID3D11Buffer> m_lightBufferSpot;
 	ComPtr<ID3D11Buffer> m_lightBufferDir;
 	ComPtr<ID3D11Buffer> m_lightBufferStaging;
+
+	// Shadow resources
+	ComPtr<ID3D11Texture2D> m_shadowTexture;
+	ComPtr<ID3D11DepthStencilView> m_shadowDSV;
+	ComPtr<ID3D11ShaderResourceView> m_shadowSRV;
+	ComPtr<ID3D11RasterizerState> m_shadowRenderState;
+	ComPtr<ID3D11SamplerState> m_shadowSampler;
 
 	std::unique_ptr<dx::SpriteFont> m_fonts[FontCount];
 	std::unique_ptr<dx::SpriteBatch> m_spriteBatch;
