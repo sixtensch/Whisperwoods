@@ -6,6 +6,7 @@
 #include "Config.h"
 #include "Input.h"
 #include "Debug.h"
+#include "Player.h"
 #include "Enemy.h"
 
 class Whisperwoods sealed
@@ -16,7 +17,7 @@ public:
 
 	void Run();
 
-	void Move(float dTime);
+	void Move(float dTime, Player* player);
 
 private:
 	std::unique_ptr<Debug>		m_debug;

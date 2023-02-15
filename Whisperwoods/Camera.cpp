@@ -28,9 +28,10 @@ Camera::~Camera()
 void Camera::Update()
 {
 	Mat4 viewMat = cs::Mat::translation3(-m_transform.position.x, -m_transform.position.y, -m_transform.position.z);
-	viewMat = m_transform.rotation.Matrix() * viewMat; //TODO: is this correct?
+	viewMat = m_transform.rotation.Matrix()*viewMat; //TODO: is this correct?
 	m_viewMatrix = viewMat;
-	m_worldMatrix = cs::Mat::translation3(m_transform.position.x, m_transform.position.y, m_transform.position.z);
+	m_transform.CalculateWorldMatrix();
+	//m_worldMatrix = cs::Mat::translation3(m_transform.position.x, m_transform.position.y, m_transform.position.z);
 	// write view to vertexBuffer
 }
 
@@ -89,6 +90,12 @@ const Vec3 Camera::GetRight()
 	const Vec4 right = Vec4(1.0f, 0.0f, 0.0f, 0.0f);
 
 	return (Mat4)m_transform.rotation.Matrix().Transpose() * right;
+}
+
+
+const Quaternion Camera::GetRotation()
+{
+	return m_transform.rotation;
 }
 
 const Vec3 Camera::GetPosition() const
