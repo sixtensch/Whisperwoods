@@ -363,3 +363,10 @@ void Animator::Update(float deltaTime)
 		UpdateArmature();
 	}
 }
+
+bool Animator::IsPlaying(int index)
+{
+	if (loadedAnimations.Size() > index && loadedAnimations[index].isActive)
+		return true;
+	return false;
+}
