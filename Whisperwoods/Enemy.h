@@ -48,5 +48,7 @@ private:
 	bool m_idleEnemy;
 	int m_idleCounter; // To calculate how many times the idle animation has run, see it as a sleep() function that doesn't actually sleep the system
 	bool m_triggerTurn;
+	bool m_lookBehind; // to handle idle enemies
+	float m_idleAngle;
 };
 
