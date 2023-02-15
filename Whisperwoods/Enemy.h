@@ -45,5 +45,7 @@ private:
 	float m_rotationCounter;
 	float m_offset;
 	bool m_isMoving;
+	bool m_idleEnemy;
+	int m_idleCounter; // To calculate how many times the idle animation has run, see it as a sleep() function that doesn't actually sleep the system
 };
 

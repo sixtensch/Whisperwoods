@@ -17,17 +17,36 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_rotation = false;
 	m_rotationSpeed = 0.007f;
 	m_offset = 0;
+	m_idleCounter = 0;
+	
+	m_idleEnemy = false;
+
 	m_isMoving = true;
 
 
 	m_carcinian = Renderer::CreateMeshRigged(modelResource);
 	FBXImporter importer;
+	m_characterAnimator = std::make_unique<Animator>((ModelRiggedResource*)Resources::Get().GetResource(ResourceTypeModelRigged, "Carcinian_Animated.wwm"));
+		
+
 
 	m_modelOffset = modelOffset;
 	// Import the animations
 	m_animationSet = std::make_shared<AnimationResource>();
 	importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 	m_firstTrigger = false;
+
+	Animation* carcinAnim0 = &m_animationSet->animations[0];
+	Animation* carcinAnim1 = &m_animationSet->animations[1];
+	Animation* carcinAnim2 = &m_animationSet->animations[3];
+	Animation* carcinAnim3 = &m_animationSet->animations[4];
+
+	float speed3 = 1.0f;
+	
+	m_characterAnimator->AddAnimation(carcinAnim0, 0, speed3, 1.0f);
+	m_characterAnimator->AddAnimation(carcinAnim1, 0, speed3, 0.0f);
+	m_characterAnimator->AddAnimation(carcinAnim2, 0, speed3, 0.0f);
+	m_characterAnimator->AddAnimation(carcinAnim3, 0, speed3, 0.0f);
 
 	m_carcinian->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "Carcinian.wwmt"));
 }
@@ -38,6 +57,16 @@ Enemy::~Enemy()
 
 void Enemy::Update(float dTime)
 {
+	//This has to be in update because we re-use enemy objects between rooms! Will cost like O(1), it's fine
+	if (m_patrolPath.size() < 3)
+	{
+		m_idleEnemy = true;
+		m_isMoving = false;
+	}
+
+
+
+	m_characterAnimator->Update(dTime);
 	bool first = false;
 	if (m_firstTrigger == false) // Default on first update
 	{
@@ -119,7 +148,6 @@ void Enemy::Update(float dTime)
 		
 	Vec2 newPosition = m_currentPosition;
 	// Time to walk
-	//if (m_rotation == false) // keep this for stop->rotate, remove for rotate while moving?
 	if(m_isMoving)
 	{
 		newPosition = Vec2(m_currentPosition.x + m_walkingDirection.x * m_walkingSpeed * dTime, m_currentPosition.y + m_walkingDirection.y * m_walkingSpeed * dTime);
@@ -148,7 +176,7 @@ void Enemy::Update(float dTime)
 	float angle = atan2(m_walkingDirection.y, m_walkingDirection.x) * 180 / cs::c_pi;
 	float angleDecimal = angle / 180;
 	//m_offset = angleDecimal;
-	if (m_rotation == false)
+	if (m_rotation == false && m_isMoving == true)
 	{
 		m_rotationCounter = angleDecimal;
 		m_offset = angleDecimal;
@@ -185,11 +213,35 @@ void Enemy::Update(float dTime)
 		}
 		m_offset = m_rotationCounter;
 	}
-	else if(m_rotation == true && m_isMoving == false)// 180 degree turn. Play animation here
+	if(m_isMoving == false && m_idleEnemy == false)// 180 degree turn. Play animation here
 	{
-		m_isMoving = true;
-		m_offset = angleDecimal;
-		m_rotation = false;
+		float angle2 = atan2(m_lastWalkingDirection.y, m_lastWalkingDirection.x) * 180 / cs::c_pi;
+		float angleDecimal2 = angle2 / 180;
+		m_offset = angleDecimal2;
+		if (m_rotation == true)
+		{
+			m_rotation = false;
+		}
+		else //if false
+		{
+			//turn animation
+			
+
+			//if (animation done)
+			//     m_offset = angleDecimal;
+			//      m_isMoving = true
+		}
+		
+	}
+	if (m_idleEnemy == true) // behavior for idle enemy
+	{
+
+		//use idleCounter to run idle anim x times, then reset it.
+		// code for rotating model 180 degrees:
+		//angleDecimal       is the lookat
+		//
+		//float angleReverse = atan2(-m_walkingDirection.y, -m_walkingDirection.x) * 180 / cs::c_pi;
+		//float angleDecimalReverse = angle / 180; this is 180 degrees rotation
 	}
 	
 	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset * Mat::rotation3(0, -cs::c_pi * m_offset + cs::c_pi * 0.5, 0);
