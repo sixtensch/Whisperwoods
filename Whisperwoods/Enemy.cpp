@@ -20,7 +20,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_idleCounter = 0;
 	
 	m_idleEnemy = false;
-
+	m_triggerTurn = false;
 	m_isMoving = true;
 
 
@@ -43,10 +43,13 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 
 	float speed3 = 1.0f;
 	
-	m_characterAnimator->AddAnimation(carcinAnim0, 0, speed3, 1.0f);
+	m_characterAnimator->AddAnimation(carcinAnim0, 0, speed3, 0.0f);
 	m_characterAnimator->AddAnimation(carcinAnim1, 0, speed3, 0.0f);
 	m_characterAnimator->AddAnimation(carcinAnim2, 0, speed3, 0.0f);
 	m_characterAnimator->AddAnimation(carcinAnim3, 0, speed3, 0.0f);
+
+
+	m_characterAnimator->PlayAnimation(0, 0, 1, true, true);
 
 	m_carcinian->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "Carcinian.wwmt"));
 }
@@ -224,8 +227,20 @@ void Enemy::Update(float dTime)
 		}
 		else //if false
 		{
-			//turn animation
+			if (m_characterAnimator->loadedAnimations[3].isActive == false)
+			{
+				angle2 = 1;
+			}
 			
+			//turn animation
+			m_characterAnimator->StopAnimation(0);
+			//m_characterAnimator->loadedAnimations[3].
+			if (m_triggerTurn == false)
+			{
+				m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
+				m_triggerTurn = true;
+			}
+			//else if(m_triggerTurn == true && )
 
 			//if (animation done)
 			//     m_offset = angleDecimal;
