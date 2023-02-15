@@ -37,6 +37,8 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="LevelImporter.cpp" />
+    <ClCompile Include="LevelResource.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightHandler.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -80,6 +82,8 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GUI.h" />
+    <ClInclude Include="LevelImporter.h" />
+    <ClInclude Include="LevelResource.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="KeyFrame.h" />
@@ -95,6 +99,7 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderHandler.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="Room.h" />
     <ClInclude Include="ShaderResource.h" />
     <ClInclude Include="Sound.h" />
     <ClInclude Include="SoundResource.h" />

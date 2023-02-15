@@ -363,3 +363,17 @@ void Animator::Update(float deltaTime)
 		UpdateArmature();
 	}
 }
+
+bool Animator::IsPlaying(int index)
+{
+	if (loadedAnimations.Size() > index && loadedAnimations[index].isActive)
+		return true;
+	return false;
+}
+
+bool Animator::AnimationsFinished()
+{
+	if (!looping && ((globalTime >= 1 && playbackSpeed >= 0) || (globalTime <= 0 && playbackSpeed < 0)))
+		return true;
+	return false;
+}

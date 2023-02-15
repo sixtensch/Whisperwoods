@@ -84,16 +84,17 @@ struct AnimatorAnimation // Holds the middleman data for the various playback ti
 
 	void UpdateAnimation( float deltaTime, float playSpeed )
 	{
-		time = (time + offset);
-		if (time > 1) time = time - 1;
-		if (time < 0) time = time + 1;
+		// Adjust the time acording to local speed
+		float localTime = (time + offset)*speed;
+		if (localTime > 1) localTime = localTime - (int)localTime;
+		if (localTime < 0) localTime = localTime + (int)abs(localTime);
 
 		// Interpolate and shit
 		for (unsigned int i = 0; i < animationChannels.Size(); i++)
 		{
-			animationChannels[i].iPos = GetInterpolatedValue( sourceAnimation->channels[i].positionKeyFrames, time, sourceAnimation->duration );
-			animationChannels[i].iRot = GetInterpolatedValue( sourceAnimation->channels[i].rotationKeyFrames, time, sourceAnimation->duration );
-			animationChannels[i].iScl = GetInterpolatedValue( sourceAnimation->channels[i].scaleKeyFrames, time, sourceAnimation->duration );
+			animationChannels[i].iPos = GetInterpolatedValue( sourceAnimation->channels[i].positionKeyFrames, localTime, sourceAnimation->duration );
+			animationChannels[i].iRot = GetInterpolatedValue( sourceAnimation->channels[i].rotationKeyFrames, localTime, sourceAnimation->duration );
+			animationChannels[i].iScl = GetInterpolatedValue( sourceAnimation->channels[i].scaleKeyFrames, localTime, sourceAnimation->duration );
 		}
 	}
 	
@@ -128,6 +129,9 @@ public:
 
 	void PlayAnimation(int index, float startTime, float influence, bool loop, bool stopOthers);
 	void StopAnimation(int index);
+	bool IsPlaying(int index);
+
+	bool AnimationsFinished();
 
 	// Per frame interpolation of all different animations that might be loaded. TODO: USE BIND POSE AS BASE
 	void CombineAnimations();
