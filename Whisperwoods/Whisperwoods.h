@@ -7,6 +7,7 @@
 #include "Input.h"
 #include "Debug.h"
 #include "Player.h"
+#include "Enemy.h"
 
 class Whisperwoods sealed
 {
