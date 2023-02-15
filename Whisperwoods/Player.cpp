@@ -10,15 +10,15 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	// Initialize the model
 	m_modelResource = modelResource;
 	characterModel = Renderer::CreateMeshRigged( m_modelResource );
-	FBXImporter importer;
+	//FBXImporter importer;
 
 	m_modelOffset = modelOffset;
 	// Import the animations
-	animationSet = std::make_shared<AnimationResource>();
-	importer.ImportFBXAnimations(animationsPath, animationSet.get());
-
-	// Init the animator
 	Resources& resources = Resources::Get(); // BIG NONO: Resources resources = Resources::Get();
+	
+	animationSet = (AnimationResource*)resources.GetResource( ResourceTypeAnimations, animationsPath );
+	//importer.ImportFBXAnimations(animationsPath, animationSet.get());
+	// Init the animator
 	//ModelRiggedResource* modelResource = (ModelRiggedResource*)resources.GetResource( ResourceTypeModelRigged, m_modelResource );
 	characterAnimator = make_shared<Animator>( (ModelRiggedResource*)resources.GetResource( ResourceTypeModelRigged, m_modelResource ) );
 
@@ -45,11 +45,11 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	characterAnimator->AddAnimation( couchAnimation, 0, m_animationSpeed, 0.0f );
 
 	// Get materials
-	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiBody.wwmt" ) );
-	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiWhite.wwmt" ) );
-	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiPupil.wwmt" ) );
-	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiPants.wwmt" ) );
-	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiSpikes.wwmt" ) );
+	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiCombined.wwmt" ) );
+	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiWhite.wwmt" ) );
+	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiPupil.wwmt" ) );
+	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiPants.wwmt" ) );
+	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiSpikes.wwmt" ) );
 
 	m_walkSpeed = 1.5f;
 	m_runSpeed = 3.5f;
@@ -88,7 +88,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		static Vec3 rotationVec = {};
 		if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
 		{
-			cs::Vec3 delta = Vec3( 0.0f, mouseState.x, 0.0f );
+			cs::Vec3 delta = Vec3( 0.0f, (float)mouseState.x, 0.0f );
 			//LOG_TRACE("Mouse state X: %d", mouseState.x);
 			transform.rotation = transform.rotation * Quaternion::GetEuler( delta * delta_time * 4 );
 		}

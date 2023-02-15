@@ -20,19 +20,16 @@ class Player : public GameObject
 	{
 		return a * (1.0f - t) + b * t;
 	}
+
 public:
 
 	bool cameraIsLocked;
-
 	float cameraFollowDistance;
 	float cameraFollowTilt;
 	Vec3 cameraLookTargetOffset;
-
-	//float walkSpeed = 2;
-	//float runSpeed = 5;
 	
 	shared_ptr<MeshRenderableRigged> characterModel;
-	shared_ptr<AnimationResource> animationSet;
+	AnimationResource* animationSet;
 	shared_ptr<Animator> characterAnimator;
 	
 	Vec3 cameraFollowTarget;
@@ -42,6 +39,5 @@ public:
 	Player(std::string modelResource, std::string animationsPath, Mat4 modelOffset);
 
 	void PlayerMovement(float delta_time, float movementMultiplier);
-
 	void Update(float delta_time) override;
 };

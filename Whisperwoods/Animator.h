@@ -65,12 +65,12 @@ struct AnimatorAnimation // Holds the middleman data for the various playback ti
 		offset = 0;
 		isActive = false;
 		// Initialize animator channels.
-		for (unsigned int i = 0; i < sourceAnimation->channels.Size(); i++)
+		for (int i = 0; i < sourceAnimation->channels.Size(); i++)
 		{
 			std::string cName = sourceAnimation->channels[i].channelName;
 			int boneIndex = -1;
 			// Resolve potenially broken bone order
-			for (unsigned int j = 0; j < modelReference->armature.bones.Size(); j++)
+			for (int j = 0; j < modelReference->armature.bones.Size(); j++)
 			{
 				if (cName == modelReference->armature.bones[j].name)
 				{
@@ -90,7 +90,7 @@ struct AnimatorAnimation // Holds the middleman data for the various playback ti
 		if (localTime < 0) localTime = localTime + (int)abs(localTime);
 
 		// Interpolate and shit
-		for (unsigned int i = 0; i < animationChannels.Size(); i++)
+		for (int i = 0; i < animationChannels.Size(); i++)
 		{
 			animationChannels[i].iPos = GetInterpolatedValue( sourceAnimation->channels[i].positionKeyFrames, localTime, sourceAnimation->duration );
 			animationChannels[i].iRot = GetInterpolatedValue( sourceAnimation->channels[i].rotationKeyFrames, localTime, sourceAnimation->duration );

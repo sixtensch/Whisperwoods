@@ -53,6 +53,9 @@
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="WWABuilder.cpp" />
+    <ClCompile Include="WWMBuilder.cpp" />
+    <ClCompile Include="StaticObject.cpp" />
     <ClCompile Include="TextRenderable.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vertex.cpp" />
@@ -82,6 +85,7 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GUI.h" />
+    <ClInclude Include="StaticObject.h" />
     <ClInclude Include="LevelImporter.h" />
     <ClInclude Include="LevelResource.h" />
     <ClInclude Include="Light.h" />
@@ -112,6 +116,8 @@
     <ClInclude Include="Whisperwoods.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="MaterialImporter.h" />
+    <ClInclude Include="WWABuilder.h" />
+    <ClInclude Include="WWMBuilder.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="CSBloomPass.hlsl">

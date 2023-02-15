@@ -14,10 +14,10 @@ Armature::~Armature()
 
 void Armature::ResolveBoneParentIndicies()
 {
-	for (size_t i = 0; i < bones.Size(); i++)
+	for (int i = 0; i < bones.Size(); i++)
 	{
 		bones[i].parentIndex = -1;
-		for (size_t j = 0; j < bones.Size(); j++)
+		for (int j = 0; j < bones.Size(); j++)
 		{
 			if (bones[i].parentName == bones[j].name)
 			{
