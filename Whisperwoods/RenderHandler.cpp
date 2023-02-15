@@ -3,6 +3,9 @@
 #include "Vertex.h"
 #include "Resources.h"
 
+// TODO: Testing include for PPFX include
+#include "Input.h"
+
 RenderHandler::RenderHandler()
 {
 	m_renderableIDCounter = 0;
@@ -61,6 +64,16 @@ void RenderHandler::Draw()
 			m_renderCore->DrawObject(m_worldRenderables[i].get(), false);
         }
     }
+
+	static bool ppfxOn = false;
+	if (Input::Get().IsDXKeyPressed(DXKey::E))
+		ppfxOn = !ppfxOn;
+
+	if (ppfxOn)
+	{
+		m_renderCore->DrawPPFX();
+	}
+	
 
 	for (int i = 0; i < m_texts.Size(); i++)
 	{
