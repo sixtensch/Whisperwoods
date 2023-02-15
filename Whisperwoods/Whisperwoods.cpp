@@ -33,9 +33,9 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	// WWM Building below
 	
 	FBXImporter importer;
-	ModelRiggedResource shadiiRigged;
-	importer.ImportFBXRigged( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", &shadiiRigged);
-	std::string shadiiRiggedPath = importer.SaveWMM(&shadiiRigged, "Assets/Models/Rigged/");
+	//ModelRiggedResource shadiiRigged;
+	//importer.ImportFBXRigged( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", &shadiiRigged);
+	//std::string shadiiRiggedPath = importer.SaveWMM(&shadiiRigged, "Assets/Models/Rigged/");
 
 
 	//ModelRiggedResource shadiiAnimated2;
@@ -56,31 +56,32 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//importer.ImportFBXRigged("Assets/Shadii_Animations.fbx", &riggedModel);
 	//path = importer.SaveWMM(&riggedModel, "Assets/Models/Rigged/");
 
-	//ModelStaticResource staticTestModelWrite;
-	//ModelStaticResource staticTestModelWrite2;
-	//ModelStaticResource staticTestModelWrite3;
-	//ModelStaticResource staticTestModelWrite4;
-	//ModelStaticResource staticTestModelWrite5;
-	//ModelStaticResource staticTestModelWrite6;
-	//ModelStaticResource staticTestModelWrite7;
-	//importer.ImportFBXStatic( "Assets/Models/FBX/Static/Ground.fbx", &staticTestModelWrite);
-	//std::string path4 = importer.SaveWMM(&staticTestModelWrite, "Assets/Models/Static/");
 
+	ModelStaticResource staticTestModelWrite;
+	importer.ImportFBXStatic( "Assets/Models/FBX/Static/Ground.fbx", &staticTestModelWrite);
+	std::string path4 = importer.SaveWMM(&staticTestModelWrite, "Assets/Models/Static/");
+
+	//ModelStaticResource staticTestModelWrite2;
 	//importer.ImportFBXStatic("Assets/Models/FBX/Static/BigTrees.fbx", &staticTestModelWrite2);
 	//std::string path5 = importer.SaveWMM(&staticTestModelWrite2, "Assets/Models/Static/");
 
+	//ModelStaticResource staticTestModelWrite3;
 	//importer.ImportFBXStatic("Assets/Models/FBX/Static/BigPlants.fbx", &staticTestModelWrite3);
 	//std::string path6 = importer.SaveWMM(&staticTestModelWrite3, "Assets/Models/Static/");
 
+	//ModelStaticResource staticTestModelWrite4;
 	//importer.ImportFBXStatic("Assets/Models/FBX/Static/SmallPlants.fbx", &staticTestModelWrite4);
 	//std::string path7 = importer.SaveWMM(&staticTestModelWrite4, "Assets/Models/Static/");
 
+	//ModelStaticResource staticTestModelWrite5;
 	//importer.ImportFBXStatic("Assets/Models/FBX/Static/MediumTrees.fbx", &staticTestModelWrite5);
 	//std::string path8 = importer.SaveWMM(&staticTestModelWrite5, "Assets/Models/Static/");
 
+	//ModelStaticResource staticTestModelWrite6;
 	//importer.ImportFBXStatic("Assets/Models/FBX/Static/Stones.fbx", &staticTestModelWrite6);
 	//std::string path9 = importer.SaveWMM(&staticTestModelWrite6, "Assets/Models/Static/");
 
+	//ModelStaticResource staticTestModelWrite7;
 	//importer.ImportFBXStatic("Assets/Models/FBX/Static/Grafitree.fbx", &staticTestModelWrite7);
 	//std::string path10 = importer.SaveWMM(&staticTestModelWrite7, "Assets/Models/Static/");
 
@@ -139,7 +140,7 @@ void Whisperwoods::Run()
 	shared_ptr<MeshRenderableStatic> ground = Renderer::CreateMeshStatic("Ground.wwm");
 	ground->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
 	ground->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneGround.wwmt"));
-	ground->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneBackground.wwmt"));
+	//ground->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneBackground.wwmt"));
 
 	shared_ptr<MeshRenderableStatic> bigTrees = Renderer::CreateMeshStatic("BigTrees.wwm");
 	bigTrees->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
