@@ -370,3 +370,10 @@ bool Animator::IsPlaying(int index)
 		return true;
 	return false;
 }
+
+bool Animator::AnimationsFinished()
+{
+	if (!looping && ((globalTime >= 1 && playbackSpeed >= 0) || (globalTime <= 0 && playbackSpeed < 0)))
+		return true;
+	return false;
+}

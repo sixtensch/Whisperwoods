@@ -131,6 +131,7 @@ public:
 	void StopAnimation(int index);
 	bool IsPlaying(int index);
 
+	bool AnimationsFinished();
 
 	// Per frame interpolation of all different animations that might be loaded. TODO: USE BIND POSE AS BASE
 	void CombineAnimations();
