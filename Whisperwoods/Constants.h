@@ -2,7 +2,7 @@
 #define H_CONSTANTS
 
 #define CATCH_PROGRAM	1
-//#define WW_NODXGI
+#define WW_NODXGI
 
 #define MAJOR_VERSION	0
 #define MINOR_VERSION	1
@@ -32,4 +32,9 @@
 #define BM_C_TERRAIN_IN				0x007f00
 #define BM_C_EXIT					0x000000
 
+// Values used by both render core .hlsli file for compute shaders.
+#define BLOOM_MIP_LEVELS 5u
+#define COMPUTE_GROUP_COUNT_X 80u
+#define COMPUTE_GROUP_COUNT_Y 90u
+	
 #endif

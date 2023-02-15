@@ -8,6 +8,8 @@
 #include "Animator.h"
 #include <imgui.h>
 #include "TextRenderable.h"
+#include "Player.h"
+#include "Empty.h"
 
 #include "LevelImporter.h"
 
@@ -28,7 +30,9 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
-	FBXImporter importer;
+	// WWM Building below
+	
+	//FBXImporter importer;
 	//ModelRiggedResource shadiiAnimated;
 	//ModelRiggedResource shadiiAnimated2;
 	//ModelRiggedResource shadiiAnimations;
@@ -38,6 +42,10 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//std::string path1 = importer.SaveWMM(&shadiiAnimated, "Assets/Models/Rigged/");
 	//std::string path2 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 	//std::string path3 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
+
+	//ModelRiggedResource carcinian;
+	//importer.ImportFBXRigged("Assets/Carcinian_Animated.fbx", &carcinian);
+	//std::string path4 = importer.SaveWMM(&carcinian, "Assets/Models/Rigged/");
 
 	/*ModelRiggedResource grafikiAnimated;
 	importer.ImportFBXRigged("Assets/Models/FBX/Rigged/Grafiki_Animated.fbx", &grafikiAnimated);
@@ -112,14 +120,19 @@ void Whisperwoods::Run()
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
-	shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Shadii_Animated.wwm");
+	// Test meshes
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
-	//shared_ptr<MeshRenderableStatic> meshSphere = Renderer::CreateMeshStatic("Assets/Models/Static/Debug_Sphere.wwm");
 	shared_ptr<MeshRenderableRigged> grafiki = Renderer::CreateMeshRigged("Grafiki_Animated.wwm");
+	
+	Player testPlayer("Shadii_Animated.wwm", "Assets/Models/FBX/Rigged/Shadii_Animations.fbx", Mat::translation3(0, -0.5f, 0) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	Empty testEmpty;
+	testEmpty.AddChild(&testPlayer);
 
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0, -5.5f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
+
+	Resources& resources2 = Resources::Get();
 
 	shared_ptr<MeshRenderableStatic> ground = Renderer::CreateMeshStatic("Ground.wwm");
 	ground->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
@@ -151,67 +164,31 @@ void Whisperwoods::Run()
 	grafiTree->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneGrafitree.wwmt"));
 
 
+	// Grafiki animations test
 	Resources resources = Resources::Get();
-
-	Animator testAnimator((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated.wwm"));
 	Animator testAnimatorGrafiki((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Grafiki_Animated.wwm"));
-
-	//ModelRiggedResource* printReference = (ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated2.wwm");
-
-	//for (int i = 0; i < printReference->armature.bones.Size(); i++)
-	//{
-	//	std::string boneName = printReference->armature.bones[i].name;
-	//	DirectX::XMFLOAT4X4 m = printReference->armature.bones[i].inverseBindMatrix;
-	//	LOG_TRACE("Inverse Bind Matrix For: %s\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n",
-	//		boneName.c_str(),
-	//		m._11, m._12, m._13, m._14,
-	//		m._21, m._22, m._23, m._24,
-	//		m._31, m._32, m._33, m._34,
-	//		m._41, m._42, m._43, m._44)
-	//}
-
-	//FBXImporter importer;
 	FBXImporter importer;
-	shared_ptr<AnimationResource> resource (new AnimationResource);
-	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Shadii_Animations.fbx", resource.get());
-
 	shared_ptr<AnimationResource> resource2(new AnimationResource);
 	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Grafiki_Animations.fbx", resource2.get());
-
-	Animation* animation = &resource->animations[2];
-	Animation* animation2 = &resource->animations[4];
-	Animation* animation3 = &resource->animations[5];
-
 	Animation* animation4 = &resource2->animations[2]; 
 	Animation* animation5 = &resource2->animations[3];
 	Animation* animation6 = &resource2->animations[4];
-
-	float speed = 1.5f;
-	testAnimator.AddAnimation(animation, 0, speed, 1);
-	testAnimator.AddAnimation(animation2, 0, speed, 0.2f);
-	testAnimator.AddAnimation( animation3, 0, speed, 0.0f );
-	
 	float speed2 = 0.5f;
 	testAnimatorGrafiki.AddAnimation(animation4, 0, speed2, 1.0f);
 	testAnimatorGrafiki.AddAnimation(animation5, 0, speed2, 0.0f);
 	testAnimatorGrafiki.AddAnimation(animation6, 0, speed2, 0.0f);
 
+	// Test meshes transforms
 	float rotationY = cs::c_pi * 1.0f;
-	mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-	
 	grafiki->worldMatrix = Mat::translation3(2.5f, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 
-	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
-	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt")); 
-	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPupil.wwmt"));
-	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPants.wwmt"));
-	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiSpikes.wwmt"));
-
+	// Static shady materials test
 	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
 	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt"));
 	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPupil.wwmt"));
-
+	
+	// Grafiki materials test
 	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiBody.wwmt"));
 	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiGum.wwmt"));
 	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt"));
@@ -223,8 +200,6 @@ void Whisperwoods::Run()
 	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiWood.wwmt"));
 	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiCrystal.wwmt"));
 
-
-
 	// Text
 
 	dx::SimpleMath::Vector2 posTest;
@@ -234,8 +209,6 @@ void Whisperwoods::Run()
 	cs::Color4f color(0.034f, 0.255f, 0.0f, 1.0f);
 	//These are just test values
 	
-
-
 	// Lights
 
 	shared_ptr<PointLight> point = make_shared<PointLight>();
@@ -265,6 +238,8 @@ void Whisperwoods::Run()
 
 	int frames = 0;
 	cs::Timer deltaTimer;
+	// Test empty rotation imgui euler
+	Vec3 inputRotation;
 
 	for (bool running = true; running; frames++)
 	{
@@ -279,44 +254,48 @@ void Whisperwoods::Run()
 		dTimeAcc += dTime;
 
 		Input::Get().Update();
-		Move(dTime);
-
-		testAnimator.Update(dTime);
+		
 		testAnimatorGrafiki.Update(dTime);
 
 		m_game->Update();
 		m_sound->Update();
 		rotationY += 0.2f * dTime;
-		mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
 
+		testEmpty.Update(dTime);
+		testPlayer.Update(dTime);
 
 
 		// Draw step
-
 		m_renderer->Draw();
 
-//#ifdef WW_DEBUG
+		//#ifdef WW_DEBUG
 		m_renderer->BeginGui();
+		Move(dTime, &testPlayer);
 
-		if (ImGui::Begin( "Animation" ))
+
+		if (ImGui::Begin("Animation"))
 		{
-			ImGui::Text( "The base animation is %s", testAnimator.loadedAnimations[0].sourceAnimation->name.c_str());
-			ImGui::SliderFloat( testAnimator.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
-			ImGui::SliderFloat( testAnimator.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f" );
-			ImGui::SliderFloat( "Speed", &speed, 0.0f, 3.0f, "speed = %.3f" );
 			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat("Speed2", &speed2, 0.0f, 3.0f, "speed = %.3f");
-			testAnimator.loadedAnimations[0].speed = speed;
-			testAnimator.loadedAnimations[1].speed = speed;
-			testAnimator.loadedAnimations[2].speed = speed;
 			testAnimatorGrafiki.loadedAnimations[0].speed = speed2;
 			testAnimatorGrafiki.loadedAnimations[1].speed = speed2;
 			testAnimatorGrafiki.loadedAnimations[2].speed = speed2;
 		}
 		ImGui::End();
 
+
+		if (ImGui::Begin("EmptyTransform"))
+		{
+			
+			ImGui::Text("Player Parent transform stuff");
+			ImGui::DragFloat3("position", (float*)&testEmpty.transform.position, 0.1f);
+			ImGui::DragFloat3("rotation", (float*)&inputRotation, 0.1f);
+			ImGui::DragFloat3("scale", (float*)&testEmpty.transform.scale, 0.1f);
+			testEmpty.transform.rotation = Quaternion::GetEuler(inputRotation);
+		}
+		ImGui::End();
 
 		m_debug->DrawConsole();
 		m_renderer->EndGui();
@@ -336,9 +315,87 @@ void Whisperwoods::Run()
 	}
 }
 
-void Whisperwoods::Move(float dTime)
+Vec3 Lerp(Vec3 a, Vec3 b, float t)
+{
+	return a * (1.0f - t) + b * t;
+}
+
+
+Quaternion QuaternionLookRotation(Vec3 forward, Vec3 up)
+{
+	forward.Normalize();
+
+	Vec3 vector = forward.Normalize();
+	Vec3 vector2 = up.Cross(vector).Normalize();
+	Vec3 vector3 = vector.Cross(vector2);
+	float m00 = vector2.x;
+	float m01 = vector2.y;
+	float m02 = vector2.z;
+	float m10 = vector3.x;
+	float m11 = vector3.y;
+	float m12 = vector3.z;
+	float m20 = vector.x;
+	float m21 = vector.y;
+	float m22 = vector.z;
+
+
+	float num8 = (m00 + m11) + m22;
+	Quaternion quaternion;
+	if (num8 > 0.0f)
+	{
+		float num = (float)std::sqrt(num8 + 1.0f);
+		quaternion.w = num * 0.5f;
+		num = 0.5f / num;
+		quaternion.x = (m12 - m21) * num;
+		quaternion.y = (m20 - m02) * num;
+		quaternion.z = (m01 - m10) * num;
+		return quaternion;
+	}
+	if ((m00 >= m11) && (m00 >= m22))
+	{
+		float num7 = (float)std::sqrt(((1.0f + m00) - m11) - m22);
+		float num4 = 0.5f / num7;
+		quaternion.x = 0.5f * num7;
+		quaternion.y = (m01 + m10) * num4;
+		quaternion.z = (m02 + m20) * num4;
+		quaternion.w = (m12 - m21) * num4;
+		return quaternion;
+	}
+	if (m11 > m22)
+	{
+		float num6 = (float)std::sqrt(((1.0f + m11) - m00) - m22);
+		float num3 = 0.5f / num6;
+		quaternion.x = (m10 + m01) * num3;
+		quaternion.y = 0.5f * num6;
+		quaternion.z = (m21 + m12) * num3;
+		quaternion.w = (m20 - m02) * num3;
+		return quaternion;
+	}
+	float num5 = (float)std::sqrt(((1.0f + m22) - m00) - m11);
+	float num2 = 0.5f / num5;
+	quaternion.x = (m20 + m02) * num2;
+	quaternion.y = (m21 + m12) * num2;
+	quaternion.z = 0.5f * num5;
+	quaternion.w = (m01 - m10) * num2;
+	return quaternion;
+}
+
+Quaternion Lerp(Quaternion q0, Quaternion q1, float t)
+{
+	DirectX::XMVECTOR Q0 = DirectX::XMVectorSet((float)q0.x, (float)q0.y, (float)q0.z, (float)q0.w);
+	DirectX::XMVECTOR Q1 = DirectX::XMVectorSet((float)q1.x, (float)q1.y, (float)q1.z, (float)q1.w);
+	DirectX::XMVECTOR OUTPUT = DirectX::XMQuaternionSlerp(Q0, Q1, t);
+	DirectX::XMFLOAT4 FL4;
+	DirectX::XMStoreFloat4(&FL4, OUTPUT);
+	return Quaternion(FL4.x, FL4.y, FL4.z, FL4.w);
+}
+
+
+
+void Whisperwoods::Move(float dTime, Player* player)
 {
 	static bool cameraLock = false;
+	static bool cameraPlayer = true;
 
 	Camera& camera = Renderer::GetCamera();
 
@@ -362,6 +419,12 @@ void Whisperwoods::Move(float dTime)
 		cameraLock = !cameraLock;
 	}
 
+	if (Input::Get().IsDXKeyPressed(DXKey::P))
+	{
+		cameraPlayer = !cameraPlayer;
+		player->cameraIsLocked = cameraPlayer;
+	}
+
 	if (Input::Get().IsKeybindDown(KeybindSprint))
 	{
 		movement *= 5.0f;
@@ -375,11 +438,62 @@ void Whisperwoods::Move(float dTime)
 		cs::Vec3 delta = Vec3(mouseState.y, mouseState.x, 0.0f);
 
 		rotationVec -= delta * dTime * 4.0f;
-		camera.SetRotation(Quaternion::GetEuler(rotationVec));
+		if (!cameraPlayer)
+		{
+			camera.SetRotation(Quaternion::GetEuler(rotationVec));
+		}
+		//camera.SetRotation(Quaternion::GetEuler(rotationVec));
 	}
 
 	Input::Get().SetMode(cameraLock ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
 
-	camera.SetPosition(camera.GetPosition() + movement * dTime);
+	if (!cameraPlayer)
+	{
+		camera.SetPosition(camera.GetPosition() + movement * dTime);
+	}
+	else
+	{
+		Vec3 cameraCurrentPos = camera.GetPosition();
+		Vec3 cameraTargetPos = player->cameraFollowTarget;
+		Vec3 lerped = Lerp(cameraCurrentPos, cameraTargetPos, dTime * 5);
+		camera.SetPosition(lerped);
+
+		// same as in player only using the bigass function above.
+		Vec3 direction = player->transform.position - cameraTargetPos;
+		direction.Normalize();
+		Quaternion cameraCurrentRot = camera.GetRotation();
+		//Quaternion cameraTargetRot = Quaternion::GetDirection(direction, Vec3(0,1,0));
+		Vec3 upVector(0.0f, 1.0f, 0.0f);
+		Quaternion cameraTargetRot = QuaternionLookRotation(direction, upVector);
+
+
+		Quaternion conj1 = cameraTargetRot.Conjugate();
+		Quaternion conj2 = player->cameraLookRotationTarget.Conjugate();
+		if (ImGui::Begin("Camera rotation player"))
+		{
+			ImGui::Text("Dir: %f, %f, %f", direction.x, direction.y, direction.z);
+			ImGui::Text("Rot: %f, %f, %f, %f", conj1.x, conj1.y, conj1.z, conj1.w);
+			ImGui::Text("RotP: %f, %f, %f, %f", conj2.x, conj2.y, conj2.z, conj2.w);
+			ImGui::DragFloat( "Camera Follow Distance", &player->cameraFollowDistance, 0.05f, 0.1f, 10.0f );
+			ImGui::DragFloat( "Camera Follow Tilt", &player->cameraFollowTilt, 0.05f, 0.1f, cs::c_pi/2-0.1f );
+			ImGui::DragFloat3( "Camera lookAt offset", (float*)&player->cameraLookTargetOffset, 0.1f );
+		}
+		ImGui::End();
+
+		//Quaternion slerped = Quaternion::GetSlerp(cameraCurrentRot, cameraTargetRot.Conjugate(), dTime * 5);
+		//Quaternion slerped = Lerp((cameraCurrentRot.x != NAN) ? cameraCurrentRot : conj2, conj2, dTime * 5); // sometimes turns black
+		//Quaternion slerped = Lerp(cameraCurrentRot, conj2, dTime * 5); // sometimes turns black
+
+		// sometimes the lerping/target goes bad so this is required or screen can go black.
+		if (std::isnan( cameraCurrentRot.x ) || std::isnan( cameraCurrentRot.y ) || std::isnan( cameraCurrentRot.z ) || std::isnan( cameraCurrentRot.w ))
+		{
+			camera.SetRotation( conj2 );
+		}
+		else
+		{
+			Quaternion slerped = Lerp( cameraCurrentRot, conj2, dTime * 5 );
+			camera.SetRotation(slerped);
+		}
+	}
 	camera.Update();
 }
