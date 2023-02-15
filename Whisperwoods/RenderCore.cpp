@@ -396,6 +396,52 @@ void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Tex
 	EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &srvd, &srv));
 }
 
+void RenderCore::DumpTexture(ID3D11Texture2D* texture, uint* outWidth, uint* outHeight, cs::Color4** newOutData) const
+{
+	D3D11_TEXTURE2D_DESC desc = {};
+	texture->GetDesc(&desc);
+
+	if (desc.Format != DXGI_FORMAT_R8G8B8A8_UNORM)
+	{
+		EXC("DumpTexture only supports 4-byte RGBA texture formats.");
+	}
+
+	*outWidth = desc.Width;
+	*outWidth = desc.Height;
+
+	desc.Usage = D3D11_USAGE_STAGING;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	desc.BindFlags = 0;
+	ComPtr<ID3D11Texture2D> stageTexture;
+
+	EXC_COMCHECK(m_device->CreateTexture2D(
+		&desc,
+		nullptr,
+		&stageTexture
+	));
+
+	D3D11_BOX box = {};
+	box.right = desc.Width;
+	box.bottom = desc.Height;
+	box.back = 1;
+
+	EXC_COMINFO(m_context->CopySubresourceRegion(stageTexture.Get(), 0, 0, 0, 0, texture, 0, &box));
+
+	D3D11_MAPPED_SUBRESOURCE msr = {};
+	EXC_COMCHECK(m_context->Map(stageTexture.Get(), 0u, D3D11_MAP_READ, 0u, &msr));
+
+	*outWidth = desc.Width;
+	*outHeight = desc.Height;
+	*newOutData = new cs::Color4[desc.Width * desc.Height];
+
+	for (uint i = 0; i < desc.Height; i++)
+	{
+		memcpy(*newOutData + i * desc.Width, (byte*)msr.pData + i * msr.RowPitch, desc.Width * sizeof(cs::Color4));
+	}
+
+	EXC_COMINFO(m_context->Unmap(stageTexture.Get(), 0u));
+}
+
 void RenderCore::CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const
 {
 	D3D11_BUFFER_DESC bufferDesc = {};
