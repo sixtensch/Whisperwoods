@@ -39,6 +39,10 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//std::string path2 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 	//std::string path3 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 
+	ModelRiggedResource carcinian;
+	importer.ImportFBXRigged("Assets/Carcinian_Animated.fbx", &carcinian);
+	std::string path4 = importer.SaveWMM(&carcinian, "Assets/Models/Rigged/");
+
 	/*ModelRiggedResource grafikiAnimated;
 	importer.ImportFBXRigged("Assets/Models/FBX/Rigged/Grafiki_Animated.fbx", &grafikiAnimated);
 	std::string path1 = importer.SaveWMM(&grafikiAnimated, "Assets/Models/Rigged/");*/
@@ -113,6 +117,7 @@ void Whisperwoods::Run()
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
 	//shared_ptr<MeshRenderableStatic> meshSphere = Renderer::CreateMeshStatic("Assets/Models/Static/Debug_Sphere.wwm");
 	shared_ptr<MeshRenderableRigged> grafiki = Renderer::CreateMeshRigged("Grafiki_Animated.wwm");
+	shared_ptr<MeshRenderableRigged> carcinian = Renderer::CreateMeshRigged("Carcinian_Animated.wwm");
 
 
 
@@ -161,6 +166,8 @@ void Whisperwoods::Run()
 
 	//Animator testAnimator((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated.wwm"));
 	Animator testAnimatorGrafiki((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Grafiki_Animated.wwm"));
+	Animator testAnimatorCarcinian((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Carcinian_Animated.wwm"));
+
 
 	//ModelRiggedResource* printReference = (ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated2.wwm");
 
@@ -229,6 +236,8 @@ void Whisperwoods::Run()
 	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiWood.wwmt"));
 	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiCrystal.wwmt"));
 
+	carcinian->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "Carcinian.wwmt"));
+
 
 
 	// Text
@@ -290,6 +299,7 @@ void Whisperwoods::Run()
 		
 		//testAnimator.Update(dTime);
 		testAnimatorGrafiki.Update(dTime);
+		testAnimatorCarcinian.Update(dTime);
 
 		m_game->Update();
 		m_sound->Update();
@@ -325,6 +335,10 @@ void Whisperwoods::Run()
 			testAnimatorGrafiki.loadedAnimations[0].speed = speed2;
 			testAnimatorGrafiki.loadedAnimations[1].speed = speed2;
 			testAnimatorGrafiki.loadedAnimations[2].speed = speed2;
+			testAnimatorCarcinian.loadedAnimations[0].speed = speed3;
+			testAnimatorCarcinian.loadedAnimations[1].speed = speed3;
+			testAnimatorCarcinian.loadedAnimations[2].speed = speed3;
+			testAnimatorCarcinian.loadedAnimations[3].speed = speed3;
 		}
 		ImGui::End();
 

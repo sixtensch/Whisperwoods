@@ -54,6 +54,8 @@ public:
 
 	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 origin);
 
+	void DrawPPFX();
+
 	void InitImGui() const;
 
 	void InitFont(std::unique_ptr<dx::SpriteFont> fonts[FontCount], std::unique_ptr<dx::SpriteBatch>* batch) const;
@@ -62,6 +64,7 @@ private:
 	void BindPipeline(PipelineType pipeline, bool shadowing);
 
 	void InitPipelines();
+	void InitComputeShaders();
 	void InitConstantBuffers();
 	void InitLightBuffers();
 	void InitDefaultMaterials();
@@ -80,8 +83,21 @@ private:
 	// Back buffer
 	ComPtr<ID3D11Texture2D> m_bbTexture;
 	ComPtr<ID3D11RenderTargetView> m_bbRTV;
-	//ComPtr<ID3D11ShaderResourceView> m_bbSRV;
+	ComPtr<ID3D11UnorderedAccessView> m_bbUAV;
+	ComPtr<ID3D11ShaderResourceView> m_bbSRV;
 	cs::Color4f m_bbClearColor;
+
+	// PPFX
+	ComPtr<ID3D11Texture2D> m_ppfxBloomTexture;
+	ComPtr<ID3D11UnorderedAccessView> m_ppfxBloomUAV;
+	ComPtr<ID3D11ShaderResourceView> m_ppfxBloomSRV;
+	ComPtr<ID3D11RenderTargetView> m_ppfxBloomRTV;
+
+	ComPtr<ID3D11ComputeShader> m_thresholdCompute;
+	ComPtr<ID3D11ComputeShader> m_bloomCompute;
+	ComPtr<ID3D11ComputeShader> m_colorGradeCompute;
+
+	ComPtr<ID3D11SamplerState> m_bloomUpscaleSampler;
 
 	// Depth stencil
 	ComPtr<ID3D11Texture2D> m_dsTexture;
@@ -104,6 +120,7 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_defaultNormalSRV;
 
 	ComPtr<ID3D11SamplerState> m_sampler;
+	ComPtr<ID3D11SamplerState> m_pointSampler;
 
 	// Pipelines
 	Pipeline m_pipelines[PipelineTypeCount];
