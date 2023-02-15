@@ -27,7 +27,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
         float2 mipTexelSize = 1.0f / float2(mipWidth, mipHeight);
         
         // Clever way of offsetting texels.
-        float sampleRadius = 1.1f;
+        float sampleRadius = 1.2f;
         float4 offset = mipTexelSize.xyxy * float4(1.0f, 1.0f, -1.0f, 0.0f) * sampleRadius;
         
         
@@ -48,7 +48,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
         mipLevelColor += luminanceTexture.SampleLevel(bloomSampler, texUV + offset.xy, mipLevel);
         
         float mipLevelBias = log(mipLevel + 2) * 1.1f; // Take account for lower (blurrier) mips a bit more.
-        float tentFilterAdjustment = 1.0f / 4.0f;
+        float tentFilterAdjustment = 0.5f;
         mipLevelColor *= (1.0f / 16.0f) * tentFilterAdjustment * mipLevelBias;
         
         finalColor += mipLevelColor;
