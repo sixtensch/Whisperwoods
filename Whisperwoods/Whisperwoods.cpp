@@ -196,7 +196,7 @@ void Whisperwoods::Run()
 
 
 	
-	Enemy patrolEnemy("Carcinian_Animated.wwm", "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx", Mat::translation3(0, -0.8f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	Enemy patrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::translation3(0, -0.8f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(1.0f, -5.0f), true);
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -4.2f), true);
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.35f, -3.0f), true);
