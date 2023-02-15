@@ -15,9 +15,12 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_walkingDirection = Vec2(0.0f, 0.0f);
 	m_enemyAlive = false; // Default false, has to be manually turned on
 	m_rotation = false;
-	m_rotationSpeed = 0.007f;
+	m_rotationSpeed = 0.003f;
 	m_offset = 0;
 	m_idleCounter = 0;
+
+	m_lookBehind = false;
+
 	
 	m_idleEnemy = false;
 	m_triggerTurn = false;
@@ -61,10 +64,13 @@ Enemy::~Enemy()
 void Enemy::Update(float dTime)
 {
 	//This has to be in update because we re-use enemy objects between rooms! Will cost like O(1), it's fine
-	if (m_patrolPath.size() < 3)
+	if (m_patrolPath.size() < 3 && m_firstTrigger == false)
 	{
 		m_idleEnemy = true;
+		m_characterAnimator->StopAnimation(0);
+		m_characterAnimator->PlayAnimation(2, 0, 1, false, true);
 		m_isMoving = false;
+		m_characterAnimator->playbackSpeed = 0.2f;
 	}
 
 
@@ -178,6 +184,15 @@ void Enemy::Update(float dTime)
 	//handle rotation:
 	float angle = atan2(m_walkingDirection.y, m_walkingDirection.x) * 180 / cs::c_pi;
 	float angleDecimal = angle / 180;
+
+	if (m_idleEnemy == true && first == true) //for default, ignore this and just accept it
+	{
+		m_idleAngle = angleDecimal;
+		m_offset = angleDecimal;
+	}
+
+
+
 	//m_offset = angleDecimal;
 	if (m_rotation == false && m_isMoving == true)
 	{
@@ -227,20 +242,22 @@ void Enemy::Update(float dTime)
 		}
 		else //if false
 		{
-			//turn animation
-			m_characterAnimator->StopAnimation(0);
+			//turn animation	
 			//m_characterAnimator->loadedAnimations[3].
 			if (m_triggerTurn == false)
 			{
+				m_characterAnimator->StopAnimation(0);
+				m_characterAnimator->playbackSpeed = 0.5f;
 				m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
 				m_triggerTurn = true;
 			}
-			else if (m_triggerTurn == true && m_characterAnimator->loadedAnimations[3].time == 1) //animation is over
+			else if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished() /*m_characterAnimator->loadedAnimations[3].time == 1*/) //animation is over
 			{
 				m_characterAnimator->StopAnimation(3);
 				m_offset = angleDecimal;
 				m_isMoving = true;
 				m_triggerTurn = false;
+				m_characterAnimator->playbackSpeed = 1.0f;
 				m_characterAnimator->PlayAnimation(0, 0, 1, true, true);
 			}
 		}
@@ -248,13 +265,43 @@ void Enemy::Update(float dTime)
 	}
 	if (m_idleEnemy == true) // behavior for idle enemy
 	{
+		if (m_idleCounter < 4 && m_characterAnimator->AnimationsFinished() && m_triggerTurn == false)
+		{
+			m_characterAnimator->playbackSpeed = 0.2f;
+			m_characterAnimator->PlayAnimation(2, 0, 1, false, true);
+			m_idleCounter++;
+		}
+		else if (m_idleCounter == 4 && m_characterAnimator->AnimationsFinished())
+		{
+			m_characterAnimator->StopAnimation(2);
+			m_characterAnimator->playbackSpeed = 0.5f;
+			m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
+			m_idleCounter = 0;
+			m_triggerTurn = true;
+			if (m_lookBehind == true)
+			{
+				m_lookBehind = false;
+			}
+			else
+			{
+				m_lookBehind = true;
+			}
+		}
+		if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished())
+		{
+			float angleReverse = atan2(m_walkingDirection.y, m_walkingDirection.x) * 180 / cs::c_pi;
+			if (m_lookBehind == true)
+			{
+				angleReverse = atan2(-m_walkingDirection.y, -m_walkingDirection.x) * 180 / cs::c_pi;
+			}
+			float angleDecimalReverse = angleReverse / 180;
+			m_idleAngle = angleDecimalReverse;
+			
 
-		//use idleCounter to run idle anim x times, then reset it.
-		// code for rotating model 180 degrees:
-		//angleDecimal       is the lookat
-		//
-		//float angleReverse = atan2(-m_walkingDirection.y, -m_walkingDirection.x) * 180 / cs::c_pi;
-		//float angleDecimalReverse = angle / 180; this is 180 degrees rotation
+			m_triggerTurn = false;
+			
+		}
+		m_offset = m_idleAngle;
 	}
 	
 	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset * Mat::rotation3(0, -cs::c_pi * m_offset + cs::c_pi * 0.5, 0);
