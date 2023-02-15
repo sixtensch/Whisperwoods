@@ -28,7 +28,9 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
-	FBXImporter importer;
+	// WWM Building below
+	
+	//FBXImporter importer;
 	//ModelRiggedResource shadiiAnimated;
 	//ModelRiggedResource shadiiAnimated2;
 	//ModelRiggedResource shadiiAnimations;
@@ -39,9 +41,9 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//std::string path2 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 	//std::string path3 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 
-	ModelRiggedResource carcinian;
-	importer.ImportFBXRigged("Assets/Carcinian_Animated.fbx", &carcinian);
-	std::string path4 = importer.SaveWMM(&carcinian, "Assets/Models/Rigged/");
+	//ModelRiggedResource carcinian;
+	//importer.ImportFBXRigged("Assets/Carcinian_Animated.fbx", &carcinian);
+	//std::string path4 = importer.SaveWMM(&carcinian, "Assets/Models/Rigged/");
 
 	/*ModelRiggedResource grafikiAnimated;
 	importer.ImportFBXRigged("Assets/Models/FBX/Rigged/Grafiki_Animated.fbx", &grafikiAnimated);
@@ -113,18 +115,13 @@ void Whisperwoods::Run()
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
-	//shared_ptr<MeshRenderableRigged> mesh = Renderer::CreateMeshRigged("Shadii_Animated.wwm");
+	// Test meshes
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
-	//shared_ptr<MeshRenderableStatic> meshSphere = Renderer::CreateMeshStatic("Assets/Models/Static/Debug_Sphere.wwm");
 	shared_ptr<MeshRenderableRigged> grafiki = Renderer::CreateMeshRigged("Grafiki_Animated.wwm");
-	shared_ptr<MeshRenderableRigged> carcinian = Renderer::CreateMeshRigged("Carcinian_Animated.wwm");
-
-
-
+	
 	Player testPlayer("Shadii_Animated.wwm", "Assets/Models/FBX/Rigged/Shadii_Animations.fbx", Mat::translation3(0, -0.5f, 0) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
 	Empty testEmpty;
 	testEmpty.AddChild(&testPlayer);
-
 
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0, -5.5f, -2);
@@ -162,69 +159,31 @@ void Whisperwoods::Run()
 	grafiTree->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneGrafitree.wwmt"));
 
 
+	// Grafiki animations test
 	Resources resources = Resources::Get();
-
-	//Animator testAnimator((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated.wwm"));
 	Animator testAnimatorGrafiki((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Grafiki_Animated.wwm"));
-	Animator testAnimatorCarcinian((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Carcinian_Animated.wwm"));
-
-
-	//ModelRiggedResource* printReference = (ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Shadii_Animated2.wwm");
-
-	//for (int i = 0; i < printReference->armature.bones.Size(); i++)
-	//{
-	//	std::string boneName = printReference->armature.bones[i].name;
-	//	DirectX::XMFLOAT4X4 m = printReference->armature.bones[i].inverseBindMatrix;
-	//	LOG_TRACE("Inverse Bind Matrix For: %s\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n %.2f, %.2f, %.2f, %.2f\n",
-	//		boneName.c_str(),
-	//		m._11, m._12, m._13, m._14,
-	//		m._21, m._22, m._23, m._24,
-	//		m._31, m._32, m._33, m._34,
-	//		m._41, m._42, m._43, m._44)
-	//}
-
-	//FBXImporter importer;
 	FBXImporter importer;
-	/*shared_ptr<AnimationResource> resource (new AnimationResource);
-	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Shadii_Animations.fbx", resource.get());*/
-
 	shared_ptr<AnimationResource> resource2(new AnimationResource);
 	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Grafiki_Animations.fbx", resource2.get());
-
-	//Animation* animation = &resource->animations[2];
-	//Animation* animation2 = &resource->animations[4];
-	//Animation* animation3 = &resource->animations[5];
-
 	Animation* animation4 = &resource2->animations[2]; 
 	Animation* animation5 = &resource2->animations[3];
 	Animation* animation6 = &resource2->animations[4];
-
-	/*float speed = 1.5f;
-	testAnimator.AddAnimation(animation, 0, speed, 1);
-	testAnimator.AddAnimation(animation2, 0, speed, 0.2f);
-	testAnimator.AddAnimation( animation3, 0, speed, 0.0f );
-	*/
 	float speed2 = 0.5f;
 	testAnimatorGrafiki.AddAnimation(animation4, 0, speed2, 1.0f);
 	testAnimatorGrafiki.AddAnimation(animation5, 0, speed2, 0.0f);
 	testAnimatorGrafiki.AddAnimation(animation6, 0, speed2, 0.0f);
 
+	// Test meshes transforms
 	float rotationY = cs::c_pi * 1.0f;
-	//mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-	
 	grafiki->worldMatrix = Mat::translation3(2.5f, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 
-	/*mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
-	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt")); 
-	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPupil.wwmt"));
-	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPants.wwmt"));
-	mesh->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiSpikes.wwmt"));*/
-
+	// Static shady materials test
 	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
 	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt"));
 	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPupil.wwmt"));
-
+	
+	// Grafiki materials test
 	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiBody.wwmt"));
 	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiGum.wwmt"));
 	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt"));
@@ -236,10 +195,6 @@ void Whisperwoods::Run()
 	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiWood.wwmt"));
 	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiCrystal.wwmt"));
 
-	carcinian->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "Carcinian.wwmt"));
-
-
-
 	// Text
 
 	dx::SimpleMath::Vector2 posTest;
@@ -249,8 +204,6 @@ void Whisperwoods::Run()
 	cs::Color4f color(0.034f, 0.255f, 0.0f, 1.0f);
 	//These are just test values
 	
-
-
 	// Lights
 
 	shared_ptr<PointLight> point = make_shared<PointLight>();
@@ -297,14 +250,11 @@ void Whisperwoods::Run()
 
 		Input::Get().Update();
 		
-		//testAnimator.Update(dTime);
 		testAnimatorGrafiki.Update(dTime);
-		testAnimatorCarcinian.Update(dTime);
 
 		m_game->Update();
 		m_sound->Update();
 		rotationY += 0.2f * dTime;
-		//mesh->worldMatrix = Mat::translation3(0, -0.8f, 1) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
 
 		testEmpty.Update(dTime);
@@ -312,7 +262,6 @@ void Whisperwoods::Run()
 
 
 		// Draw step
-
 		m_renderer->Draw();
 
 		//#ifdef WW_DEBUG
@@ -322,23 +271,12 @@ void Whisperwoods::Run()
 
 		if (ImGui::Begin("Animation"))
 		{
-			//ImGui::Text("The base animation is %s", testAnimator.loadedAnimations[0].sourceAnimation->name.c_str());
-			//ImGui::SliderFloat(testAnimator.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
-			//ImGui::SliderFloat(testAnimator.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimator.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f");
-			//ImGui::SliderFloat("Speed", &speed, 0.0f, 3.0f, "speed = %.3f");
 			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat("Speed2", &speed2, 0.0f, 3.0f, "speed = %.3f");
-			//testAnimator.loadedAnimations[0].speed = speed;
-			//testAnimator.loadedAnimations[1].speed = speed;
-			//testAnimator.loadedAnimations[2].speed = speed;
 			testAnimatorGrafiki.loadedAnimations[0].speed = speed2;
 			testAnimatorGrafiki.loadedAnimations[1].speed = speed2;
 			testAnimatorGrafiki.loadedAnimations[2].speed = speed2;
-			testAnimatorCarcinian.loadedAnimations[0].speed = speed3;
-			testAnimatorCarcinian.loadedAnimations[1].speed = speed3;
-			testAnimatorCarcinian.loadedAnimations[2].speed = speed3;
-			testAnimatorCarcinian.loadedAnimations[3].speed = speed3;
 		}
 		ImGui::End();
 
