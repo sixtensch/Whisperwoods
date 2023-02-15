@@ -32,14 +32,16 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	// WWM Building below
 	
-	//FBXImporter importer;
-	//ModelRiggedResource shadiiAnimated;
+	FBXImporter importer;
+	ModelRiggedResource shadiiRigged;
+	importer.ImportFBXRigged( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", &shadiiRigged);
+	std::string shadiiRiggedPath = importer.SaveWMM(&shadiiRigged, "Assets/Models/Rigged/");
+
+
 	//ModelRiggedResource shadiiAnimated2;
 	//ModelRiggedResource shadiiAnimations;
-	//importer.ImportFBXRigged( "Assets/Shadii_Animated.fbx", &shadiiAnimated );
 	//importer.ImportFBXRigged( "Assets/Shadii_Animated2.fbx", &shadiiAnimated2 );
 	//importer.ImportFBXRigged( "Assets/Shadii_Animations.fbx", &shadiiAnimations );
-	//std::string path1 = importer.SaveWMM(&shadiiAnimated, "Assets/Models/Rigged/");
 	//std::string path2 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 	//std::string path3 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 
@@ -124,7 +126,7 @@ void Whisperwoods::Run()
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
 	shared_ptr<MeshRenderableRigged> grafiki = Renderer::CreateMeshRigged("Grafiki_Animated.wwm");
 	
-	Player testPlayer("Shadii_Animated.wwm", "Assets/Models/FBX/Rigged/Shadii_Animations.fbx", Mat::translation3(0, -0.5f, 0) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	Player testPlayer("Shadii_Rigged_Optimized.wwm", "Assets/Models/FBX/Rigged/Shadii_Animations.fbx", Mat::translation3(0, -0.5f, 0) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
 	Empty testEmpty;
 	testEmpty.AddChild(&testPlayer);
 

@@ -782,31 +782,31 @@ void RenderCore::InitPipelines()
 
 void RenderCore::InitComputeShaders()
 {
-	ComPtr<ID3DBlob> blob;
+	//ComPtr<ID3DBlob> blob;
 
-	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSThresholdPass.cso", &blob));
-	EXC_COMCHECK(m_device->CreateComputeShader(
-		blob->GetBufferPointer(),
-		blob->GetBufferSize(),
-		nullptr,
-		m_thresholdCompute.GetAddressOf()
-	));
+	//EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSThresholdPass.cso", &blob));
+	//EXC_COMCHECK(m_device->CreateComputeShader(
+	//	blob->GetBufferPointer(),
+	//	blob->GetBufferSize(),
+	//	nullptr,
+	//	m_thresholdCompute.GetAddressOf()
+	//));
 
-	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSBloomPass.cso", &blob));
-	EXC_COMCHECK(m_device->CreateComputeShader(
-		blob->GetBufferPointer(),
-		blob->GetBufferSize(),
-		nullptr,
-		m_bloomCompute.GetAddressOf()
-	));
+	//EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSBloomPass.cso", &blob));
+	//EXC_COMCHECK(m_device->CreateComputeShader(
+	//	blob->GetBufferPointer(),
+	//	blob->GetBufferSize(),
+	//	nullptr,
+	//	m_bloomCompute.GetAddressOf()
+	//));
 
-	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSColorGrade.cso", &blob));
-	EXC_COMCHECK(m_device->CreateComputeShader(
-		blob->GetBufferPointer(),
-		blob->GetBufferSize(),
-		nullptr,
-		m_colorGradeCompute.GetAddressOf()
-	));
+	//EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSColorGrade.cso", &blob));
+	//EXC_COMCHECK(m_device->CreateComputeShader(
+	//	blob->GetBufferPointer(),
+	//	blob->GetBufferSize(),
+	//	nullptr,
+	//	m_colorGradeCompute.GetAddressOf()
+	//));
 }
 
 void RenderCore::InitConstantBuffers()

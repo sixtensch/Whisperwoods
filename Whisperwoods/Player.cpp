@@ -45,11 +45,11 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	characterAnimator->AddAnimation( couchAnimation, 0, m_animationSpeed, 0.0f );
 
 	// Get materials
-	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiBody.wwmt" ) );
-	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiWhite.wwmt" ) );
-	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiPupil.wwmt" ) );
-	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiPants.wwmt" ) );
-	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiSpikes.wwmt" ) );
+	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiCombined.wwmt" ) );
+	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiWhite.wwmt" ) );
+	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiPupil.wwmt" ) );
+	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiPants.wwmt" ) );
+	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiSpikes.wwmt" ) );
 
 	m_walkSpeed = 1.5f;
 	m_runSpeed = 3.5f;
