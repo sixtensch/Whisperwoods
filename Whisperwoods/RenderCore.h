@@ -47,6 +47,7 @@ public:
 	void SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV);
 	void UpdateBoneMatrixBuffer(ComPtr<ID3D11Buffer> matrixBuffer, cs::List<DirectX::XMFLOAT4X4> bones);
 
+
 	void WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
 		const shared_ptr<DirectionalLight>& lightDirectional,
 		const cs::List<shared_ptr<PointLight>>& lightsPoint,

@@ -7,7 +7,7 @@
 void DirectionalLight::Update(float delta_time)
 {
 	camera.CopyTransform(transform);
-	camera.SetValues(0, 0, LIGHT_NEAR, LIGHT_FAR);
+	camera.SetValues(dx::XM_PI, 1, LIGHT_NEAR, LIGHT_FAR);
 	camera.CalculateOrthoProjection(diameter, diameter);
 	camera.Update();
 

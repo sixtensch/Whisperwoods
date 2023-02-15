@@ -405,6 +405,7 @@
     <FxCompile Include="VSMeshRigged.hlsl">
       <Filter>%2a Code\%2a Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="VSShadow.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Constants.hlsli">

@@ -165,7 +165,6 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 		m_shadowSRV.GetAddressOf()
 	));
 
-
 	// Depth stencil state
 
 
@@ -285,6 +284,8 @@ void RenderCore::NewFrame()
 
 void RenderCore::TargetShadowMap()
 {
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	EXC_COMINFO(m_context->PSSetShaderResources(24, 1, &nullSRV)); // Unbind SRV to use as RTV
 	EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
 	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, m_shadowDSV.Get()));
@@ -295,6 +296,7 @@ void RenderCore::TargetBackBuffer()
 {
 	EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
 	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
+	EXC_COMINFO(m_context->PSSetShaderResources(24, 1, m_shadowSRV.GetAddressOf()));
 	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get())); // Backface culling
 }
 
@@ -579,7 +581,15 @@ void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)
 		EXC_COMINFO(m_context->GSSetShader(n.geometryShader.Get(), nullptr, 0));
 		EXC_COMINFO(m_context->DSSetShader(n.domainShader.Get(), nullptr, 0));
 		EXC_COMINFO(m_context->HSSetShader(n.hullShader.Get(), nullptr, 0));
-		EXC_COMINFO(m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0));
+
+		if(!shadowing)
+		{
+			EXC_COMINFO(m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0));
+		}
+		else
+		{
+			EXC_COMINFO(m_context->PSSetShader(nullptr, nullptr, 0));
+		}
 
 		return;
 	}
