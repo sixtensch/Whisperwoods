@@ -54,7 +54,7 @@ void RenderHandler::Draw()
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	m_renderCore->TargetBackBuffer();
+	m_renderCore->TargetRenderTexture();
 
     for (int i = 0; i < m_worldRenderables.Size(); i++)
     {

@@ -20,7 +20,7 @@ public:
 
 	void NewFrame();
 	void TargetShadowMap(Light* light);
-	void TargetBackBuffer();
+	void TargetRenderTexture();
 	void EndFrame();
 
 	void CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const;
@@ -87,11 +87,17 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_bbSRV;
 	cs::Color4f m_bbClearColor;
 
+	// Render texture
+	ComPtr<ID3D11Texture2D> m_renderTexture;
+	ComPtr<ID3D11RenderTargetView> m_renderTextureRTV;
+	ComPtr<ID3D11ShaderResourceView> m_renderTextureSRV;
+	ComPtr<ID3D11UnorderedAccessView> m_renderTextureUAV;
+
 	// PPFX
-	ComPtr<ID3D11Texture2D> m_ppfxBloomTexture;
-	ComPtr<ID3D11UnorderedAccessView> m_ppfxBloomUAV;
-	ComPtr<ID3D11ShaderResourceView> m_ppfxBloomSRV;
-	ComPtr<ID3D11RenderTargetView> m_ppfxBloomRTV;
+	ComPtr<ID3D11Texture2D> m_ppfxLumTexture;
+	ComPtr<ID3D11UnorderedAccessView> m_ppfxLumUAV;
+	ComPtr<ID3D11ShaderResourceView> m_ppfxLumSRV;
+	ComPtr<ID3D11RenderTargetView> m_ppfxLumRTV;
 
 	ComPtr<ID3D11ComputeShader> m_thresholdCompute;
 	ComPtr<ID3D11ComputeShader> m_bloomCompute;
