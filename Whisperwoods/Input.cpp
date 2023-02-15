@@ -58,7 +58,7 @@ void Input::InputInit(const HWND windowHandle)
 	AddKeysToInput(KeybindUp, { DXKey::Space });
 	AddKeysToInput(KeybindDown, { DXKey::LeftControl });
 	AddKeysToInput(KeybindSprint, { DXKey::LeftShift, DXKey::RightShift });
-	AddKeysToInput(KeybindCrouch, { DXKey::C, DXKey::RightControl });
+	AddKeysToInput(KeybindCrouch, { DXKey::C, DXKey::LeftControl,  DXKey::RightControl });
 	AddKeysToInput(KeybindPower, { DXKey::Q, DXKey::NumPad0 });
 
 }
@@ -139,11 +139,11 @@ void Input::SetMode(dx::Mouse::Mode mouseMode)
 
 void Input::AddKeyToInput(const Keybind input, const DXKey key)
 {
-	if (IsKeyBound(key))
+	/*if (IsKeyBound(key))
 	{
 		LOG_ERROR("Key failed to bind with input (Keybind value = '%d') as its already bound to other input.", input);
 		return;
-	}
+	}*/
 
 	m_keybindList[input].Add(key);
 }

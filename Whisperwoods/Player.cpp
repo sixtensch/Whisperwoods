@@ -121,13 +121,17 @@ void Player::Update(float delta_time)
 	else
 		m_animationSpeed = -1.0f - ((m_velocity.Length() / m_runSpeed) * 0.5f);
 	
-
-
-
-	for (int i = 0; i < characterAnimator->loadedAnimations.Size(); i++)
+	if (m_isCrouch)
 	{
-		characterAnimator->loadedAnimations[i].speed = m_animationSpeed;
+		if (forwardRelative > 0.2f)
+			m_animationSpeed = 1.0f + ((m_velocity.Length() / m_runSpeed) * 0.5f);
+		else if (forwardRelative < -0.2f)
+			m_animationSpeed = -1.0f - ((m_velocity.Length() / m_runSpeed) * 0.5f);
+		else
+			m_animationSpeed = 0;
 	}
+
+	characterAnimator->playbackSpeed = m_animationSpeed;
 
 	characterAnimator->Update( delta_time );
 	transform.CalculateWorldMatrix();
