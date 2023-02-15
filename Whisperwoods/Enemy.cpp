@@ -2,6 +2,7 @@
 #include "Enemy.h"
 #include "Renderer.h"
 #include "FBXImporter.h"
+#include "Resources.h"
 
 Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOffset)
 {
@@ -14,7 +15,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_walkingDirection = Vec2(0.0f, 0.0f);
 	m_enemyAlive = false; // Default false, has to be manually turned on
 	m_rotation = false;
-	m_rotationSpeed = 0.005f;
+	m_rotationSpeed = 0.007f;
 	m_offset = 0;
 	m_isMoving = true;
 
@@ -27,6 +28,8 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_animationSet = std::make_shared<AnimationResource>();
 	importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 	m_firstTrigger = false;
+
+	m_carcinian->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "Carcinian.wwmt"));
 }
 
 Enemy::~Enemy()
@@ -49,6 +52,12 @@ void Enemy::Update(float dTime)
 		{
 			m_rotation = true;
 		}
+
+		if (!first && !m_enclosedLoop && (m_currentPatrolIndex == 0 || m_currentPatrolIndex == m_patrolPath.size() - 1)) // start index or last index with stopping and 180 degree turn. Run animation here
+		{
+			m_isMoving = false;
+		}
+
 		if (m_currentPatrolIndex == m_patrolPath.size() - 1 && !first) // Current position is at the end of the patrol index vector
 		{
 			if (m_enclosedLoop) // Enemy walks in a circle
@@ -90,10 +99,7 @@ void Enemy::Update(float dTime)
 		}
 
 
-		if (!first && !m_enclosedLoop && (m_currentPatrolIndex == 0 || m_currentPatrolIndex == m_patrolPath.size() - 1)) // start index or last index with stopping and 180 degree turn. Run animation here
-		{
-			m_isMoving = false;
-		}
+		
 		
 		//rotate clockwise or counter clockwise?   if result is positive, then v is on the left side of u. If negative, right side. If 0, parallell(doesn't matter)
 		//u x v = u1 * v2 - u2 * v1
@@ -147,13 +153,13 @@ void Enemy::Update(float dTime)
 		m_rotationCounter = angleDecimal;
 		m_offset = angleDecimal;
 	}
-	else
+	else if(m_isMoving == true)
 	{
 		if (m_rotateClockWise == false)//counter clockwise, add onto the offset
 		{
 			if (m_rotationCounter > angleDecimal + m_rotationSpeed * 1.1) //DO NOT CHANGE THIS
 			{
-				angle = 90 - angle;
+				angle = 180 - angle;
 				angleDecimal = angle / 180;
 			}
 			m_rotationCounter += m_rotationSpeed;
@@ -167,7 +173,7 @@ void Enemy::Update(float dTime)
 		{
 			if (m_rotationCounter < angleDecimal - m_rotationSpeed * 1.1) // DO NOT CHANGE THIS
 			{
-				angle = 90 + angle;
+				angle = 180 + angle;
 				angleDecimal = angle / 180;
 			}
 			m_rotationCounter -= m_rotationSpeed;
@@ -178,6 +184,12 @@ void Enemy::Update(float dTime)
 			}
 		}
 		m_offset = m_rotationCounter;
+	}
+	else if(m_rotation == true && m_isMoving == false)// 180 degree turn. Play animation here
+	{
+		m_isMoving = true;
+		m_offset = angleDecimal;
+		m_rotation = false;
 	}
 	
 	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset * Mat::rotation3(0, -cs::c_pi * m_offset + cs::c_pi * 0.5, 0);
