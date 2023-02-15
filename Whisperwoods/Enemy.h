@@ -24,10 +24,10 @@ public:
 	shared_ptr<AnimationResource> m_animationSet;
 	unique_ptr<Animator> m_characterAnimator;
 
-	Mat4 m_modelOffset;
 
 private:
 	
+	Mat4 m_modelOffset;
 
 	std::vector<Vec2> m_patrolPath; // To save the coordinates mapped in bitmap for patrol path.
 	int m_currentPatrolIndex; // Which index in vector enemy is currently walking towards.
@@ -44,5 +44,6 @@ private:
 	float m_rotationSpeed;
 	float m_rotationCounter;
 	float m_offset;
+	bool m_isMoving;
 };
 

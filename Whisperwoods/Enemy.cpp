@@ -16,6 +16,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_rotation = false;
 	m_rotationSpeed = 0.005f;
 	m_offset = 0;
+	m_isMoving = true;
 
 
 	m_carcinian = Renderer::CreateMeshRigged(modelResource);
@@ -87,6 +88,12 @@ void Enemy::Update(float dTime)
 		{
 			m_lastWalkingDirection = m_walkingDirection;
 		}
+
+
+		if (!first && !m_enclosedLoop && (m_currentPatrolIndex == 0 || m_currentPatrolIndex == m_patrolPath.size() - 1)) // start index or last index with stopping and 180 degree turn. Run animation here
+		{
+			m_isMoving = false;
+		}
 		
 		//rotate clockwise or counter clockwise?   if result is positive, then v is on the left side of u. If negative, right side. If 0, parallell(doesn't matter)
 		//u x v = u1 * v2 - u2 * v1
@@ -106,7 +113,8 @@ void Enemy::Update(float dTime)
 		
 	Vec2 newPosition = m_currentPosition;
 	// Time to walk
-	if (m_rotation == false) // keep this for stop->rotate, remove for rotate while moving?
+	//if (m_rotation == false) // keep this for stop->rotate, remove for rotate while moving?
+	if(m_isMoving)
 	{
 		newPosition = Vec2(m_currentPosition.x + m_walkingDirection.x * m_walkingSpeed * dTime, m_currentPosition.y + m_walkingDirection.y * m_walkingSpeed * dTime);
 	}
