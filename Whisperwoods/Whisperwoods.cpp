@@ -8,10 +8,15 @@
 #include "Animator.h"
 #include <imgui.h>
 #include "TextRenderable.h"
+
 #include "Player.h"
 #include "Empty.h"
+#include "StaticObject.h"
+#include "Room.h"
 
 #include "LevelImporter.h"
+#include "WWMBuilder.h"
+#include "WWABuilder.h"
 
 // TODO: Dudd include. Only used for getting test sound.
 #include "SoundResource.h"
@@ -30,60 +35,28 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	EXC_COMCHECK(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 
-	// WWM Building below
-	
-	FBXImporter importer;
-	//ModelRiggedResource shadiiRigged;
-	//importer.ImportFBXRigged( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", &shadiiRigged);
-	//std::string shadiiRiggedPath = importer.SaveWMM(&shadiiRigged, "Assets/Models/Rigged/");
+	//// WWM Building below
+	//// Rigged Models
+	//BuildWWM( "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx", true );
+	//BuildWWM( "Assets/Models/FBX/Rigged/Grafiki_Animated.fbx", true );
+	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Animated.fbx", true );
+	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Animated2.fbx", true );
+	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", true );
 
+	//// Static Models
+	//BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
 
-	//ModelRiggedResource shadiiAnimated2;
-	//ModelRiggedResource shadiiAnimations;
-	//importer.ImportFBXRigged( "Assets/Shadii_Animated2.fbx", &shadiiAnimated2 );
-	//importer.ImportFBXRigged( "Assets/Shadii_Animations.fbx", &shadiiAnimations );
-	//std::string path2 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
-	//std::string path3 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
-
-	//ModelRiggedResource carcinian;
-	//importer.ImportFBXRigged("Assets/Carcinian_Animated.fbx", &carcinian);
-	//std::string path4 = importer.SaveWMM(&carcinian, "Assets/Models/Rigged/");
-
-	/*ModelRiggedResource grafikiAnimated;
-	importer.ImportFBXRigged("Assets/Models/FBX/Rigged/Grafiki_Animated.fbx", &grafikiAnimated);
-	std::string path1 = importer.SaveWMM(&grafikiAnimated, "Assets/Models/Rigged/");*/
-
-	//importer.ImportFBXRigged("Assets/Shadii_Animations.fbx", &riggedModel);
-	//path = importer.SaveWMM(&riggedModel, "Assets/Models/Rigged/");
-
-
-	ModelStaticResource staticTestModelWrite;
-	importer.ImportFBXStatic( "Assets/Models/FBX/Static/Ground.fbx", &staticTestModelWrite);
-	std::string path4 = importer.SaveWMM(&staticTestModelWrite, "Assets/Models/Static/");
-
-	//ModelStaticResource staticTestModelWrite2;
-	//importer.ImportFBXStatic("Assets/Models/FBX/Static/BigTrees.fbx", &staticTestModelWrite2);
-	//std::string path5 = importer.SaveWMM(&staticTestModelWrite2, "Assets/Models/Static/");
-
-	//ModelStaticResource staticTestModelWrite3;
-	//importer.ImportFBXStatic("Assets/Models/FBX/Static/BigPlants.fbx", &staticTestModelWrite3);
-	//std::string path6 = importer.SaveWMM(&staticTestModelWrite3, "Assets/Models/Static/");
-
-	//ModelStaticResource staticTestModelWrite4;
-	//importer.ImportFBXStatic("Assets/Models/FBX/Static/SmallPlants.fbx", &staticTestModelWrite4);
-	//std::string path7 = importer.SaveWMM(&staticTestModelWrite4, "Assets/Models/Static/");
-
-	//ModelStaticResource staticTestModelWrite5;
-	//importer.ImportFBXStatic("Assets/Models/FBX/Static/MediumTrees.fbx", &staticTestModelWrite5);
-	//std::string path8 = importer.SaveWMM(&staticTestModelWrite5, "Assets/Models/Static/");
-
-	//ModelStaticResource staticTestModelWrite6;
-	//importer.ImportFBXStatic("Assets/Models/FBX/Static/Stones.fbx", &staticTestModelWrite6);
-	//std::string path9 = importer.SaveWMM(&staticTestModelWrite6, "Assets/Models/Static/");
-
-	//ModelStaticResource staticTestModelWrite7;
-	//importer.ImportFBXStatic("Assets/Models/FBX/Static/Grafitree.fbx", &staticTestModelWrite7);
-	//std::string path10 = importer.SaveWMM(&staticTestModelWrite7, "Assets/Models/Static/");
+	//// Animations
+	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
+	//BuildWWA( "Assets/Models/FBX/Rigged/Shadii_Animations.fbx" );
+	//BuildWWA( "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx" );
 
 
 	m_sound = std::make_unique<Sound>();
@@ -112,7 +85,6 @@ Whisperwoods::~Whisperwoods()
 void Whisperwoods::Run()
 {
 	// Main frame loop
-
 	LevelResource level = {};
 	LevelImporter::ImportImage("Examplemap.png", m_renderer->GetRenderCore(), &level);
 
@@ -127,59 +99,37 @@ void Whisperwoods::Run()
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
 	shared_ptr<MeshRenderableRigged> grafiki = Renderer::CreateMeshRigged("Grafiki_Animated.wwm");
 	
-	Player testPlayer("Shadii_Rigged_Optimized.wwm", "Assets/Models/FBX/Rigged/Shadii_Animations.fbx", Mat::translation3(0, -0.5f, 0) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	Player testPlayer("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0, -0.5f, 0) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
 	Empty testEmpty;
 	testEmpty.AddChild(&testPlayer);
 
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0, -5.5f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
+	Mat4 worldCombined = worldScale * worldPos * worldRot;
 
-	Resources& resources2 = Resources::Get();
-
-	shared_ptr<MeshRenderableStatic> ground = Renderer::CreateMeshStatic("Ground.wwm");
-	ground->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
-	ground->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneGround.wwmt"));
-	//ground->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneBackground.wwmt"));
-
-	shared_ptr<MeshRenderableStatic> bigTrees = Renderer::CreateMeshStatic("BigTrees.wwm");
-	bigTrees->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
-	bigTrees->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneBigTree.wwmt"));
-
-	shared_ptr<MeshRenderableStatic> bigPlants = Renderer::CreateMeshStatic("BigPlants.wwm");
-	bigPlants->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
-	bigPlants->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneBanana.wwmt"));
-
-	shared_ptr<MeshRenderableStatic> smallPlants = Renderer::CreateMeshStatic("SmallPlants.wwm");
-	smallPlants->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
-	smallPlants->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneTopDownPlant.wwmt"));
-
-	shared_ptr<MeshRenderableStatic> mediumTrees = Renderer::CreateMeshStatic("MediumTrees.wwm");
-	mediumTrees->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
-	mediumTrees->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneMediumTree.wwmt"));
-
-	shared_ptr<MeshRenderableStatic> stones = Renderer::CreateMeshStatic("Stones.wwm");
-	stones->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
-	stones->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneStones.wwmt"));
-
-	shared_ptr<MeshRenderableStatic> grafiTree = Renderer::CreateMeshStatic("Grafitree.wwm");
-	grafiTree->worldMatrix = worldScale * worldPos * worldRot; // cs::c_pi * 0.9f
-	grafiTree->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneGrafitree.wwmt"));
-
+	Room testRoom;
+	StaticObject ground( "Ground.wwm", worldCombined, { "TestSceneGround.wwmt" } );
+	StaticObject bigTrees( "BigTrees.wwm", worldCombined, { "TestSceneBigTree.wwmt" } );
+	StaticObject bigPlants( "BigPlants.wwm", worldCombined, { "TestSceneBanana.wwmt" } );
+	StaticObject smallPlants( "SmallPlants.wwm", worldCombined, { "TestSceneTopDownPlant.wwmt" } );
+	StaticObject mediumTrees( "MediumTrees.wwm", worldCombined, { "TestSceneMediumTree.wwmt" } );
+	StaticObject stones( "Stones.wwm", worldCombined, { "TestSceneStones.wwmt" } );
+	StaticObject grafiTree( "Grafitree.wwm", worldCombined, { "TestSceneGrafitree.wwmt" } );
 
 	// Grafiki animations test
 	Resources resources = Resources::Get();
 	Animator testAnimatorGrafiki((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Grafiki_Animated.wwm"));
-	FBXImporter importer;
-	shared_ptr<AnimationResource> resource2(new AnimationResource);
-	importer.ImportFBXAnimations("Assets/Models/FBX/Rigged/Grafiki_Animations.fbx", resource2.get());
-	Animation* animation4 = &resource2->animations[2]; 
+	AnimationResource* resource2 = (AnimationResource*)resources.GetResource( ResourceTypeAnimations, "Grafiki_Animations.wwa" );
+
+
+	Animation* animation4 = &resource2->animations[2];
 	Animation* animation5 = &resource2->animations[3];
 	Animation* animation6 = &resource2->animations[4];
 	float speed2 = 0.5f;
-	testAnimatorGrafiki.AddAnimation(animation4, 0, speed2, 1.0f);
-	testAnimatorGrafiki.AddAnimation(animation5, 0, speed2, 0.0f);
-	testAnimatorGrafiki.AddAnimation(animation6, 0, speed2, 0.0f);
+	testAnimatorGrafiki.AddAnimation(animation4, 0, 1.0f, 1.0f);
+	testAnimatorGrafiki.AddAnimation(animation5, 0, 1.0f, 0.0f);
+	testAnimatorGrafiki.AddAnimation(animation6, 0, 1.0f, 0.0f);
 
 	// Test meshes transforms
 	float rotationY = cs::c_pi * 1.0f;
@@ -246,7 +196,7 @@ void Whisperwoods::Run()
 
 
 	//std::shared_ptr<Enemy> testEnemy;
-	Enemy testEnemy("Carcinian_Animated.wwm", "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx", Mat::translation3(0, -0.8f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	Enemy testEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::translation3(0, -0.8f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
 	testEnemy.AddCoordinateToPatrolPath(Vec2(1.0f, -5.0f), true);
 	testEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -4.2f), true);
 	testEnemy.AddCoordinateToPatrolPath(Vec2(3.35f, -3.0f), true);
@@ -300,10 +250,10 @@ void Whisperwoods::Run()
 		{
 			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
 			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f");
-			ImGui::SliderFloat("Speed2", &speed2, 0.0f, 3.0f, "speed = %.3f");
-			testAnimatorGrafiki.loadedAnimations[0].speed = speed2;
-			testAnimatorGrafiki.loadedAnimations[1].speed = speed2;
-			testAnimatorGrafiki.loadedAnimations[2].speed = speed2;
+			ImGui::SliderFloat("Speed", &speed2, 0.0f, 3.0f, "speed = %.3f");
+			testAnimatorGrafiki.playbackSpeed = speed2;
+			//testAnimatorGrafiki.loadedAnimations[1].speed = speed2;
+			//testAnimatorGrafiki.loadedAnimations[2].speed = speed2;
 		}
 		ImGui::End();
 
@@ -457,7 +407,7 @@ void Whisperwoods::Move(float dTime, Player* player)
 	static Vec3 rotationVec = {};
 	if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
 	{
-		cs::Vec3 delta = Vec3(mouseState.y, mouseState.x, 0.0f);
+		cs::Vec3 delta = Vec3((float)mouseState.y, (float)mouseState.x, 0.0f);
 
 		rotationVec -= delta * dTime * 4.0f;
 		if (!cameraPlayer)

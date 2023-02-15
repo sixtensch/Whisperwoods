@@ -11,8 +11,8 @@
 #include "RenderHandler.h"
 
 /*
-	Ett till lager av säkerhet kan läggas på datan genom att returnera weak_ptrs. Dessa kan endast bli
-	castade till en shared_ptr OM den underliggande shared_ptr faktiskt existerar. Den äger på så sätt aldrig datan.
+	Ett till lager av säkerhet kan läggas pEdatan genom att returnera weak_ptrs. Dessa kan endast bli
+	castade till en shared_ptr OM den underliggande shared_ptr faktiskt existerar. Den äger pEsEsätt aldrig datan.
 */
 
 enum ResourceType 
@@ -23,6 +23,7 @@ enum ResourceType
 	ResourceTypeModelStatic,
 	ResourceTypeModelRigged,
 	ResourceTypeMap,
+	ResourceTypeAnimations,
 
 	ResourceTypeCount // <-- Keep last
 };
@@ -67,6 +68,7 @@ private:
 	void LoadMaterialResources();
 	void LoadModelStaticResources(const RenderCore* const renderCore);
 	void LoadModelRiggedResources(const RenderCore* const renderCore);
+	void LoadAnimationsResources();
 
 private:
 	static Resources* s_singleton;

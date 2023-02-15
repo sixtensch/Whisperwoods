@@ -998,12 +998,12 @@ void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, c
 
 	si.directional = lightDirectional->bufferData;
 
-	for (int i = 0; i < si.pointCount; i++)
+	for (unsigned int i = 0; i < si.pointCount; i++)
 	{
 		si.points[i] = lightsPoint[i]->bufferData;
 	}
 
-	for (int i = 0; i < si.spotCount; i++)
+	for (unsigned int i = 0; i < si.spotCount; i++)
 	{
 		si.spots[i] = lightsSpot[i]->bufferData;
 	}

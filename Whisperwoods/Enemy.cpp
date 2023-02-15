@@ -25,15 +25,16 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 
 
 	m_carcinian = Renderer::CreateMeshRigged(modelResource);
-	FBXImporter importer;
+	//FBXImporter importer;
 	m_characterAnimator = std::make_unique<Animator>((ModelRiggedResource*)Resources::Get().GetResource(ResourceTypeModelRigged, "Carcinian_Animated.wwm"));
 		
 
 
 	m_modelOffset = modelOffset;
 	// Import the animations
-	m_animationSet = std::make_shared<AnimationResource>();
-	importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
+	Resources& resources = Resources::Get();
+	m_animationSet = (AnimationResource*)resources.GetResource( ResourceTypeAnimations, animationsPath );
+	//importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 	m_firstTrigger = false;
 
 	Animation* carcinAnim0 = &m_animationSet->animations[0];
@@ -257,7 +258,7 @@ void Enemy::Update(float dTime)
 		//float angleDecimalReverse = angle / 180; this is 180 degrees rotation
 	}
 	
-	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset * Mat::rotation3(0, -cs::c_pi * m_offset + cs::c_pi * 0.5, 0);
+	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset * Mat::rotation3(0.0f, -cs::c_pi * m_offset + cs::c_pi * 0.5f, 0.0f);
 }
 
 void Enemy::AddCoordinateToPatrolPath(Vec2 coord, bool enclosed) // Make sure the Coordinates are sent in the correct order of the path
@@ -274,10 +275,12 @@ void Enemy::EmptyPatrolPath()
 void Enemy::AddModel(std::string modelResource, std::string animationsPath, Mat4 modelOffset)
 {
 	m_carcinian = Renderer::CreateMeshRigged(modelResource);
-	FBXImporter importer;
+	//FBXImporter importer;
 
 	m_modelOffset = modelOffset;
-	// Import the animations
-	m_animationSet = std::make_shared<AnimationResource>();
-	importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
+	// Import the animations (Now using the resource manager)
+	Resources& resources = Resources::Get();
+	m_animationSet = (AnimationResource*)resources.GetResource( ResourceTypeAnimations, animationsPath );
+	//m_animationSet = std::make_shared<AnimationResource>();
+	//importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 }

@@ -23,7 +23,7 @@ Vec3 AnimatorAnimation::GetInterpolatedValue( cs::List<Vec3KeyFrame> keys, float
 	int index = 0;
 	float actualTime = time * duration;
 
-	for (size_t i = 0; i < keys.Size(); i++)
+	for (int i = 0; i < keys.Size(); i++)
 	{
 		if (keys[i].time > actualTime)
 			break;
@@ -62,7 +62,7 @@ Quaternion AnimatorAnimation::GetInterpolatedValue( cs::List<QuatKeyFrame> keys,
 {
 	int index = 0;
 	float actualTime = time * duration;
-	for (size_t i = 0; i < keys.Size(); i++)
+	for (int i = 0; i < keys.Size(); i++)
 	{
 		if (keys[i].time > actualTime)
 			break;
@@ -133,14 +133,14 @@ Quaternion AnimatorAnimation::GetInterpolatedValue( cs::List<QuatKeyFrame> keys,
 	}
 }
 
-
 Animator::Animator(ModelRiggedResource* modelReference) : modelReference(modelReference)
 {
 	// Add tracking channels for all bones (possible optimization target vector)
-	for (unsigned int i = 0; i < modelReference->armature.bones.Size(); i++)
+	for (int i = 0; i < modelReference->armature.bones.Size(); i++)
 	{
 		combinedChannels.Add(AnimatorCombinedChannel(modelReference->armature.bones[i].name));
 	}
+	looping = true;
 	minInfluenceThreshold = 0.1f;
 	playbackSpeed = 1;
 	globalTime = 0;
@@ -177,7 +177,7 @@ void Animator::CombineAnimations()
 	if (!loadedAnimations.Size()) return;
 
 	// For first animation weight is always 1
-	for (unsigned int j = 0; j < loadedAnimations[0].animationChannels.Size(); j++)
+	for (int j = 0; j < loadedAnimations[0].animationChannels.Size(); j++)
 	{
 		int index = loadedAnimations[0].animationChannels[j].boneIndex;
 		if (index == -1) continue;
@@ -187,10 +187,10 @@ void Animator::CombineAnimations()
 		combinedChannels[index].collectiveScl = loadedAnimations[0].animationChannels[j].iScl;
 	}
 
-	for (unsigned int i = 1; i < loadedAnimations.Size(); i++)
+	for (int i = 1; i < loadedAnimations.Size(); i++)
 	{
 		if (loadedAnimations[i].influence < 0.05f) continue;
-		for (unsigned int j = 0; j < loadedAnimations[i].animationChannels.Size(); j++)
+		for ( int j = 0; j < loadedAnimations[i].animationChannels.Size(); j++)
 		{
 		
 			int index = loadedAnimations[i].animationChannels[j].boneIndex;
@@ -270,13 +270,13 @@ void Animator::StopAnimation(int index)
 void Animator::UpdateArmature()
 {
 	cs::List<DirectX::XMFLOAT4X4> modelMatrixList;
-	for (size_t i = 0; i < modelReference->armature.bones.Size(); i++)
+	for (int i = 0; i < modelReference->armature.bones.Size(); i++)
 	{
 		modelMatrixList.Add(DirectX::XMFLOAT4X4());
 	}
 
 	modelReference->armature.boneMatricies.Clear();
-	for (size_t i = 0; i < modelReference->armature.bones.Size(); i++)
+	for (int i = 0; i < modelReference->armature.bones.Size(); i++)
 	{
 		DirectX::XMFLOAT4X4 mat;
 		modelReference->armature.boneMatricies.Add(mat);
@@ -299,7 +299,7 @@ void Animator::UpdateArmature()
 	DirectX::XMStoreFloat4x4(&modelMatrixList[0], rootModelXM);
 	modelReference->armature.boneMatricies[0] = rootBone->posedMatrix;
 
-	for (size_t i = 1; i < combinedChannels.Size(); i++)
+	for (int i = 1; i < combinedChannels.Size(); i++)
 	{
 		Bone* bone = &modelReference->armature.bones[i];
 		AnimatorCombinedChannel* bC = &combinedChannels[i];
@@ -326,10 +326,10 @@ void Animator::Update(float deltaTime)
 	if (modelReference && loadedAnimations.Size())
 	{
 		globalTime += playbackSpeed * deltaTime;
-		if (globalTime > 1) globalTime = (looping) ? 0 : 1;
-		if (globalTime < 0) globalTime = (looping) ? 1 : 0;
+		if (globalTime > 1.0f) globalTime = (looping) ? 0.0f : 1.0f;
+		if (globalTime < 0.0f) globalTime = (looping) ? 1.0f : 0.0f;
 
-		for (unsigned int i = 0; i < loadedAnimations.Size(); i++)
+		for (int i = 0; i < loadedAnimations.Size(); i++)
 		{
 			if (loadedAnimations[i].influence < minInfluenceThreshold) continue;
 
