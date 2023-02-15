@@ -227,11 +227,6 @@ void Enemy::Update(float dTime)
 		}
 		else //if false
 		{
-			if (m_characterAnimator->loadedAnimations[3].isActive == false)
-			{
-				angle2 = 1;
-			}
-			
 			//turn animation
 			m_characterAnimator->StopAnimation(0);
 			//m_characterAnimator->loadedAnimations[3].
@@ -240,11 +235,14 @@ void Enemy::Update(float dTime)
 				m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
 				m_triggerTurn = true;
 			}
-			//else if(m_triggerTurn == true && )
-
-			//if (animation done)
-			//     m_offset = angleDecimal;
-			//      m_isMoving = true
+			else if (m_triggerTurn == true && m_characterAnimator->loadedAnimations[3].time == 1) //animation is over
+			{
+				m_characterAnimator->StopAnimation(3);
+				m_offset = angleDecimal;
+				m_isMoving = true;
+				m_triggerTurn = false;
+				m_characterAnimator->PlayAnimation(0, 0, 1, true, true);
+			}
 		}
 		
 	}
