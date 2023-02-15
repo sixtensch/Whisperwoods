@@ -21,8 +21,9 @@ struct LevelPatrol
 
 struct LevelExit
 {
-	float width;
+	Vec2 position;
 	Vec2 direction;
+	float width;
 };
 
 struct LevelResource : public BasicResource
