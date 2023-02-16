@@ -60,7 +60,7 @@ VSOutput main(VSInput input)
 
     float4 toFromPlayer = groundedPos - playerPos;
     toFromPlayer = normalize( toFromPlayer );
-    toFromPlayer = toFromPlayer * clamp((0.80f - distFromPlayer),0.0f, 0.80f); // controlls range
+    toFromPlayer = toFromPlayer * clamp((0.85f - distFromPlayer),0.0f, 0.7f); // controlls range
 
     // WIP
     /*float tFPR = dot( toFromPlayer, playerRight );
@@ -69,7 +69,7 @@ VSOutput main(VSInput input)
 
     toFromPlayer = float4(  
         clamp( toFromPlayer.x,-1.0f,1.0f),
-        (toFromPlayer.y*0.2f)-(0.7f* clamp((0.85f - distFromPlayer),0,0.85f)), 
+        (toFromPlayer.y*0.2f)-(0.7f* clamp((0.90f - distFromPlayer),0,0.90f)), 
         clamp( toFromPlayer.z,-1.0f,1.0f), 0.0f);
 
     // WIP
