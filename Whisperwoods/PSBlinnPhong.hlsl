@@ -65,13 +65,13 @@ cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
 };
 
 SamplerState textureSampler : REGISTER_SAMPLER_STANDARD;
+SamplerComparisonState shadowSampler : REGISTER_SAMPLER_SHADOW;
 
 Texture2D textureDiffuse : REGISTER_SRV_TEX_DIFFUSE;
 Texture2D textureSpecular : REGISTER_SRV_TEX_SPECULAR;
 Texture2D textureEmissive : REGISTER_SRV_TEX_EMISSIVE;
 Texture2D textureNormal : REGISTER_SRV_TEX_NORMAL;
-
-
+Texture2D shadowTexture : REGISTER_SRV_SHADOW_DEPTH;
 
 float4 main(VSOutput input) : SV_TARGET
 {
@@ -99,7 +99,17 @@ float4 main(VSOutput input) : SV_TARGET
 	// Cumulative color
     float4 color = float4(colorAlbedoOpacity.xyz * ambient, colorAlbedoOpacity.w);
 	
-    color += phong(
+	// Check shadow
+    float4 lsPos = mul(input.wPosition, directionalLight.clip);
+    float4 lsNDC = lsPos / lsPos.w; // U, V, Depth
+    float2 lsUV = float2(lsNDC.x * 0.5f + 0.5f, lsNDC.y * -0.5f + 0.5f);
+	
+    float dirNDotL = dot(normal, directionalLight.direction);
+    float epsilon = 0.0005 / acos(saturate(dirNDotL));
+    bool shadowAff = shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x;
+	
+    // Directional lighting
+	color += shadowAff * phong(
 		input.wPosition.xyz,
 		normal,
 		directionalLight.intensity,
@@ -111,6 +121,7 @@ float4 main(VSOutput input) : SV_TARGET
 		colorAlbedoOpacity.w,
 		colorSpecularSpecularity.w
 	);
+
 	
     for (uint i = 0; i < pointCount; i++)
     {
