@@ -264,4 +264,6 @@ bool LevelImporter::ImportImage(string textureName, const RenderCore* core, Leve
 	}
 
 	delete[] data;
+
+	return true;
 }
