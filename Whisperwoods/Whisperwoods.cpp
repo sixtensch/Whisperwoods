@@ -166,7 +166,7 @@ void Whisperwoods::Run()
 
 	shared_ptr<PointLight> point = make_shared<PointLight>();
 	point->color = cs::Color3f(0xFFFFFF);
-	point->intensity = 5.0f;
+	point->intensity = 1.0f;
 	point->transform.position = Vec3(2, 0, 0);
 	Renderer::RegisterLight(point);
 
@@ -182,8 +182,8 @@ void Whisperwoods::Run()
 
 	shared_ptr<DirectionalLight> directional = Renderer::GetDirectionalLight();
 	directional->transform.position = { 0, 10, 0 };
-	directional->transform.SetRotationEuler({ 0.5f, 0.9f, 0.0f });
-	directional->diameter = 20.0f;
+	directional->transform.SetRotationEuler({ -dx::XM_PIDIV2, 0.0f, 0.0f });
+	directional->diameter = 50.0f;
 	directional->intensity = 0.7f;
 	directional->color = cs::Color3f(0xFFFFD0);
 

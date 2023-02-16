@@ -62,9 +62,14 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	m_viewport.Width = static_cast<float>(window->GetWidth());
 	m_viewport.Height = static_cast<float>(window->GetHeight());
 
-	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
-
-
+	UINT shadowMapHeight = 4064;
+	UINT shadowMapWidth = 4064;
+	m_shadowViewport.TopLeftX = 0;
+	m_shadowViewport.TopLeftX = 0;
+	m_shadowViewport.MinDepth = 0;
+	m_shadowViewport.MaxDepth = 1;
+	m_shadowViewport.Width = shadowMapWidth;
+	m_shadowViewport.Height = shadowMapHeight;
 
 	// Setup back buffer
 
@@ -152,6 +157,40 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateDepthStencilView(m_dsTexture.Get(), &dsvDesc, &m_dsDSV));
 
 
+	D3D11_TEXTURE2D_DESC shadowMapDesc = {};
+	shadowMapDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
+	shadowMapDesc.MipLevels = 1;
+	shadowMapDesc.ArraySize = 1;
+	shadowMapDesc.SampleDesc.Count = 1;
+	shadowMapDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
+	shadowMapDesc.Height = shadowMapHeight;
+	shadowMapDesc.Width = shadowMapWidth;
+
+	EXC_COMCHECK(m_device->CreateTexture2D(
+		&shadowMapDesc,
+		nullptr,
+		m_shadowTexture.GetAddressOf()
+	));
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC shadowDSVDesc = {};
+	shadowDSVDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	shadowDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	shadowDSVDesc.Texture2D.MipSlice = 0;
+	D3D11_SHADER_RESOURCE_VIEW_DESC shadowSRVDesc = {};
+	shadowSRVDesc.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+	shadowSRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	shadowSRVDesc.Texture2D.MipLevels = 1;
+
+	EXC_COMCHECK(m_device->CreateDepthStencilView(
+		m_shadowTexture.Get(),
+		&shadowDSVDesc,
+		m_shadowDSV.GetAddressOf()
+	));
+	EXC_COMCHECK(m_device->CreateShaderResourceView(
+		m_shadowTexture.Get(),
+		&shadowSRVDesc,
+		m_shadowSRV.GetAddressOf()
+	));
 
 	// Depth stencil state
 
@@ -172,10 +211,16 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	rsd.SlopeScaledDepthBias = 0.0f;
 
 	EXC_COMCHECK(m_device->CreateRasterizerState(&rsd, &m_rasterizerState));
-	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get()));
 
+	D3D11_RASTERIZER_DESC shadowRSDesc = {};
+	shadowRSDesc.CullMode = D3D11_CULL_FRONT;
+	shadowRSDesc.FillMode = D3D11_FILL_SOLID;
+	shadowRSDesc.DepthClipEnable = true;
 
-
+	EXC_COMCHECK(m_device->CreateRasterizerState(
+		&shadowRSDesc,
+		m_shadowRenderState.GetAddressOf()
+	));
 	// Blend state
 
 	D3D11_RENDER_TARGET_BLEND_DESC rtbd = {};
@@ -226,6 +271,27 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	EXC_COMCHECK(m_device->CreateSamplerState(&sd, &m_sampler));
 	EXC_COMINFO(m_context->PSSetSamplers(RegSamplerStandard, 1, m_sampler.GetAddressOf()));
+
+	D3D11_SAMPLER_DESC shadowSDesc = {};
+	shadowSDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSDesc.BorderColor[0] = 1.0f;
+	shadowSDesc.BorderColor[1] = 1.0f;
+	shadowSDesc.BorderColor[2] = 1.0f;
+	shadowSDesc.BorderColor[3] = 1.0f;
+	shadowSDesc.MinLOD = 0.0f;
+	shadowSDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	shadowSDesc.MipLODBias = 0.0f;
+	shadowSDesc.MaxAnisotropy = 0;
+	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+
+	EXC_COMCHECK(m_device->CreateSamplerState(
+		&shadowSDesc,
+		m_shadowSampler.GetAddressOf()
+	));
+	EXC_COMINFO(m_context->PSSetSamplers(RegSamplerShadow, 1, m_shadowSampler.GetAddressOf()));
 
 	sd = {};
 
@@ -282,15 +348,24 @@ void RenderCore::NewFrame()
 	EXC_COMINFO(m_context->OMSetDepthStencilState(m_dsDSS.Get(), 1));
 }
 
-void RenderCore::TargetShadowMap(Light* light)
+void RenderCore::TargetShadowMap()
 {
-
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	EXC_COMINFO(m_context->PSSetShaderResources(24, 1, &nullSRV)); // Unbind SRV to use as RTV
+	EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
+	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
+	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, m_shadowDSV.Get()));
+	EXC_COMINFO(m_context->RSSetState(m_shadowRenderState.Get())); // Frontface culling
+	EXC_COMINFO(m_context->RSSetViewports(1, &m_shadowViewport));
 }
 
 void RenderCore::TargetBackBuffer()
 {
 	EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
 	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
+	EXC_COMINFO(m_context->PSSetShaderResources(24, 1, m_shadowSRV.GetAddressOf()));
+	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get())); // Backface culling
+	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
 }
 
 void RenderCore::EndFrame()
@@ -649,7 +724,15 @@ void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)
 		EXC_COMINFO(m_context->GSSetShader(n.geometryShader.Get(), nullptr, 0));
 		EXC_COMINFO(m_context->DSSetShader(n.domainShader.Get(), nullptr, 0));
 		EXC_COMINFO(m_context->HSSetShader(n.hullShader.Get(), nullptr, 0));
-		EXC_COMINFO(m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0));
+
+		if(!shadowing)
+		{
+			EXC_COMINFO(m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0));
+		}
+		else
+		{
+			EXC_COMINFO(m_context->PSSetShader(nullptr, nullptr, 0));
+		}
 
 		return;
 	}
@@ -775,6 +858,32 @@ void RenderCore::InitPipelines()
 		blob->GetBufferPointer(),
 		blob->GetBufferSize(),
 		m_pipelines[PipelineTypeStandardRigged].inputLayout.GetAddressOf()
+	));
+
+
+	// Shadow mapping pipeline
+
+	m_pipelines[PipelineTypeShadow].pixelShader = nullptr;
+
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"VSShadow.cso", &blob));
+	EXC_COMCHECK(m_device->CreateVertexShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypeShadow].vertexShader
+	));
+
+	D3D11_INPUT_ELEMENT_DESC inputLayoutShadow[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
+
+	EXC_COMCHECK(m_device->CreateInputLayout(
+		inputLayoutShadow,
+		(uint)(sizeof(inputLayoutShadow) / sizeof(*inputLayoutShadow)),
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		m_pipelines[PipelineTypeShadow].inputLayout.GetAddressOf()
 	));
 
 	blob->Release();
