@@ -182,8 +182,8 @@ void Whisperwoods::Run()
 
 	shared_ptr<DirectionalLight> directional = Renderer::GetDirectionalLight();
 	directional->transform.position = { 0, 10, 0 };
-	directional->transform.SetRotationEuler({ -dx::XM_PIDIV2, 0.0f, 0.0f });
-	directional->diameter = 50.0f;
+	directional->transform.SetRotationEuler({ -dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
+	directional->diameter = 22.0f;
 	directional->intensity = 0.7f;
 	directional->color = cs::Color3f(0xFFFFD0);
 
