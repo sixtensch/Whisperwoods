@@ -21,7 +21,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED; //  scaling is unspecified
 	desc.SampleDesc.Count = 1; // one desc
 	desc.SampleDesc.Quality = 0; //default
-	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_UNORDERED_ACCESS; //use resource or surface as result of rendering
+	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT | DXGI_USAGE_UNORDERED_ACCESS; //use resource or surface as result of rendering
 	desc.BufferCount = 3; 
 	desc.OutputWindow = window->Data();
 	desc.Windowed = true;
@@ -82,15 +82,37 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	EXC_COMCHECK(m_device->CreateRenderTargetView(m_bbTexture.Get(), &rtvd, &m_bbRTV));
 
-	//D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-	//srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	//srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	//srvd.Texture2D = { 0, 1 };
-	//
-	//EXC_COMCHECK(m_device->CreateShaderResourceView(m_bbTexture.Get(), &srvd, &m_bbSRV));
+	D3D11_UNORDERED_ACCESS_VIEW_DESC uavd;
+	uavd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	uavd.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+	uavd.Texture2D = { 0 };
+
+	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_bbTexture.Get(), &uavd, &m_bbUAV));
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
+	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvd.Texture2D = { 0, 1 };
+	
+	EXC_COMCHECK(m_device->CreateShaderResourceView(m_bbTexture.Get(), &srvd, &m_bbSRV));
 
 	m_bbClearColor = cs::Color4f(0.0f, 0.0f, 0.0f, 1.0f);
 
+	// PPFX Textures and views
+
+	D3D11_TEXTURE2D_DESC bloomtd;
+	m_bbTexture->GetDesc(&bloomtd);
+	bloomtd.MipLevels = BLOOM_MIP_LEVELS;
+	bloomtd.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET | D3D11_BIND_UNORDERED_ACCESS;
+	bloomtd.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+
+	EXC_COMCHECK(m_device->CreateTexture2D(&bloomtd, nullptr, m_ppfxBloomTexture.GetAddressOf()));
+	
+	srvd.Texture2D = { 0, (UINT)-1 }; // Keep all mips as this will be used in compute.
+	EXC_COMCHECK(m_device->CreateShaderResourceView(m_ppfxBloomTexture.Get(), &srvd, m_ppfxBloomSRV.GetAddressOf()));
+
+	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_ppfxBloomTexture.Get(), nullptr, m_ppfxBloomUAV.GetAddressOf()));
+	EXC_COMCHECK(m_device->CreateRenderTargetView(m_ppfxBloomTexture.Get(), nullptr, m_ppfxBloomRTV.GetAddressOf()));
 
 
 	// Depth stencil
@@ -220,6 +242,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMINFO(m_context->OMSetBlendState(m_blendState.Get(), nullptr, sampleMask));
 
 	InitPipelines();
+	InitComputeShaders();
 	InitConstantBuffers();
 	InitFont(m_fonts, &m_spriteBatch);
 	InitDefaultMaterials();
@@ -235,7 +258,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	sd.Filter = D3D11_FILTER_ANISOTROPIC;
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	sd.MipLODBias = 0.0f;
 	sd.MaxAnisotropy = 1u;
 	sd.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
@@ -269,6 +292,44 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 		m_shadowSampler.GetAddressOf()
 	));
 	EXC_COMINFO(m_context->PSSetSamplers(RegSamplerShadow, 1, m_shadowSampler.GetAddressOf()));
+
+	sd = {};
+
+	sd.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	sd.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd.MipLODBias = 0.0f;
+	sd.MaxAnisotropy = 1u;
+	sd.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sd.BorderColor[0] = 0.0f;
+	sd.BorderColor[1] = 0.0f;
+	sd.BorderColor[2] = 0.0f;
+	sd.BorderColor[3] = 0.0f;
+	sd.MinLOD = 0.0f;
+	sd.MaxLOD = D3D11_FLOAT32_MAX;
+
+	EXC_COMCHECK(m_device->CreateSamplerState(&sd, m_pointSampler.GetAddressOf()));
+	EXC_COMINFO(m_context->PSSetSamplers(RegSamplerPoint, 1, m_pointSampler.GetAddressOf()));
+
+	sd = {};
+
+	sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sd.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd.MipLODBias = 0.0f;
+	sd.MaxAnisotropy = 1u;
+	sd.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sd.BorderColor[0] = 0.0f;
+	sd.BorderColor[1] = 0.0f;
+	sd.BorderColor[2] = 0.0f;
+	sd.BorderColor[3] = 0.0f;
+	sd.MinLOD = 0.0f;
+	sd.MaxLOD = D3D11_FLOAT32_MAX;
+
+	EXC_COMCHECK(m_device->CreateSamplerState(&sd, m_bloomUpscaleSampler.GetAddressOf()));
+	EXC_COMINFO(m_context->CSSetSamplers(RegSamplerSystem0, 1u, m_bloomUpscaleSampler.GetAddressOf()));
 }
 
 RenderCore::~RenderCore()
@@ -410,6 +471,52 @@ void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Tex
 	EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &srvd, &srv));
 }
 
+void RenderCore::DumpTexture(ID3D11Texture2D* texture, uint* outWidth, uint* outHeight, cs::Color4** newOutData) const
+{
+	D3D11_TEXTURE2D_DESC desc = {};
+	texture->GetDesc(&desc);
+
+	if (desc.Format != DXGI_FORMAT_R8G8B8A8_UNORM)
+	{
+		EXC("DumpTexture only supports 4-byte RGBA texture formats.");
+	}
+
+	*outWidth = desc.Width;
+	*outWidth = desc.Height;
+
+	desc.Usage = D3D11_USAGE_STAGING;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	desc.BindFlags = 0;
+	ComPtr<ID3D11Texture2D> stageTexture;
+
+	EXC_COMCHECK(m_device->CreateTexture2D(
+		&desc,
+		nullptr,
+		&stageTexture
+	));
+
+	D3D11_BOX box = {};
+	box.right = desc.Width;
+	box.bottom = desc.Height;
+	box.back = 1;
+
+	EXC_COMINFO(m_context->CopySubresourceRegion(stageTexture.Get(), 0, 0, 0, 0, texture, 0, &box));
+
+	D3D11_MAPPED_SUBRESOURCE msr = {};
+	EXC_COMCHECK(m_context->Map(stageTexture.Get(), 0u, D3D11_MAP_READ, 0u, &msr));
+
+	*outWidth = desc.Width;
+	*outHeight = desc.Height;
+	*newOutData = new cs::Color4[desc.Width * desc.Height];
+
+	for (uint i = 0; i < desc.Height; i++)
+	{
+		memcpy(*newOutData + i * desc.Width, (byte*)msr.pData + i * msr.RowPitch, desc.Width * sizeof(cs::Color4));
+	}
+
+	EXC_COMINFO(m_context->Unmap(stageTexture.Get(), 0u));
+}
+
 void RenderCore::CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const
 {
 	D3D11_BUFFER_DESC bufferDesc = {};
@@ -540,6 +647,35 @@ void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text
 	m_fonts[font]->DrawString(m_spriteBatch.get(), m_text,
 		fontPos, col, 0.f, origin);
 	m_spriteBatch->End();
+}
+
+void RenderCore::DrawPPFX()
+{
+	ID3D11UnorderedAccessView* nullUAV = nullptr;
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	ID3D11RenderTargetView* nullRTV = nullptr;
+	EXC_COMINFO(m_context->OMSetRenderTargets(1u, &nullRTV, nullptr)); // Unbind bb RTV from OM.
+	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVRenderTarget, 1u, m_bbUAV.GetAddressOf(), nullptr)); // Last argument is ignored.
+	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVDefault, 1u, m_ppfxBloomUAV.GetAddressOf(), nullptr)); // Last argument is ignored.
+	EXC_COMINFO(m_context->CSSetSamplers(RegSamplerStandard, 1u, m_sampler.GetAddressOf()));
+	EXC_COMINFO(m_context->CSSetShader(m_thresholdCompute.Get(), nullptr, 0u));
+
+	EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+
+	EXC_COMINFO(m_context->GenerateMips(m_ppfxBloomSRV.Get()));
+	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVDefault, 1u, &nullUAV, 0u)); // Last argument is ignored.
+	EXC_COMINFO(m_context->CSSetShaderResources(RegSRVCopySource, 1u, m_ppfxBloomSRV.GetAddressOf()));
+	EXC_COMINFO(m_context->CSSetShader(m_bloomCompute.Get(), nullptr, 0u));
+
+	EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+
+	EXC_COMINFO(m_context->CSSetShader(m_colorGradeCompute.Get(), nullptr, 0u));
+	EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+
+	EXC_COMINFO(m_context->CSSetShaderResources(RegSRVCopySource, 1u, &nullSRV)); // Unbind bloom SRV.
+	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVRenderTarget, 1u, &nullUAV, nullptr)); // Unbind bb UAV from compute.
+	
+	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get())); // Rebind bb RTV to OM.
 }
 
 //void RenderCore::SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer)
@@ -753,6 +889,35 @@ void RenderCore::InitPipelines()
 	blob->Release();
 }
 
+void RenderCore::InitComputeShaders()
+{
+	//ComPtr<ID3DBlob> blob;
+
+	//EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSThresholdPass.cso", &blob));
+	//EXC_COMCHECK(m_device->CreateComputeShader(
+	//	blob->GetBufferPointer(),
+	//	blob->GetBufferSize(),
+	//	nullptr,
+	//	m_thresholdCompute.GetAddressOf()
+	//));
+
+	//EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSBloomPass.cso", &blob));
+	//EXC_COMCHECK(m_device->CreateComputeShader(
+	//	blob->GetBufferPointer(),
+	//	blob->GetBufferSize(),
+	//	nullptr,
+	//	m_bloomCompute.GetAddressOf()
+	//));
+
+	//EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSColorGrade.cso", &blob));
+	//EXC_COMCHECK(m_device->CreateComputeShader(
+	//	blob->GetBufferPointer(),
+	//	blob->GetBufferSize(),
+	//	nullptr,
+	//	m_colorGradeCompute.GetAddressOf()
+	//));
+}
+
 void RenderCore::InitConstantBuffers()
 {
 	// View info
@@ -942,12 +1107,12 @@ void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, c
 
 	si.directional = lightDirectional->bufferData;
 
-	for (int i = 0; i < si.pointCount; i++)
+	for (unsigned int i = 0; i < si.pointCount; i++)
 	{
 		si.points[i] = lightsPoint[i]->bufferData;
 	}
 
-	for (int i = 0; i < si.spotCount; i++)
+	for (unsigned int i = 0; i < si.spotCount; i++)
 	{
 		si.spots[i] = lightsSpot[i]->bufferData;
 	}

@@ -34,13 +34,13 @@ struct BoneSerialized
 			name[i] = '\0';
 			parentName[i] = '\0';
 		}
-		int nameLen = (source.name.length() > 128) ? 128 : source.name.length();
-		int parentNameLen = (source.parentName.length() > 128) ? 128 : source.parentName.length();
-		for (int i = 0; i < nameLen; i++)
+		size_t nameLen = (source.name.length() > 128) ? 128 : source.name.length();
+		size_t parentNameLen = (source.parentName.length() > 128) ? 128 : source.parentName.length();
+		for (size_t i = 0; i < nameLen; i++)
 		{
 			name[i] = source.name[i];
 		}
-		for (int i = 0; i < parentNameLen; i++)
+		for (size_t i = 0; i < parentNameLen; i++)
 		{
 			parentName[i] = source.parentName[i];
 		}

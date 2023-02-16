@@ -166,6 +166,27 @@
     <Filter Include="%2a Code\%2a Core\%2a Importing\Material Importer">
       <UniqueIdentifier>{df966b15-8a03-4f1d-8a77-2d8f2bb087be}</UniqueIdentifier>
     </Filter>
+    <Filter Include="%2a Code\%2a World\%2a GameObject\Empty">
+      <UniqueIdentifier>{dcec87fd-8380-4b68-a381-95defb39d58f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a World\%2a GameObject\StaticObject">
+      <UniqueIdentifier>{4fe81d5e-0480-4c6a-b392-bb3ae0f12c34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Resources\LevelResource">
+      <UniqueIdentifier>{0f2ef38c-d930-445a-b256-c85034abb557}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Importing\Level Importer">
+      <UniqueIdentifier>{662d84dc-b1ae-4f5d-9e29-96a05f1eafd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Importing\WWA Builder">
+      <UniqueIdentifier>{48d92b61-2de9-4fc9-b2f3-eabcb8790258}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Importing\WWM Builder">
+      <UniqueIdentifier>{1f683dca-1013-4f8a-bc91-f05ab6cc5dba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\%2a Renderable\TextRenderable">
+      <UniqueIdentifier>{01597589-9265-4c96-8769-765a7e651d5c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -234,7 +255,6 @@
     <ClCompile Include="Animator.cpp">
       <Filter>%2a Code\%2a Core\%2a Animation\Animator</Filter>
     </ClCompile>
-    <ClCompile Include="Vertex.cpp" />
     <ClCompile Include="Resources.cpp">
       <Filter>%2a Code\%2a Resources\Resources</Filter>
     </ClCompile>
@@ -250,7 +270,6 @@
     <ClCompile Include="Renderable.cpp">
       <Filter>%2a Code\%2a Rendering\%2a Renderable</Filter>
     </ClCompile>
-    <ClCompile Include="TextRenderable.cpp" />
     <ClCompile Include="MaterialResource.cpp">
       <Filter>%2a Code\%2a Resources\MaterialResource</Filter>
     </ClCompile>
@@ -259,6 +278,30 @@
     </ClCompile>
     <ClCompile Include="Player.cpp">
       <Filter>%2a Code\%2a World\%2a GameObject\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy.cpp">
+      <Filter>%2a Code\%2a World\%2a GameObject\Enemy</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticObject.cpp">
+      <Filter>%2a Code\%2a World\%2a GameObject\StaticObject</Filter>
+    </ClCompile>
+    <ClCompile Include="Vertex.cpp">
+      <Filter>%2a Code\%2a Core\%2a Importing\Vertex</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelResource.cpp">
+      <Filter>%2a Code\%2a Resources\LevelResource</Filter>
+    </ClCompile>
+    <ClCompile Include="LevelImporter.cpp">
+      <Filter>%2a Code\%2a Core\%2a Importing\Level Importer</Filter>
+    </ClCompile>
+    <ClCompile Include="WWABuilder.cpp">
+      <Filter>%2a Code\%2a Core\%2a Importing\WWA Builder</Filter>
+    </ClCompile>
+    <ClCompile Include="WWMBuilder.cpp">
+      <Filter>%2a Code\%2a Core\%2a Importing\WWM Builder</Filter>
+    </ClCompile>
+    <ClCompile Include="TextRenderable.cpp">
+      <Filter>%2a Code\%2a Rendering\%2a Renderable\TextRenderable</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -384,7 +427,6 @@
       <Filter>%2a Code\%2a Core\%2a Importing</Filter>
     </ClInclude>
     <ClInclude Include="Font.h" />
-    <ClInclude Include="TextRenderable.h" />
     <ClInclude Include="MaterialResource.h">
       <Filter>%2a Code\%2a Resources\MaterialResource</Filter>
     </ClInclude>
@@ -393,6 +435,33 @@
     </ClInclude>
     <ClInclude Include="Player.h">
       <Filter>%2a Code\%2a World\%2a GameObject\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>%2a Code\%2a World\%2a GameObject\Enemy</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticObject.h">
+      <Filter>%2a Code\%2a World\%2a GameObject\StaticObject</Filter>
+    </ClInclude>
+    <ClInclude Include="Empty.h">
+      <Filter>%2a Code\%2a World\%2a GameObject\Empty</Filter>
+    </ClInclude>
+    <ClInclude Include="LevelResource.h">
+      <Filter>%2a Code\%2a Resources\LevelResource</Filter>
+    </ClInclude>
+    <ClInclude Include="LevelImporter.h">
+      <Filter>%2a Code\%2a Core\%2a Importing\Level Importer</Filter>
+    </ClInclude>
+    <ClInclude Include="WWABuilder.h">
+      <Filter>%2a Code\%2a Core\%2a Importing\WWA Builder</Filter>
+    </ClInclude>
+    <ClInclude Include="WWMBuilder.h">
+      <Filter>%2a Code\%2a Core\%2a Importing\WWM Builder</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRenderable.h">
+      <Filter>%2a Code\%2a Rendering\%2a Renderable\TextRenderable</Filter>
+    </ClInclude>
+    <ClInclude Include="Room.h">
+      <Filter>%2a Code\%2a World\Room</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -405,7 +474,15 @@
     <FxCompile Include="VSMeshRigged.hlsl">
       <Filter>%2a Code\%2a Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="VSShadow.hlsl" />
+    <FxCompile Include="CSBloomPass.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="CSThresholdPass.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="CSColorGrade.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Constants.hlsli">
@@ -413,6 +490,9 @@
     </None>
     <None Include="..\myfileb.spritefont" />
     <None Include="PhongAlg.hlsli">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </None>
+    <None Include="ComputeConstants.hlsli">
       <Filter>%2a Code\%2a Shaders</Filter>
     </None>
   </ItemGroup>

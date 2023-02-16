@@ -26,5 +26,8 @@ public:
 	std::string SaveWMM(ModelRiggedResource* inMesh, std::string subDir);
 	static bool LoadWWMStatic(std::string filePath, ModelStaticResource* const outMesh);
 	static bool LoadWWMRigged(std::string filePath, ModelRiggedResource* const outMesh);
+
+	std::string SaveWWA( AnimationResource* inAnimations, std::string subDir );
+	static bool LoadWWA( std::string filePath, AnimationResource* const outAnimations );
 };
 

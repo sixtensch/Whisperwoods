@@ -199,8 +199,8 @@ std::string FBXImporter::SaveWMM(ModelStaticResource* inMesh, std::string subDir
 	for (int i = 0; i < headData.numSubMeshes; i++)
 	{
 		FixedSizeCharArray buffer;
-		int length = (inMesh->materialNames[i].length() <= 128) ? inMesh->materialNames[i].length() : 128;
-		for (int j = 0; j < length; j++)
+		size_t length = (inMesh->materialNames[i].length() <= 128) ? inMesh->materialNames[i].length() : 128;
+		for (size_t j = 0; j < length; j++)
 		{
 			buffer.data[j] = inMesh->materialNames[i][j];
 		}
@@ -258,8 +258,8 @@ std::string FBXImporter::SaveWMM(ModelRiggedResource* inMesh, std::string subDir
 	for (int i = 0; i < headData.numSubMeshes; i++)
 	{
 		FixedSizeCharArray buffer;
-		int length = (inMesh->materialNames[i].length() <= 128) ? inMesh->materialNames[i].length() : 128;
-		for (int j = 0; j < length; j++)
+		size_t length = (inMesh->materialNames[i].length() <= 128) ? inMesh->materialNames[i].length() : 128;
+		for (size_t j = 0; j < length; j++)
 		{
 			buffer.data[j] = inMesh->materialNames[i][j];
 		}
@@ -508,7 +508,7 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 				Vec3(currentNorm.x, currentNorm.y, currentNorm.z), // Normal
 				Vec3(currentTan.x, currentTan.y, currentTan.z), // Tangent
 				Vec3(currentBiTan.x, currentBiTan.y, currentBiTan.z), // Bitangent
-				Vec4(currentUV.x, currentUV.y, subMeshCounter, 0)); // UB, submeshIndex and Padding, submesh index is important for differentiating identical verticies of different materials.
+				Vec4(currentUV.x, currentUV.y, (float)subMeshCounter, 0.0f)); // UB, submeshIndex and Padding, submesh index is important for differentiating identical verticies of different materials.
 
 			//int existingIndex = -1;
 			//for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
@@ -564,7 +564,7 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 
 void RecursiveNodeFetch(aiNode* node, std::vector<aiNode*>& outputVector)
 {
-	for (int i = 0; i < node->mNumChildren; i++)
+	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
 		RecursiveNodeFetch(node->mChildren[i], outputVector);
 	}
@@ -657,13 +657,13 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 
 	LOG_TRACE( "Retrieving bones from all submeshes ..." );
 	// Step 1: Initalize all the vectors with base data, gathering all the bones from all submeshes.
-	for (int i = 0; i < scene->mNumMeshes; i++)
+	for (unsigned int i = 0; i < scene->mNumMeshes; i++)
 	{
 		aiMesh* newMesh = scene->mMeshes[i];
 		if (!newMesh->HasBones())
 			continue;
 		// Initialize vectors.
-		for (int j = 0; j < newMesh->mNumBones; j++)
+		for (unsigned int j = 0; j < newMesh->mNumBones; j++)
 		{
 			bool boneAlreadyExists = false;
 			aiString parentName = (newMesh->mBones[j]->mNode == nullptr) ? aiString("No node") : (newMesh->mBones[j]->mNode->mParent == nullptr) ? aiString("No parent") : newMesh->mBones[j]->mNode->mParent->mName;
@@ -769,7 +769,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 
 	LOG_TRACE( "Processing mesh and weights...\n" );
 	// Step 6: process the verticies and indicies as with the static import, but using the rigged verticies.
-	for (int i = 0; i < scene->mNumMeshes; i++)
+	for (unsigned int i = 0; i < scene->mNumMeshes; i++)
 	{
 		aiMesh* newMesh = scene->mMeshes[i];
 		if (!newMesh->HasFaces())
@@ -848,7 +848,7 @@ bool FBXImporter::ImportFBXRigged(std::string filePath, ModelRiggedResource* con
 				Vec3( currentNorm.x, currentNorm.y, currentNorm.z ), // Normal
 				Vec3( currentTan.x, currentTan.y, currentTan.z ), // Tangent
 				Vec3( currentBiTan.x, currentBiTan.y, currentBiTan.z ), // Bitangent
-				Vec4( currentUV.x, currentUV.y, subMeshCounter, 0), // UV Padding and submesh index
+				Vec4( currentUV.x, currentUV.y, (float)subMeshCounter, 0.0f), // UV Padding and submesh index
 				Point4 ( 
 					vertexWeights[j].bones[0].bone, // Bone indicies 
 					vertexWeights[j].bones[1].bone,
@@ -942,6 +942,10 @@ bool FBXImporter::ImportFBXAnimations(std::string filePath, AnimationResource* c
 
 	LOG_TRACE( "==ANIMATION IMPORT PROCESS START==\n" );
 
+	// Get name from the input path
+	outAnimations->name = remove_extension( base_name( filePath ) );
+
+
 	LOG_TRACE( "Processing animations ... \n" );
 	//if (VERBOSEINFO) std::cout << "Found: " << scene->mNumAnimations << " animations:" << std::endl;
 	for (size_t i = 0; i < scene->mNumAnimations; i++)
@@ -950,7 +954,7 @@ bool FBXImporter::ImportFBXAnimations(std::string filePath, AnimationResource* c
 		aiAnimation* animation = scene->mAnimations[i];
 
 		newAnimation.name = std::string(animation->mName.C_Str());
-		newAnimation.duration = animation->mDuration;
+		newAnimation.duration = (float)animation->mDuration;
 
 		LOG_TRACE( "	Processing: %s\n", animation->mName.C_Str());
 		LOG_TRACE( "		Processing channels ...");
@@ -965,7 +969,7 @@ bool FBXImporter::ImportFBXAnimations(std::string filePath, AnimationResource* c
 			{
 				Vec3KeyFrame newKey;
 				aiVectorKey key = channel->mPositionKeys[k];
-				newKey.time = key.mTime;
+				newKey.time = (float)key.mTime;
 				newKey.value = { key.mValue.x, key.mValue.y, key.mValue.z };
 				//if (VERBOSEINFO) std::cout << "Pos Key: " << newKey.value.ToString() << " Time: " << newKey.time << std::endl;
 				newChannel.positionKeyFrames.Add( newKey );
@@ -976,7 +980,7 @@ bool FBXImporter::ImportFBXAnimations(std::string filePath, AnimationResource* c
 			{
 				QuatKeyFrame newKey;
 				aiQuatKey key = channel->mRotationKeys[k];
-				newKey.time = key.mTime;
+				newKey.time = (float)key.mTime;
 				newKey.value = Quaternion( { key.mValue.x, key.mValue.y, key.mValue.z }, key.mValue.w );
 				//if (VERBOSEINFO) std::cout << "Rot Key: " << newKey.value.ToString() << " Time: " << newKey.time << std::endl;
 				newChannel.rotationKeyFrames.Add( newKey );
@@ -987,7 +991,7 @@ bool FBXImporter::ImportFBXAnimations(std::string filePath, AnimationResource* c
 			{
 				Vec3KeyFrame newKey;
 				aiVectorKey key = channel->mScalingKeys[k];
-				newKey.time = key.mTime;
+				newKey.time = (float)key.mTime;
 				newKey.value = { key.mValue.x, key.mValue.y, key.mValue.z };
 				//if (VERBOSEINFO) std::cout << "Scale Key: " << newKey.value.ToString() << " Time: " << newKey.time << std::endl;
 				newChannel.scaleKeyFrames.Add( newKey );
@@ -1001,5 +1005,144 @@ bool FBXImporter::ImportFBXAnimations(std::string filePath, AnimationResource* c
 	}
 	LOG_TRACE( "	Done! \n", scene->mNumAnimations );
 	LOG_TRACE( "Animations Import Completed! Animations: %d\n", scene->mNumAnimations );
+	return true;
+}
+
+std::string FBXImporter::SaveWWA( AnimationResource* inAnimations, std::string subDir )
+{
+	// Use model name as base for out name
+	std::string outName = subDir + inAnimations->name + ".wwa";
+	_mkdir( subDir.c_str() );
+	// Open the writer
+	std::ofstream writer( outName, std::ios::out | std::ios::binary );
+
+	if (!writer)
+	{
+		LOG_WARN( "WMA Writer failed to open file: %s", outName.c_str() );
+		return "fail";
+	}
+
+	WhisperWoodsAnimationsHead bundleHead;
+	size_t bundleNameLength = (inAnimations->name.length() <= 128) ? inAnimations->name.length() : 128;
+	for (size_t j = 0; j < bundleNameLength; j++)
+	{
+		bundleHead.name[j] = inAnimations->name[j];
+	}
+	bundleHead.numAnimations = inAnimations->animations.Size();
+
+	// Write the bundle head.
+	writer.write( (char*)&bundleHead, sizeof( WhisperWoodsAnimationsHead ) );
+
+	// Loop Through all animations.
+	for (int i = 0; i < bundleHead.numAnimations; i++)
+	{
+		WhisperWoodsAnimationHead animationHead;
+		Animation* animation = &inAnimations->animations[i];
+		size_t animationNameLength = (animation->name.length() <= 128) ? animation->name.length() : 128;
+		for (size_t j = 0; j < animationNameLength; j++)
+		{
+			animationHead.name[j] = animation->name[j];
+		}
+		animationHead.duration = animation->duration;
+		animationHead.numChannels = animation->channels.Size();
+
+		// Write the animation head
+		writer.write( (char*)&animationHead, sizeof( WhisperWoodsAnimationHead ) );
+		
+		// Loop and write all the channels.
+		for (int j = 0; j < animationHead.numChannels; j++)
+		{
+			WhisperWoodsAnimationChannelHead channelHead;
+			AnimationChannel* channel = &animation->channels[j];
+			size_t channelNameLength = (channel->channelName.length() <= 128) ? channel->channelName.length() : 128;
+			for (size_t k = 0; k < channelNameLength; k++)
+			{
+				channelHead.name[k] = channel->channelName[k];
+			}
+			channelHead.numPositionKeyFrames = channel->positionKeyFrames.Size();
+			channelHead.numRotationKeyFrames = channel->rotationKeyFrames.Size();
+			channelHead.numScaleKeyFrames = channel->scaleKeyFrames.Size();
+
+			// Write the channel head
+			writer.write( (char*)&channelHead, sizeof( WhisperWoodsAnimationChannelHead ) );
+			// Write all position keyframes.
+			writer.write( (char*)channel->positionKeyFrames.Data(), sizeof( Vec3KeyFrame ) * channelHead.numPositionKeyFrames );
+			// Write all rotation keyframes.
+			writer.write( (char*)channel->rotationKeyFrames.Data(), sizeof( QuatKeyFrame ) * channelHead.numRotationKeyFrames );
+			// Write all position keyframes.
+			writer.write( (char*)channel->scaleKeyFrames.Data(), sizeof( Vec3KeyFrame ) * channelHead.numScaleKeyFrames );
+		}
+	}
+
+	// Close the writer
+	writer.close();
+
+	// If an error occured
+	if (!writer.good()) {
+		LOG_WARN( "WWA Writer error occurred at writing time! , EOF: %d, FAILBIT: %d, BADBIT: %d", writer.eof(), writer.fail(), writer.bad() );
+		return "fail";
+	}
+
+	// Return the path
+	return outName;
+}
+
+bool FBXImporter::LoadWWA( std::string filePath, AnimationResource* const outAnimations )
+{
+	LOG_TRACE( "Loading WWA: %s ...", filePath.c_str() );
+	std::ifstream reader( filePath, std::ios::out | std::ios::binary );
+	if (!reader)
+	{
+		LOG_WARN( "WWA Reader failed to open file: %s", filePath.c_str() );
+		return false;
+	}
+
+	// Read the head data.
+	WhisperWoodsAnimationsHead bundleHead;
+	reader.read( (char*)&bundleHead, sizeof( WhisperWoodsAnimationsHead ) );
+	outAnimations->name = std::string( bundleHead.name );
+
+	// Read the animations
+	for (int i = 0; i < bundleHead.numAnimations; i++)
+	{
+		WhisperWoodsAnimationHead animationHead;
+		Animation readAnimation;
+		reader.read( (char*)&animationHead, sizeof( WhisperWoodsAnimationHead ) );
+		readAnimation.name = std::string( animationHead.name );
+		readAnimation.duration = animationHead.duration;
+
+		// Read the channels
+		for (int j = 0; j < animationHead.numChannels; j++)
+		{
+			WhisperWoodsAnimationChannelHead channelHead;
+			AnimationChannel readChannel;
+			reader.read( (char*)&channelHead, sizeof( WhisperWoodsAnimationChannelHead ) );
+			readChannel.channelName = std::string( channelHead.name );
+
+			// read the pos keyframes.
+			reader.read( (char*)readChannel.positionKeyFrames.MassAdd( 
+				channelHead.numPositionKeyFrames ), sizeof( Vec3KeyFrame ) * channelHead.numPositionKeyFrames );
+
+			reader.read( (char*)readChannel.rotationKeyFrames.MassAdd(
+				channelHead.numRotationKeyFrames ), sizeof( QuatKeyFrame ) * channelHead.numRotationKeyFrames );
+			
+			reader.read( (char*)readChannel.scaleKeyFrames.MassAdd(
+				channelHead.numScaleKeyFrames ), sizeof( Vec3KeyFrame ) * channelHead.numScaleKeyFrames );
+
+			readAnimation.channels.Add( readChannel );
+		}
+		outAnimations->animations.Add( readAnimation );
+	}
+
+	// Close reader
+	reader.close();
+
+	if (!reader.good())
+	{
+		LOG_WARN( "WMM Rigged reader, error found at close, data might be garbled." );
+		return false;
+	}
+	LOG_TRACE( "DONE" );
+
 	return true;
 }
