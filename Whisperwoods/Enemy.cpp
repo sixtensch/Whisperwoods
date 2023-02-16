@@ -376,7 +376,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack)
 
 		//Now we check if the enemy has true line of sight to the player
 		m_seesPlayer = true;
-		//for (float i = 0; i < distance; i += 0.1)// for each meter in "distance"
+		//for (float i = 0; i < distance; i += 0.1)// for each 10 cm in "distance"
 		//{
 		//	Vec3 pointOnLineOfSightVector = Vec3(playerDirection.x, 0.0f, playerDirection.y);
 		//	pointOnLineOfSightVector = pointOnLineOfSightVector * i;
@@ -386,15 +386,16 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack)
 		//	}
 		//}
 	}
-	if(m_seesPlayer) 
+	if(m_seesPlayer)  //if the enemy sees the player
 	{
-		m_timeToGivePlayerAChanceToRunAway = 0.0f;
+		m_timeToGivePlayerAChanceToRunAway = 0.0f; //reset the counter
 		if (quack.IsPlaying() == false) // audio cue
 		{
-			quack.pitch = distance / 4;
+			quack.pitch = distance / 4; //lmao funny noise
 			quack.Play();
 		}
 
+		//stop other animations
 		if (m_characterAnimator->IsPlaying(0))
 		{
 			m_characterAnimator->StopAnimation(0);
@@ -407,19 +408,20 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack)
 		{
 			m_characterAnimator->StopAnimation(3);
 		}
-
+		
+		//play the detected animation on loop
 		if(!m_characterAnimator->IsPlaying(1))
 		{
 			m_characterAnimator->PlayAnimation(1, 0, 1, true, true);
 			m_characterAnimator->playbackSpeed = 0.5f;
 		}
 	}
-	else
+	else // if not seen
 	{
-		quack.Stop();
-		if (m_characterAnimator->IsPlaying(1))
+		quack.Stop(); // no more noises
+		if (m_characterAnimator->IsPlaying(1)) //is the detected animation running?
 		{
-			if (m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway)
+			if (m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway) // has the player been given the time to run away?
 			{
 				m_characterAnimator->StopAnimation(1);
 				if (m_lastPlayedAnimation == 0)
@@ -439,7 +441,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack)
 				}
 			}
 		}
-		else if (m_timeToGivePlayerAChanceToRunAway < m_amountOfTimeToRunAway)
+		else if (m_timeToGivePlayerAChanceToRunAway < m_amountOfTimeToRunAway) // keep playing the animation of detection 
 		{
 			m_characterAnimator->PlayAnimation(1, 0, 1, true, true);
 			m_characterAnimator->playbackSpeed = 0.5f;
@@ -447,7 +449,6 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack)
 
 	}
 
-	return m_seesPlayer;
+	return m_seesPlayer; 
 }
 
-//send away Vec3(x,0,y), if it returns != 0, it is obscured
