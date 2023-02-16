@@ -62,8 +62,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	m_viewport.Width = static_cast<float>(window->GetWidth());
 	m_viewport.Height = static_cast<float>(window->GetHeight());
 
-	UINT shadowMapHeight = 4064;
-	UINT shadowMapWidth = 4064;
+	UINT shadowMapHeight = 2048;
+	UINT shadowMapWidth = 2048;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.MinDepth = 0;
@@ -285,7 +285,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	shadowSDesc.MipLODBias = 0.0f;
 	shadowSDesc.MaxAnisotropy = 0;
 	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
-	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(
 		&shadowSDesc,
