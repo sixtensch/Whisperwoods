@@ -62,8 +62,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	m_viewport.Width = static_cast<float>(window->GetWidth());
 	m_viewport.Height = static_cast<float>(window->GetHeight());
 
-	UINT shadowMapHeight = 1024;
-	UINT shadowMapWidth = 1024;
+	UINT shadowMapHeight = 4064;
+	UINT shadowMapWidth = 4064;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.MinDepth = 0;
@@ -280,12 +280,12 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	shadowSDesc.BorderColor[1] = 1.0f;
 	shadowSDesc.BorderColor[2] = 1.0f;
 	shadowSDesc.BorderColor[3] = 1.0f;
-	shadowSDesc.MinLOD = 0.0f;;
+	shadowSDesc.MinLOD = 0.0f;
 	shadowSDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	shadowSDesc.MipLODBias = 0.0f;
 	shadowSDesc.MaxAnisotropy = 0;
-	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
-	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(
 		&shadowSDesc,

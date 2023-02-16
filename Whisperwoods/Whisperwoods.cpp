@@ -181,10 +181,10 @@ void Whisperwoods::Run()
 	Renderer::RegisterLight(spot);
 
 	shared_ptr<DirectionalLight> directional = Renderer::GetDirectionalLight();
-	directional->transform.position = { 0, 4, 0 };
-	directional->transform.SetRotationEuler({ dx::XM_PIDIV2, 0.0f, 0.0f });
+	directional->transform.position = { 0, 10, 0 };
+	directional->transform.SetRotationEuler({ -dx::XM_PIDIV2, 0.0f, 0.0f });
 	directional->diameter = 50.0f;
-	directional->intensity = 5.7f;
+	directional->intensity = 0.7f;
 	directional->color = cs::Color3f(0xFFFFD0);
 
 	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color, { 1.0f, 1.0f });

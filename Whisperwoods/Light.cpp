@@ -13,7 +13,7 @@ void DirectionalLight::Update(float delta_time)
 
 	bufferData.intensity = (Vec3)color * intensity;
 	bufferData.clipMatrix = camera.GetProjectionMatrix().Transpose() * camera.GetViewMatrix();
-	bufferData.direction = transform.GetWorldRotation() * Vec3(0, 0, 1.0f);
+	bufferData.direction = transform.GetWorldRotation().Conjugate() * Vec3(0, 0, 1.0f);
 }
 
 void PointLight::Update(float delta_time)
