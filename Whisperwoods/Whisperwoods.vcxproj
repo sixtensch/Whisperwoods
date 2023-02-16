@@ -53,6 +53,7 @@
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="Room.cpp" />
     <ClCompile Include="WWABuilder.cpp" />
     <ClCompile Include="WWMBuilder.cpp" />
     <ClCompile Include="StaticObject.cpp" />

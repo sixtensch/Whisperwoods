@@ -4,12 +4,12 @@
 #include "Animator.h"
 #include "MeshRenderable.h"
 #include "AnimationResource.h"
+#include "Room.h"
 
 class Player : public GameObject
 {
 	std::string m_modelResource;
 	Mat4 m_modelOffset;
-	Vec3 m_velocity;
 	Vec3 m_targetVelocity;
 	float m_walkSpeed;
 	float m_runSpeed;
@@ -23,11 +23,15 @@ class Player : public GameObject
 
 public:
 
+	Vec3 m_velocity;
 	bool cameraIsLocked;
 	float cameraFollowDistance;
 	float cameraFollowTilt;
 	Vec3 cameraLookTargetOffset;
-	
+	Room* currentRoom;
+	float collectiveForwardValue;
+	Vec3 sampleVector;
+
 	shared_ptr<MeshRenderableRigged> characterModel;
 	AnimationResource* animationSet;
 	shared_ptr<Animator> characterAnimator;
