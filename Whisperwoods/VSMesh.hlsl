@@ -14,7 +14,6 @@ struct VSOutput
 {
     float4 outPosition  : SV_POSITION;
     float4 wPosition    : WPOSITION0;
-    float4 wsPosition   : WSPOSITION0;
     float3 outNormal    : NORMAL0;
     float3 outTangent   : TANGENT0;
     float3 outBitangent : BITANGENT0;
@@ -37,8 +36,7 @@ VSOutput main(VSInput input)
     VSOutput output;
 	
     output.wPosition = mul(float4(input.position, 1.0f), WorldMatrix);
-    output.wsPosition = mul(output.wPosition, ViewMatrix);
-    output.outPosition = mul(output.wsPosition, ProjectionMatrix);
+    output.outPosition = mul(mul(output.wPosition, ViewMatrix), ProjectionMatrix);
 
     output.outNormal = mul(input.normal, (float3x3)WorldMatrix);
     //output.outNormal = normalize(output.outNormal);
