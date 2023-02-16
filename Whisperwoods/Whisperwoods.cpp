@@ -194,24 +194,24 @@ void Whisperwoods::Run()
 	// Test empty rotation imgui euler
 	Vec3 inputRotation;
 
-
 	
-	Enemy patrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::translation3(0, -0.8f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
-	patrolEnemy.AddCoordinateToPatrolPath(Vec2(1.0f, -5.0f), true);
-	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -4.2f), true);
-	patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.35f, -3.0f), true);
-	patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.6f, -1.65f), true);
-	patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.4f, -0.3f), true);
-	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.35f, 1.0f), true);
-	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.5f, 1.05f), true);
-	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.2f, 0.25f), true);
-	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.25f, -0.8f), true);
-	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.9f, -1.5f), true);
-	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.3f, -1.9f), false);
+	
+	//Enemy patrolEnemy("Carcinian_Animated.wwm", "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(1.0f, -5.0f), true);
+	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -4.2f), true);
+	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.35f, -3.0f), true);
+	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.6f, -1.65f), true);
+	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.4f, -0.3f), true);
+	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.35f, 1.0f), true);
+	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.5f, 1.05f), true);
+	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.2f, 0.25f), true);
+	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.25f, -0.8f), true);
+	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.9f, -1.5f), true);
+	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.3f, -1.9f), false);
 
-	//Enemy idleEnemy("Carcinian_Animated.wwm", "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx", Mat::translation3(0, -0.8f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
-	//idleEnemy.AddCoordinateToPatrolPath(Vec2(2.0f, 2.0f), true);
-	//idleEnemy.AddCoordinateToPatrolPath(Vec2(0.0f, 0.0f), true);
+	Enemy idleEnemy("Carcinian_Animated.wwm", "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx", Mat::scale3(1.25f, 1.25f, 1.25f)* Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	idleEnemy.AddCoordinateToPatrolPath(Vec2(2.0f, 2.0f), true);
+	idleEnemy.AddCoordinateToPatrolPath(Vec2(0.0f, 0.0f), true);
 
 	
 
@@ -231,8 +231,8 @@ void Whisperwoods::Run()
 		
 		testAnimatorGrafiki.Update(dTime);
 
-		patrolEnemy.Update(dTime);
-		//idleEnemy.Update(dTime);
+		//patrolEnemy.Update(dTime);
+		idleEnemy.Update(dTime);
 
 		m_game->Update();
 		m_sound->Update();

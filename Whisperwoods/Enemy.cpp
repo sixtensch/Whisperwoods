@@ -30,7 +30,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_carcinian = Renderer::CreateMeshRigged(modelResource);
 	//FBXImporter importer;
 	m_characterAnimator = std::make_unique<Animator>((ModelRiggedResource*)Resources::Get().GetResource(ResourceTypeModelRigged, "Carcinian_Animated.wwm"));
-		
+	
 
 
 	m_modelOffset = modelOffset;
@@ -248,7 +248,7 @@ void Enemy::Update(float dTime)
 			if (m_triggerTurn == false)
 			{
 				m_characterAnimator->StopAnimation(0);
-				m_characterAnimator->playbackSpeed = 0.5f;
+				m_characterAnimator->playbackSpeed = 0.35f;
 				m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
 				m_triggerTurn = true;
 			}
@@ -275,7 +275,7 @@ void Enemy::Update(float dTime)
 		else if (m_idleCounter == 4 && m_characterAnimator->AnimationsFinished())
 		{
 			m_characterAnimator->StopAnimation(2);
-			m_characterAnimator->playbackSpeed = 0.5f;
+			m_characterAnimator->playbackSpeed = 0.35f;
 			m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
 			m_idleCounter = 0;
 			m_triggerTurn = true;
