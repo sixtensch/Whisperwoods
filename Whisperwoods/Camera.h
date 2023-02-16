@@ -25,6 +25,7 @@ public:
 	const Vec3 GetDirection() const;
 	const Vec3 GetUp();
 	const Vec3 GetRight();
+	const Quaternion GetRotation();
 
 	const Vec3 GetPosition() const;
 	const Mat4 GetWorldMatrix() const;

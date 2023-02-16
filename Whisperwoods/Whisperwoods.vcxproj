@@ -32,10 +32,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Debug.cpp" />
+    <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="FBXImporter.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="LevelImporter.cpp" />
+    <ClCompile Include="LevelResource.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightHandler.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -50,6 +53,9 @@
     <ClCompile Include="Resources.cpp" />
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="GameObject.cpp" />
+    <ClCompile Include="WWABuilder.cpp" />
+    <ClCompile Include="WWMBuilder.cpp" />
+    <ClCompile Include="StaticObject.cpp" />
     <ClCompile Include="TextRenderable.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Vertex.cpp" />
@@ -72,11 +78,16 @@
     <ClInclude Include="Core.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="DrawInfo.h" />
+    <ClInclude Include="Empty.h" />
+    <ClInclude Include="Enemy.h" />
     <ClInclude Include="FBXImporter.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GUI.h" />
+    <ClInclude Include="StaticObject.h" />
+    <ClInclude Include="LevelImporter.h" />
+    <ClInclude Include="LevelResource.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="KeyFrame.h" />
@@ -92,6 +103,7 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RenderHandler.h" />
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="Room.h" />
     <ClInclude Include="ShaderResource.h" />
     <ClInclude Include="Sound.h" />
     <ClInclude Include="SoundResource.h" />
@@ -104,6 +116,8 @@
     <ClInclude Include="Whisperwoods.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="MaterialImporter.h" />
+    <ClInclude Include="WWABuilder.h" />
+    <ClInclude Include="WWMBuilder.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="CSBloomPass.hlsl">
@@ -165,6 +179,12 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="VSMeshRigged.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+    </FxCompile>
+    <FxCompile Include="VSShadow.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
