@@ -99,7 +99,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			converted *= m_runSpeed;
 		}
 
-		m_velocity = Lerp( m_velocity, m_targetVelocity-converted, delta_time * movementMultiplier );
+		m_velocity = Lerp( m_velocity, m_targetVelocity/*-converted*/, delta_time * movementMultiplier );
 
 		if (transform.parent != nullptr)
 		{

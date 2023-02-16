@@ -27,6 +27,12 @@ cbuffer ViewInfo : REGISTER_CBV_VIEW_INFO
     matrix ProjectionMatrix;
 };
 
+
+cbuffer PlayerInfo : REGISTER_CBV_TESSELATION_INFO
+{
+    matrix playerMatrix;
+};
+
 cbuffer ObjectInfo : REGISTER_CBV_OBJECT_INFO
 {
     matrix WorldMatrix;
@@ -35,8 +41,24 @@ cbuffer ObjectInfo : REGISTER_CBV_OBJECT_INFO
 VSOutput main(VSInput input)
 {
     VSOutput output;
-	
+
     output.wPosition = mul(float4(input.position, 1.0f), WorldMatrix);
+
+    // Experimental push away
+    float4 playerPos = float4(playerMatrix._41, 0.15f, playerMatrix._43, 1.0f);
+    float4 groundedPos = float4(output.wPosition.x, 0.0f, output.wPosition.z, 1.0f);
+    float distFromPlayer = distance( playerPos, groundedPos );
+    distFromPlayer = sqrt( sqrt( distFromPlayer ));
+    float4 toFromPlayer = groundedPos - playerPos;
+    toFromPlayer = normalize( toFromPlayer );
+    toFromPlayer = toFromPlayer * clamp((1.0f - distFromPlayer),0.0f, 1.0f);
+    toFromPlayer = float4(  
+        clamp( toFromPlayer.x,0.0f,1.0f),
+        (toFromPlayer.y*0.3f)-(0.2f* clamp((0.8f - distFromPlayer),0,0.8f)), 
+        clamp( toFromPlayer.z,0.0f, 1.0f), 0.0f);
+
+    output.wPosition = output.wPosition + toFromPlayer*1.1f;
+
     output.wsPosition = mul(output.wPosition, ViewMatrix);
     output.outPosition = mul(output.wsPosition, ProjectionMatrix);
 

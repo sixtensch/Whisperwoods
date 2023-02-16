@@ -23,10 +23,11 @@ public:
 
 	void ExecuteDraw(const Camera& povCamera, bool shadows);
 
-	const RenderCore* GetCore() const;
+	RenderCore* GetCore() const;
 
 	Camera& GetCamera();
 
+	Mat4 playerMatrix;
 
 	shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 	shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
