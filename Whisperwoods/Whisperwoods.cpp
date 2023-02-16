@@ -52,6 +52,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false );
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
@@ -74,6 +75,11 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	m_resources = std::make_unique<Resources>();
 	m_resources->LoadAssetDirectory(m_renderer->GetRenderCore());
+
+	m_renderer->SetupEnvironmentAssets();
+
+	m_levelHandler = std::make_unique<LevelHandler>();
+	m_levelHandler->LoadFloors();
 }
 
 
@@ -85,8 +91,15 @@ Whisperwoods::~Whisperwoods()
 void Whisperwoods::Run()
 {
 	// Main frame loop
-	LevelResource level = {};
-	LevelImporter::ImportImage("Examplemap.png", m_renderer->GetRenderCore(), &level);
+	//LevelResource level = {};
+	//LevelImporter::ImportImage("Examplemap.png", m_renderer->GetRenderCore(), &level);
+
+	//m_renderer->LoadLevel(&level);
+
+	LevelFloor floor = {};
+	m_levelHandler->GenerateFloor(&floor);
+
+	Level& level = floor.rooms[0];
 
 	// Audio test startup
 	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;

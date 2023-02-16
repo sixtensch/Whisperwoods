@@ -97,7 +97,7 @@ bool LevelImporter::ImportImage(string textureName, const RenderCore* core, Leve
 
 	outLevel->worldWidth = outLevel->pixelWidth * BM_PIXEL_SIZE;
 	outLevel->worldHeight = outLevel->pixelHeight * BM_PIXEL_SIZE;
-	outLevel->bitmap = unique_ptr<LevelPixel[]>(new LevelPixel[outLevel->pixelWidth * outLevel->pixelHeight]);
+	outLevel->bitmap = shared_ptr<LevelPixel[]>(new LevelPixel[outLevel->pixelWidth * outLevel->pixelHeight]);
 
 
 
