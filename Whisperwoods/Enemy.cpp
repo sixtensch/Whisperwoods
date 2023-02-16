@@ -18,6 +18,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_rotationSpeed = 1.0f;
 	m_offset = 0;
 	m_idleCounter = 0;
+	m_timeToGivePlayerAChanceToRunAway = m_amountOfTimeToRunAway;
 
 	m_lookBehind = false;
 	m_seesPlayer = false;
@@ -65,12 +66,14 @@ Enemy::~Enemy()
 
 void Enemy::Update(float dTime)
 {
+	m_timeToGivePlayerAChanceToRunAway += dTime;
 	//This has to be in update because we re-use enemy objects between rooms! Will cost like O(1), it's fine
 	if (m_patrolPath.size() < 3 && m_firstTrigger == false)
 	{
 		m_idleEnemy = true;
 		m_characterAnimator->StopAnimation(0);
 		m_characterAnimator->PlayAnimation(2, 0, 1, false, true);
+		m_lastPlayedAnimation = 2;
 		m_isMoving = false;
 		m_characterAnimator->playbackSpeed = 0.2f;
 	}
@@ -159,7 +162,7 @@ void Enemy::Update(float dTime)
 		
 	Vec2 newPosition = m_currentPosition;
 	// Time to walk
-	if(m_isMoving)
+	if(m_isMoving && m_seesPlayer == false && m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway)
 	{
 		newPosition = Vec2(m_currentPosition.x + m_walkingDirection.x * m_walkingSpeed * dTime, m_currentPosition.y + m_walkingDirection.y * m_walkingSpeed * dTime);
 	}
@@ -251,6 +254,7 @@ void Enemy::Update(float dTime)
 				m_characterAnimator->StopAnimation(0);
 				m_characterAnimator->playbackSpeed = 0.35f;
 				m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
+				m_lastPlayedAnimation = 3;
 				m_triggerTurn = true;
 			}
 			else if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished() /*m_characterAnimator->loadedAnimations[3].time == 1*/) //animation is over
@@ -261,6 +265,7 @@ void Enemy::Update(float dTime)
 				m_triggerTurn = false;
 				m_characterAnimator->playbackSpeed = 1.0f;
 				m_characterAnimator->PlayAnimation(0, 0, 1, true, true);
+				m_lastPlayedAnimation = 0;
 			}
 		}
 		
@@ -271,6 +276,7 @@ void Enemy::Update(float dTime)
 		{
 			m_characterAnimator->playbackSpeed = 0.2f;
 			m_characterAnimator->PlayAnimation(2, 0, 1, false, true);
+			m_lastPlayedAnimation = 2;
 			m_idleCounter++;
 		}
 		else if (m_idleCounter == 4 && m_characterAnimator->AnimationsFinished()) // has been idle long enough, run rotation animation
@@ -278,16 +284,17 @@ void Enemy::Update(float dTime)
 			m_characterAnimator->StopAnimation(2);
 			m_characterAnimator->playbackSpeed = 0.35f;
 			m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
+			m_lastPlayedAnimation = 3;
 			m_idleCounter = 0;
-m_triggerTurn = true;
-if (m_lookBehind == true) //these if/else is to change the direction 180 degrees
-{
-	m_lookBehind = false;
-}
-else
-{
-	m_lookBehind = true;
-}
+			m_triggerTurn = true;
+			if (m_lookBehind == true) //these if/else is to change the direction 180 degrees
+			{
+				m_lookBehind = false;
+			}
+			else
+			{
+				m_lookBehind = true;
+			}
 		}
 		if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished())   // this section triggers ONLY when the roration animation is OVER
 		{
@@ -364,31 +371,80 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack)
 
 	m_seesPlayer = false;
 
-	if (angle < 50 && distance < 8) // is the player within range and circle sector of the enemy?
+	if (angle < m_enemyViewAngle && distance < m_enemyViewDistance) // is the player within range and circle sector of the enemy?
 	{
 
 		//Now we check if the enemy has true line of sight to the player
 		m_seesPlayer = true;
-		for (float i = 0; i < distance; i += 0.1)// for each meter in "distance"
-		{
-			Vec3 pointOnLineOfSightVector = Vec3(playerDirection.x, 0.0f, playerDirection.y);
-			pointOnLineOfSightVector = pointOnLineOfSightVector * i;
-			if (SomeFunction(pointOnLineOfSightVector) != 0)
-			{
-				m_seesPlayer = false;
-			}
-		}
+		//for (float i = 0; i < distance; i += 0.1)// for each meter in "distance"
+		//{
+		//	Vec3 pointOnLineOfSightVector = Vec3(playerDirection.x, 0.0f, playerDirection.y);
+		//	pointOnLineOfSightVector = pointOnLineOfSightVector * i;
+		//	if (SomeFunction(pointOnLineOfSightVector) != 0)
+		//	{
+		//		m_seesPlayer = false;
+		//	}
+		//}
 	}
-	if(m_seesPlayer)
+	if(m_seesPlayer) 
 	{
+		m_timeToGivePlayerAChanceToRunAway = 0.0f;
 		if (quack.IsPlaying() == false) // audio cue
 		{
+			quack.pitch = distance / 4;
 			quack.Play();
+		}
+
+		if (m_characterAnimator->IsPlaying(0))
+		{
+			m_characterAnimator->StopAnimation(0);
+		}
+		if (m_characterAnimator->IsPlaying(2))
+		{
+			m_characterAnimator->StopAnimation(2);
+		}
+		if (m_characterAnimator->IsPlaying(3))
+		{
+			m_characterAnimator->StopAnimation(3);
+		}
+
+		if(!m_characterAnimator->IsPlaying(1))
+		{
+			m_characterAnimator->PlayAnimation(1, 0, 1, true, true);
+			m_characterAnimator->playbackSpeed = 0.5f;
 		}
 	}
 	else
 	{
 		quack.Stop();
+		if (m_characterAnimator->IsPlaying(1))
+		{
+			if (m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway)
+			{
+				m_characterAnimator->StopAnimation(1);
+				if (m_lastPlayedAnimation == 0)
+				{
+					m_characterAnimator->playbackSpeed = 1.0f;
+					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, true, true);
+				}
+				else if (m_lastPlayedAnimation == 2)
+				{
+					m_characterAnimator->playbackSpeed = 0.2f;
+					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, false, true);
+				}
+				else if (m_lastPlayedAnimation == 3)
+				{
+					m_characterAnimator->playbackSpeed = 0.35f;
+					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, false, true);
+				}
+			}
+		}
+		else if (m_timeToGivePlayerAChanceToRunAway < m_amountOfTimeToRunAway)
+		{
+			m_characterAnimator->PlayAnimation(1, 0, 1, true, true);
+			m_characterAnimator->playbackSpeed = 0.5f;
+		}
+
 	}
 
 	return m_seesPlayer;
