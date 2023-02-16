@@ -53,14 +53,14 @@ VSOutput main(VSInput input)
     //playerRight = normalize( playerRight );
 
 
-    float4 playerPos = float4(playerMatrix._41, 0.18f, playerMatrix._43, 1.0f);
+    float4 playerPos = float4(playerMatrix._41, 0.15f, playerMatrix._43, 1.0f);
     float4 groundedPos = float4(output.wPosition.x, 0.0f, output.wPosition.z, 1.0f);
     float distFromPlayer = distance( playerPos, groundedPos );
     distFromPlayer = sqrt(sqrt(distFromPlayer)); // Controls the falloff curvature
 
     float4 toFromPlayer = groundedPos - playerPos;
     toFromPlayer = normalize( toFromPlayer );
-    toFromPlayer = toFromPlayer * clamp((0.90f - distFromPlayer),0.0f, 0.90f); // controlls range
+    toFromPlayer = toFromPlayer * clamp((0.80f - distFromPlayer),0.0f, 0.80f); // controlls range
 
     // WIP
     /*float tFPR = dot( toFromPlayer, playerRight );
@@ -69,15 +69,15 @@ VSOutput main(VSInput input)
 
     toFromPlayer = float4(  
         clamp( toFromPlayer.x,-1.0f,1.0f),
-        (toFromPlayer.y*0.5f)-(0.7f* clamp((0.8f - distFromPlayer),0,0.8f)), 
-        clamp( toFromPlayer.z,-1.0f, 1.0f), 0.0f);
+        (toFromPlayer.y*0.2f)-(0.7f* clamp((0.85f - distFromPlayer),0,0.85f)), 
+        clamp( toFromPlayer.z,-1.0f,1.0f), 0.0f);
 
     // WIP
     /* float4 relativeVector = playerForward * toFromPlayer.z;
     relativeVector.y = toFromPlayer.y;*/
     //output.wPosition = output.wPosition + relativeVector *input.UV.w;
 
-    output.wPosition = output.wPosition + toFromPlayer*input.UV.w*1.5f; // Multiply for more effect
+    output.wPosition = output.wPosition + toFromPlayer*input.UV.w*1.4f; // Multiply for more effect
 
     // Normal Shader
     output.wsPosition = mul(output.wPosition, ViewMatrix);
