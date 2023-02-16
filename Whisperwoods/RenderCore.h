@@ -21,6 +21,7 @@ public:
 	void NewFrame();
 	void TargetShadowMap(Light* light);
 	void TargetRenderTexture();
+	void UnbindRenderTexture();
 	void EndFrame();
 
 	void CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const;
@@ -29,8 +30,6 @@ public:
 	void CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const;
 	void CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const;
 	void LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Texture2D>& textureResource, ComPtr<ID3D11ShaderResourceView>& srv) const;
-
-
 
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
@@ -41,7 +40,6 @@ public:
 	void SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format = DXGI_FORMAT_R32_UINT);
 
 	void DrawIndexed(uint indexCount, uint start, uint base);
-
 
 	//void SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer);
 	void SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV);
@@ -55,6 +53,7 @@ public:
 	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 origin);
 
 	void DrawPPFX();
+	void DrawToBackBuffer();
 
 	void InitImGui() const;
 

@@ -1,8 +1,8 @@
 #include "Constants.hlsli"
 #include "ComputeConstants.hlsli"
 
-Texture2D<float4> luminanceTexture                  : REGISTER_SRV_COPY_SOURCE;
-RWTexture2D<unorm float4> backBufferTexture         : REGISTER_UAV_RENDER_TARGET;
+Texture2D<float4> luminanceTexture                  : REGISTER_SRV_TEX_USER_0;
+RWTexture2D<float4> renderTexture                   : REGISTER_UAV_DEFAULT;
 
 SamplerState bloomSampler                           : REGISTER_SAMPLER_SYSTEM_0;
 
@@ -11,7 +11,7 @@ SamplerState bloomSampler                           : REGISTER_SAMPLER_SYSTEM_0;
 void main( uint3 DTid : SV_DispatchThreadID )
 {
     uint2 backBufferDims;
-    backBufferTexture.GetDimensions(backBufferDims.x, backBufferDims.y);
+    renderTexture.GetDimensions(backBufferDims.x, backBufferDims.y);
     
     float2 texUV = DTid.xy / float2(backBufferDims);
     texUV += (1.0f / backBufferDims) * 0.5f; // Adjust to middle of texel.
@@ -27,7 +27,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
         float2 mipTexelSize = 1.0f / float2(mipWidth, mipHeight);
         
         // Clever way of offsetting texels.
-        float sampleRadius = 1.2f;
+        float sampleRadius = 1.0f;
         float4 offset = mipTexelSize.xyxy * float4(1.0f, 1.0f, -1.0f, 0.0f) * sampleRadius;
         
         
@@ -54,5 +54,5 @@ void main( uint3 DTid : SV_DispatchThreadID )
         finalColor += mipLevelColor;
     }
     
-    backBufferTexture[DTid.xy] += float4(finalColor, 1.0f);
+    renderTexture[DTid.xy] += float4(finalColor, 1.0f);
 }

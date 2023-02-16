@@ -54,31 +54,53 @@ void RenderHandler::Draw()
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	m_renderCore->TargetRenderTexture();
-
-    for (int i = 0; i < m_worldRenderables.Size(); i++)
-    {
-        if (m_worldRenderables[i]->enabled)
-        {
-            m_renderCore->UpdateObjectInfo(m_worldRenderables[i].get());
-			m_renderCore->DrawObject(m_worldRenderables[i].get(), false);
-        }
-    }
-
-	static bool ppfxOn = false;
-	if (Input::Get().IsDXKeyPressed(DXKey::E))
-		ppfxOn = !ppfxOn;
-
-	if (ppfxOn)
+	
+	// Render scene
 	{
-		m_renderCore->DrawPPFX();
+		m_renderCore->TargetRenderTexture();
+
+		for (int i = 0; i < m_worldRenderables.Size(); i++)
+		{
+			if (m_worldRenderables[i]->enabled)
+			{
+				m_renderCore->UpdateObjectInfo(m_worldRenderables[i].get());
+				m_renderCore->DrawObject(m_worldRenderables[i].get(), false);
+			}
+		}
+
+		// Unbind render texture from OM as its going to be used elsewhere.
+		m_renderCore->UnbindRenderTexture(); 
+	}
+	
+	// Render PPFX
+	{
+		static bool ppfxOn = false;
+		if (Input::Get().IsDXKeyPressed(DXKey::E))
+			ppfxOn = !ppfxOn;
+
+		if (ppfxOn)
+		{
+			m_renderCore->DrawPPFX();
+		}
+	}
+	
+	// Draw final image to back buffer with tone mapping.
+	{
+		m_renderCore->DrawToBackBuffer();
 	}
 	
 
-	for (int i = 0; i < m_texts.Size(); i++)
+	// Render text
 	{
-		m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont(), m_texts[i].get()->GetColor(), m_texts[i].get()->GetOrigin());
+		
+		// TODO: Move binding back buffer to OM here instead of it being at the end of DrawToBackBuffer().
+
+		for (int i = 0; i < m_texts.Size(); i++)
+		{
+			m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont(), m_texts[i].get()->GetColor(), m_texts[i].get()->GetOrigin());
+		}
 	}
+	
 }
 
 

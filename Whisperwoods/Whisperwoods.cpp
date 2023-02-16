@@ -260,7 +260,7 @@ void Whisperwoods::Run()
 
 	shared_ptr<PointLight> point = make_shared<PointLight>();
 	point->color = cs::Color3f(0xFFFFFF);
-	point->intensity = 5.0f;
+	point->intensity = 2.0f;
 	point->transform.position = Vec3(2, 0, 0);
 	Renderer::RegisterLight(point);
 
@@ -278,7 +278,7 @@ void Whisperwoods::Run()
 	directional->transform.position = { 0, 10, 0 };
 	directional->transform.SetRotationEuler({ 0.5f, 0.9f, 0.0f });
 	directional->diameter = 20.0f;
-	directional->intensity = 0.7f;
+	directional->intensity = 1.3f;
 	directional->color = cs::Color3f(0xFFFFD0);
 
 	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color, { 1.0f, 1.0f });

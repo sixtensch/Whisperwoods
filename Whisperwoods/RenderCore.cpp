@@ -133,7 +133,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	// PPFX Textures and views
 
 	D3D11_TEXTURE2D_DESC bloomtd;
-	m_bbTexture->GetDesc(&bloomtd);
+	m_renderTexture->GetDesc(&bloomtd);
 	bloomtd.MipLevels = BLOOM_MIP_LEVELS;
 	bloomtd.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET | D3D11_BIND_UNORDERED_ACCESS;
 	bloomtd.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
@@ -300,7 +300,6 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	sd.MaxLOD = D3D11_FLOAT32_MAX;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(&sd, m_bloomUpscaleSampler.GetAddressOf()));
-	EXC_COMINFO(m_context->CSSetSamplers(RegSamplerSystem0, 1u, m_bloomUpscaleSampler.GetAddressOf()));
 }
 
 RenderCore::~RenderCore()
@@ -330,6 +329,12 @@ void RenderCore::TargetRenderTexture()
 {
 	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_renderTextureRTV.GetAddressOf(), m_dsDSV.Get()));
+}
+
+void RenderCore::UnbindRenderTexture()
+{
+	ID3D11RenderTargetView* nullRTV = nullptr;
+	EXC_COMINFO(m_context->OMSetRenderTargets(1u, &nullRTV, nullptr));
 }
 
 void RenderCore::EndFrame()
@@ -572,28 +577,63 @@ void RenderCore::DrawPPFX()
 	ID3D11UnorderedAccessView* nullUAV = nullptr;
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	ID3D11RenderTargetView* nullRTV = nullptr;
-	EXC_COMINFO(m_context->OMSetRenderTargets(1u, &nullRTV, nullptr)); // Unbind bb RTV from OM.
-	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVRenderTarget, 1u, m_bbUAV.GetAddressOf(), nullptr)); // Last argument is ignored.
-	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVDefault, 1u, m_ppfxLumUAV.GetAddressOf(), nullptr)); // Last argument is ignored.
-	EXC_COMINFO(m_context->CSSetSamplers(RegSamplerStandard, 1u, m_sampler.GetAddressOf()));
-	EXC_COMINFO(m_context->CSSetShader(m_thresholdCompute.Get(), nullptr, 0u));
 
-	EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
-
-	EXC_COMINFO(m_context->GenerateMips(m_ppfxLumSRV.Get()));
-	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVDefault, 1u, &nullUAV, 0u)); // Last argument is ignored.
-	EXC_COMINFO(m_context->CSSetShaderResources(RegSRVCopySource, 1u, m_ppfxLumSRV.GetAddressOf()));
-	EXC_COMINFO(m_context->CSSetShader(m_bloomCompute.Get(), nullptr, 0u));
-
-	EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
-
-	EXC_COMINFO(m_context->CSSetShader(m_colorGradeCompute.Get(), nullptr, 0u));
-	EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
-
-	EXC_COMINFO(m_context->CSSetShaderResources(RegSRVCopySource, 1u, &nullSRV)); // Unbind bloom SRV.
-	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVRenderTarget, 1u, &nullUAV, nullptr)); // Unbind bb UAV from compute.
+	const RegUAV bbTexUAVReg			= RegUAVRenderTarget;
+	const RegUAV renderTexUAVReg		= RegUAVDefault;
+	const RegSRV renderTexSRVReg		= RegSRVCopySource;
+	const RegUAV lumTexUAVReg			= RegUAVSystem0;
+	const RegSRV lumTexSRVReg			= RegSRVUser0;
 	
-	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get())); // Rebind bb RTV to OM.
+	// Bound once as a UAV which is going to be read from and written to at different stages of the PPFX pass.
+	 // Last argument is ignored.
+	
+	// Luminance threshold pass
+	{
+		EXC_COMINFO(m_context->CSSetShader(m_thresholdCompute.Get(), nullptr, 0u));
+		
+		EXC_COMINFO(m_context->CSSetShaderResources(renderTexSRVReg, 1u, m_renderTextureSRV.GetAddressOf()));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, m_ppfxLumUAV.GetAddressOf(), nullptr)); // Last argument is ignored.
+		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+		
+		// Generate all mips for lumen texture for artificial blur used in bloom pass.
+		EXC_COMINFO(m_context->GenerateMips(m_ppfxLumSRV.Get()));
+		EXC_COMINFO(m_context->CSSetSamplers(RegSamplerSystem0, 1u, m_bloomUpscaleSampler.GetAddressOf()));
+		EXC_COMINFO(m_context->CSSetShaderResources(renderTexSRVReg, 1u, &nullSRV));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, &nullUAV, nullptr));
+	}
+	
+	// Bloom pass
+	{
+		EXC_COMINFO(m_context->CSSetShader(m_bloomCompute.Get(), nullptr, 0u));
+		
+		EXC_COMINFO(m_context->CSSetShaderResources(lumTexSRVReg, 1u, m_ppfxLumSRV.GetAddressOf()));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(renderTexUAVReg, 1u, m_renderTextureUAV.GetAddressOf(), nullptr));
+		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+	
+		EXC_COMINFO(m_context->CSSetShaderResources(lumTexSRVReg, 1u, &nullSRV)); // Unbind lum SRV.
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(renderTexUAVReg, 1u, &nullUAV, nullptr)); // Unbind render tex UAV from compute.
+	}
+	
+	
+}
+
+void RenderCore::DrawToBackBuffer()
+{
+	// Color grade and final back buffer write.
+	{
+		EXC_COMINFO(m_context->CSSetShader(m_colorGradeCompute.Get(), nullptr, 0u));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVRenderTarget, 1u, m_bbUAV.GetAddressOf(), nullptr)); // Bind bb.
+		EXC_COMINFO(m_context->CSSetShaderResources(RegSRVCopySource, 1u, m_renderTextureSRV.GetAddressOf())); // Bind render tex.
+		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+	}
+
+	ID3D11UnorderedAccessView* nullUAV = nullptr;
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVRenderTarget, 1u, &nullUAV, nullptr)); // Unbind bb UAV from compute.
+	EXC_COMINFO(m_context->CSSetShaderResources(RegSRVCopySource, 1u, &nullSRV)); // Unbind render texture SRV from compute.
+
+	// TODO: Move this to start of text rendering instead.
+	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
 }
 
 //void RenderCore::SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer)

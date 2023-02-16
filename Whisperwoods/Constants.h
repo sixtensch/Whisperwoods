@@ -24,7 +24,7 @@
 #define LIGHT_FAR		100.0f
 
 // Values used by both render core .hlsli file for compute shaders.
-#define BLOOM_MIP_LEVELS 5u
+#define BLOOM_MIP_LEVELS 4u
 #define COMPUTE_GROUP_COUNT_X 80u
 #define COMPUTE_GROUP_COUNT_Y 90u
 	

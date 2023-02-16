@@ -159,5 +159,6 @@ float4 main(VSOutput input) : SV_TARGET
 	
     color += float4(colorEmissive.xyz, 0.0f);
 	
-    return saturate(color );
+    color.a = saturate(color.a);
+    return color;
 }
