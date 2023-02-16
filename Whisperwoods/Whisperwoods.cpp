@@ -44,14 +44,14 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", true );
 
 	//// Static Models
-	//BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
+	BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false, 0.1f );
+	BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false, 0.1f );
+	BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false, 1.0f );
+	BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false, 0.8f );
+	BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false, 0.1f );
+	BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false, 0.0f );
+	BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false, 0.1f );
+	BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false, 0.1f );
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
