@@ -21,7 +21,7 @@ public:
 	
 	
 	shared_ptr<MeshRenderableRigged> m_carcinian;
-	shared_ptr<AnimationResource> m_animationSet;
+	AnimationResource* m_animationSet;
 	unique_ptr<Animator> m_characterAnimator;
 
 
