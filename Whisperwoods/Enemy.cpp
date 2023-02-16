@@ -15,13 +15,14 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_walkingDirection = Vec2(0.0f, 0.0f);
 	m_enemyAlive = false; // Default false, has to be manually turned on
 	m_rotation = false;
-	m_rotationSpeed = 0.003f;
+	m_rotationSpeed = 1.0f;
 	m_offset = 0;
 	m_idleCounter = 0;
 
 	m_lookBehind = false;
+	m_seesPlayer = false;
+	//m_currentRotation = Vec3(0, 0, 0);
 
-	
 	m_idleEnemy = false;
 	m_triggerTurn = false;
 	m_isMoving = true;
@@ -180,7 +181,7 @@ void Enemy::Update(float dTime)
 	transform.position.z = m_currentPosition.y; //because transform is Vec3, y would be "height"
 	
 
-	transform.CalculateWorldMatrix();
+	//transform.CalculateWorldMatrix();
 
 	//handle rotation:
 	float angle = atan2(m_walkingDirection.y, m_walkingDirection.x) * 180 / cs::c_pi;
@@ -204,12 +205,12 @@ void Enemy::Update(float dTime)
 	{
 		if (m_rotateClockWise == false)//counter clockwise, add onto the offset
 		{
-			if (m_rotationCounter > angleDecimal + m_rotationSpeed * 1.1) //DO NOT CHANGE THIS
+			if (m_rotationCounter > angleDecimal + m_rotationSpeed * dTime * 1.1) //DO NOT CHANGE THIS
 			{
 				angle = 180 - angle;
 				angleDecimal = angle / 180;
 			}
-			m_rotationCounter += m_rotationSpeed;
+			m_rotationCounter += m_rotationSpeed * dTime;
 			if (m_rotationCounter >= angleDecimal)
 			{
 				m_rotationCounter = angleDecimal;
@@ -218,12 +219,12 @@ void Enemy::Update(float dTime)
 		}
 		else // clockwise,   take away from offset
 		{
-			if (m_rotationCounter < angleDecimal - m_rotationSpeed * 1.1) // DO NOT CHANGE THIS
+			if (m_rotationCounter < angleDecimal - m_rotationSpeed * dTime * 1.1) // DO NOT CHANGE THIS
 			{
 				angle = 180 + angle;
 				angleDecimal = angle / 180;
 			}
-			m_rotationCounter -= m_rotationSpeed;
+			m_rotationCounter -= m_rotationSpeed * dTime;
 			if (m_rotationCounter <= angleDecimal)
 			{
 				m_rotationCounter = angleDecimal;
@@ -266,29 +267,29 @@ void Enemy::Update(float dTime)
 	}
 	if (m_idleEnemy == true) // behavior for idle enemy
 	{
-		if (m_idleCounter < 4 && m_characterAnimator->AnimationsFinished() && m_triggerTurn == false)
+		if (m_idleCounter < 4 && m_characterAnimator->AnimationsFinished() && m_triggerTurn == false) // run idle animation
 		{
 			m_characterAnimator->playbackSpeed = 0.2f;
 			m_characterAnimator->PlayAnimation(2, 0, 1, false, true);
 			m_idleCounter++;
 		}
-		else if (m_idleCounter == 4 && m_characterAnimator->AnimationsFinished())
+		else if (m_idleCounter == 4 && m_characterAnimator->AnimationsFinished()) // has been idle long enough, run rotation animation
 		{
 			m_characterAnimator->StopAnimation(2);
 			m_characterAnimator->playbackSpeed = 0.35f;
 			m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
 			m_idleCounter = 0;
-			m_triggerTurn = true;
-			if (m_lookBehind == true)
-			{
-				m_lookBehind = false;
-			}
-			else
-			{
-				m_lookBehind = true;
-			}
+m_triggerTurn = true;
+if (m_lookBehind == true) //these if/else is to change the direction 180 degrees
+{
+	m_lookBehind = false;
+}
+else
+{
+	m_lookBehind = true;
+}
 		}
-		if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished())
+		if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished())   // this section triggers ONLY when the roration animation is OVER
 		{
 			float angleReverse = atan2(m_walkingDirection.y, m_walkingDirection.x) * 180 / cs::c_pi;
 			if (m_lookBehind == true)
@@ -297,15 +298,20 @@ void Enemy::Update(float dTime)
 			}
 			float angleDecimalReverse = angleReverse / 180;
 			m_idleAngle = angleDecimalReverse;
-			
+
 
 			m_triggerTurn = false;
-			
+
 		}
 		m_offset = m_idleAngle;
 	}
-	
-	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset * Mat::rotation3(0.0f, -cs::c_pi * m_offset + cs::c_pi * 0.5f, 0.0f);
+	Vec3 test = transform.GetWorldRotation() * Vec3(1, 0, 0);
+	transform.SetRotationEuler(Vec3(0.0f, -cs::c_pi * m_offset + cs::c_pi * 0.5f, 0.0f));
+	//Vec3 test = transform.rotation * Vec3(0, 0, 1);
+	transform.CalculateWorldMatrix();
+	test = transform.GetWorldRotation() * Vec3(0, 0, 1);
+	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset;
+
 }
 
 void Enemy::AddCoordinateToPatrolPath(Vec2 coord, bool enclosed) // Make sure the Coordinates are sent in the correct order of the path
@@ -327,7 +333,65 @@ void Enemy::AddModel(std::string modelResource, std::string animationsPath, Mat4
 	m_modelOffset = modelOffset;
 	// Import the animations (Now using the resource manager)
 	Resources& resources = Resources::Get();
-	m_animationSet = (AnimationResource*)resources.GetResource( ResourceTypeAnimations, animationsPath );
+	m_animationSet = (AnimationResource*)resources.GetResource(ResourceTypeAnimations, animationsPath);
 	//m_animationSet = std::make_shared<AnimationResource>();
 	//importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 }
+
+int SomeFunction(Vec3 pos)
+{
+	return 0;
+}
+
+bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack)
+{
+	// Let's start with if the enemy can see the player at all without TRUE line of sight
+
+	//forward vector (which direction enemy is looking)
+	Vec3 tempV = transform.rotation * Vec3(0, 0, 1);
+	m_forwardVector = Vec2(tempV.x, tempV.z);
+	m_forwardVector.Normalize();
+
+	//direction vector from enemy position to player position
+	Vec2 playerDirection(playerPosition.x - m_currentPosition.x, playerPosition.y - m_currentPosition.y);
+
+	float distance = playerDirection.Length(); //distance from enemy to player
+	//Vec2 vectorForLineOfSight = playerDirection;
+
+	playerDirection.Normalize();
+	float angle = acos(m_forwardVector.Dot(playerDirection)); // angle in radians
+	angle = angle * (180.0f / cs::c_pi); //angle in acutal degrees
+
+	m_seesPlayer = false;
+
+	if (angle < 50 && distance < 8) // is the player within range and circle sector of the enemy?
+	{
+
+		//Now we check if the enemy has true line of sight to the player
+		m_seesPlayer = true;
+		for (float i = 0; i < distance; i += 0.1)// for each meter in "distance"
+		{
+			Vec3 pointOnLineOfSightVector = Vec3(playerDirection.x, 0.0f, playerDirection.y);
+			pointOnLineOfSightVector = pointOnLineOfSightVector * i;
+			if (SomeFunction(pointOnLineOfSightVector) != 0)
+			{
+				m_seesPlayer = false;
+			}
+		}
+	}
+	if(m_seesPlayer)
+	{
+		if (quack.IsPlaying() == false) // audio cue
+		{
+			quack.Play();
+		}
+	}
+	else
+	{
+		quack.Stop();
+	}
+
+	return m_seesPlayer;
+}
+
+//send away Vec3(x,0,y), if it returns != 0, it is obscured

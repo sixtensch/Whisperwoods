@@ -82,6 +82,30 @@ Whisperwoods::~Whisperwoods()
 {
 }
 
+
+//Mat4 ConvertToMat4(DirectX::XMFLOAT4X4* mat)
+//{
+//	Mat4 returnMat;
+//	returnMat(0, 0) = mat->_11;
+//	returnMat(0, 1) = mat->_12;
+//	returnMat(0, 2) = mat->_13;
+//	returnMat(0, 3) = mat->_14;
+//	returnMat(1, 0) = mat->_21;
+//	returnMat(1, 1) = mat->_22;
+//	returnMat(1, 2) = mat->_23;
+//	returnMat(1, 3) = mat->_24;
+//	returnMat(2, 0) = mat->_31;
+//	returnMat(2, 1) = mat->_32;
+//	returnMat(2, 2) = mat->_33;
+//	returnMat(2, 3) = mat->_34;
+//	returnMat(3, 0) = mat->_41;
+//	returnMat(3, 1) = mat->_42;
+//	returnMat(3, 2) = mat->_43;
+//	returnMat(3, 3) = mat->_44;
+//	return returnMat;
+//}
+
+
 void Whisperwoods::Run()
 {
 	// Main frame loop
@@ -196,18 +220,18 @@ void Whisperwoods::Run()
 
 	
 	
-	//Enemy patrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(1.0f, -5.0f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -4.2f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.35f, -3.0f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.6f, -1.65f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.4f, -0.3f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.35f, 1.0f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.5f, 1.05f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.2f, 0.25f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.25f, -0.8f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.9f, -1.5f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.3f, -1.9f), false);
+	/*Enemy patrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(1.0f, -5.0f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -4.2f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.35f, -3.0f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.6f, -1.65f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.4f, -0.3f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.35f, 1.0f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.5f, 1.05f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.2f, 0.25f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.25f, -0.8f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.9f, -1.5f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.3f, -1.9f), false);*/
 
 	Enemy idleEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f)* Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
 	idleEnemy.AddCoordinateToPatrolPath(Vec2(2.0f, 2.0f), true);
@@ -234,6 +258,8 @@ void Whisperwoods::Run()
 		//patrolEnemy.Update(dTime);
 		idleEnemy.Update(dTime);
 
+		
+
 		m_game->Update();
 		m_sound->Update();
 		rotationY += 0.2f * dTime;
@@ -242,7 +268,7 @@ void Whisperwoods::Run()
 		testEmpty.Update(dTime);
 		testPlayer.Update(dTime);
 
-
+		idleEnemy.SeesPlayer(Vec2(testPlayer.transform.worldPosition.x, testPlayer.transform.worldPosition.z), testSource);
 		// Draw step
 		m_renderer->Draw();
 

@@ -5,6 +5,9 @@
 #include "Animator.h"
 
 
+//temp include
+#include "AudioSource.h"
+
 
 
 class Enemy : public GameObject
@@ -17,18 +20,19 @@ public:
 	void AddCoordinateToPatrolPath(Vec2 coord, bool enclosed);
 	void EmptyPatrolPath(); // In order to re-use enemies, wipe the patrol path and add a new one when player reaches a new room rather than creating a new Enemy object.
 	void AddModel(std::string modelResource, std::string animationsPath, Mat4 modelOffset);
+	bool SeesPlayer(Vec2 playerPosition, AudioSource &quack);
+	
 	bool m_enemyAlive; // A bool to know if we render/update the enemy or not
-	
-	
+
 	shared_ptr<MeshRenderableRigged> m_carcinian;
 	AnimationResource* m_animationSet;
 	unique_ptr<Animator> m_characterAnimator;
 
 
 private:
-	
-	Mat4 m_modelOffset;
 
+	// move/rotation variables
+	//*****************************
 	std::vector<Vec2> m_patrolPath; // To save the coordinates mapped in bitmap for patrol path.
 	int m_currentPatrolIndex; // Which index in vector enemy is currently walking towards.
 	Vec2 m_currentPosition; // Where the enemy currently is
@@ -50,5 +54,14 @@ private:
 	bool m_triggerTurn;
 	bool m_lookBehind; // to handle idle enemies
 	float m_idleAngle;
+	Mat4 m_modelOffset;
+	//*****************************
+
+	//variables for detection
+	//***************************
+	//Vec3 m_currentRotation;
+	bool m_seesPlayer;
+	Vec2 m_forwardVector;
+	//****************************
 };
 
