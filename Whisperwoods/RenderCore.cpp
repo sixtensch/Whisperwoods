@@ -62,9 +62,14 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	m_viewport.Width = static_cast<float>(window->GetWidth());
 	m_viewport.Height = static_cast<float>(window->GetHeight());
 
-	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
-
-
+	UINT shadowMapHeight = 1024;
+	UINT shadowMapWidth = 1024;
+	m_shadowViewport.TopLeftX = 0;
+	m_shadowViewport.TopLeftX = 0;
+	m_shadowViewport.MinDepth = 0;
+	m_shadowViewport.MaxDepth = 1;
+	m_shadowViewport.Width = shadowMapWidth;
+	m_shadowViewport.Height = shadowMapHeight;
 
 	// Setup back buffer
 
@@ -136,8 +141,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	shadowMapDesc.ArraySize = 1;
 	shadowMapDesc.SampleDesc.Count = 1;
 	shadowMapDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_DEPTH_STENCIL;
-	shadowMapDesc.Height = LIGHT_DIRECTIONAL_HEIGHT;
-	shadowMapDesc.Width = LIGHT_DIRECTIONAL_WIDTH;
+	shadowMapDesc.Height = shadowMapHeight;
+	shadowMapDesc.Width = shadowMapWidth;
 
 	EXC_COMCHECK(m_device->CreateTexture2D(
 		&shadowMapDesc,
@@ -257,7 +262,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	shadowSDesc.MipLODBias = 0.0f;
 	shadowSDesc.MaxAnisotropy = 0;
 	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
-	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(
 		&shadowSDesc,
@@ -290,6 +295,7 @@ void RenderCore::TargetShadowMap()
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
 	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, m_shadowDSV.Get()));
 	EXC_COMINFO(m_context->RSSetState(m_shadowRenderState.Get())); // Frontface culling
+	EXC_COMINFO(m_context->RSSetViewports(1, &m_shadowViewport));
 }
 
 void RenderCore::TargetBackBuffer()
@@ -298,6 +304,7 @@ void RenderCore::TargetBackBuffer()
 	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
 	EXC_COMINFO(m_context->PSSetShaderResources(24, 1, m_shadowSRV.GetAddressOf()));
 	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get())); // Backface culling
+	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
 }
 
 void RenderCore::EndFrame()

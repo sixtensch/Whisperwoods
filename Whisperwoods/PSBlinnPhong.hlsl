@@ -107,7 +107,7 @@ float4 main(VSOutput input) : SV_TARGET
     float4 lsNDC = lsPos / lsPos.w; // U, V, Depth
     float2 lsUV = float2(lsNDC.x * 0.5f + 0.5f, lsNDC.y * -0.5f + 0.5f);
 	
-    if ( shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + 0.001f).x == 1.0f ) // 1 -> comparison success, 0 -> comparison fail
+    if ( shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + 0.00001f).x == 1.0f ) // 1 -> comparison success, 0 -> comparison fail
     {
 		color += phong(
 			input.wPosition.xyz,

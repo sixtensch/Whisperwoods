@@ -126,6 +126,7 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_shadowSRV;
 	ComPtr<ID3D11RasterizerState> m_shadowRenderState;
 	ComPtr<ID3D11SamplerState> m_shadowSampler;
+	D3D11_VIEWPORT m_shadowViewport;
 
 	std::unique_ptr<dx::SpriteFont> m_fonts[FontCount];
 	std::unique_ptr<dx::SpriteBatch> m_spriteBatch;

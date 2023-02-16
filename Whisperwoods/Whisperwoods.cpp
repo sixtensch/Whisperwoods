@@ -250,7 +250,7 @@ void Whisperwoods::Run()
 	Renderer::RegisterLight(spot);
 
 	shared_ptr<DirectionalLight> directional = Renderer::GetDirectionalLight();
-	directional->transform.position = { 0, -2, 0 };
+	directional->transform.position = { 0, 4, 0 };
 	directional->transform.SetRotationEuler({ dx::XM_PIDIV2, 0.0f, 0.0f });
 	directional->diameter = 50.0f;
 	directional->intensity = 5.7f;
