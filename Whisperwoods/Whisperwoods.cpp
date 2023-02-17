@@ -140,7 +140,7 @@ void Whisperwoods::Run()
 	Mat4 roomRot = Mat::rotation3(0.0f, 0.0f, 0.0f);
 	Mat4 roomCombined = roomScale * roomPos * roomRot;
 
-	Room testRoom("room_plane.wwm", "Examplemap.png", roomCombined, m_renderer.get());
+	Room testRoom(&level, "room_plane.wwm", roomCombined, m_renderer.get());
 	testRoom.transform.rotation = Quaternion::GetEuler({ 0, cs::c_pi * 0.5f ,0 });
 	testPlayer.currentRoom = &testRoom;
 

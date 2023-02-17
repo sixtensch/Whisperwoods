@@ -11,6 +11,7 @@
 #include "Font.h"
 #include "LevelResource.h"
 #include "Level.h"
+#include "QuadTree.h"
 
 class RenderHandler sealed
 {
@@ -43,7 +44,7 @@ public:
 	bool RegisterSpotLight(shared_ptr<SpotLight> spotLight);
 
 private:
-	void DrawInstances();
+	void DrawInstances(bool shadows);
 
 
 
@@ -74,6 +75,8 @@ private:
 		cs::List<uint> submeshes[2];
 		const ModelStaticResource* models[2];
 
+		//cs::Box2
+
 		cs::List<Mat4> instances;
 
 		// Hot-data
@@ -102,6 +105,8 @@ private:
 	cs::List<EnvMaterial> m_envMaterials[2];
 	cs::List<EnvSubmesh> m_envSubmeshes[2];
 	EnvMesh m_envMeshes[LevelAssetCount];
+
+	//QuadTree<Mat4> m_envQuadTree;
 
 	// Hot-data
 	cs::List<Mat4> m_envInstances;

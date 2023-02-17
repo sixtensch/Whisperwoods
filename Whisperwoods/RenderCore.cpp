@@ -271,7 +271,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateRasterizerState(&rsd, &m_rasterizerState));
 
 	D3D11_RASTERIZER_DESC shadowRSDesc = {};
-	shadowRSDesc.CullMode = D3D11_CULL_FRONT;
+	shadowRSDesc.CullMode = D3D11_CULL_BACK;
 	shadowRSDesc.FillMode = D3D11_FILL_SOLID;
 	shadowRSDesc.DepthClipEnable = true;
 
@@ -342,7 +342,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	shadowSDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	shadowSDesc.MipLODBias = 0.0f;
 	shadowSDesc.MaxAnisotropy = 0;
-	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(

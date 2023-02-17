@@ -46,21 +46,23 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor)
 
 	cs::Random r;
 	
+	float levelScale = 1.0f;
+
 	l.resource = &m_resources[0];
-	Vec3 offset = l.position + Vec3(-l.resource->worldWidth * 0.5f, 0, l.resource->worldHeight * 0.5f);
+	Vec3 offset = l.position + Vec3(l.resource->worldWidth * 0.5f, 0, -l.resource->worldHeight * 0.5f);
 
 	for (int x = 0; x < (int)l.resource->pixelWidth; x++)
 	{
 		for (int y = 0; y < (int)l.resource->pixelHeight; y++)
 		{
-			if (l.resource->bitmap[x + l.resource->pixelWidth * y] == Impassable && r.Get(20) == 0)
+			if ((l.resource->bitmap[x + l.resource->pixelWidth * y] & ~Passable) && r.Get(10) == 0)
 			{
-				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(x * BM_PIXEL_SIZE, 0, -y * BM_PIXEL_SIZE)) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.3f);
+				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE) * levelScale) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.1f);
 				l.instances[LevelAssetBush1].Add(instanceMatrix);
 			}
-			else if (l.resource->bitmap[x + l.resource->pixelWidth * y] == Impassable && r.Get(20) == 0)
+			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y] & ~Passable) && r.Get(10) == 0)
 			{
-				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(x * BM_PIXEL_SIZE, 0, -y * BM_PIXEL_SIZE)) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.5f);
+				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE) * levelScale) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.1f);
 				l.instances[LevelAssetBush2].Add(instanceMatrix);
 			}
 		}

@@ -123,7 +123,7 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
 		m_renderCore->TargetShadowMap();
 	}
 
-	DrawInstances();
+	DrawInstances(shadows);
 
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
@@ -295,6 +295,8 @@ void RenderHandler::LoadEnvironment(const Level* level)
 	
 	uint instanceCount = 0;
 
+	//m_envQuadTree.
+
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
 		m_envMeshes[i].instances.Clear(false);
@@ -374,9 +376,9 @@ bool RenderHandler::RegisterSpotLight(shared_ptr<SpotLight> spotLight)
 	return true;
 }
 
-void RenderHandler::DrawInstances()
+void RenderHandler::DrawInstances(bool shadows)
 {
-	m_renderCore->BindInstancedPipeline(false);
+	m_renderCore->BindInstancedPipeline(shadows);
 
 
 
@@ -384,18 +386,20 @@ void RenderHandler::DrawInstances()
 
 	m_envInstances.Clear(false);
 
+
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
-		uint instanceCount = 0;
-
 		m_envMeshes[i].hotInstances.Clear(false);
+	}
 
+	for (uint i = 0; i < LevelAssetCount; i++)
 		for (const Mat4& m : m_envMeshes[i].instances)
 		{
 			m_envMeshes[i].hotInstances.Add(m);
-			instanceCount++;
 		}
-		
+
+	for (uint i = 0; i < LevelAssetCount; i++)
+	{
 		m_envMeshes[i].instanceOffset = m_envInstances.Size();
 		m_envMeshes[i].instanceCount = m_envMeshes[i].hotInstances.Size();
 
