@@ -24,7 +24,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_seesPlayer = false;
 	//m_currentRotation = Vec3(0, 0, 0);
 
-	m_idleEnemy = false;
+	m_PatrolEnemy = false;
 	m_triggerTurn = false;
 	m_isMoving = true;
 
@@ -70,7 +70,7 @@ void Enemy::Update(float dTime)
 	//This has to be in update because we re-use enemy objects between rooms! Will cost like O(1), it's fine
 	if (m_patrolPath.size() < 3 && m_firstTrigger == false)
 	{
-		m_idleEnemy = true;
+		m_PatrolEnemy = true;
 		m_characterAnimator->StopAnimation(0);
 		m_characterAnimator->PlayAnimation(2, 0, 1, false, true);
 		m_lastPlayedAnimation = 2;
@@ -190,7 +190,7 @@ void Enemy::Update(float dTime)
 	float angle = atan2(m_walkingDirection.y, m_walkingDirection.x) * 180 / cs::c_pi;
 	float angleDecimal = angle / 180;
 
-	if (m_idleEnemy == true && first == true) //for default, ignore this and just accept it
+	if (m_PatrolEnemy == true && first == true) //for default, ignore this and just accept it
 	{
 		m_idleAngle = angleDecimal;
 		m_offset = angleDecimal;
@@ -236,7 +236,7 @@ void Enemy::Update(float dTime)
 		}
 		m_offset = m_rotationCounter;
 	}
-	if(m_isMoving == false && m_idleEnemy == false)// 180 degree turn. Play animation here
+	if(m_isMoving == false && m_PatrolEnemy == false)// 180 degree turn. Play animation here
 	{
 		float angle2 = atan2(m_lastWalkingDirection.y, m_lastWalkingDirection.x) * 180 / cs::c_pi;
 		float angleDecimal2 = angle2 / 180;
@@ -270,7 +270,7 @@ void Enemy::Update(float dTime)
 		}
 		
 	}
-	if (m_idleEnemy == true) // behavior for idle enemy
+	if (m_PatrolEnemy == true) // behavior for idle enemy
 	{
 		if (m_idleCounter < 4 && m_characterAnimator->AnimationsFinished() && m_triggerTurn == false) // run idle animation
 		{
@@ -360,7 +360,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack, Room &room)
 	m_forwardVector.Normalize();
 
 	//direction vector from enemy position to player position
-	Vec2 playerDirection(playerPosition.x - m_currentPosition.x, playerPosition.y - m_currentPosition.y);
+	Vec2 playerDirection(playerPosition.x - transform.worldPosition.x, playerPosition.y - transform.worldPosition.z);
 
 	float distance = playerDirection.Length(); //distance from enemy to player
 	//Vec2 vectorForLineOfSight = playerDirection;
@@ -376,15 +376,20 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack, Room &room)
 
 		//Now we check if the enemy has true line of sight to the player
 		m_seesPlayer = true;
-		for (float i = 0; i < distance; i += 0.1)// for each 10 cm in "distance"
-		{
-			Vec3 pointOnLineOfSightVector = Vec3(playerDirection.x, 0.0f, playerDirection.y);
-			pointOnLineOfSightVector = pointOnLineOfSightVector * i;
+		room.sampleBitMap(Vec3(playerPosition.x, 0.0f, playerPosition.y));
+		room.sampleBitMap(Vec3(transform.worldPosition.x, 0.0f, transform.worldPosition.z));
 
-			LevelPixel bitmapPoint = room.sampleBitMap(pointOnLineOfSightVector);
-			if (bitmapPoint & ~Impassable)
-			{
+		for (float i = 0; i < distance; i += 0.025)// for each 10 cm in "distance"
+		{
+			Vec3 pointOnLineOfSightVector = transform.worldPosition + Vec3(playerDirection.x , 0.0f, playerDirection.y) * i;
+			//pointOnLineOfSightVector = pointOnLineOfSightVector * i;
+
+			LevelPixel bitmapPoint = room.sampleBitMap(Vec3(pointOnLineOfSightVector.x, 0.0f, pointOnLineOfSightVector.z));
+			if (bitmapPoint != 0) // this is issue
+			{ // if impassible == true        ||   passable == false
+
 				m_seesPlayer = false;
+				break;
 			}
 		} //worldToBitmapPoint(Vec3 worldPos)
 	}

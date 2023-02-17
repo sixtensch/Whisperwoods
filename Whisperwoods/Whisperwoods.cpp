@@ -151,13 +151,13 @@ void Whisperwoods::Run()
 	testEmpty.AddChild(&testRoom);
 
 
-	StaticObject ground( "Ground.wwm", worldCombined, { "TestSceneGround.wwmt" } );
+	/*StaticObject ground( "Ground.wwm", worldCombined, { "TestSceneGround.wwmt" } );
 	StaticObject bigTrees( "BigTrees.wwm", worldCombined, { "TestSceneBigTree.wwmt" } );
 	StaticObject bigPlants( "BigPlants.wwm", worldCombined, { "TestSceneBanana.wwmt" } );
 	StaticObject smallPlants( "SmallPlants.wwm", worldCombined, { "TestSceneTopDownPlant.wwmt" } );
 	StaticObject mediumTrees( "MediumTrees.wwm", worldCombined, { "TestSceneMediumTree.wwmt" } );
 	StaticObject stones( "Stones.wwm", worldCombined, { "TestSceneStones.wwmt" } );
-	StaticObject grafiTree( "Grafitree.wwm", worldCombined, { "TestSceneGrafitree.wwmt" } );
+	StaticObject grafiTree( "Grafitree.wwm", worldCombined, { "TestSceneGrafitree.wwmt" } );*/
 
 	// Grafiki animations test
 	Resources resources = Resources::Get();
@@ -243,12 +243,16 @@ void Whisperwoods::Run()
 
 	
 	
-	Enemy patrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, 0, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
-	for (int i = 0; i < level.patrolsClosed.Size(); i++)
+	Enemy PatrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, 0, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	for (int i = 0; i < 1/*testRoom.m_levelResource.patrolsClosed.Size()*/; i++)
 	{
-		for (int j = 0; j < level.patrolsClosed[i].controlPoints.Size(); j++)
+		for (int j = 0; j < testRoom.m_levelResource.patrolsClosed[i].controlPoints.Size(); j++)
 		{
-			patrolEnemy.AddCoordinateToPatrolPath(level.patrolsClosed[i].controlPoints[j], true);
+			Point2 bitPos = Point2(testRoom.m_levelResource.patrolsClosed[i].controlPoints[j]);
+			Vec3 enemyPos = testRoom.bitMapToWorldPos(bitPos);
+			PatrolEnemy.AddCoordinateToPatrolPath(Vec2(-enemyPos.z, enemyPos.x), true);
+			Point2 test = testRoom.worldToBitmapPoint(enemyPos);
+			enemyPos = Vec3(0, 0, 0);
 		}
 	}
 	
@@ -264,9 +268,9 @@ void Whisperwoods::Run()
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.9f, -1.5f), true);
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.3f, -1.9f), false);*/
 
-	//Enemy idleEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f)* Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
-	//idleEnemy.AddCoordinateToPatrolPath(Vec2(2.0f, 2.0f), true);
-	//idleEnemy.AddCoordinateToPatrolPath(Vec2(0.0f, 0.0f), true);*/
+	//Enemy PatrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f)* Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	//PatrolEnemy.AddCoordinateToPatrolPath(Vec2(2.0f, 2.0f), true);
+	//PatrolEnemy.AddCoordinateToPatrolPath(Vec2(0.0f, 0.0f), true);*/
 
 	Vec3 tempRot;
 
@@ -288,15 +292,15 @@ void Whisperwoods::Run()
 
 		testEmpty.Update(dTime);
 		testRoom.Update(dTime);
-		//idleEnemy.Update(dTime);
+		PatrolEnemy.Update(dTime);
 		testPlayer.Update(dTime);
-		patrolEnemy.Update(dTime);
+		//patrolEnemy.Update(dTime);
 
 		m_game->Update();
 		m_sound->Update();
 		rotationY += 0.2f * dTime;
 		mesh2->worldMatrix = Mat::translation3(0, -0.0f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
-		patrolEnemy.SeesPlayer(Vec2(testPlayer.transform.worldPosition.x, testPlayer.transform.worldPosition.z), testSource, testRoom);
+		PatrolEnemy.SeesPlayer(Vec2(testPlayer.transform.worldPosition.x, testPlayer.transform.worldPosition.z), testSource, testRoom);
 		// Draw step
 		m_renderer->playerMat = testPlayer.transform.worldMatrix;
 		m_renderer->Draw();
@@ -324,7 +328,15 @@ void Whisperwoods::Run()
 		Quaternion tempRotQ = Quaternion::GetEuler(tempRot);
 		testRoom.transform.rotation = tempRotQ;
 
-
+		Point2 sample2 = testRoom.worldToBitmapPoint(PatrolEnemy.transform.position);
+		Vec3 convertedBack2 = testRoom.bitMapToWorldPos(sample2);
+		if (ImGui::Begin("Map sameple2"))
+		{
+			ImGui::Text("Enemy Pos: %f, %f, %f", PatrolEnemy.transform.position.x, PatrolEnemy.transform.position.y, PatrolEnemy.transform.position.z );
+			ImGui::Text("Point on bitmap: %f, %f", sample2.x, sample2.y);
+			ImGui::Text("PlayerPos Converted bac: %f, %f, %f", convertedBack2.x, convertedBack2.y, convertedBack2.z);
+		}
+		ImGui::End();
 
 
 
