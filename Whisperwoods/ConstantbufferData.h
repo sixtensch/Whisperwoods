@@ -64,6 +64,7 @@ struct ConstantBuffers
 {
 	ComPtr<ID3D11Buffer> viewInfo;
 	ComPtr<ID3D11Buffer> objectInfo;
+	ComPtr<ID3D11Buffer> playerInfo;
 	
 	ComPtr<ID3D11Buffer> shadingInfo;
 	ComPtr<ID3D11Buffer> materialInfo;

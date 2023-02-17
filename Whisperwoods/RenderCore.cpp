@@ -649,6 +649,20 @@ void RenderCore::UpdateObjectInfo(const WorldRenderable* worldRenderable)
 	EXC_COMINFO(m_context->Unmap(m_constantBuffers.objectInfo.Get(), 0u));
 }
 
+void RenderCore::UpdatePlayerInfo( Mat4 matrix )
+{
+	CB::ObjectInfo oi =
+	{
+		matrix
+	};
+
+	D3D11_MAPPED_SUBRESOURCE msr = {};
+	EXC_COMCHECK( m_context->Map( m_constantBuffers.playerInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr ) );
+	memcpy( msr.pData, &oi, sizeof( CB::ObjectInfo ) );
+	EXC_COMINFO( m_context->Unmap( m_constantBuffers.playerInfo.Get(), 0u ) );
+}
+
+
 void RenderCore::UpdateMaterialInfo(const MaterialResource* material) const
 {
 	if (material == nullptr)
@@ -1099,6 +1113,17 @@ void RenderCore::InitConstantBuffers()
 
 	EXC_COMINFO(m_context->VSSetConstantBuffers(RegCBVObjectInfo, 1, m_constantBuffers.objectInfo.GetAddressOf()));
 
+
+	// Player info
+	desc.ByteWidth = sizeof( CB::ObjectInfo );
+
+	EXC_COMCHECK( m_device->CreateBuffer(
+		&desc,
+		nullptr,
+		m_constantBuffers.playerInfo.GetAddressOf()
+	) );
+
+	EXC_COMINFO( m_context->VSSetConstantBuffers( RegCBVTesselationInfo, 1, m_constantBuffers.playerInfo.GetAddressOf()));
 
 
 	// Shading info

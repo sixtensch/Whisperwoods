@@ -47,6 +47,7 @@ bool Renderer::UpdateWindow()
 
 void Renderer::Draw()
 {
+	m_renderHandler->playerMatrix = playerMat;
 	m_renderHandler->Draw();
 }
 
@@ -115,7 +116,7 @@ Window& Renderer::GetWindow()
 	return *(s_singleton->m_window.get());
 }
 
-const RenderCore* Renderer::GetRenderCore()
+RenderCore* Renderer::GetRenderCore()
 {
 	return m_renderHandler->GetCore();
 }
