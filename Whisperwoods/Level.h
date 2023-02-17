@@ -31,8 +31,8 @@ struct Level
 struct LevelTunnel
 {
 	// Indices into LevelFloor::rooms
-	const Level* startRoom;
-	const Level* endRoom;
+	uint startRoom;
+	uint endRoom;
 
 	// Same as source/destination exits
 	LevelExit startExit;

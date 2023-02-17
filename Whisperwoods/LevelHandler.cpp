@@ -21,7 +21,8 @@ void LevelHandler::LoadFloors()
 			m_resources.Add({});
 
 			LevelResource* r = &m_resources.Back();
-			Renderer::LoadLevel(r, item.path().filename().string());
+			string s = item.path().filename().string();
+			Renderer::LoadLevel(r, s);
 
 			m_resourceIndices[r->exits.Size() - 1].Add(m_resources.Size() - 1);
 		}
@@ -54,12 +55,12 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor)
 		{
 			if (l.resource->bitmap[x + l.resource->pixelWidth * y] == Impassable && r.Get(20) == 0)
 			{
-				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(x * BM_PIXEL_SIZE, 0, -y * BM_PIXEL_SIZE)) * Mat::rotation3X(cs::c_pi * -0.5f) * Mat::scale3(0.2f);
+				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(x * BM_PIXEL_SIZE, 0, -y * BM_PIXEL_SIZE)) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.3f);
 				l.instances[LevelAssetBush1].Add(instanceMatrix);
 			}
 			else if (l.resource->bitmap[x + l.resource->pixelWidth * y] == Impassable && r.Get(20) == 0)
 			{
-				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(x * BM_PIXEL_SIZE, 0, -y * BM_PIXEL_SIZE)) * Mat::rotation3X(cs::c_pi * -0.5f) * Mat::scale3(0.5f);
+				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(x * BM_PIXEL_SIZE, 0, -y * BM_PIXEL_SIZE)) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.5f);
 				l.instances[LevelAssetBush2].Add(instanceMatrix);
 			}
 		}

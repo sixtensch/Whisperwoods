@@ -48,9 +48,6 @@ private:
 private:
 	struct EnvMaterial
 	{
-		ComPtr<ID3D11Buffer> allVertices;
-		ComPtr<ID3D11Buffer> allIndices;
-
 		string materialName;
 		const MaterialResource* material;
 
@@ -60,6 +57,7 @@ private:
 
 	struct EnvSubmesh
 	{
+		uint indexCount;
 		uint indexOffset;
 
 		uint model;
@@ -68,11 +66,18 @@ private:
 
 	struct EnvMesh
 	{
+		uint indexStarts[2];
+		uint vertexStarts[2];
+
 		cs::List<uint> submeshes[2];
 		const ModelStaticResource* models[2];
 
-		ComPtr<ID3D11Buffer> instanceBuffer;
 		cs::List<Mat4> instances;
+
+		// Hot-data
+		cs::List<Mat4> hotInstances;
+		uint instanceOffset;
+		uint instanceCount;
 	};
 
 	unique_ptr<RenderCore> m_renderCore;
@@ -89,9 +94,16 @@ private:
 
 	const Level* m_currentLevel;
 
+	ComPtr<ID3D11Buffer> m_envIndices[2];
+	ComPtr<ID3D11Buffer> m_envVertices[2];
+
 	cs::List<EnvMaterial> m_envMaterials[2];
 	cs::List<EnvSubmesh> m_envSubmeshes[2];
 	EnvMesh m_envMeshes[LevelAssetCount];
+
+	// Hot-data
+	cs::List<Mat4> m_envInstances;
+	ComPtr<ID3D11Buffer> m_envInstanceBuffer;
 
 	Camera m_mainCamera;
 };

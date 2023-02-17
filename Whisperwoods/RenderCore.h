@@ -37,7 +37,7 @@ public:
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
 	void UpdateMaterialInfo(const MaterialResource* material) const;
-	void DrawObject(const Renderable* renderable, bool shadowing);
+	void UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* data, uint count);
 
 	void SetVertexBuffer(ComPtr<ID3D11Buffer> buffer, uint stride, uint offset);
 	void SetInstanceBuffers(ComPtr<ID3D11Buffer> vBuffer, ComPtr<ID3D11Buffer> iBuffer, uint vStride, uint iStride, uint vOffset, uint iOffset);
@@ -45,7 +45,8 @@ public:
 
 	void BindInstancedPipeline(bool shadowed);
 
-	void DrawIndexed(uint indexCount, uint start, uint base);
+	void DrawObject(const Renderable* renderable, bool shadowing);
+	void DrawIndexed(uint indexCount, uint indexStart, uint vertexBase);
 	void DrawInstanced(uint indexCount, uint instanceCount, uint startIndex, uint baseVertex, uint startInstance);
 
 

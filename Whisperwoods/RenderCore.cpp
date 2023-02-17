@@ -335,7 +335,7 @@ void RenderCore::CreateInstanceBuffer(const void* data, UINT byteWidth, ID3D11Bu
 	subData.SysMemPitch = 0;
 	subData.SysMemSlicePitch = 0;
 
-	EXC_COMCHECK(m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP));
+	EXC_COMCHECK(m_device->CreateBuffer(&bufferDesc, data ? &subData : nullptr, out_bufferPP));
 }
 
 void RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
@@ -545,6 +545,22 @@ void RenderCore::UpdateMaterialInfo(const MaterialResource* material) const
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexNormal,	1,	(material->textureNormal	? material->textureNormal->shaderResourceView	: m_defaultNormalSRV)	.GetAddressOf()));
 }
 
+void RenderCore::UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* data, uint count)
+{
+	/*D3D11_BOX box =
+	{
+		0, 0, 0,
+		count * sizeof(Mat4), 1, 1
+	};
+
+	EXC_COMINFO(m_context->UpdateSubresource(iBuffer.Get(), 0, &box, data, count * sizeof(Mat4), 1));*/
+
+	D3D11_MAPPED_SUBRESOURCE msr = {};
+	EXC_COMCHECK(m_context->Map(iBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+	memcpy(msr.pData, data, sizeof(Mat4) * count);
+	EXC_COMINFO(m_context->Unmap(iBuffer.Get(), 0u));
+}
+
 void RenderCore::DrawObject(const Renderable* renderable, bool shadowing)
 {
 	if (renderable->pipelineType != m_pipelineCurrent || shadowing != m_shadowPSBound)
@@ -584,9 +600,9 @@ void RenderCore::BindInstancedPipeline(bool shadowed)
 	BindPipeline(PipelineTypeEnvironment, shadowed);
 }
 
-void RenderCore::DrawIndexed(uint indexCount, uint start, uint base)
+void RenderCore::DrawIndexed(uint indexCount, uint indexStart, uint vertexBase)
 {
-	EXC_COMINFO(m_context->DrawIndexed(indexCount, start, base));
+	EXC_COMINFO(m_context->DrawIndexed(indexCount, indexStart, vertexBase));
 }
 
 void RenderCore::DrawInstanced(uint indexCount, uint instanceCount, uint startIndex, uint baseVertex, uint startInstance)

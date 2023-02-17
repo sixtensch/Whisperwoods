@@ -100,6 +100,7 @@ void Whisperwoods::Run()
 	m_levelHandler->GenerateFloor(&floor);
 
 	Level& level = floor.rooms[0];
+	Renderer::LoadEnvironment(&level);
 
 	// Audio test startup
 	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;

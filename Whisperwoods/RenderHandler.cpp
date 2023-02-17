@@ -37,17 +37,6 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 void RenderHandler::LoadLevel(LevelResource* level, string image)
 {
 	LevelImporter::ImportImage("Examplemap.png", m_renderCore.get(), level);
-
-	Mat4 mats[] =
-	{
-		Mat::translation3(0, 10, 0),
-		Mat::translation3(2, 10, 0),
-		Mat::translation3(4, 10, 0)
-	};
-
-	//m_renderCore->CreateInstanceBuffer(mats, sizeof(Mat4) * 3, &m_instances);
-	//m_instance = (const ModelStaticResource*)Resources::Get().GetResource(ResourceTypeModelStatic, "BananaPlant.wwm");
-	//m_instanceMaterial = (const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "TestSceneBanana.wwmt");
 }
 
 void RenderHandler::Draw()
@@ -130,6 +119,10 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	DuoModel models[LevelAssetCount];
 
+
+
+	// Load model primers
+
 	auto load = [&](LevelAsset asset, const char* normal, const cs::List<const char*>& normalMaterials, const char* future, const cs::List<const char*>& futureMaterials)
 	{
 		models[asset].asset = asset;
@@ -145,9 +138,21 @@ void RenderHandler::SetupEnvironmentAssets()
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" });
 
-	load(LevelAssetBush2,
+
+	load(LevelAssetBush2, 
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" });
+
+	//load(LevelAssetBush1,
+	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
+	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
+
+
+
+	// Fill global index- and vertex buffers, and setup lists of meshes, submeshes, and materials.
+
+	cs::List<int> allIndices[2];
+	cs::List<VertexTextured> allVertices[2];
 
 	for (uint m = 0; m < LevelAssetCount; m++)
 	{
@@ -156,7 +161,8 @@ void RenderHandler::SetupEnvironmentAssets()
 
 		for (uint t = 0; t < 2; t++)
 		{
-			targetMesh.models[t] = duoModel.models[t];
+			// Setup references
+
 			cs::List<string>& materials = duoModel.materials[t];
 
 			cs::List<EnvMaterial>& envMaterials = m_envMaterials[t];
@@ -164,11 +170,43 @@ void RenderHandler::SetupEnvironmentAssets()
 
 			cs::List<uint>& timeSubmeshes = targetMesh.submeshes[t];
 
+			const ModelStaticResource*& targetModel = targetMesh.models[t];
+
+
+
+			// Load model data
+
+			targetModel = duoModel.models[t];
+
+			uint indexStart = allIndices[t].Size();
+			uint vertexStart = allVertices[t].Size();
+
+			allIndices[t].MassAdd(targetModel->indicies.Data(), targetModel->indicies.Size(), true);
+			allVertices[t].MassAdd(targetModel->verticies.Data(), targetModel->verticies.Size(), true);
+
+			targetMesh.indexStarts[t] = indexStart;
+			targetMesh.vertexStarts[t] = vertexStart;
+
+			for (int i = indexStart; i < allIndices[t].Size(); i++)
+			{
+				allIndices[t][i] += vertexStart;
+			}
+
+
+
+			// Handle materials
+
 			for (uint materialIndex = 0; materialIndex < (uint)duoModel.materials[t].Size(); materialIndex++)
 			{
 				string materialName = materials[materialIndex];
 
-				envSubmeshes.Add({ 0, duoModel.asset, materialIndex });
+				envSubmeshes.Add(
+					{ 
+						(uint)targetModel->indexCounts[materialIndex], 
+						indexStart + (uint)targetModel->startIndicies[materialIndex], 
+						duoModel.asset, 
+						materialIndex
+					});
 
 				uint newSubmeshIndex = envSubmeshes.Size() - 1;
 
@@ -186,12 +224,10 @@ void RenderHandler::SetupEnvironmentAssets()
 				{
 					envMaterials.Add(
 						{
-							nullptr, nullptr,
 							materialName,
 							(const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, materialName),
 							{}
-						}
-					);
+						});
 
 					foundIndex = envMaterials.Size() - 1;
 				}
@@ -204,30 +240,32 @@ void RenderHandler::SetupEnvironmentAssets()
 		}
 	}
 
+
+
+	// Finalize buffers
+
 	for (uint t = 0; t < 2; t++)
 	{
-		for (EnvMaterial& material : m_envMaterials[t])
-		{
-			cs::List<int> allIndices;
-			cs::List<VertexTextured> allVertices;
-
-			for (uint submeshIndex : material.submeshes)
-			{
-
-			}
-		}
+		m_renderCore->CreateIndexBuffer(allIndices[t].Data(), allIndices[t].Size() * sizeof(int), &m_envIndices[t]);
+		m_renderCore->CreateVertexBuffer(allVertices[t].Data(), allVertices[t].Size() * sizeof(VertexTextured), &m_envVertices[t]);
 	}
 }
 
 void RenderHandler::LoadEnvironment(const Level* level)
 {
 	m_currentLevel = level;
+	
+	uint instanceCount = 0;
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
 		m_envMeshes[i].instances.Clear(false);
 		m_envMeshes[i].instances.MassAdd(level->instances[i].Data(), level->instances[i].Size(), true);
+
+		instanceCount += (uint)level->instances[i].Size();
 	}
+
+	m_renderCore->CreateInstanceBuffer(nullptr, instanceCount * sizeof(Mat4), &m_envInstanceBuffer);
 }
 
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
@@ -302,26 +340,57 @@ void RenderHandler::DrawInstances()
 {
 	m_renderCore->BindInstancedPipeline(false);
 
-	for (uint i = 0; i < m_envMaterials->Size(); i++)
-	{
 
+
+	// Culling here
+
+	m_envInstances.Clear(false);
+
+	for (uint i = 0; i < LevelAssetCount; i++)
+	{
+		uint instanceCount = 0;
+
+		m_envMeshes[i].hotInstances.Clear(false);
+
+		for (const Mat4& m : m_envMeshes[i].instances)
+		{
+			m_envMeshes[i].hotInstances.Add(m);
+			instanceCount++;
+		}
+		
+		m_envMeshes[i].instanceOffset = m_envInstances.Size();
+		m_envMeshes[i].instanceCount = m_envMeshes[i].hotInstances.Size();
+
+		m_envInstances.MassAdd(m_envMeshes[i].hotInstances.Data(), m_envMeshes[i].hotInstances.Size(), true);
 	}
 
-	//m_renderCore->SetInstanceBuffers(
-	//	m_instance->vertexBuffer, 
-	//	m_instances, 
-	//	sizeof(VertexTextured), 
-	//	sizeof(Mat4), 
-	//	0, 0);
+	m_renderCore->UpdateInstanceBuffer(m_envInstanceBuffer, m_envInstances.Data(), m_envInstances.Size());
 
-	//m_renderCore->SetIndexBuffer(m_instance->indexBuffer, 0);
-	//m_renderCore->UpdateMaterialInfo(m_instanceMaterial);
+	uint time = 0;
+	
+	m_renderCore->SetInstanceBuffers(
+		m_envVertices[time],
+		m_envInstanceBuffer,
+		sizeof(VertexTextured), 
+		sizeof(Mat4), 
+		0, 0);
 
-	//for (int materialIndex = 0; materialIndex < m_instance->startIndicies.Size(); materialIndex++)
-	//{
-	//	int currentSize = m_instance->indexCounts[materialIndex];
-	//	int currentStart = (uint)m_instance->startIndicies[materialIndex];
+	m_renderCore->SetIndexBuffer(m_envIndices[time].Get(), 0);
 
-	//	m_renderCore->DrawInstanced(currentSize, 3, currentStart, 0, 0);
-	//}
+
+
+	// Draw all the stuff!
+
+	for (EnvMaterial& m : m_envMaterials[time])
+	{
+		m_renderCore->UpdateMaterialInfo(m.material);
+
+		for (uint i : m.submeshes)
+		{
+			EnvSubmesh& submesh = m_envSubmeshes[time][i];
+			EnvMesh& mesh = m_envMeshes[submesh.model];
+
+			m_renderCore->DrawInstanced(submesh.indexCount, mesh.instanceCount, submesh.indexOffset, 0, mesh.instanceOffset);
+		}
+	}
 }
