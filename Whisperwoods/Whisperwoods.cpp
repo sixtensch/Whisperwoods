@@ -179,8 +179,8 @@ void Whisperwoods::Run()
 
 	// Test meshes transforms
 	float rotationY = cs::c_pi * 1.0f;
-	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-	grafiki->worldMatrix = Mat::translation3(2.5f, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+	mesh2->worldMatrix = Mat::translation3(0, 0.0f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+	grafiki->worldMatrix = Mat::translation3(2.5f, 0.0f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 
 	// Static shady materials test
 	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
@@ -242,7 +242,7 @@ void Whisperwoods::Run()
 
 	
 	
-	Enemy patrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	Enemy patrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, 0, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(1.0f, -5.0f), true);
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -4.2f), true);
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.35f, -3.0f), true);
@@ -255,7 +255,7 @@ void Whisperwoods::Run()
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.9f, -1.5f), true);
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.3f, -1.9f), false);
 
-	/*Enemy idleEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f)* Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	/*Enemy idleEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f)* Mat::translation3(0, 0, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
 	idleEnemy.AddCoordinateToPatrolPath(Vec2(2.0f, 2.0f), true);
 	idleEnemy.AddCoordinateToPatrolPath(Vec2(0.0f, 0.0f), true);*/
 
