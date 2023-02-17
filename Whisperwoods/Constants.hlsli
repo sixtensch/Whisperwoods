@@ -35,7 +35,6 @@
 #define REGISTER_CBV_SHADING_INFO       register(b13)
 
 
-
 // Unordered access views
 
 #define REGISTER_UAV_DEFAULT            register(u0)

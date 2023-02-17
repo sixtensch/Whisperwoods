@@ -35,6 +35,9 @@ public:
 
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
+
+	void UpdatePlayerInfo( Mat4 matrix );
+
 	void UpdateMaterialInfo(const MaterialResource* material) const;
 	void DrawObject(const Renderable* renderable, bool shadowing);
 

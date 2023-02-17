@@ -44,14 +44,14 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", true );
 
 	//// Static Models
-	//BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
+	BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false, 0.1f );
+	BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false, 0.1f );
+	BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false, 1.0f );
+	BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false, 0.8f );
+	BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false, 0.1f );
+	BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false, 0.0f );
+	BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false, 0.1f );
+	BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false, 0.1f );
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
@@ -66,8 +66,6 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	};
 	cs::List<int> planeIndicies = { 0,1,3,0,3,2 };
 	BuildWWM(planeVerts, planeIndicies, "room_plane");
-
-
 
 	m_sound = std::make_unique<Sound>();
 	m_debug->CaptureSound(m_sound.get());
@@ -139,7 +137,7 @@ void Whisperwoods::Run()
 
 
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	Mat4 worldPos = Mat::translation3(0, -5.5f, -2);
+	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
 	
@@ -155,7 +153,7 @@ void Whisperwoods::Run()
 	testEmpty.AddChild(&testRoom);
 
 
-	//StaticObject ground( "Ground.wwm", worldCombined, { "TestSceneGround.wwmt" } );
+	StaticObject ground( "Ground.wwm", worldCombined, { "TestSceneGround.wwmt" } );
 	StaticObject bigTrees( "BigTrees.wwm", worldCombined, { "TestSceneBigTree.wwmt" } );
 	StaticObject bigPlants( "BigPlants.wwm", worldCombined, { "TestSceneBanana.wwmt" } );
 	StaticObject smallPlants( "SmallPlants.wwm", worldCombined, { "TestSceneTopDownPlant.wwmt" } );
@@ -179,8 +177,13 @@ void Whisperwoods::Run()
 
 	// Test meshes transforms
 	float rotationY = cs::c_pi * 1.0f;
-	mesh2->worldMatrix = Mat::translation3(0, 0.0f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-	grafiki->worldMatrix = Mat::translation3(2.5f, 0.0f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+	mesh2->worldMatrix = 
+		Mat::translation3(0, -0.0f, 3) * 
+		Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
+	grafiki->worldMatrix = 
+		Mat::scale3( 1.1f, 1.1f, 1.1f ) *
+		Mat::translation3(2.5f, -0.0f, 3) * 
+		Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
 
 	// Static shady materials test
 	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
@@ -263,9 +266,9 @@ void Whisperwoods::Run()
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.9f, -1.5f), true);
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.3f, -1.9f), false);*/
 
-	/*Enemy idleEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f)* Mat::translation3(0, 0, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
-	idleEnemy.AddCoordinateToPatrolPath(Vec2(2.0f, 2.0f), true);
-	idleEnemy.AddCoordinateToPatrolPath(Vec2(0.0f, 0.0f), true);*/
+	//Enemy idleEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f)* Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	//idleEnemy.AddCoordinateToPatrolPath(Vec2(2.0f, 2.0f), true);
+	//idleEnemy.AddCoordinateToPatrolPath(Vec2(0.0f, 0.0f), true);*/
 
 	Vec3 tempRot;
 
@@ -294,15 +297,16 @@ void Whisperwoods::Run()
 		m_game->Update();
 		m_sound->Update();
 		rotationY += 0.2f * dTime;
-		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
+		mesh2->worldMatrix = Mat::translation3(0, -0.0f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
 		patrolEnemy.SeesPlayer(Vec2(testPlayer.transform.worldPosition.x, testPlayer.transform.worldPosition.z), testSource, testRoom);
 		// Draw step
+		m_renderer->playerMat = testPlayer.transform.worldMatrix;
 		m_renderer->Draw();
 
 		//#ifdef WW_DEBUG
 		m_renderer->BeginGui();
 		Move(dTime, &testPlayer);
-
+		
 		
 		Point2 sample = testRoom.worldToBitmapPoint(testPlayer.transform.position);
 		LevelPixel pixelSample = testRoom.sampleBitMap(testPlayer.transform.position);
@@ -319,6 +323,33 @@ void Whisperwoods::Run()
 		ImGui::End();
 		Quaternion tempRotQ = Quaternion::GetEuler(tempRot);
 		testRoom.transform.rotation = tempRotQ;
+
+		if (ImGui::Begin( "Player matrix" ))
+		{
+			Mat4 playerMatrix = testPlayer.transform.worldMatrix;
+			ImGui::Text( "Player Matrix: \n%.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f\n%.2f %.2f %.2f %.2f",
+				playerMatrix( 0, 0 ),
+				playerMatrix( 1, 0 ),
+				playerMatrix( 2, 0 ),
+				playerMatrix( 3, 0 ),
+
+				playerMatrix( 0, 1 ),
+				playerMatrix( 1, 1 ),
+				playerMatrix( 2, 1 ),
+				playerMatrix( 3, 1 ),
+			
+				playerMatrix( 0, 2 ),
+				playerMatrix( 1, 2 ),
+				playerMatrix( 2, 2 ),
+				playerMatrix( 3, 2 ),
+
+				playerMatrix( 0, 3 ),
+				playerMatrix( 1, 3 ),
+				playerMatrix( 2, 3 ),
+				playerMatrix( 3, 3 )
+			);
+		}
+		ImGui::End();
 
 
 		if (ImGui::Begin("Animation"))
@@ -544,8 +575,8 @@ void Whisperwoods::Move(float dTime, Player* player)
 				slerped.NormalizeThis();
 			}
 
-			LOG_TRACE("Rot from: %f, %f, %f, %f", cameraCurrentRot.x, cameraCurrentRot.y, cameraCurrentRot.z, cameraCurrentRot.w);
-			LOG_TRACE("Rot to: %f, %f, %f, %f", conj2.x, conj2.y, conj2.z, conj2.w);
+			//LOG_TRACE("Rot from: %f, %f, %f, %f", cameraCurrentRot.x, cameraCurrentRot.y, cameraCurrentRot.z, cameraCurrentRot.w);
+			//LOG_TRACE("Rot to: %f, %f, %f, %f", conj2.x, conj2.y, conj2.z, conj2.w);
 
 			camera.SetRotation(slerped);
 		}
