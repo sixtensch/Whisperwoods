@@ -37,9 +37,9 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//std::string path2 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 	//std::string path3 = importer.SaveWMM( &shadiiAnimated, "Assets/Models/Rigged/" );
 
-	ModelRiggedResource carcinian;
-	importer.ImportFBXRigged("Assets/Carcinian_Animated.fbx", &carcinian);
-	std::string path4 = importer.SaveWMM(&carcinian, "Assets/Models/Rigged/");
+	//ModelRiggedResource carcinian;
+	//importer.ImportFBXRigged("Assets/Carcinian_Animated.fbx", &carcinian);
+	//std::string path4 = importer.SaveWMM(&carcinian, "Assets/Models/Rigged/");
 
 	/*ModelRiggedResource grafikiAnimated;
 	importer.ImportFBXRigged("Assets/Models/FBX/Rigged/Grafiki_Animated.fbx", &grafikiAnimated);
