@@ -31,6 +31,11 @@ cbuffer ObjectInfo : REGISTER_CBV_OBJECT_INFO
     matrix WorldMatrix;
 };
 
+cbuffer PlayerInfo : REGISTER_CBV_TESSELATION_INFO
+{
+    matrix playerMatrix;
+};
+
 VSOutput main(VSInput input)
 {
     VSOutput output;
