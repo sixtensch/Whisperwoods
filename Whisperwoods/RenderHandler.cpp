@@ -3,6 +3,9 @@
 #include "Vertex.h"
 #include "Resources.h"
 
+// TODO: Testing include for PPFX include
+#include "Input.h"
+
 RenderHandler::RenderHandler()
 {
 	m_renderableIDCounter = 0;
@@ -33,39 +36,67 @@ void RenderHandler::Draw()
 {
 	m_renderCore->NewFrame();
 
-    m_renderCore->UpdateViewInfo(m_mainCamera);
-	
-	
-	// Main scene rendering
+	// Cull (TODO)
+
+	// Light updates
 
 	for (int i = 0; i < m_lightsPoint.Size(); i++)
 	{
 		m_lightsPoint[i]->Update(0); // TODO
 	}
-
 	for (int i = 0; i < m_lightsSpot.Size(); i++)
 	{
 		m_lightsSpot[i]->Update(0); // TODO
 	}
-
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	m_renderCore->TargetBackBuffer();
+	m_renderCore->TargetRenderTexture();
 
-    for (int i = 0; i < m_worldRenderables.Size(); i++)
-    {
-        if (m_worldRenderables[i]->enabled)
-        {
-            m_renderCore->UpdateObjectInfo(m_worldRenderables[i].get());
-			m_renderCore->DrawObject(m_worldRenderables[i].get(), false);
-        }
-    }
 
-	for (int i = 0; i < m_texts.Size(); i++)
+	// ShadowPass
+
+	ExecuteDraw(m_lightDirectional->camera, true);
+
+
+	// Main scene rendering
+
+	ExecuteDraw(m_mainCamera, false);
+
+	m_renderCore->UnbindRenderTexture();
+
+
+
+
+	// Render PPFX
 	{
-		m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont(), m_texts[i].get()->GetColor(), m_texts[i].get()->GetOrigin());
+		static bool ppfxOn = false;
+		if (Input::Get().IsDXKeyPressed(DXKey::E))
+			ppfxOn = !ppfxOn;
+
+		if (ppfxOn)
+		{
+			m_renderCore->DrawPPFX();
+		}
 	}
+	
+	// Draw final image to back buffer with tone mapping.
+	{
+		m_renderCore->DrawToBackBuffer();
+	}
+	
+
+	// Render text
+	{
+		
+		// TODO: Move binding back buffer to OM here instead of it being at the end of DrawToBackBuffer().
+
+		for (int i = 0; i < m_texts.Size(); i++)
+		{
+			m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont(), m_texts[i].get()->GetColor(), m_texts[i].get()->GetOrigin());
+		}
+	}
+	
 }
 
 
@@ -73,6 +104,29 @@ void RenderHandler::Draw()
 void RenderHandler::Present()
 {
 	m_renderCore->EndFrame();
+}
+
+void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
+{
+	m_renderCore->UpdateViewInfo(povCamera);
+
+	if ( !shadows )
+	{
+		m_renderCore->TargetRenderTexture();
+	}
+	else
+	{
+		m_renderCore->TargetShadowMap();
+	}
+
+	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
+	{
+		if ( m_worldRenderables[i]->enabled )
+		{
+			m_renderCore->UpdateObjectInfo(m_worldRenderables[i].get());
+			m_renderCore->DrawObject(m_worldRenderables[i].get(), shadows);
+		}
+	}
 }
 
 const RenderCore* RenderHandler::GetCore() const

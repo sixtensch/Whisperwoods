@@ -7,13 +7,13 @@
 void DirectionalLight::Update(float delta_time)
 {
 	camera.CopyTransform(transform);
-	camera.SetValues(0, 0, LIGHT_NEAR, LIGHT_FAR);
+	camera.SetValues(dx::XM_PI, 1, LIGHT_NEAR, 1500);
 	camera.CalculateOrthoProjection(diameter, diameter);
 	camera.Update();
 
 	bufferData.intensity = (Vec3)color * intensity;
 	bufferData.clipMatrix = camera.GetProjectionMatrix().Transpose() * camera.GetViewMatrix();
-	bufferData.direction = transform.GetWorldRotation() * Vec3(0, 0, 1.0f);
+	bufferData.direction = transform.GetWorldRotation().Conjugate() * Vec3(0, 0, 1.0f);
 }
 
 void PointLight::Update(float delta_time)

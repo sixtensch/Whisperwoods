@@ -58,7 +58,7 @@ namespace cs
 		static Quaternion GetEuler(float pitch, float yaw, float roll);
 		static Quaternion GetDeconstruct(const Mat3& matrix);
 		static Quaternion GetFromTo(const Vec3& from, const Vec3& to);
-		static Quaternion GetDirection(const Vec3& direction);
+		static Quaternion GetDirection(const Vec3& direction, Vec3 up = { 0.0f, 1.0f, 0.0f });
 		static Quaternion GetDeconstruct(const Mat4& matrix);
 		static Quaternion GetSlerp(const Quaternion& from, const Quaternion& to, float lambda);
 

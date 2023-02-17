@@ -51,7 +51,7 @@ Mat4 Transform::CalculateMatrix(Vec3 p_pos, Quaternion p_rotation, Vec3 p_scale)
 	Mat4 scalingMatrix = Mat::scale3(p_scale);
 	Mat4 translationMatrix = Mat::translation3(p_pos);
 	Mat4 identityMatrix = Mat4();
-	return identityMatrix * scalingMatrix * rotationMatrix * translationMatrix;
+	return identityMatrix * translationMatrix * scalingMatrix * rotationMatrix;
 }
 
 
@@ -71,14 +71,14 @@ void Transform::CalculateLocalMatrix(Vec3 p_pos, Quaternion p_rotation, Vec3 p_s
 void Transform::CalculateWorldMatrix()
 {
 	CalculateLocalMatrix();
-	worldMatrix = (parent == nullptr) ? localMatrix : localMatrix * parent->worldMatrix;
+	worldMatrix = (parent == nullptr) ? localMatrix : parent->worldMatrix * localMatrix ;
 }
 
 // Overload for external interaction
 void Transform::CalculateWorldMatrix(Mat4 parentWorldMatrix)
 {
 	CalculateLocalMatrix();
-	worldMatrix = localMatrix * parentWorldMatrix;
+	worldMatrix = parentWorldMatrix * localMatrix;
 }
 
 void Transform::SetRotationEuler(Vec3 p_rotation)
@@ -88,12 +88,14 @@ void Transform::SetRotationEuler(Vec3 p_rotation)
 
 Vec3 Transform::GetWorldPosition()
 {
+	CalculateWorldMatrix();
 	DecomposeWorldMatrixIntoWorldParameters(); // TODO: Possibly do this in a more systematic manner instead of on each Get.
 	return worldPosition;
 }
 
 Quaternion Transform::GetWorldRotation()
 {
+	CalculateWorldMatrix();
 	DecomposeWorldMatrixIntoWorldParameters(); // TODO: Possibly do this in a more systematic manner instead of on each Get.
 	return worldRotation;
 }
