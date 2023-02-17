@@ -723,16 +723,16 @@ void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text
 void RenderCore::DrawPPFX()
 {
 
-	static float luminanceThreshold = 0.0f;
+	static float luminanceThreshold = 7.0f;
 	static float strength = 1.0f;
 	static float minLuminance = 0.1f;
 
 	if (ImGui::Begin("Bloom Settings"))
 	{
 		float speed = 0.01f;
-		ImGui::DragFloat("Luminance Threshold", (float*)&luminanceThreshold, speed, 0.0f, FLT_MAX);
+		ImGui::DragFloat("Luminance Threshold", (float*)&luminanceThreshold, speed, minLuminance, FLT_MAX);
 		ImGui::DragFloat("Bloom Strength", &strength, speed, 0.0f, FLT_MAX);
-		ImGui::DragFloat("Minimum Luminance", &minLuminance, speed / 10.0f, 0.0f, FLT_MAX);
+		ImGui::DragFloat("Minimum Luminance", &minLuminance, speed / 10.0f, 0.0f, luminanceThreshold);
 	}
 	ImGui::End();
 
