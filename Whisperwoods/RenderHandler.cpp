@@ -67,6 +67,7 @@ void RenderHandler::Draw()
 
 
 
+
 	// Render PPFX
 	{
 		static bool ppfxOn = false;

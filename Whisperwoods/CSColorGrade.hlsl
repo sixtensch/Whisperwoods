@@ -66,6 +66,15 @@ float3 AcesTonemap(float3 color)
     return saturate(sRGBSpace);
 }
 
+cbuffer COLORGRADE_INFO_BUFFER : REGISTER_CBV_USER_1
+{
+    float2 vignette; // x: Inner border radius, y: Vignette strength
+    float2 contrast; // x: Contrast amount, y: Midpoint value
+    float brightness; // Brightness offset
+    float saturation; // Saturation value
+
+    float2 PADDING; // Padding (padding)
+};
 
 RWTexture2D<unorm float4> backBufferTexture : REGISTER_UAV_RENDER_TARGET;
 Texture2D<float4> renderTexture             : REGISTER_SRV_COPY_SOURCE;
@@ -78,9 +87,6 @@ void main( uint3 DTid : SV_DispatchThreadID )
     const float2 texUV = float2(texPos.xy) / BACK_BUFFER_RESOLUTION;
     
     float3 color = renderTexture.Load(texPos).rgb + lumSumTexture.Load(texPos).rgb;
-    
-    // Color stuff.
-    
     
     // Circle creation
     if (false)
@@ -99,15 +105,16 @@ void main( uint3 DTid : SV_DispatchThreadID )
     
     color = AcesTonemap(color);
     
+    // Color stuff.
     if (true)
     {
         //color = Tint(color, float3(1.0f, 1.0f, 1.0f));
-        //color = Brightness(color, -0.04f);
-        color = Saturation(color, 1.2f);
-        color = Contrast(color, 1.1f, 0.4f);
+        color = Brightness(color, brightness);
+        color = Saturation(color, saturation);
+        color = Contrast(color, contrast.x, contrast.y);
     }
     
-    color = Vignette(color, texUV, 0.4f, 5.0f);
+    color = Vignette(color, texUV, vignette.x, vignette.y);
     
     //color = pow(color, (1.0f / 2.2f)); // Gamma correction.
     backBufferTexture[texPos.xy] = float4(color, 1.0f);

@@ -18,8 +18,8 @@
 
 // Constant buffer views
 
-#define REGISTER_CBV_USER_0             register(b1)
-#define REGISTER_CBV_USER_1             register(b2)
+#define REGISTER_CBV_USER_0             register(b1) // Used by ppfx threshold.
+#define REGISTER_CBV_USER_1             register(b2) // Used by ppfx colorgrading.
 #define REGISTER_CBV_USER_2             register(b3)
 #define REGISTER_CBV_USER_3             register(b4)
 

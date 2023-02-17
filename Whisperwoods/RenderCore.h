@@ -55,6 +55,19 @@ public:
 		const cs::List<shared_ptr<PointLight>>& lightsPoint,
 		const cs::List<shared_ptr<SpotLight>>& lightsSpot);
 
+	void WritePPFXThresholdInfo(
+		const float luminanceThreshold, 
+		const float strength, 
+		const float minLuminance
+	);
+	
+	void WritePPFXColorgradeInfo(
+		const Vec2 vignetteBorderAndStrength, 
+		const Vec2 contrastAmountAndMidpoint, 
+		const float brightness, 
+		const float saturation
+	);
+
 	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 origin);
 
 	void DrawPPFX();
