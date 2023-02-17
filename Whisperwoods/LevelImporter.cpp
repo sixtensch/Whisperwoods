@@ -28,7 +28,7 @@ bool PrimerPointPredicate(const PatrolPrimer::Point& a, const PatrolPrimer::Poin
 
 void Floodfill(Point2 position, cs::List<Point2>& edges, cs::List<Point2>& directions, cs::Color4*& data, int w, int h)
 {
-	data[position.x + position.y * w] = cs::Color4(0, 255, 0, 255);
+	data[position.x + position.y * w] = cs::Color4(0, 63, 0, 255);
 
 	Point2 offsets[] =
 	{
@@ -48,7 +48,7 @@ void Floodfill(Point2 position, cs::List<Point2>& edges, cs::List<Point2>& direc
 			cs::Color4 c4 = data[p.x + p.y * w];
 			Point3 c(c4.r, c4.g, c4.b);
 
-			if (c == Point3(255, 255, 255))
+			if (c == Point3(255, 255, 255) || c.y > 200)
 			{
 				found = true;
 				direction -= offsets[i];
@@ -122,19 +122,71 @@ bool LevelImporter::ImportImage(string textureName, const RenderCore* core, Leve
 
 			if (c == Point3(255, 255, 255))
 			{
-				outLevel->bitmap[i] = Passable;
+				outLevel->bitmap[i] = { LevelPixelFlagPassable, 0.0f };
 				continue;
 			}
 
-			if (c == Point3(0, 255, 0))
+			if (c == Point3(0, 63, 0))
 			{
-				outLevel->bitmap[i] = TerrainOuter;
+				outLevel->bitmap[i] = { LevelPixelFlagTerrainOuter, 1.0f };
 				continue;
 			}
 
 			if (c == Point3(0, 127, 0))
 			{
-				outLevel->bitmap[i] = TerrainInner;
+				outLevel->bitmap[i] = { LevelPixelFlagTerrainInner, 1.0f };
+				continue;
+			}
+
+			// Open patroll route
+			if (c.x == 255 && c.y < 63)
+			{
+				outLevel->bitmap[i] = { LevelPixelFlagPassable, 0.0f };
+				bool found = false;
+
+				for (int i = 0; i < openPrimers.Size() && !found; i++)
+				{
+					if (openPrimers[i].enemyIndex == c.z)
+					{
+						openPrimers[i].points.Add({ (Vec2)p, (uint)c.y });
+						found = true;
+					}
+				}
+
+				if (!found)
+				{
+					openPrimers.Add({ (uint)c.z, { { (Vec2)p, (uint)c.y } } });
+				}
+
+				continue;
+			}
+
+			// Closed patroll route
+			if (c.z == 255 && c.y < 63)
+			{
+				outLevel->bitmap[i] = { LevelPixelFlagPassable, 0.0f };
+				bool found = false;
+
+				for (int i = 0; i < closedPrimers.Size() && !found; i++)
+				{
+					if (closedPrimers[i].enemyIndex == c.y)
+					{
+						closedPrimers[i].points.Add({ (Vec2)p, (uint)c.x });
+						found = true;
+					}
+				}
+
+				if (!found)
+				{
+					closedPrimers.Add({ (uint)c.y, { { (Vec2)p, (uint)c.x } } });
+				}
+
+				continue;
+			}
+
+			if (c.y > 200)
+			{
+				outLevel->bitmap[i] = { LevelPixelFlagPassable, (c.y - 200) / 55.0f };
 				continue;
 			}
 
@@ -180,52 +232,6 @@ bool LevelImporter::ImportImage(string textureName, const RenderCore* core, Leve
 						(edgeDir * nDirection > 0) ? edgeDir : -edgeDir,
 						std::sqrtf(edgeDistanceSq)
 					});
-
-				continue;
-			}
-
-			// Open patroll route
-			if (c.x == 255)
-			{
-				outLevel->bitmap[i] = Passable;
-				bool found = false;
-
-				for (int i = 0; i < openPrimers.Size() && !found; i++)
-				{
-					if (openPrimers[i].enemyIndex == c.z)
-					{
-						openPrimers[i].points.Add({ (Vec2)p, (uint)c.y });
-						found = true;
-					}
-				}
-
-				if (!found) 
-				{
-					openPrimers.Add({ (uint)c.z, { { (Vec2)p, (uint)c.y } } });
-				}
-
-				continue;
-			}
-
-			// Closed patroll route
-			if (c.z == 255)
-			{
-				outLevel->bitmap[i] = Passable;
-				bool found = false;
-
-				for (int i = 0; i < closedPrimers.Size() && !found; i++)
-				{
-					if (closedPrimers[i].enemyIndex == c.y)
-					{
-						closedPrimers[i].points.Add({ (Vec2)p, (uint)c.x });
-						found = true;
-					}
-				}
-
-				if (!found)
-				{
-					closedPrimers.Add({ (uint)c.y, { { (Vec2)p, (uint)c.x } } });
-				}
 
 				continue;
 			}

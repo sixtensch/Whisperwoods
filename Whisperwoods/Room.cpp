@@ -35,7 +35,7 @@ Point2 Room::worldToBitmapPoint(Vec3 worldPos)
 	Vec3 normalizedPos =  worldPos - roomWpos;
 	float relativeRight = right.Dot(normalizedPos) * BM_PIXELS_PER_UNIT;
 	float realtiveForward = forward.Dot(normalizedPos) * BM_PIXELS_PER_UNIT;
-	return Point2(relativeRight+(m_levelResource->pixelWidth/2), realtiveForward + (m_levelResource->pixelHeight/2));
+	return Point2((int)(relativeRight + (m_levelResource->pixelWidth/2)), (int)(realtiveForward + (m_levelResource->pixelHeight/2)));
 }
 
 LevelPixel Room::sampleBitMap(Vec3 worldPos)
@@ -79,32 +79,35 @@ Vec2 Room::GetNineSampleVector(Point2 point)
 	int xM = cs::iclamp(point.x - 1, 0, m_levelResource->pixelWidth - 1);
 	int yP = cs::iclamp(point.y + 1, 0, m_levelResource->pixelWidth - 1);
 	int yM = cs::iclamp(point.y - 1, 0, m_levelResource->pixelWidth - 1);
-	LevelPixel p0 = m_levelResource->bitmap[x + y * m_levelResource->pixelWidth];
+	LevelPixelFlag p0 = m_levelResource->bitmap[x + y * m_levelResource->pixelWidth].flags;
 	
-	LevelPixel p1 = m_levelResource->bitmap[x + yP * m_levelResource->pixelWidth];
-	LevelPixel p2 = m_levelResource->bitmap[x + yM * m_levelResource->pixelWidth];
+	LevelPixelFlag p1 = m_levelResource->bitmap[x + yP * m_levelResource->pixelWidth].flags;
+	LevelPixelFlag p2 = m_levelResource->bitmap[x + yM * m_levelResource->pixelWidth].flags;
 
-	LevelPixel p3 = m_levelResource->bitmap[xP + y * m_levelResource->pixelWidth];
-	LevelPixel p4 = m_levelResource->bitmap[xP + yP * m_levelResource->pixelWidth];
-	LevelPixel p5 = m_levelResource->bitmap[xP + yM * m_levelResource->pixelWidth];
+	LevelPixelFlag p3 = m_levelResource->bitmap[xP + y * m_levelResource->pixelWidth].flags;
+	LevelPixelFlag p4 = m_levelResource->bitmap[xP + yP * m_levelResource->pixelWidth].flags;
+	LevelPixelFlag p5 = m_levelResource->bitmap[xP + yM * m_levelResource->pixelWidth].flags;
 
-	LevelPixel p6 = m_levelResource->bitmap[xM + y * m_levelResource->pixelWidth];
-	LevelPixel p7 = m_levelResource->bitmap[xM + yP * m_levelResource->pixelWidth];
-	LevelPixel p8 = m_levelResource->bitmap[xM + yM * m_levelResource->pixelWidth];
+	LevelPixelFlag p6 = m_levelResource->bitmap[xM + y * m_levelResource->pixelWidth].flags;
+	LevelPixelFlag p7 = m_levelResource->bitmap[xM + yP * m_levelResource->pixelWidth].flags;
+	LevelPixelFlag p8 = m_levelResource->bitmap[xM + yM * m_levelResource->pixelWidth].flags;
 
 	return Vec2(
-		(
+		(float)(
 			cs::iclamp(p3, 0, 1) + 
 			cs::iclamp(p4, 0, 1) +
-			cs::iclamp(p5, 0, 1)) -
+			cs::iclamp(p5, 0, 1)
+		) -
 		(
 			cs::iclamp(p6, 0, 1) +
 			cs::iclamp(p7, 0, 1) +
-			cs::iclamp(p8, 0, 1)),
-		(
+			cs::iclamp(p8, 0, 1)
+		),
+		(float)(
 			cs::iclamp(p1, 0, 1) +
 			cs::iclamp(p4, 0, 1) +
-			cs::iclamp(p7, 0, 1)) -
+			cs::iclamp(p7, 0, 1)
+		) -
 		(
 			cs::iclamp(p2, 0, 1) +
 			cs::iclamp(p5, 0, 1) +
