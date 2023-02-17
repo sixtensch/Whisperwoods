@@ -284,6 +284,7 @@ void Whisperwoods::Run()
 			ImGui::Text("Collective Forward: %f", testPlayer.collectiveForwardValue);
 			ImGui::Text("SampleCollision: %f, %f", testPlayer.sampleVector.x, testPlayer.sampleVector.y);
 		}
+		ImGui::End();
 		Quaternion tempRotQ = Quaternion::GetEuler(tempRot);
 		testRoom.transform.rotation = tempRotQ;
 
