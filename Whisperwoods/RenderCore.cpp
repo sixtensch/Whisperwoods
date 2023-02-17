@@ -98,21 +98,79 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	m_bbClearColor = cs::Color4f(0.0f, 0.0f, 0.0f, 1.0f);
 
+	// Main render texture
+
+	D3D11_TEXTURE2D_DESC rttd;
+	rttd.Width = window->GetWidth();
+	rttd.Height = window->GetHeight();
+	rttd.MipLevels = 1u;
+	rttd.ArraySize = 1u;
+	rttd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	rttd.SampleDesc = { 1u, 0u };
+	rttd.Usage = D3D11_USAGE_DEFAULT;
+	rttd.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	rttd.CPUAccessFlags = 0u;
+	rttd.MiscFlags = 0u;
+
+	EXC_COMCHECK(m_device->CreateTexture2D(&rttd, nullptr, m_renderTexture.GetAddressOf()));
+
+	rtvd = {};
+	rtvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	rtvd.Texture2D = { 0u };
+
+	EXC_COMCHECK(m_device->CreateRenderTargetView(m_renderTexture.Get(), &rtvd, m_renderTextureRTV.GetAddressOf()));
+	
+	uavd = {};
+	uavd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	uavd.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+	uavd.Texture2D = { 0 };
+
+	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_renderTexture.Get(), &uavd, m_renderTextureUAV.GetAddressOf()));
+
+	srvd = {};
+	srvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvd.Texture2D = { 0, 1 };
+
+	EXC_COMCHECK(m_device->CreateShaderResourceView(m_renderTexture.Get(), &srvd, m_renderTextureSRV.GetAddressOf()));
+
 	// PPFX Textures and views
 
 	D3D11_TEXTURE2D_DESC bloomtd;
-	m_bbTexture->GetDesc(&bloomtd);
+	m_renderTexture->GetDesc(&bloomtd);
 	bloomtd.MipLevels = BLOOM_MIP_LEVELS;
-	bloomtd.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET | D3D11_BIND_UNORDERED_ACCESS;
+	bloomtd.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET | D3D11_BIND_UNORDERED_ACCESS; // Has to bind as RTV for GenerateMips() to work, even though its not used.
 	bloomtd.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-	EXC_COMCHECK(m_device->CreateTexture2D(&bloomtd, nullptr, m_ppfxBloomTexture.GetAddressOf()));
-	
-	srvd.Texture2D = { 0, (UINT)-1 }; // Keep all mips as this will be used in compute.
-	EXC_COMCHECK(m_device->CreateShaderResourceView(m_ppfxBloomTexture.Get(), &srvd, m_ppfxBloomSRV.GetAddressOf()));
+	EXC_COMCHECK(m_device->CreateTexture2D(&bloomtd, nullptr, m_ppfxLumTexture.GetAddressOf()));
 
-	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_ppfxBloomTexture.Get(), nullptr, m_ppfxBloomUAV.GetAddressOf()));
-	EXC_COMCHECK(m_device->CreateRenderTargetView(m_ppfxBloomTexture.Get(), nullptr, m_ppfxBloomRTV.GetAddressOf()));
+	
+	srvd = {};
+	srvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvd.Texture2D = { 0, (UINT)-1 }; // Keep all mips as this will be used in compute.
+
+	// Create views for luminosity texture.
+	EXC_COMCHECK(m_device->CreateShaderResourceView(m_ppfxLumTexture.Get(), &srvd, m_ppfxLumSRV.GetAddressOf()));
+	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_ppfxLumTexture.Get(), nullptr, m_ppfxLumUAV.GetAddressOf()));
+	EXC_COMCHECK(m_device->CreateRenderTargetView(m_ppfxLumTexture.Get(), nullptr, m_ppfxLumRTV.GetAddressOf()));
+
+
+	bloomtd = {};
+	m_renderTexture->GetDesc(&bloomtd);
+	bloomtd.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET | D3D11_BIND_UNORDERED_ACCESS;
+	bloomtd.MipLevels = 1u;
+	bloomtd.MiscFlags = 0u;
+
+	EXC_COMCHECK(m_device->CreateTexture2D(&bloomtd, nullptr, m_ppfxLumSumTexture.GetAddressOf()));
+
+	srvd = {};
+	srvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvd.Texture2D = { 0, 1u }; // Keep all mips as this will be used in compute.
+	EXC_COMCHECK(m_device->CreateShaderResourceView(m_ppfxLumSumTexture.Get(), &srvd, m_ppfxLumSumSRV.GetAddressOf()));
+	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_ppfxLumSumTexture.Get(), nullptr, m_ppfxLumSumUAV.GetAddressOf()));
 
 
 	// Depth stencil
@@ -329,7 +387,6 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	sd.MaxLOD = D3D11_FLOAT32_MAX;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(&sd, m_bloomUpscaleSampler.GetAddressOf()));
-	EXC_COMINFO(m_context->CSSetSamplers(RegSamplerSystem0, 1u, m_bloomUpscaleSampler.GetAddressOf()));
 }
 
 RenderCore::~RenderCore()
@@ -340,8 +397,10 @@ void RenderCore::NewFrame()
 {
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_dsDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
 
+	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
+	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_renderTextureRTV.GetAddressOf(), m_dsDSV.Get()));
+
 	EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
-	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
 
 	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get()));
 	EXC_COMINFO(m_context->OMSetBlendState(m_blendState.Get(), nullptr, 0xffffffff));
@@ -351,22 +410,34 @@ void RenderCore::NewFrame()
 void RenderCore::TargetShadowMap()
 {
 	ID3D11ShaderResourceView* nullSRV = nullptr;
-	EXC_COMINFO(m_context->PSSetShaderResources(24, 1, &nullSRV)); // Unbind SRV to use as RTV
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
+	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
 	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, m_shadowDSV.Get()));
 	EXC_COMINFO(m_context->RSSetState(m_shadowRenderState.Get())); // Frontface culling
 	EXC_COMINFO(m_context->RSSetViewports(1, &m_shadowViewport));
 }
 
-void RenderCore::TargetBackBuffer()
+void RenderCore::TargetRenderTexture()
 {
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
-	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
-	EXC_COMINFO(m_context->PSSetShaderResources(24, 1, m_shadowSRV.GetAddressOf()));
+	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
+	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_renderTextureRTV.GetAddressOf(), m_dsDSV.Get()));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, m_shadowSRV.GetAddressOf()));
 	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get())); // Backface culling
 	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
 }
+
+void RenderCore::UnbindRenderTexture()
+{
+	ID3D11RenderTargetView* nullRTV = nullptr;
+	EXC_COMINFO(m_context->OMSetRenderTargets(1u, &nullRTV, nullptr));
+}
+
+//void RenderCore::TargetBackBuffer()
+//{
+//	
+//  
+//}
 
 void RenderCore::EndFrame()
 {
@@ -651,31 +722,106 @@ void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text
 
 void RenderCore::DrawPPFX()
 {
+
+	static float luminanceThreshold = 0.0f;
+	static float strength = 1.0f;
+	static float minLuminance = 0.1f;
+
+	if (ImGui::Begin("Bloom Settings"))
+	{
+		float speed = 0.01f;
+		ImGui::DragFloat("Luminance Threshold", (float*)&luminanceThreshold, speed, 0.0f, FLT_MAX);
+		ImGui::DragFloat("Bloom Strength", &strength, speed, 0.0f, FLT_MAX);
+		ImGui::DragFloat("Minimum Luminance", &minLuminance, speed / 10.0f, 0.0f, FLT_MAX);
+	}
+	ImGui::End();
+
+	WritePPFXThresholdInfo(luminanceThreshold, strength, minLuminance);
+
 	ID3D11UnorderedAccessView* nullUAV = nullptr;
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	ID3D11RenderTargetView* nullRTV = nullptr;
-	EXC_COMINFO(m_context->OMSetRenderTargets(1u, &nullRTV, nullptr)); // Unbind bb RTV from OM.
-	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVRenderTarget, 1u, m_bbUAV.GetAddressOf(), nullptr)); // Last argument is ignored.
-	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVDefault, 1u, m_ppfxBloomUAV.GetAddressOf(), nullptr)); // Last argument is ignored.
-	EXC_COMINFO(m_context->CSSetSamplers(RegSamplerStandard, 1u, m_sampler.GetAddressOf()));
-	EXC_COMINFO(m_context->CSSetShader(m_thresholdCompute.Get(), nullptr, 0u));
 
-	EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
-
-	EXC_COMINFO(m_context->GenerateMips(m_ppfxBloomSRV.Get()));
-	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVDefault, 1u, &nullUAV, 0u)); // Last argument is ignored.
-	EXC_COMINFO(m_context->CSSetShaderResources(RegSRVCopySource, 1u, m_ppfxBloomSRV.GetAddressOf()));
-	EXC_COMINFO(m_context->CSSetShader(m_bloomCompute.Get(), nullptr, 0u));
-
-	EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
-
-	EXC_COMINFO(m_context->CSSetShader(m_colorGradeCompute.Get(), nullptr, 0u));
-	EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
-
-	EXC_COMINFO(m_context->CSSetShaderResources(RegSRVCopySource, 1u, &nullSRV)); // Unbind bloom SRV.
-	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVRenderTarget, 1u, &nullUAV, nullptr)); // Unbind bb UAV from compute.
+	const RegUAV bbTexUAVReg			= RegUAVRenderTarget;
+	const RegUAV renderTexUAVReg		= RegUAVDefault;
+	const RegSRV renderTexSRVReg		= RegSRVCopySource;
+	const RegUAV lumTexUAVReg			= RegUAVSystem0;
+	const RegSRV lumTexSRVReg			= RegSRVUser0;
 	
-	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get())); // Rebind bb RTV to OM.
+	// Bound once as a UAV which is going to be read from and written to at different stages of the PPFX pass.
+	 // Last argument is ignored.
+	
+	// Luminance threshold pass
+	{
+		EXC_COMINFO(m_context->CSSetShader(m_thresholdCompute.Get(), nullptr, 0u));
+		
+		EXC_COMINFO(m_context->CSSetShaderResources(renderTexSRVReg, 1u, m_renderTextureSRV.GetAddressOf()));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, m_ppfxLumUAV.GetAddressOf(), nullptr)); // Last argument is ignored.
+		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+		
+		// Generate all mips for lumen texture for artificial blur used in bloom pass.
+		EXC_COMINFO(m_context->GenerateMips(m_ppfxLumSRV.Get()));
+		EXC_COMINFO(m_context->CSSetSamplers(RegSamplerSystem0, 1u, m_bloomUpscaleSampler.GetAddressOf()));
+		EXC_COMINFO(m_context->CSSetShaderResources(renderTexSRVReg, 1u, &nullSRV));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, &nullUAV, nullptr));
+	}
+	
+	// Bloom pass
+	{
+		EXC_COMINFO(m_context->CSSetShader(m_bloomCompute.Get(), nullptr, 0u));
+		
+		EXC_COMINFO(m_context->CSSetShaderResources(lumTexSRVReg, 1u, m_ppfxLumSRV.GetAddressOf()));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, m_ppfxLumSumUAV.GetAddressOf(), nullptr));
+		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+	
+		EXC_COMINFO(m_context->CSSetShaderResources(lumTexSRVReg, 1u, &nullSRV)); // Unbind lum SRV.
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, &nullUAV, nullptr)); // Unbind render tex UAV from compute.
+	}
+	
+	
+}
+
+void RenderCore::DrawToBackBuffer()
+{
+
+	static Vec2 vignette = Vec2(0.5f, 1.0f);
+	static Vec2 contrast = Vec2(1.0f, 0.4f);
+	static float brightness = 0.0f;
+	static float saturation = 1.1f;
+
+	if (ImGui::Begin("Color Settings"))
+	{
+		float speed = 0.01f;
+		ImGui::DragFloat2("Vignette Radius & Strength", (float*)&vignette, speed, 0.0f, FLT_MAX);
+		ImGui::DragFloat2("Contrast Amount & Midpoint", (float*)&contrast, speed, 0.0f);
+		ImGui::DragFloat("Brightness", &brightness, speed, 0.0f, FLT_MAX);
+		ImGui::DragFloat("Saturation", &saturation, speed, 0.0f, FLT_MAX);
+	}
+	ImGui::End();
+
+	WritePPFXColorgradeInfo(vignette, contrast, brightness, saturation);
+
+	// Color grade and final back buffer write.
+	{
+		EXC_COMINFO(m_context->CSSetShader(m_colorGradeCompute.Get(), nullptr, 0u));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVRenderTarget, 1u, m_bbUAV.GetAddressOf(), nullptr)); // Bind bb.
+		EXC_COMINFO(m_context->CSSetShaderResources(RegSRVUser4, 1u, m_ppfxLumSumSRV.GetAddressOf()));
+		EXC_COMINFO(m_context->CSSetShaderResources(RegSRVCopySource, 1u, m_renderTextureSRV.GetAddressOf())); // Bind render tex.
+		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+	}
+
+	ID3D11UnorderedAccessView* nullUAV = nullptr;
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVRenderTarget, 1u, &nullUAV, nullptr)); // Unbind bb UAV from compute.
+	EXC_COMINFO(m_context->CSSetShaderResources(RegSRVCopySource, 1u, &nullSRV)); // Unbind render texture SRV from compute.
+	EXC_COMINFO(m_context->CSSetShaderResources(RegSRVUser4, 1u, &nullSRV)); // Unbind lum sum texture SRV from compute.
+
+	// TODO: Move this to start of text rendering instead.
+	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
+
+	// Make sure that lumsum texture is cleared.
+	// Its either this or creating a new dispatch in bloom pass to write lum sum to render texture before inserting it to final color grading step.
+	EXC_COMINFO(m_context->ClearUnorderedAccessViewFloat(m_ppfxLumSumUAV.Get(), (float*)&m_bbClearColor));
 }
 
 //void RenderCore::SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer)
@@ -891,31 +1037,31 @@ void RenderCore::InitPipelines()
 
 void RenderCore::InitComputeShaders()
 {
-	//ComPtr<ID3DBlob> blob;
+	ComPtr<ID3DBlob> blob;
 
-	//EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSThresholdPass.cso", &blob));
-	//EXC_COMCHECK(m_device->CreateComputeShader(
-	//	blob->GetBufferPointer(),
-	//	blob->GetBufferSize(),
-	//	nullptr,
-	//	m_thresholdCompute.GetAddressOf()
-	//));
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSThresholdPass.cso", &blob));
+	EXC_COMCHECK(m_device->CreateComputeShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		m_thresholdCompute.GetAddressOf()
+	));
 
-	//EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSBloomPass.cso", &blob));
-	//EXC_COMCHECK(m_device->CreateComputeShader(
-	//	blob->GetBufferPointer(),
-	//	blob->GetBufferSize(),
-	//	nullptr,
-	//	m_bloomCompute.GetAddressOf()
-	//));
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSBloomPass.cso", &blob));
+	EXC_COMCHECK(m_device->CreateComputeShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		m_bloomCompute.GetAddressOf()
+	));
 
-	//EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSColorGrade.cso", &blob));
-	//EXC_COMCHECK(m_device->CreateComputeShader(
-	//	blob->GetBufferPointer(),
-	//	blob->GetBufferSize(),
-	//	nullptr,
-	//	m_colorGradeCompute.GetAddressOf()
-	//));
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSColorGrade.cso", &blob));
+	EXC_COMCHECK(m_device->CreateComputeShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		m_colorGradeCompute.GetAddressOf()
+	));
 }
 
 void RenderCore::InitConstantBuffers()
@@ -980,6 +1126,32 @@ void RenderCore::InitConstantBuffers()
 	));
 
 	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVMaterialInfo, 1, m_constantBuffers.materialInfo.GetAddressOf()));
+
+
+	// Threshold info for bloom
+
+	desc.ByteWidth = sizeof(CB::PPFXThresholdInfo);
+
+	EXC_COMCHECK(m_device->CreateBuffer(
+		&desc,
+		nullptr,
+		m_constantBuffers.ppfxThresholdInfo.GetAddressOf()
+	));
+
+	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVUser0, 1, m_constantBuffers.ppfxThresholdInfo.GetAddressOf()));
+
+
+	// Color grade info
+
+	desc.ByteWidth = sizeof(CB::PPFXColorGradeInfo);
+
+	EXC_COMCHECK(m_device->CreateBuffer(
+		&desc,
+		nullptr,
+		m_constantBuffers.ppfxColorGradeInfo.GetAddressOf()
+	));
+
+	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVUser1, 1, m_constantBuffers.ppfxColorGradeInfo.GetAddressOf()));
 }
 
 void RenderCore::InitLightBuffers()
@@ -1125,5 +1297,34 @@ void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, c
 	EXC_COMCHECK(m_context->Map(m_constantBuffers.shadingInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
 	memcpy(msr.pData, &si, sizeof(CB::ShadingInfo));
 	EXC_COMINFO(m_context->Unmap(m_constantBuffers.shadingInfo.Get(), 0u));
+}
+
+void RenderCore::WritePPFXThresholdInfo(const float luminanceThreshold, const float strength, const float minLuminance)
+{
+	CB::PPFXThresholdInfo thresholdInfo = {
+		luminanceThreshold,
+		strength,
+		minLuminance
+	};
+
+	D3D11_MAPPED_SUBRESOURCE msr = {};
+	EXC_COMCHECK(m_context->Map(m_constantBuffers.ppfxThresholdInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+	memcpy(msr.pData, &thresholdInfo, sizeof(CB::PPFXThresholdInfo));
+	EXC_COMINFO(m_context->Unmap(m_constantBuffers.ppfxThresholdInfo.Get(), 0u));
+}
+
+void RenderCore::WritePPFXColorgradeInfo(const Vec2 vignetteBorderAndStrength, const Vec2 contrastAmountAndMidpoint, const float brightness, const float saturation)
+{
+	CB::PPFXColorGradeInfo colorGradeInfo = {
+		vignetteBorderAndStrength,
+		contrastAmountAndMidpoint,
+		brightness,
+		saturation
+	};
+
+	D3D11_MAPPED_SUBRESOURCE msr = {};
+	EXC_COMCHECK(m_context->Map(m_constantBuffers.ppfxColorGradeInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+	memcpy(msr.pData, &colorGradeInfo, sizeof(CB::PPFXColorGradeInfo));
+	EXC_COMINFO(m_context->Unmap(m_constantBuffers.ppfxColorGradeInfo.Get(), 0u));
 }
 

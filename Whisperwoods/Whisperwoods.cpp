@@ -239,6 +239,8 @@ void Whisperwoods::Run()
 
 	for (bool running = true; running; frames++)
 	{
+		m_renderer->BeginGui();
+
 		m_debug->ClearFrameTrace();
 		m_input->Update();
 		running = !m_renderer->UpdateWindow();
@@ -268,7 +270,6 @@ void Whisperwoods::Run()
 		m_renderer->Draw();
 
 		//#ifdef WW_DEBUG
-		m_renderer->BeginGui();
 		Move(dTime, &testPlayer);
 
 		
