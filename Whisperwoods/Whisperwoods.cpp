@@ -135,7 +135,7 @@ void Whisperwoods::Run()
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
 	
-	Mat4 roomScale = Mat::scale3(level.worldWidth, 1.0f, level.worldHeight);
+	Mat4 roomScale = Mat::scale3(level.resource->worldWidth, 1.0f, level.resource->worldHeight);
 	Mat4 roomPos = Mat::translation3(0.0f, -0.0f, 0.0f);
 	Mat4 roomRot = Mat::rotation3(0.0f, 0.0f, 0.0f);
 	Mat4 roomCombined = roomScale * roomPos * roomRot;

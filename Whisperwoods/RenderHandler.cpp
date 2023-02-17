@@ -73,12 +73,11 @@ void RenderHandler::Draw()
 
 	m_renderCore->UnbindRenderTexture();
 
-
-
-
-	static bool ppfxOn = false;
-	if (Input::Get().IsDXKeyPressed(DXKey::E))
-		ppfxOn = !ppfxOn;
+	// Render PPFX
+	{
+		static bool ppfxOn = false;
+		if (Input::Get().IsDXKeyPressed(DXKey::E))
+			ppfxOn = !ppfxOn;
 
 		if (ppfxOn)
 		{

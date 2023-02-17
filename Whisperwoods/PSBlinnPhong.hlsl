@@ -104,7 +104,7 @@ float4 main(VSOutput input) : SV_TARGET
     float2 lsUV = float2(lsNDC.x * 0.5f + 0.5f, lsNDC.y * -0.5f + 0.5f);
 	
     float dirNDotL = dot(normal, directionalLight.direction);
-    float epsilon = 0.0005 / acos(saturate(dirNDotL));
+    float epsilon = 0.000005 / acos(saturate(dirNDotL));
     bool shadowAff = shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x;
 	
     // Directional lighting
