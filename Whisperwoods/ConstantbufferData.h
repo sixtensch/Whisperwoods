@@ -39,6 +39,25 @@ namespace CB
 		Vec3 pad;
 		float tiling;
 	};
+
+	struct PPFXThresholdInfo 
+	{
+		float luminanceThreshold;
+		float strength;
+		float minLuminance;
+
+		float PADDING;
+	};
+
+	struct PPFXColorGradeInfo
+	{
+		Vec2 vignetteBorderAndStrength;
+		Vec2 contrastAmountAndMidpoint;
+		float brightness;
+		float saturation;
+
+		Vec2 PADDING;
+	};
 }
 
 struct ConstantBuffers
@@ -49,4 +68,8 @@ struct ConstantBuffers
 	
 	ComPtr<ID3D11Buffer> shadingInfo;
 	ComPtr<ID3D11Buffer> materialInfo;
+
+	ComPtr<ID3D11Buffer> ppfxThresholdInfo;
+	ComPtr<ID3D11Buffer> ppfxColorGradeInfo;
+	
 };

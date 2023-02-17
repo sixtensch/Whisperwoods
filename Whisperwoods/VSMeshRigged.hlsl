@@ -18,7 +18,6 @@ struct VSOutput
 {
     float4 outPosition  : SV_POSITION;
     float4 wPosition    : WPOSITION0;
-    float4 wsPosition   : WSPOSITION0;
     float3 outNormal    : NORMAL0;
     float3 outTangent   : TANGENT0;
     float3 outBitangent : BITANGENT0;
@@ -54,8 +53,8 @@ VSOutput main(VSInput input)
     //sumPos += mul( Tx[input.bones1[3]] * input.weights1[3], startPosition ); // requiring a .wmm re-serialization
 
     output.wPosition = mul(float4(sumPos, 1.0f), WorldMatrix);
-    output.wsPosition = mul(output.wPosition, ViewMatrix);
-    output.outPosition = mul(output.wsPosition, ProjectionMatrix);
+    output.outPosition = mul(mul(output.wPosition, ViewMatrix), ProjectionMatrix);
+
 
     float4 startNormal = float4(input.normal, 0.0f);
     float3 sumNormal = float3(0, 0, 0);

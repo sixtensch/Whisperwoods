@@ -43,15 +43,17 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Animated2.fbx", true );
 	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", true );
 
-	////// Static Models
-	//BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false, 0.1f );
-	//BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false, 0.1f );
-	//BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false, 1.0f );
-	//BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false, 0.8f );
-	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false, 0.1f );
-	//BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false, 0.0f );
-	//BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false, 0.1f );
-	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false, 0.1f );
+	//// Static Models
+	//BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
+	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_1.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
@@ -276,6 +278,8 @@ void Whisperwoods::Run()
 
 	for (bool running = true; running; frames++)
 	{
+		m_renderer->BeginGui();
+
 		m_debug->ClearFrameTrace();
 		m_input->Update();
 		running = !m_renderer->UpdateWindow();
@@ -306,7 +310,6 @@ void Whisperwoods::Run()
 		m_renderer->Draw();
 
 		//#ifdef WW_DEBUG
-		m_renderer->BeginGui();
 		Move(dTime, &testPlayer);
 		
 		
