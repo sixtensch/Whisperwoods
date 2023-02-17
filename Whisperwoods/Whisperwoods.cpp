@@ -239,6 +239,8 @@ void Whisperwoods::Run()
 
 	for (bool running = true; running; frames++)
 	{
+		m_renderer->BeginGui();
+
 		m_debug->ClearFrameTrace();
 		m_input->Update();
 		running = !m_renderer->UpdateWindow();
