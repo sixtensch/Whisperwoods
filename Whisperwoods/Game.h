@@ -1,11 +1,13 @@
 #pragma once
 
 #include "Renderer.h"
-#include "Player.h";
+#include "Player.h"
 #include "Floor.h"
 #include "Enemy.h"
 #include "StaticObject.h"
 #include "Light.h"
+#include "LevelHandler.h"
+#include "SoundResource.h"
 
 class Game sealed
 {
@@ -16,10 +18,14 @@ public:
 	void Update(float deltaTime);
 
 	void InitGame(Renderer* const renderer); // TODO: remove the need for renderer when generation is further progressed.
+	void DeInitGame();
 
 	Player* GetPlayer();
 
 private:
+	std::unique_ptr<LevelHandler>	m_levelHandler;
+
+	shared_ptr<AudioSource> m_audioSource;
 
 	shared_ptr<Player> m_player;
 	shared_ptr<DirectionalLight> m_directionalLight;

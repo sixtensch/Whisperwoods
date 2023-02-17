@@ -87,9 +87,6 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	m_resources->LoadAssetDirectory(m_renderer->GetRenderCore());
 
 	m_renderer->SetupEnvironmentAssets();
-
-	m_levelHandler = std::make_unique<LevelHandler>();
-	m_levelHandler->LoadFloors();
 }
 
 Whisperwoods::~Whisperwoods()
@@ -126,17 +123,6 @@ void Whisperwoods::Run()
 
 	//m_renderer->LoadLevel(&level);
 
-	LevelFloor floor = {};
-	m_levelHandler->GenerateFloor(&floor);
-
-	Level& level = floor.rooms[0];
-	Renderer::LoadEnvironment(&level);
-
-	// Audio test startup
-	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
-	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, soundPtr);
-	testSource.Play();
-
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
 	m_game->InitGame(m_renderer.get());
@@ -147,18 +133,7 @@ void Whisperwoods::Run()
 
 	
 	
-	Enemy PatrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, 0, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
-	for (int i = 0; i < 1/*testRoom.m_levelResource.patrolsClosed.Size()*/; i++)
-	{
-		for (int j = 0; j < testRoom.m_levelResource->patrolsClosed[i].controlPoints.Size(); j++)
-		{
-			Point2 bitPos = Point2(testRoom.m_levelResource->patrolsClosed[i].controlPoints[j]);
-			Vec3 enemyPos = testRoom.bitMapToWorldPos(bitPos);
-			PatrolEnemy.AddCoordinateToPatrolPath(Vec2(-enemyPos.z, enemyPos.x), true);
-			Point2 test = testRoom.worldToBitmapPoint(enemyPos);
-			enemyPos = Vec3(0, 0, 0);
-		}
-	}
+
 	
 	/*patrolEnemy.AddCoordinateToPatrolPath(Vec2(1.0f, -5.0f), true);
 	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -4.2f), true);
@@ -194,24 +169,17 @@ void Whisperwoods::Run()
 			
 		Input::Get().Update();
 		
-		testAnimatorGrafiki.Update(dTime);
-
-		testEmpty.Update(dTime);
-		testRoom.Update(dTime);
-		PatrolEnemy.Update(dTime);
-		testPlayer.Update(dTime);
+		
 		//patrolEnemy.Update(dTime);
 
-		m_game->Update();
+		m_game->Update(dTime);
 		m_sound->Update();
-		PatrolEnemy.SeesPlayer(Vec2(testPlayer.transform.worldPosition.x, testPlayer.transform.worldPosition.z), testSource, testRoom);
 		
 		// Draw step
-		Renderer::SetPlayerMatrix(testPlayer.transform.worldMatrix);
 		m_renderer->Draw();
 
 		//#ifdef WW_DEBUG
-		m_renderer->BeginGui();
+		//m_renderer->BeginGui();
 		Move(dTime, m_game->GetPlayer());
 
 		m_debug->DrawConsole();
@@ -219,16 +187,6 @@ void Whisperwoods::Run()
 		//#endif
 
 		m_renderer->Present();
-	}
-
-	// Audio test 2 shutdown
-	testSource.pitch = 0.75f;
-	testSource.Play();
-	int indexer = 0;
-	while (testSource.IsPlaying())
-	{
-		m_sound->Update();
-		indexer++;
 	}
 }
 
