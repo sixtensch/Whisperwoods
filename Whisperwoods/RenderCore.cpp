@@ -271,7 +271,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateRasterizerState(&rsd, &m_rasterizerState));
 
 	D3D11_RASTERIZER_DESC shadowRSDesc = {};
-	shadowRSDesc.CullMode = D3D11_CULL_FRONT;
+	shadowRSDesc.CullMode = D3D11_CULL_BACK;
 	shadowRSDesc.FillMode = D3D11_FILL_SOLID;
 	shadowRSDesc.DepthClipEnable = true;
 
@@ -342,7 +342,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	shadowSDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	shadowSDesc.MipLODBias = 0.0f;
 	shadowSDesc.MaxAnisotropy = 0;
-	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(
@@ -462,6 +462,26 @@ void RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buff
 	subData.SysMemSlicePitch = 0;
 
 	EXC_COMCHECK(m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP));
+}
+
+void RenderCore::CreateInstanceBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
+{
+	HRESULT hr = {};
+
+	D3D11_BUFFER_DESC bufferDesc = {};
+	bufferDesc.ByteWidth = byteWidth;
+	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bufferDesc.MiscFlags = 0;
+	bufferDesc.StructureByteStride = 0; // not relevant
+
+	D3D11_SUBRESOURCE_DATA subData = {};
+	subData.pSysMem = data;
+	subData.SysMemPitch = 0;
+	subData.SysMemSlicePitch = 0;
+
+	EXC_COMCHECK(m_device->CreateBuffer(&bufferDesc, data ? &subData : nullptr, out_bufferPP));
 }
 
 void RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const
@@ -685,6 +705,22 @@ void RenderCore::UpdateMaterialInfo(const MaterialResource* material) const
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexNormal,	1,	(material->textureNormal	? material->textureNormal->shaderResourceView	: m_defaultNormalSRV)	.GetAddressOf()));
 }
 
+void RenderCore::UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* data, uint count)
+{
+	/*D3D11_BOX box =
+	{
+		0, 0, 0,
+		count * sizeof(Mat4), 1, 1
+	};
+
+	EXC_COMINFO(m_context->UpdateSubresource(iBuffer.Get(), 0, &box, data, count * sizeof(Mat4), 1));*/
+
+	D3D11_MAPPED_SUBRESOURCE msr = {};
+	EXC_COMCHECK(m_context->Map(iBuffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+	memcpy(msr.pData, data, sizeof(Mat4) * count);
+	EXC_COMINFO(m_context->Unmap(iBuffer.Get(), 0u));
+}
+
 void RenderCore::DrawObject(const Renderable* renderable, bool shadowing)
 {
 	if (renderable->pipelineType != m_pipelineCurrent || shadowing != m_shadowPSBound)
@@ -705,14 +741,33 @@ void RenderCore::SetVertexBuffer(ComPtr<ID3D11Buffer> buffer, uint stride, uint 
 	EXC_COMINFO(m_context->IASetVertexBuffers(0, 1, buffer.GetAddressOf(), &stride, &offset));
 }
 
+void RenderCore::SetInstanceBuffers(ComPtr<ID3D11Buffer> vBuffer, ComPtr<ID3D11Buffer> iBuffer, uint vStride, uint iStride, uint vOffset, uint iOffset)
+{
+	ID3D11Buffer* bArr[] = { vBuffer.Get(), iBuffer.Get() };
+	uint sArr[] = { vStride, iStride };
+	uint oArr[] = { vOffset, iOffset };
+
+	m_context->IASetVertexBuffers(0, 2, bArr, sArr, oArr);
+}
+
 void RenderCore::SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format)
 {
 	EXC_COMINFO(m_context->IASetIndexBuffer(buffer.Get(), format, offset));
 }
 
-void RenderCore::DrawIndexed(uint indexCount, uint start, uint base)
+void RenderCore::BindInstancedPipeline(bool shadowed)
 {
-	EXC_COMINFO(m_context->DrawIndexed(indexCount, start, base));
+	BindPipeline(PipelineTypeEnvironment, shadowed);
+}
+
+void RenderCore::DrawIndexed(uint indexCount, uint indexStart, uint vertexBase)
+{
+	EXC_COMINFO(m_context->DrawIndexed(indexCount, indexStart, vertexBase));
+}
+
+void RenderCore::DrawInstanced(uint indexCount, uint instanceCount, uint startIndex, uint baseVertex, uint startInstance)
+{
+	EXC_COMINFO(m_context->DrawIndexedInstanced(indexCount, instanceCount, startIndex, baseVertex, startInstance));
 }
 
 void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 originScalar)
@@ -1044,6 +1099,45 @@ void RenderCore::InitPipelines()
 		blob->GetBufferPointer(),
 		blob->GetBufferSize(),
 		m_pipelines[PipelineTypeShadow].inputLayout.GetAddressOf()
+	));
+
+	blob->Release();
+
+
+
+	// Standard pipeline instanced environment
+
+	m_pipelines[PipelineTypeEnvironment].primitiveTopology = m_pipelines[PipelineTypeStandard].primitiveTopology;
+	m_pipelines[PipelineTypeEnvironment].pixelShader = m_pipelines[PipelineTypeStandard].pixelShader;
+
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"VSMeshInstanced.cso", &blob));
+	EXC_COMCHECK(m_device->CreateVertexShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypeEnvironment].vertexShader
+	));
+
+	D3D11_INPUT_ELEMENT_DESC inputLayoutInstanced[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+
+		{ "WORLDMATRIX", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "WORLDMATRIX", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "WORLDMATRIX", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+		{ "WORLDMATRIX", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+	};
+
+	EXC_COMCHECK(m_device->CreateInputLayout(
+		inputLayoutInstanced,
+		(uint)(sizeof(inputLayoutInstanced) / sizeof(*inputLayoutInstanced)),
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		m_pipelines[PipelineTypeEnvironment].inputLayout.GetAddressOf()
 	));
 
 	blob->Release();

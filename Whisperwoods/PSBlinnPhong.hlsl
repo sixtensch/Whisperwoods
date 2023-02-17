@@ -124,7 +124,7 @@ float4 main(VSOutput input) : SV_TARGET
 		[unroll] for (x = -smoothing; x <= smoothing; x += 1.0f)
 		{
 			sum += shadowTexture.SampleCmpLevelZero( shadowSampler,
-				lsUV.xy + texOffset( x, y, 0 ), lsNDC.z + epsilon);
+				lsUV.xy + texOffset( x, y, 0 ), lsNDC.z - epsilon);
 		}
 	}
 	float shadowAff = sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f));

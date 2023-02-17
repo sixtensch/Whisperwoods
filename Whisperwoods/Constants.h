@@ -11,6 +11,7 @@
 #define DIR_SHADERS		DIR_ASSETS L"Shaders/"
 #define DIR_TEXTURES	DIR_ASSETS L"Textures/"
 #define DIR_MODELS		DIR_ASSETS L"Models/"
+#define DIR_LEVELS		DIR_TEXTURES L"Maps/"
 
 #define WINDOW_NAME		"Whisperwoods"
 #define WINDOW_WIDTH	1920

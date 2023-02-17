@@ -6,6 +6,8 @@
 // TODO: Testing include for PPFX include
 #include "Input.h"
 
+#include "LevelImporter.h"
+
 RenderHandler::RenderHandler()
 {
 	m_renderableIDCounter = 0;
@@ -32,13 +34,19 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	m_renderCore = make_unique<RenderCore>(window);
 }
 
+void RenderHandler::LoadLevel(LevelResource* level, string image)
+{
+	LevelImporter::ImportImage("Examplemap.png", m_renderCore.get(), level);
+}
+
 void RenderHandler::Draw()
 {
 	m_renderCore->NewFrame();
 
-	// Cull (TODO)
-
-	// Light updates
+	m_renderCore->UpdateViewInfo(m_mainCamera);
+	
+	
+	// Main scene rendering
 
 	for (int i = 0; i < m_lightsPoint.Size(); i++)
 	{
@@ -65,9 +73,6 @@ void RenderHandler::Draw()
 
 	m_renderCore->UnbindRenderTexture();
 
-
-
-
 	// Render PPFX
 	{
 		static bool ppfxOn = false;
@@ -85,7 +90,6 @@ void RenderHandler::Draw()
 		m_renderCore->DrawToBackBuffer();
 	}
 	
-
 	// Render text
 	{
 		
@@ -109,7 +113,7 @@ void RenderHandler::Present()
 void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
 {
 	m_renderCore->UpdateViewInfo(povCamera);
-	m_renderCore->UpdatePlayerInfo( playerMatrix );
+	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 	if ( !shadows )
 	{
 		m_renderCore->TargetRenderTexture();
@@ -118,6 +122,8 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
 	{
 		m_renderCore->TargetShadowMap();
 	}
+
+	DrawInstances(shadows);
 
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
@@ -137,6 +143,169 @@ RenderCore* RenderHandler::GetCore() const
 Camera& RenderHandler::GetCamera()
 {
 	return m_mainCamera;
+}
+
+void RenderHandler::SetupEnvironmentAssets()
+{
+	struct DuoModel
+	{
+		// [0]: Normal, [1]: Future
+		const ModelStaticResource* models[2];
+		cs::List<string> materials[2];
+		LevelAsset asset;
+	};
+
+	DuoModel models[LevelAssetCount];
+
+
+
+	// Load model primers
+
+	auto load = [&](LevelAsset asset, const char* normal, const cs::List<const char*>& normalMaterials, const char* future, const cs::List<const char*>& futureMaterials)
+	{
+		models[asset].asset = asset;
+
+		models[asset].models[0] = (const ModelStaticResource*)Resources::Get().GetResource(ResourceTypeModelStatic, normal);
+		models[asset].models[1] = (const ModelStaticResource*)Resources::Get().GetResource(ResourceTypeModelStatic, future);
+
+		for (int i = 0; i < normalMaterials.Size(); i++)	models[asset].materials[0].Add(normalMaterials[i]);
+		for (int i = 0; i < futureMaterials.Size(); i++)	models[asset].materials[1].Add(futureMaterials[i]);
+	};
+
+	load(LevelAssetBush1, 
+		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
+		"BananaPlant.wwm", { "TestSceneBanana.wwmt" });
+
+
+	load(LevelAssetBush2, 
+		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
+		"BananaPlant.wwm", { "TestSceneBanana.wwmt" });
+
+	//load(LevelAssetBush1,
+	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
+	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
+
+
+
+	// Fill global index- and vertex buffers, and setup lists of meshes, submeshes, and materials.
+
+	cs::List<int> allIndices[2];
+	cs::List<VertexTextured> allVertices[2];
+
+	for (uint m = 0; m < LevelAssetCount; m++)
+	{
+		DuoModel& duoModel = models[m];
+		EnvMesh& targetMesh = m_envMeshes[duoModel.asset];
+
+		for (uint t = 0; t < 2; t++)
+		{
+			// Setup references
+
+			cs::List<string>& materials = duoModel.materials[t];
+
+			cs::List<EnvMaterial>& envMaterials = m_envMaterials[t];
+			cs::List<EnvSubmesh>& envSubmeshes = m_envSubmeshes[t];
+
+			cs::List<uint>& timeSubmeshes = targetMesh.submeshes[t];
+
+			const ModelStaticResource*& targetModel = targetMesh.models[t];
+
+
+
+			// Load model data
+
+			targetModel = duoModel.models[t];
+
+			uint indexStart = allIndices[t].Size();
+			uint vertexStart = allVertices[t].Size();
+
+			allIndices[t].MassAdd(targetModel->indicies.Data(), targetModel->indicies.Size(), true);
+			allVertices[t].MassAdd(targetModel->verticies.Data(), targetModel->verticies.Size(), true);
+
+			targetMesh.indexStarts[t] = indexStart;
+			targetMesh.vertexStarts[t] = vertexStart;
+
+			for (int i = indexStart; i < allIndices[t].Size(); i++)
+			{
+				allIndices[t][i] += vertexStart;
+			}
+
+
+
+			// Handle materials
+
+			for (uint materialIndex = 0; materialIndex < (uint)duoModel.materials[t].Size(); materialIndex++)
+			{
+				string materialName = materials[materialIndex];
+
+				envSubmeshes.Add(
+					{ 
+						(uint)targetModel->indexCounts[materialIndex], 
+						indexStart + (uint)targetModel->startIndicies[materialIndex], 
+						duoModel.asset, 
+						materialIndex
+					});
+
+				uint newSubmeshIndex = envSubmeshes.Size() - 1;
+
+				int foundIndex = -1;
+				for (int i = 0; i < m_envMaterials[t].Size(); i++)
+				{
+					if (envMaterials[i].materialName == materialName)
+					{
+						foundIndex = i;
+						break;
+					}
+				}
+
+				if (foundIndex == -1)
+				{
+					envMaterials.Add(
+						{
+							materialName,
+							(const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, materialName),
+							{}
+						});
+
+					foundIndex = envMaterials.Size() - 1;
+				}
+
+				EnvMaterial& targetMaterial = envMaterials[foundIndex];
+
+				targetMaterial.submeshes.Add(newSubmeshIndex);
+				timeSubmeshes.Add(newSubmeshIndex);
+			}
+		}
+	}
+
+
+
+	// Finalize buffers
+
+	for (uint t = 0; t < 2; t++)
+	{
+		m_renderCore->CreateIndexBuffer(allIndices[t].Data(), allIndices[t].Size() * sizeof(int), &m_envIndices[t]);
+		m_renderCore->CreateVertexBuffer(allVertices[t].Data(), allVertices[t].Size() * sizeof(VertexTextured), &m_envVertices[t]);
+	}
+}
+
+void RenderHandler::LoadEnvironment(const Level* level)
+{
+	m_currentLevel = level;
+	
+	uint instanceCount = 0;
+
+	//m_envQuadTree.
+
+	for (uint i = 0; i < LevelAssetCount; i++)
+	{
+		m_envMeshes[i].instances.Clear(false);
+		m_envMeshes[i].instances.MassAdd(level->instances[i].Data(), level->instances[i].Size(), true);
+
+		instanceCount += (uint)level->instances[i].Size();
+	}
+
+	m_renderCore->CreateInstanceBuffer(nullptr, instanceCount * sizeof(Mat4), &m_envInstanceBuffer);
 }
 
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
@@ -205,4 +374,70 @@ bool RenderHandler::RegisterSpotLight(shared_ptr<SpotLight> spotLight)
 
 	m_lightsSpot.Add(spotLight);
 	return true;
+}
+
+void RenderHandler::SetPlayerMatrix(const Mat4& matrix)
+{
+	m_playerMatrix = matrix;
+}
+
+void RenderHandler::DrawInstances(bool shadows)
+{
+	m_renderCore->BindInstancedPipeline(shadows);
+
+
+
+	// Culling here
+
+	m_envInstances.Clear(false);
+
+
+	for (uint i = 0; i < LevelAssetCount; i++)
+	{
+		m_envMeshes[i].hotInstances.Clear(false);
+	}
+
+	for (uint i = 0; i < LevelAssetCount; i++)
+		for (const Mat4& m : m_envMeshes[i].instances)
+		{
+			m_envMeshes[i].hotInstances.Add(m);
+		}
+
+	for (uint i = 0; i < LevelAssetCount; i++)
+	{
+		m_envMeshes[i].instanceOffset = m_envInstances.Size();
+		m_envMeshes[i].instanceCount = m_envMeshes[i].hotInstances.Size();
+
+		m_envInstances.MassAdd(m_envMeshes[i].hotInstances.Data(), m_envMeshes[i].hotInstances.Size(), true);
+	}
+
+	m_renderCore->UpdateInstanceBuffer(m_envInstanceBuffer, m_envInstances.Data(), m_envInstances.Size());
+
+	uint time = 0;
+	
+	m_renderCore->SetInstanceBuffers(
+		m_envVertices[time],
+		m_envInstanceBuffer,
+		sizeof(VertexTextured), 
+		sizeof(Mat4), 
+		0, 0);
+
+	m_renderCore->SetIndexBuffer(m_envIndices[time].Get(), 0);
+
+
+
+	// Draw all the stuff!
+
+	for (EnvMaterial& m : m_envMaterials[time])
+	{
+		m_renderCore->UpdateMaterialInfo(m.material);
+
+		for (uint i : m.submeshes)
+		{
+			EnvSubmesh& submesh = m_envSubmeshes[time][i];
+			EnvMesh& mesh = m_envMeshes[submesh.model];
+
+			m_renderCore->DrawInstanced(submesh.indexCount, mesh.instanceCount, submesh.indexOffset, 0, mesh.instanceOffset);
+		}
+	}
 }

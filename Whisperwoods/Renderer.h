@@ -5,6 +5,8 @@
 #include "Window.h"
 #include "MeshRenderable.h"
 #include "TextRenderable.h"
+#include "LevelResource.h"
+#include "Level.h"
 class GUI;
 
 class Renderer sealed
@@ -21,7 +23,13 @@ public:
 	void EndGui();
 	void Present();
 
-	Mat4 playerMat;
+	void SetupEnvironmentAssets();
+
+	static void SetPlayerMatrix(const Mat4& matrix);
+
+	static void LoadLevel(LevelResource* level, string image);
+
+	static void LoadEnvironment(const Level* level);
 
 	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 	static shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);

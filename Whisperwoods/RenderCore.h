@@ -26,6 +26,7 @@ public:
 	void EndFrame();
 
 	void CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const;
+	void CreateInstanceBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const;
 	void CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const;
 	void CreateImageTexture(char* image, UINT resHeight, UINT resWidth, UINT sysMemPitch, DXGI_FORMAT format, ID3D11Texture2D** out_texturePP);
 	void CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const;
@@ -41,12 +42,17 @@ public:
 	void UpdatePlayerInfo( Mat4 matrix );
 
 	void UpdateMaterialInfo(const MaterialResource* material) const;
-	void DrawObject(const Renderable* renderable, bool shadowing);
+	void UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* data, uint count);
 
 	void SetVertexBuffer(ComPtr<ID3D11Buffer> buffer, uint stride, uint offset);
+	void SetInstanceBuffers(ComPtr<ID3D11Buffer> vBuffer, ComPtr<ID3D11Buffer> iBuffer, uint vStride, uint iStride, uint vOffset, uint iOffset);
 	void SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format = DXGI_FORMAT_R32_UINT);
 
-	void DrawIndexed(uint indexCount, uint start, uint base);
+	void BindInstancedPipeline(bool shadowed);
+
+	void DrawObject(const Renderable* renderable, bool shadowing);
+	void DrawIndexed(uint indexCount, uint indexStart, uint vertexBase);
+	void DrawInstanced(uint indexCount, uint instanceCount, uint startIndex, uint baseVertex, uint startInstance);
 
 	//void SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer);
 	void SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV);

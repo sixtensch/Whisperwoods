@@ -379,7 +379,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack, Room &room)
 		room.sampleBitMap(Vec3(playerPosition.x, 0.0f, playerPosition.y));
 		room.sampleBitMap(Vec3(transform.worldPosition.x, 0.0f, transform.worldPosition.z));
 
-		for (float i = 0; i < distance; i += 0.025)// for each 10 cm in "distance"
+		for (float i = 0; i < distance; i += 0.025f)// for each 10 cm in "distance"
 		{
 			Vec3 pointOnLineOfSightVector = transform.worldPosition + Vec3(playerDirection.x , 0.0f, playerDirection.y) * i;
 			//pointOnLineOfSightVector = pointOnLineOfSightVector * i;

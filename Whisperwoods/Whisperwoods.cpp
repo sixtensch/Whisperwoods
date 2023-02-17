@@ -54,6 +54,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
 	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_1.fbx", false);
 	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
+	//BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false );
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
@@ -84,6 +85,11 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	m_resources = std::make_unique<Resources>();
 	m_resources->LoadAssetDirectory(m_renderer->GetRenderCore());
+
+	m_renderer->SetupEnvironmentAssets();
+
+	m_levelHandler = std::make_unique<LevelHandler>();
+	m_levelHandler->LoadFloors();
 }
 
 Whisperwoods::~Whisperwoods()
@@ -117,9 +123,17 @@ Whisperwoods::~Whisperwoods()
 void Whisperwoods::Run()
 {
 	// Main frame loop
-	LevelResource level = {};
-	LevelImporter::ImportImage("Examplemap.png", m_renderer->GetRenderCore(), &level);
-	
+	//LevelResource level = {};
+	//LevelImporter::ImportImage("Examplemap.png", m_renderer->GetRenderCore(), &level);
+
+	//m_renderer->LoadLevel(&level);
+
+	LevelFloor floor = {};
+	m_levelHandler->GenerateFloor(&floor);
+
+	Level& level = floor.rooms[0];
+	Renderer::LoadEnvironment(&level);
+
 	// Audio test startup
 	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
 	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, soundPtr);
@@ -141,12 +155,12 @@ void Whisperwoods::Run()
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
 	
-	Mat4 roomScale = Mat::scale3(level.worldWidth, 1.0f, level.worldHeight);
+	Mat4 roomScale = Mat::scale3(level.resource->worldWidth, 1.0f, level.resource->worldHeight);
 	Mat4 roomPos = Mat::translation3(0.0f, -0.0f, 0.0f);
 	Mat4 roomRot = Mat::rotation3(0.0f, 0.0f, 0.0f);
 	Mat4 roomCombined = roomScale * roomPos * roomRot;
 
-	Room testRoom("room_plane.wwm", "Examplemap.png", roomCombined, m_renderer.get());
+	Room testRoom(&level, "room_plane.wwm", roomCombined, m_renderer.get());
 	testRoom.transform.rotation = Quaternion::GetEuler({ 0, cs::c_pi * 0.5f ,0 });
 	testPlayer.currentRoom = &testRoom;
 
@@ -248,9 +262,9 @@ void Whisperwoods::Run()
 	Enemy PatrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, 0, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
 	for (int i = 0; i < 1/*testRoom.m_levelResource.patrolsClosed.Size()*/; i++)
 	{
-		for (int j = 0; j < testRoom.m_levelResource.patrolsClosed[i].controlPoints.Size(); j++)
+		for (int j = 0; j < testRoom.m_levelResource->patrolsClosed[i].controlPoints.Size(); j++)
 		{
-			Point2 bitPos = Point2(testRoom.m_levelResource.patrolsClosed[i].controlPoints[j]);
+			Point2 bitPos = Point2(testRoom.m_levelResource->patrolsClosed[i].controlPoints[j]);
 			Vec3 enemyPos = testRoom.bitMapToWorldPos(bitPos);
 			PatrolEnemy.AddCoordinateToPatrolPath(Vec2(-enemyPos.z, enemyPos.x), true);
 			Point2 test = testRoom.worldToBitmapPoint(enemyPos);
@@ -305,8 +319,9 @@ void Whisperwoods::Run()
 		rotationY += 0.2f * dTime;
 		mesh2->worldMatrix = Mat::translation3(0, -0.0f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
 		PatrolEnemy.SeesPlayer(Vec2(testPlayer.transform.worldPosition.x, testPlayer.transform.worldPosition.z), testSource, testRoom);
+		
 		// Draw step
-		m_renderer->playerMat = testPlayer.transform.worldMatrix;
+		Renderer::SetPlayerMatrix(testPlayer.transform.worldMatrix);
 		m_renderer->Draw();
 
 		//#ifdef WW_DEBUG
