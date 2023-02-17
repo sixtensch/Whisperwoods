@@ -52,6 +52,8 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
+	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_1.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
