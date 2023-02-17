@@ -88,12 +88,14 @@ void Transform::SetRotationEuler(Vec3 p_rotation)
 
 Vec3 Transform::GetWorldPosition()
 {
+	CalculateWorldMatrix();
 	DecomposeWorldMatrixIntoWorldParameters(); // TODO: Possibly do this in a more systematic manner instead of on each Get.
 	return worldPosition;
 }
 
 Quaternion Transform::GetWorldRotation()
 {
+	CalculateWorldMatrix();
 	DecomposeWorldMatrixIntoWorldParameters(); // TODO: Possibly do this in a more systematic manner instead of on each Get.
 	return worldRotation;
 }

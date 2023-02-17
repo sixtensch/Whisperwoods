@@ -58,6 +58,16 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWA( "Assets/Models/FBX/Rigged/Shadii_Animations.fbx" );
 	//BuildWWA( "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx" );
 
+	cs::List<VertexTextured> planeVerts = { 
+		VertexTextured({-0.5f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f,0.0f,0.0f, 0.0f}), 
+		VertexTextured({ 0.5f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f,0.0f,0.0f, 0.0f}),
+		VertexTextured({-0.5f, 0.0f,-0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f,1.0f,0.0f, 0.0f}),
+		VertexTextured({ 0.5f, 0.0f,-0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f,1.0f,0.0f, 0.0f})
+	};
+	cs::List<int> planeIndicies = { 0,1,3,0,3,2 };
+	BuildWWM(planeVerts, planeIndicies, "room_plane");
+
+
 
 	m_sound = std::make_unique<Sound>();
 	m_debug->CaptureSound(m_sound.get());
@@ -99,17 +109,29 @@ void Whisperwoods::Run()
 	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
 	shared_ptr<MeshRenderableRigged> grafiki = Renderer::CreateMeshRigged("Grafiki_Animated.wwm");
 	
-	Player testPlayer("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0, -0.5f, 0) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	Player testPlayer("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
 	Empty testEmpty;
-	testEmpty.AddChild(&testPlayer);
+	//testEmpty.AddChild(&testPlayer);
+
 
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0, -5.5f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	
+	Mat4 roomScale = Mat::scale3(level.worldWidth, 1.0f, level.worldHeight);
+	Mat4 roomPos = Mat::translation3(0.0f, -0.0f, 0.0f);
+	Mat4 roomRot = Mat::rotation3(0.0f, 0.0f, 0.0f);
+	Mat4 roomCombined = roomScale * roomPos * roomRot;
 
-	Room testRoom;
-	StaticObject ground( "Ground.wwm", worldCombined, { "TestSceneGround.wwmt" } );
+	Room testRoom("room_plane.wwm", "Examplemap.png", roomCombined, m_renderer.get());
+	testRoom.transform.rotation = Quaternion::GetEuler({ 0, cs::c_pi * 0.5f ,0 });
+	testPlayer.currentRoom = &testRoom;
+
+	testEmpty.AddChild(&testRoom);
+
+
+	//StaticObject ground( "Ground.wwm", worldCombined, { "TestSceneGround.wwmt" } );
 	StaticObject bigTrees( "BigTrees.wwm", worldCombined, { "TestSceneBigTree.wwmt" } );
 	StaticObject bigPlants( "BigPlants.wwm", worldCombined, { "TestSceneBanana.wwmt" } );
 	StaticObject smallPlants( "SmallPlants.wwm", worldCombined, { "TestSceneTopDownPlant.wwmt" } );
@@ -182,8 +204,8 @@ void Whisperwoods::Run()
 
 	shared_ptr<DirectionalLight> directional = Renderer::GetDirectionalLight();
 	directional->transform.position = { 0, 10, 0 };
-	directional->transform.SetRotationEuler({ -dx::XM_PIDIV2, 0.0f, 0.0f });
-	directional->diameter = 50.0f;
+	directional->transform.SetRotationEuler({ -dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
+	directional->diameter = 22.0f;
 	directional->intensity = 0.7f;
 	directional->color = cs::Color3f(0xFFFFD0);
 
@@ -213,7 +235,7 @@ void Whisperwoods::Run()
 	idleEnemy.AddCoordinateToPatrolPath(Vec2(2.0f, 2.0f), true);
 	idleEnemy.AddCoordinateToPatrolPath(Vec2(0.0f, 0.0f), true);
 
-	
+	Vec3 tempRot;
 
 	for (bool running = true; running; frames++)
 	{
@@ -231,17 +253,16 @@ void Whisperwoods::Run()
 		
 		testAnimatorGrafiki.Update(dTime);
 
-		//patrolEnemy.Update(dTime);
+		testEmpty.Update(dTime);
+		testRoom.Update(dTime);
 		idleEnemy.Update(dTime);
+		testPlayer.Update(dTime);
+		//patrolEnemy.Update(dTime);
 
 		m_game->Update();
 		m_sound->Update();
 		rotationY += 0.2f * dTime;
 		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
-
-		testEmpty.Update(dTime);
-		testPlayer.Update(dTime);
-
 
 		// Draw step
 		m_renderer->Draw();
@@ -249,6 +270,22 @@ void Whisperwoods::Run()
 		//#ifdef WW_DEBUG
 		m_renderer->BeginGui();
 		Move(dTime, &testPlayer);
+
+		
+		Point2 sample = testRoom.worldToBitmapPoint(testPlayer.transform.position);
+		LevelPixel pixelSample = testRoom.sampleBitMap(testPlayer.transform.position);
+
+		if (ImGui::Begin("Map sameple"))
+		{
+			ImGui::Text("POINT: x:%d y: %d", sample.x, sample.y);
+			ImGui::DragFloat3("Rotation: ", (float*)&tempRot, 0.1f);
+			ImGui::Text("Type: %i", pixelSample);
+			ImGui::Text("Velocity: %f, %f, %f", testPlayer.m_velocity.x, testPlayer.m_velocity.y, testPlayer.m_velocity.z);
+			ImGui::Text("Collective Forward: %f", testPlayer.collectiveForwardValue);
+			ImGui::Text("SampleCollision: %f, %f", testPlayer.sampleVector.x, testPlayer.sampleVector.y);
+		}
+		Quaternion tempRotQ = Quaternion::GetEuler(tempRot);
+		testRoom.transform.rotation = tempRotQ;
 
 
 		if (ImGui::Begin("Animation"))
@@ -443,7 +480,6 @@ void Whisperwoods::Move(float dTime, Player* player)
 		Vec3 upVector(0.0f, 1.0f, 0.0f);
 		Quaternion cameraTargetRot = QuaternionLookRotation(direction, upVector);
 
-
 		Quaternion conj1 = cameraTargetRot.Conjugate();
 		Quaternion conj2 = player->cameraLookRotationTarget.Conjugate();
 		if (ImGui::Begin("Camera rotation player"))
@@ -468,7 +504,16 @@ void Whisperwoods::Move(float dTime, Player* player)
 		}
 		else
 		{
-			Quaternion slerped = Lerp( cameraCurrentRot, conj2, dTime * 5 );
+			Quaternion slerped;
+			if (!(std::isnan(conj2.x) || std::isnan(conj2.y) || std::isnan(conj2.z) || std::isnan(conj2.w)))
+			{
+				slerped = Lerp( cameraCurrentRot, conj2, dTime * 5 );
+				slerped.NormalizeThis();
+			}
+
+			LOG_TRACE("Rot from: %f, %f, %f, %f", cameraCurrentRot.x, cameraCurrentRot.y, cameraCurrentRot.z, cameraCurrentRot.w);
+			LOG_TRACE("Rot to: %f, %f, %f, %f", conj2.x, conj2.y, conj2.z, conj2.w);
+
 			camera.SetRotation(slerped);
 		}
 	}

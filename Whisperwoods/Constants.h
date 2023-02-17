@@ -13,8 +13,8 @@
 #define DIR_MODELS		DIR_ASSETS L"Models/"
 
 #define WINDOW_NAME		"Whisperwoods"
-#define WINDOW_WIDTH	1280
-#define WINDOW_HEIGHT	720
+#define WINDOW_WIDTH	1920
+#define WINDOW_HEIGHT	1080
 
 #define LIGHT_CAPACITY_DIR		1
 #define LIGHT_CAPACITY_POINT	8
