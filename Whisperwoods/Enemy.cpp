@@ -15,7 +15,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_walkingDirection = Vec2(0.0f, 0.0f);
 	m_enemyAlive = false; // Default false, has to be manually turned on
 	m_rotation = false;
-	m_rotationSpeed = 1.0f;
+	
 	m_offset = 0;
 	m_idleCounter = 0;
 	m_timeToGivePlayerAChanceToRunAway = m_amountOfTimeToRunAway;
@@ -210,7 +210,7 @@ void Enemy::Update(float dTime)
 		{
 			if (m_rotationCounter > angleDecimal + m_rotationSpeed * dTime * 1.1) //DO NOT CHANGE THIS
 			{
-				angle = 180 - angle;
+				angle = 180 + angle;
 				angleDecimal = angle / 180;
 			}
 			m_rotationCounter += m_rotationSpeed * dTime;
@@ -222,10 +222,12 @@ void Enemy::Update(float dTime)
 		}
 		else // clockwise,   take away from offset
 		{
+
 			if (m_rotationCounter < angleDecimal - m_rotationSpeed * dTime * 1.1) // DO NOT CHANGE THIS
 			{
-				angle = 180 + angle;
-				angleDecimal = angle / 180;
+				angle = 180 - angle;
+				angleDecimal = angle / 180; //something here might get messed up with an angle. look for teleport
+
 			}
 			m_rotationCounter -= m_rotationSpeed * dTime;
 			if (m_rotationCounter <= angleDecimal)
@@ -457,5 +459,29 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack, Room &room)
 	}
 
 	return m_seesPlayer; 
+}
+
+void Enemy::PlayEnemyActiveNoise()
+{
+	if (m_characterAnimator->IsPlaying(0))
+	{
+		//if(sound is not playing for this animation
+			//play sound
+	}
+	else if (m_characterAnimator->IsPlaying(0))
+	{
+		//if(sound is not playing for this animation
+			//play sound
+	}
+	else if (m_characterAnimator->IsPlaying(0))
+	{
+		//if(sound is not playing for this animation
+			//play sound
+	}
+	else if (m_characterAnimator->IsPlaying(0))
+	{
+		//if(sound is not playing for this animation
+			//play sound
+	}
 }
 

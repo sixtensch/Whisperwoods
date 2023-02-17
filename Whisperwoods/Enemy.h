@@ -32,6 +32,8 @@ public:
 
 private:
 
+	void PlayEnemyActiveNoise();
+
 	// move/rotation variables
 	//*****************************
 	std::vector<Vec2> m_patrolPath; // To save the coordinates mapped in bitmap for patrol path.
@@ -46,7 +48,7 @@ private:
 	Vec2 m_lastWalkingDirection;
 	bool m_rotateClockWise;
 	bool m_rotation;
-	float m_rotationSpeed;
+	float m_rotationSpeed = 0.8;
 	float m_rotationCounter;
 	float m_offset;
 	bool m_isMoving;
