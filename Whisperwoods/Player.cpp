@@ -4,6 +4,7 @@
 #include "Renderer.h"
 #include "Input.h"
 #include "Resources.h"
+#include "LevelImporter.h"
 
 Player::Player(std::string modelResource, std::string animationsPath, Mat4 modelOffset)
 {
@@ -75,10 +76,39 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		if (Input::Get().IsKeybindDown( KeybindRight ))		inputVector += right;
 		if (Input::Get().IsKeybindDown( KeybindLeft ))		inputVector -= right;
 		float walkRunMultiplier = ((Input::Get().IsKeybindDown( KeybindSprint )) ? m_runSpeed : m_walkSpeed);
-
 		m_targetVelocity = (inputVector)*walkRunMultiplier;
-		m_velocity = Lerp( m_velocity, m_targetVelocity, delta_time * movementMultiplier );
-		transform.position += m_velocity * delta_time;
+
+		if (m_targetVelocity.Length() > m_runSpeed)
+		{
+			m_targetVelocity.Normalize();
+			m_targetVelocity *= m_runSpeed;
+		}
+
+		Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
+		if (m_velocity.Length() > m_runSpeed)
+		{
+			m_velocity = m_velocity.Normalize() * m_runSpeed;
+		}
+		
+		sampleVector = currentRoom->sampleBitMapCollision(transform.GetWorldPosition());
+		Vec3 converted(( - (sampleVector.x * sampleVector.x * sampleVector.x))*0.05f, 0,
+			(sampleVector.y * sampleVector.y * sampleVector.y )*0.05f);
+		if (converted.Length() > m_runSpeed)
+		{
+			converted.Normalize();
+			converted *= m_runSpeed;
+		}
+
+		m_velocity = Lerp( m_velocity, m_targetVelocity-converted, delta_time * movementMultiplier );
+
+		if (transform.parent != nullptr)
+		{
+			transform.position += transform.parent->GetWorldRotation().Conjugate() *  m_velocity * delta_time;
+		}
+		else
+		{
+			transform.position += m_velocity * delta_time;
+		}
 
 		m_isCrouch = Input::Get().IsKeybindDown( KeybindCrouch );
 

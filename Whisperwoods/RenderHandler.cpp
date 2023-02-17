@@ -52,42 +52,56 @@ void RenderHandler::Draw()
 	{
 		m_lightsPoint[i]->Update(0); // TODO
 	}
-
 	for (int i = 0; i < m_lightsSpot.Size(); i++)
 	{
 		m_lightsSpot[i]->Update(0); // TODO
 	}
-
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	m_renderCore->TargetBackBuffer();
+	m_renderCore->TargetRenderTexture();
 
-	DrawInstances();
 
-	for (int i = 0; i < m_worldRenderables.Size(); i++)
-	{
-		if (m_worldRenderables[i]->enabled)
-		{
-			m_renderCore->UpdateObjectInfo(m_worldRenderables[i].get());
-			m_renderCore->DrawObject(m_worldRenderables[i].get(), false);
-		}
-	}
+	// ShadowPass
+
+	ExecuteDraw(m_lightDirectional->camera, true);
+
+
+	// Main scene rendering
+
+	ExecuteDraw(m_mainCamera, false);
+
+	m_renderCore->UnbindRenderTexture();
+
+
+
 
 	static bool ppfxOn = false;
 	if (Input::Get().IsDXKeyPressed(DXKey::E))
 		ppfxOn = !ppfxOn;
 
-	if (ppfxOn)
-	{
-		m_renderCore->DrawPPFX();
+		if (ppfxOn)
+		{
+			m_renderCore->DrawPPFX();
+		}
 	}
 	
-
-	for (int i = 0; i < m_texts.Size(); i++)
+	// Draw final image to back buffer with tone mapping.
 	{
-		m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont(), m_texts[i].get()->GetColor(), m_texts[i].get()->GetOrigin());
+		m_renderCore->DrawToBackBuffer();
 	}
+	
+	// Render text
+	{
+		
+		// TODO: Move binding back buffer to OM here instead of it being at the end of DrawToBackBuffer().
+
+		for (int i = 0; i < m_texts.Size(); i++)
+		{
+			m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont(), m_texts[i].get()->GetColor(), m_texts[i].get()->GetOrigin());
+		}
+	}
+	
 }
 
 
@@ -95,6 +109,31 @@ void RenderHandler::Draw()
 void RenderHandler::Present()
 {
 	m_renderCore->EndFrame();
+}
+
+void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
+{
+	m_renderCore->UpdateViewInfo(povCamera);
+
+	if ( !shadows )
+	{
+		m_renderCore->TargetRenderTexture();
+	}
+	else
+	{
+		m_renderCore->TargetShadowMap();
+	}
+
+	DrawInstances();
+
+	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
+	{
+		if ( m_worldRenderables[i]->enabled )
+		{
+			m_renderCore->UpdateObjectInfo(m_worldRenderables[i].get());
+			m_renderCore->DrawObject(m_worldRenderables[i].get(), shadows);
+		}
+	}
 }
 
 const RenderCore* RenderHandler::GetCore() const

@@ -19,8 +19,10 @@ public:
 	~RenderCore();
 
 	void NewFrame();
-	void TargetShadowMap(Light* light);
-	void TargetBackBuffer();
+	void TargetRenderTexture();
+	void UnbindRenderTexture();
+	void TargetShadowMap();
+	//void TargetBackBuffer(); // Use target render texture if you want to render anything to the scene.
 	void EndFrame();
 
 	void CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const;
@@ -49,19 +51,33 @@ public:
 	void DrawIndexed(uint indexCount, uint indexStart, uint vertexBase);
 	void DrawInstanced(uint indexCount, uint instanceCount, uint startIndex, uint baseVertex, uint startInstance);
 
-
 	//void SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer);
 	void SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV);
 	void UpdateBoneMatrixBuffer(ComPtr<ID3D11Buffer> matrixBuffer, cs::List<DirectX::XMFLOAT4X4> bones);
+
 
 	void WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
 		const shared_ptr<DirectionalLight>& lightDirectional,
 		const cs::List<shared_ptr<PointLight>>& lightsPoint,
 		const cs::List<shared_ptr<SpotLight>>& lightsSpot);
 
+	void WritePPFXThresholdInfo(
+		const float luminanceThreshold, 
+		const float strength, 
+		const float minLuminance
+	);
+	
+	void WritePPFXColorgradeInfo(
+		const Vec2 vignetteBorderAndStrength, 
+		const Vec2 contrastAmountAndMidpoint, 
+		const float brightness, 
+		const float saturation
+	);
+
 	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 origin);
 
 	void DrawPPFX();
+	void DrawToBackBuffer();
 
 	void InitImGui() const;
 
@@ -94,11 +110,22 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_bbSRV;
 	cs::Color4f m_bbClearColor;
 
+	// Render texture
+	ComPtr<ID3D11Texture2D> m_renderTexture;
+	ComPtr<ID3D11RenderTargetView> m_renderTextureRTV;
+	ComPtr<ID3D11ShaderResourceView> m_renderTextureSRV;
+	ComPtr<ID3D11UnorderedAccessView> m_renderTextureUAV;
+
 	// PPFX
-	ComPtr<ID3D11Texture2D> m_ppfxBloomTexture;
-	ComPtr<ID3D11UnorderedAccessView> m_ppfxBloomUAV;
-	ComPtr<ID3D11ShaderResourceView> m_ppfxBloomSRV;
-	ComPtr<ID3D11RenderTargetView> m_ppfxBloomRTV;
+	ComPtr<ID3D11Texture2D> m_ppfxLumTexture;
+	
+	ComPtr<ID3D11UnorderedAccessView> m_ppfxLumUAV;
+	ComPtr<ID3D11RenderTargetView> m_ppfxLumRTV;
+	ComPtr<ID3D11ShaderResourceView> m_ppfxLumSRV;
+	
+	ComPtr<ID3D11Texture2D> m_ppfxLumSumTexture;
+	ComPtr<ID3D11ShaderResourceView> m_ppfxLumSumSRV;
+	ComPtr<ID3D11UnorderedAccessView> m_ppfxLumSumUAV;
 
 	ComPtr<ID3D11ComputeShader> m_thresholdCompute;
 	ComPtr<ID3D11ComputeShader> m_bloomCompute;
@@ -142,6 +169,14 @@ private:
 	ComPtr<ID3D11Buffer> m_lightBufferSpot;
 	ComPtr<ID3D11Buffer> m_lightBufferDir;
 	ComPtr<ID3D11Buffer> m_lightBufferStaging;
+
+	// Shadow resources
+	ComPtr<ID3D11Texture2D> m_shadowTexture;
+	ComPtr<ID3D11DepthStencilView> m_shadowDSV;
+	ComPtr<ID3D11ShaderResourceView> m_shadowSRV;
+	ComPtr<ID3D11RasterizerState> m_shadowRenderState;
+	ComPtr<ID3D11SamplerState> m_shadowSampler;
+	D3D11_VIEWPORT m_shadowViewport;
 
 	std::unique_ptr<dx::SpriteFont> m_fonts[FontCount];
 	std::unique_ptr<dx::SpriteBatch> m_spriteBatch;

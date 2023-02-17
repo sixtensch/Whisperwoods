@@ -1,24 +1,37 @@
 #include "Constants.hlsli"
 #include "ComputeConstants.hlsli"
 
-RWTexture2D<unorm float4> backBufferTexture : REGISTER_UAV_RENDER_TARGET;
-RWTexture2D<unorm float4> outTexture        : REGISTER_UAV_DEFAULT;
-
-float3 FilterLuminance(float3 color, float thresholdValue, float strength)
+// HDR luminance filtering.
+float3 FilterBrightness(float3 color, float thresholdValue, float strength, float minLuminance)
 {
-    float3 properGrayscale = float3(0.2126f, 0.7152f, 0.0722f);
-    float luminance = dot(color, properGrayscale);
+    color = clamp(color, 0.0f, thresholdValue);
+    float brightness = max(max(color.r, color.g), color.b); // Maximum brightness
+    
+    float minValOffset = minLuminance; // Any light that is below this min value is pushed to 0.
+    float luminance = smoothstep(0.0f, thresholdValue - minValOffset, brightness - minValOffset); // Scalar [0, 1] on how close to max brightness pixel is.
 
-    return smoothstep(thresholdValue, 1.0f, luminance) * color * strength;
+    return color * luminance * strength;
 }
+
+Texture2D<float4> renderTexture : REGISTER_SRV_COPY_SOURCE;
+RWTexture2D<float4> lumTexture : REGISTER_UAV_SYSTEM_0;
+
+cbuffer THRESHOLD_INFO_BUFFER : REGISTER_CBV_USER_0
+{
+    float luminanceThreshold;
+    float strength;
+    float minLuminance;
+
+    float PADDING;
+};
 
 [numthreads(NUM_THREADS.x, NUM_THREADS.y, 1)]
 void main( uint3 DTid : SV_DispatchThreadID )
 {
     uint3 texPos = uint3(DTid.xy, 0);
     
-    float3 texColor = backBufferTexture.Load(texPos).rgb;
-    texColor = FilterLuminance(texColor, 0.8f, 1.0f);
+    float3 texColor = renderTexture.Load(texPos).rgb;
+    texColor = FilterBrightness(texColor, luminanceThreshold, strength, minLuminance);
     
-    outTexture[texPos.xy] = float4(texColor, 1.0f);
+    lumTexture[texPos.xy] = float4(texColor, 1.0f);
 }
