@@ -43,15 +43,15 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Animated2.fbx", true );
 	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", true );
 
-	//// Static Models
-	BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false, 0.1f );
-	BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false, 0.1f );
-	BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false, 1.0f );
-	BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false, 0.8f );
-	BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false, 0.1f );
-	BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false, 0.0f );
-	BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false, 0.1f );
-	BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false, 0.1f );
+	////// Static Models
+	//BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false, 0.1f );
+	//BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false, 0.1f );
+	//BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false, 1.0f );
+	//BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false, 0.8f );
+	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false, 0.1f );
+	//BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false, 0.0f );
+	//BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false, 0.1f );
+	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false, 0.1f );
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
@@ -83,8 +83,6 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	m_resources = std::make_unique<Resources>();
 	m_resources->LoadAssetDirectory(m_renderer->GetRenderCore());
 }
-
-
 
 Whisperwoods::~Whisperwoods()
 {
@@ -219,8 +217,6 @@ void Whisperwoods::Run()
 	// Test empty rotation imgui euler
 	Vec3 inputRotation;
 
-	
-	
 	//Enemy patrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
 	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(1.0f, -5.0f), true);
 	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -4.2f), true);
@@ -278,6 +274,7 @@ void Whisperwoods::Run()
 		
 		Point2 sample = testRoom.worldToBitmapPoint(testPlayer.transform.position);
 		LevelPixel pixelSample = testRoom.sampleBitMap(testPlayer.transform.position);
+		Vec3 convertedBack = testRoom.bitMapToWorldPos(sample);
 
 		if (ImGui::Begin("Map sameple"))
 		{
@@ -287,10 +284,15 @@ void Whisperwoods::Run()
 			ImGui::Text("Velocity: %f, %f, %f", testPlayer.m_velocity.x, testPlayer.m_velocity.y, testPlayer.m_velocity.z);
 			ImGui::Text("Collective Forward: %f", testPlayer.collectiveForwardValue);
 			ImGui::Text("SampleCollision: %f, %f", testPlayer.sampleVector.x, testPlayer.sampleVector.y);
+			ImGui::Text("PlayerPos Converted bac: %f, %f, %f", convertedBack.x, convertedBack.y, convertedBack.z);
 		}
 		ImGui::End();
 		Quaternion tempRotQ = Quaternion::GetEuler(tempRot);
 		testRoom.transform.rotation = tempRotQ;
+
+
+
+
 
 		if (ImGui::Begin( "Player matrix" ))
 		{

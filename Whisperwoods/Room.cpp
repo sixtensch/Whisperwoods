@@ -48,6 +48,30 @@ LevelPixel Room::sampleBitMap(Vec3 worldPos)
 	return returnPixel;
 }
 
+Vec3 Room::bitMapToWorldPos(Point2 samplePoint)
+{
+	if (!BM_PIXELS_PER_UNIT)
+	{
+		LOG_WARN("bitMapToWorldPos/defines: BM_PIXELS_PER_UNIT CAN NOT BE 0 -> DIVISION BY 0");
+		return Vec3(0, 0, 0);
+	}
+	float normalizedX = (float)(samplePoint.x) / (float)BM_PIXELS_PER_UNIT;
+	float normalizedY = (float)(samplePoint.y) / (float)BM_PIXELS_PER_UNIT;
+
+	Vec3 normalization(
+		(float)(m_levelResource.pixelWidth / 2) / (float)BM_PIXELS_PER_UNIT, 
+		0, 
+		(float)(m_levelResource.pixelHeight / 2) / (float)BM_PIXELS_PER_UNIT);
+
+	Vec3 localPos(normalizedX, 0, normalizedY);
+	localPos = localPos - normalization;
+	localPos.x = -localPos.x;
+	Vec3 worldPos = transform.GetWorldPosition(); 
+	Vec3 rotationConverted (transform.GetWorldRotation() * localPos);
+
+	return worldPos + rotationConverted;
+}
+
 Vec2 Room::GetNineSampleVector(Point2 point)
 {
 	int x = cs::iclamp(point.x, 0, m_levelResource.pixelWidth - 1);
