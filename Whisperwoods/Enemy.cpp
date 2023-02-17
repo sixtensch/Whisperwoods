@@ -385,8 +385,8 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack, Room &room)
 			//pointOnLineOfSightVector = pointOnLineOfSightVector * i;
 
 			LevelPixel bitmapPoint = room.sampleBitMap(Vec3(pointOnLineOfSightVector.x, 0.0f, pointOnLineOfSightVector.z));
-			if (bitmapPoint != 0) // this is issue
-			{ // if impassible == true        ||   passable == false
+			if (bitmapPoint != 0) // If terrain is not passible
+			{ 
 
 				m_seesPlayer = false;
 				break;
