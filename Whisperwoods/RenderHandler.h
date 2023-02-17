@@ -12,6 +12,25 @@
 
 class RenderHandler sealed
 {
+private:
+	struct RenderableState
+	{
+		const shared_ptr<WorldRenderable> Current;
+		const shared_ptr<WorldRenderable> Future;
+		shared_ptr<WorldRenderable> operator[](int input)
+		{
+			return input ? Future : Current;
+		}
+		RenderableState& operator=(RenderableState& other) noexcept
+		{
+			return *this;
+		}
+	};
+	enum TimelineState // Readability only
+	{
+		TimelineStateCurrent = false,
+		TimelineStateFuture = true
+	};
 public:
 	RenderHandler();
 	~RenderHandler();
@@ -21,7 +40,7 @@ public:
 	void Draw();
 	void Present();
 
-	void ExecuteDraw(const Camera& povCamera, bool shadows);
+	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);
 
 	const RenderCore* GetCore() const;
 
@@ -29,10 +48,14 @@ public:
 
 
 	shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
+	void CreateMeshStaticSwappable(const string& subpathCurrent, 
+								   const string& subpathFuture, 
+								   const MeshRenderableStatic& data);
 	shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
 	shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin);
 
-
+	void SetTimelineStateCurrent();
+	void SetTimelineStateFuture();
 
 	shared_ptr<DirectionalLight> GetDirectionalLight();
 	bool RegisterPointLight(shared_ptr<PointLight> pointLight);
@@ -41,8 +64,9 @@ public:
 private:
 	unique_ptr<RenderCore> m_renderCore;
 
+	TimelineState m_timelineState;
 	uint m_renderableIDCounter;
-	cs::List<shared_ptr<WorldRenderable>> m_worldRenderables;
+	cs::List<RenderableState> m_worldRenderables;
 	cs::List<shared_ptr<TextRenderable>> m_texts;
 
 	cs::Color3f m_lightAmbient;

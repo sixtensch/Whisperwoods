@@ -9,6 +9,7 @@
 RenderHandler::RenderHandler()
 {
 	m_renderableIDCounter = 0;
+	m_timelineState = TimelineStateCurrent;
 }
 
 RenderHandler::~RenderHandler()
@@ -55,12 +56,12 @@ void RenderHandler::Draw()
 
 	// ShadowPass
 
-	ExecuteDraw(m_lightDirectional->camera, true);
+	ExecuteDraw(m_lightDirectional->camera, m_timelineState, true);
 
 
 	// Main scene rendering
 
-	ExecuteDraw(m_mainCamera, false);
+	ExecuteDraw(m_mainCamera, m_timelineState, false);
 
 
 	// Text rendering
@@ -88,7 +89,7 @@ void RenderHandler::Present()
 	m_renderCore->EndFrame();
 }
 
-void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
+void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows)
 {
 	m_renderCore->UpdateViewInfo(povCamera);
 
@@ -103,10 +104,10 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
 
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
-		if ( m_worldRenderables[i]->enabled )
+		if ( m_worldRenderables[i][state] && m_worldRenderables[i][state]->enabled )
 		{
-			m_renderCore->UpdateObjectInfo(m_worldRenderables[i].get());
-			m_renderCore->DrawObject(m_worldRenderables[i].get(), shadows);
+			m_renderCore->UpdateObjectInfo(m_worldRenderables[i][state].get());
+			m_renderCore->DrawObject(m_worldRenderables[i][state].get(), shadows);
 		}
 	}
 }
@@ -133,9 +134,35 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 		cs::Mat4()
 	);
 	
-	m_worldRenderables.Add((shared_ptr<WorldRenderable>)newRenderable);
+	m_worldRenderables.Add({ (shared_ptr<WorldRenderable>)newRenderable, (shared_ptr<WorldRenderable>)newRenderable });
 
 	return newRenderable;
+}
+
+void RenderHandler::CreateMeshStaticSwappable(const string& subpathCurrent, const string& subpathFuture, const MeshRenderableStatic& data)
+{
+	Resources& resources = Resources::Get();
+	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpathCurrent));
+	shared_ptr<MeshRenderableStatic> renderableCurrent = make_shared<MeshRenderableStatic>(
+		m_renderableIDCounter,
+		model,
+		data.worldMatrix
+	);
+	renderableCurrent->enabled = data.enabled;
+	renderableCurrent->pipelineType = data.pipelineType;
+
+
+	model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpathFuture));
+	shared_ptr<MeshRenderableStatic> renderableFuture = make_shared<MeshRenderableStatic>(
+		m_renderableIDCounter++,
+		model,
+		data.worldMatrix
+	);
+	renderableFuture->enabled = data.enabled;
+	renderableFuture->pipelineType = data.pipelineType;
+
+
+	m_worldRenderables.Add({ (shared_ptr<WorldRenderable>)renderableCurrent, (shared_ptr<WorldRenderable>)renderableFuture });
 }
 
 shared_ptr<MeshRenderableRigged> RenderHandler::CreateMeshRigged(const string& subpath)
@@ -150,7 +177,7 @@ shared_ptr<MeshRenderableRigged> RenderHandler::CreateMeshRigged(const string& s
 		cs::Mat4()
 		);
 
-	m_worldRenderables.Add((shared_ptr<WorldRenderable>)newRenderable);
+	m_worldRenderables.Add({ (shared_ptr<WorldRenderable>)newRenderable, (shared_ptr<WorldRenderable>)newRenderable });
 
 	return newRenderable;
 }
@@ -160,6 +187,16 @@ shared_ptr<TextRenderable> RenderHandler::CreateTextRenderable(const wchar_t* te
 	shared_ptr<TextRenderable> newRenderable = make_shared<TextRenderable>(text, fontPos, font, color, origin);
 	m_texts.Add((shared_ptr<TextRenderable>)newRenderable);
 	return newRenderable;
+}
+
+void RenderHandler::SetTimelineStateCurrent()
+{
+	m_timelineState = TimelineStateCurrent;
+}
+
+void RenderHandler::SetTimelineStateFuture()
+{
+	m_timelineState = TimelineStateFuture;
 }
 
 shared_ptr<DirectionalLight> RenderHandler::GetDirectionalLight()
