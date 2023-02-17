@@ -350,7 +350,7 @@ int SomeFunction(Vec3 pos)
 	return 0;
 }
 
-bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack)
+bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack, Room &room)
 {
 	// Let's start with if the enemy can see the player at all without TRUE line of sight
 
@@ -376,15 +376,17 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack)
 
 		//Now we check if the enemy has true line of sight to the player
 		m_seesPlayer = true;
-		//for (float i = 0; i < distance; i += 0.1)// for each 10 cm in "distance"
-		//{
-		//	Vec3 pointOnLineOfSightVector = Vec3(playerDirection.x, 0.0f, playerDirection.y);
-		//	pointOnLineOfSightVector = pointOnLineOfSightVector * i;
-		//	if (SomeFunction(pointOnLineOfSightVector) != 0)
-		//	{
-		//		m_seesPlayer = false;
-		//	}
-		//}
+		for (float i = 0; i < distance; i += 0.1)// for each 10 cm in "distance"
+		{
+			Vec3 pointOnLineOfSightVector = Vec3(playerDirection.x, 0.0f, playerDirection.y);
+			pointOnLineOfSightVector = pointOnLineOfSightVector * i;
+
+			LevelPixel bitmapPoint = room.sampleBitMap(pointOnLineOfSightVector);
+			if (bitmapPoint & ~Impassable)
+			{
+				m_seesPlayer = false;
+			}
+		} //worldToBitmapPoint(Vec3 worldPos)
 	}
 	if(m_seesPlayer)  //if the enemy sees the player
 	{

@@ -3,6 +3,7 @@
 #include "GameObject.h"
 #include "AnimationResource.h"
 #include "Animator.h"
+#include "Room.h"
 
 
 //temp include
@@ -20,7 +21,7 @@ public:
 	void AddCoordinateToPatrolPath(Vec2 coord, bool enclosed);
 	void EmptyPatrolPath(); // In order to re-use enemies, wipe the patrol path and add a new one when player reaches a new room rather than creating a new Enemy object.
 	void AddModel(std::string modelResource, std::string animationsPath, Mat4 modelOffset);
-	bool SeesPlayer(Vec2 playerPosition, AudioSource &quack);
+	bool SeesPlayer(Vec2 playerPosition, AudioSource &quack, Room &room);
 	
 	bool m_enemyAlive; // A bool to know if we render/update the enemy or not
 
