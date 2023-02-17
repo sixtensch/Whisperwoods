@@ -46,6 +46,7 @@ public:
 	void CalculateWorldMatrix(Mat4 parentWorldMatrix);
 
 	// Nice to haves
+	void DecomposeMatrixIntoWorldParameters(Mat4 matrix);
 	void SetRotationEuler(Vec3 p_rotation);
 	//Vec3 GetRotationEuler();
 	//void Rotate(Quaternion p_rotation);

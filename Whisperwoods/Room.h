@@ -20,6 +20,7 @@ public:
 
 	void Update(float deltaTime) override;
 
+	cs::List<GameObject*> traverseAndGenerateHiearchy;
 
 	Vec3 bitMapToWorldPos(Point2 samplePoint);
 	Vec2 GetNineSampleVector(Point2 point);

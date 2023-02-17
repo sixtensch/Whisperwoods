@@ -8,7 +8,8 @@ StaticObject::StaticObject( std::string modelResource, Mat4 modelOffset, std::ve
 	// Create renderable
 	m_modelResource = modelResource;
 	m_renderable = Renderer::CreateMeshStatic( m_modelResource );
-	m_renderable->worldMatrix = modelOffset; // temp
+	m_modelOffset = modelOffset;
+
 	Resources& resources = Resources::Get();
 
 	// Add all materials
