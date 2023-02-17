@@ -2,16 +2,17 @@
 #include "ComputeConstants.hlsli"
 
 Texture2D<float4> luminanceTexture                  : REGISTER_SRV_TEX_USER_0;
-RWTexture2D<float4> renderTexture                   : REGISTER_UAV_DEFAULT;
+RWTexture2D<float4> targetTexture                   : REGISTER_UAV_SYSTEM_0;
 
 SamplerState bloomSampler                           : REGISTER_SAMPLER_SYSTEM_0;
+
 
 
 [numthreads(NUM_THREADS.x, NUM_THREADS.y, 1)]
 void main( uint3 DTid : SV_DispatchThreadID )
 {
     uint2 backBufferDims;
-    renderTexture.GetDimensions(backBufferDims.x, backBufferDims.y);
+    targetTexture.GetDimensions(backBufferDims.x, backBufferDims.y);
     
     float2 texUV = DTid.xy / float2(backBufferDims);
     texUV += (1.0f / backBufferDims) * 0.5f; // Adjust to middle of texel.
@@ -54,5 +55,5 @@ void main( uint3 DTid : SV_DispatchThreadID )
         finalColor += mipLevelColor;
     }
     
-    renderTexture[DTid.xy] += float4(finalColor, 1.0f);
+    targetTexture[DTid.xy] = float4(finalColor, 1.0f);
 }

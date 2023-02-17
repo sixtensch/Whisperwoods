@@ -242,12 +242,11 @@ void Whisperwoods::Run()
 		testEmpty.Update(dTime);
 		testPlayer.Update(dTime);
 
-
+		m_renderer->BeginGui();
 		// Draw step
 		m_renderer->Draw();
 
 		//#ifdef WW_DEBUG
-		m_renderer->BeginGui();
 		Move(dTime, &testPlayer);
 
 

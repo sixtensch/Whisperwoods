@@ -22,7 +22,7 @@ public:
 	void TargetRenderTexture();
 	void UnbindRenderTexture();
 	void TargetShadowMap();
-	void TargetBackBuffer();
+	//void TargetBackBuffer(); // Use target render texture if you want to render anything to the scene.
 	void EndFrame();
 
 	void CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const;
@@ -99,9 +99,14 @@ private:
 
 	// PPFX
 	ComPtr<ID3D11Texture2D> m_ppfxLumTexture;
+	
 	ComPtr<ID3D11UnorderedAccessView> m_ppfxLumUAV;
-	ComPtr<ID3D11ShaderResourceView> m_ppfxLumSRV;
 	ComPtr<ID3D11RenderTargetView> m_ppfxLumRTV;
+	ComPtr<ID3D11ShaderResourceView> m_ppfxLumSRV;
+	
+	ComPtr<ID3D11Texture2D> m_ppfxLumSumTexture;
+	ComPtr<ID3D11ShaderResourceView> m_ppfxLumSumSRV;
+	ComPtr<ID3D11UnorderedAccessView> m_ppfxLumSumUAV;
 
 	ComPtr<ID3D11ComputeShader> m_thresholdCompute;
 	ComPtr<ID3D11ComputeShader> m_bloomCompute;

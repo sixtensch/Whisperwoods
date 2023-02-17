@@ -51,7 +51,7 @@ void RenderHandler::Draw()
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	m_renderCore->TargetBackBuffer();
+	m_renderCore->TargetRenderTexture();
 
 
 	// ShadowPass
@@ -62,6 +62,9 @@ void RenderHandler::Draw()
 	// Main scene rendering
 
 	ExecuteDraw(m_mainCamera, false);
+
+	m_renderCore->UnbindRenderTexture();
+
 
 
 	// Render PPFX
@@ -108,7 +111,7 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
 
 	if ( !shadows )
 	{
-		m_renderCore->TargetBackBuffer();
+		m_renderCore->TargetRenderTexture();
 	}
 	else
 	{

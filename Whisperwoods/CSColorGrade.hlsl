@@ -69,6 +69,7 @@ float3 AcesTonemap(float3 color)
 
 RWTexture2D<unorm float4> backBufferTexture : REGISTER_UAV_RENDER_TARGET;
 Texture2D<float4> renderTexture             : REGISTER_SRV_COPY_SOURCE;
+Texture2D<float4> lumSumTexture             : REGISTER_SRV_TEX_USER_4;
 
 [numthreads(NUM_THREADS.x, NUM_THREADS.y, 1)]
 void main( uint3 DTid : SV_DispatchThreadID )
@@ -76,7 +77,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
     const uint3 texPos = uint3(DTid.xy, 0u);
     const float2 texUV = float2(texPos.xy) / BACK_BUFFER_RESOLUTION;
     
-    float3 color = renderTexture.Load(texPos).rgb;
+    float3 color = renderTexture.Load(texPos).rgb + lumSumTexture.Load(texPos).rgb;
     
     // Color stuff.
     
