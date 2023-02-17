@@ -62,8 +62,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	m_viewport.Width = static_cast<float>(window->GetWidth());
 	m_viewport.Height = static_cast<float>(window->GetHeight());
 
-	UINT shadowMapHeight = 4064;
-	UINT shadowMapWidth = 4064;
+	UINT shadowMapHeight = 2048;
+	UINT shadowMapWidth = 2048;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.MinDepth = 0;
@@ -343,7 +343,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	shadowSDesc.MipLODBias = 0.0f;
 	shadowSDesc.MaxAnisotropy = 0;
 	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
-	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
+	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(
 		&shadowSDesc,
@@ -450,9 +450,9 @@ void RenderCore::CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buff
 	
 	D3D11_BUFFER_DESC bufferDesc = {};
 	bufferDesc.ByteWidth = byteWidth;
-	bufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
 	bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bufferDesc.CPUAccessFlags = 0;
 	bufferDesc.MiscFlags = 0;
 	bufferDesc.StructureByteStride = 0; // not relevant
 
@@ -469,7 +469,7 @@ void RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffe
 	HRESULT hr = {};
 	D3D11_BUFFER_DESC bufferDesc = {};
 	bufferDesc.ByteWidth = byteWidth;
-	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	bufferDesc.Usage = D3D11_USAGE_IMMUTABLE;
 	bufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	bufferDesc.CPUAccessFlags = 0;
 	bufferDesc.MiscFlags = 0;
