@@ -23,6 +23,8 @@ public:
 
 	void Update(float deltaTime) override;
 
+
+	Vec3 bitMapToWorldPos(Point2 samplePoint);
 	Vec2 GetNineSampleVector(Point2 point);
 	Point2 worldToBitmapPoint(Vec3 worldPos);
 	LevelPixel sampleBitMap(Vec3 worldPos);

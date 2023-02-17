@@ -28,7 +28,7 @@ public:
 
 	void ExecuteDraw(const Camera& povCamera, bool shadows);
 
-	const RenderCore* GetCore() const;
+	RenderCore* GetCore() const;
 
 	Camera& GetCamera();
 

@@ -38,6 +38,9 @@ public:
 
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
+
+	void UpdatePlayerInfo( Mat4 matrix );
+
 	void UpdateMaterialInfo(const MaterialResource* material) const;
 	void UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* data, uint count);
 

@@ -113,7 +113,7 @@ void RenderHandler::Present()
 void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
 {
 	m_renderCore->UpdateViewInfo(povCamera);
-
+	m_renderCore->UpdatePlayerInfo( playerMatrix );
 	if ( !shadows )
 	{
 		m_renderCore->TargetRenderTexture();
@@ -135,7 +135,7 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
 	}
 }
 
-const RenderCore* RenderHandler::GetCore() const
+RenderCore* RenderHandler::GetCore() const
 {
 	return m_renderCore.get();
 }
