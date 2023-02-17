@@ -2,6 +2,8 @@
 #include "Constants.hlsli"
 #include "PhongAlg.hlsli"
 
+static float smoothing = 2.0f;
+
 struct VSOutput
 {
 	float4 outPosition	: SV_POSITION;
@@ -63,6 +65,12 @@ cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
     float tiling;
 };
 
+float2 texOffset( int u, int v, int lNo )
+{
+	return float2(u * 1.0f / 2048, v * 1.0f /2048);
+}
+
+
 SamplerState textureSampler : REGISTER_SAMPLER_STANDARD;
 SamplerComparisonState shadowSampler : REGISTER_SAMPLER_SHADOW;
 
@@ -104,9 +112,26 @@ float4 main(VSOutput input) : SV_TARGET
     float2 lsUV = float2(lsNDC.x * 0.5f + 0.5f, lsNDC.y * -0.5f + 0.5f);
 	
     float dirNDotL = dot(normal, directionalLight.direction);
-    float epsilon = 0.0005 / acos(saturate(dirNDotL));
-    bool shadowAff = shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x;
+    float epsilon = 0.00005 / acos(saturate(dirNDotL));
+    //bool shadowAff = shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x;
 	
+	float sum = 0;
+	float x, y;
+
+	// PCF filtering (Smooth shadows)
+	[unroll] for (y = -smoothing; y <= smoothing; y += 1.0f)
+	{
+		[unroll] for (x = -smoothing; x <= smoothing; x += 1.0f)
+		{
+			sum += shadowTexture.SampleCmpLevelZero( shadowSampler,
+				lsUV.xy + texOffset( x, y, 0 ), lsNDC.z - epsilon);
+		}
+	}
+	float shadowAff = sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f));
+
+
+
+
     // Directional lighting
 	color += shadowAff * phong(
 		input.wPosition.xyz,
@@ -167,7 +192,8 @@ float4 main(VSOutput input) : SV_TARGET
 		);
     }
 	
-    color += float4(colorEmissive.xyz, 0.0f);
+    color += float4(colorEmissive.xyz, 0.0f) * 3.0f;
 	
-    return saturate(color );
+    color.a = saturate(color.a);
+    return color;
 }

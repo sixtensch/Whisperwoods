@@ -303,6 +303,12 @@
     <ClCompile Include="TextRenderable.cpp">
       <Filter>%2a Code\%2a Rendering\%2a Renderable\TextRenderable</Filter>
     </ClCompile>
+    <ClCompile Include="Room.cpp">
+      <Filter>%2a Code\%2a World\Room</Filter>
+    </ClCompile>
+    <ClCompile Include="Floor.cpp">
+      <Filter>%2a Code\%2a World\Floor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -463,6 +469,9 @@
     <ClInclude Include="Room.h">
       <Filter>%2a Code\%2a World\Room</Filter>
     </ClInclude>
+    <ClInclude Include="Floor.h">
+      <Filter>%2a Code\%2a World\Floor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VSMesh.hlsl">
@@ -483,6 +492,7 @@
     <FxCompile Include="CSColorGrade.hlsl">
       <Filter>%2a Code\%2a Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="VSShadow.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Constants.hlsli">

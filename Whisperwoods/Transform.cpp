@@ -23,7 +23,7 @@ void Transform::DecomposeWorldMatrixIntoWorldParameters()
 
 	// Store into parameters.
 	worldPosition = Vec3(f3Translation.x, f3Translation.y, f3Translation.z);
-	worldRotation = Quaternion(f4Rotation.x, f4Rotation.y, f4Rotation.z, f4Rotation.w);
+	worldRotation = Quaternion(f4Rotation.x, f4Rotation.y, f4Rotation.z, f4Rotation.w); // TODO: conjugate this
 	worldScale = Vec3(f3Scale.x, f3Scale.y, f3Scale.z);
 }
 
@@ -79,6 +79,30 @@ void Transform::CalculateWorldMatrix(Mat4 parentWorldMatrix)
 {
 	CalculateLocalMatrix();
 	worldMatrix = parentWorldMatrix * localMatrix;
+}
+
+void Transform::DecomposeMatrixIntoWorldParameters(Mat4 matrix)
+{
+	// TODO: Change this dirty, naughty, filthyness to use the CHSL better.
+// Decompose matrix
+	DirectX::XMVECTOR outScale;
+	DirectX::XMVECTOR outRotation;
+	DirectX::XMVECTOR outTranslation;
+	DirectX::XMMATRIX inMatrix = ((Mat4)matrix.Transpose()).XMMatrix();
+	DirectX::XMMatrixDecompose(&outScale, &outRotation, &outTranslation, inMatrix);
+
+	// Convert into readable data
+	DirectX::XMFLOAT3 f3Scale;
+	DirectX::XMFLOAT4 f4Rotation;
+	DirectX::XMFLOAT3 f3Translation;
+	DirectX::XMStoreFloat3(&f3Scale, outScale);
+	DirectX::XMStoreFloat4(&f4Rotation, outRotation);
+	DirectX::XMStoreFloat3(&f3Translation, outTranslation);
+
+	// Store into parameters.
+	worldPosition = Vec3(f3Translation.x, f3Translation.y, f3Translation.z);
+	worldRotation = Quaternion(f4Rotation.x, f4Rotation.y, f4Rotation.z, f4Rotation.w);
+	worldScale = Vec3(f3Scale.x, f3Scale.y, f3Scale.z);
 }
 
 void Transform::SetRotationEuler(Vec3 p_rotation)

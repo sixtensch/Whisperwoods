@@ -40,6 +40,7 @@ public:
 	Vec3 cameraLookAtTarget;
 	Quaternion cameraLookRotationTarget;
 
+	Player() = default;
 	Player(std::string modelResource, std::string animationsPath, Mat4 modelOffset);
 
 	void PlayerMovement(float delta_time, float movementMultiplier);

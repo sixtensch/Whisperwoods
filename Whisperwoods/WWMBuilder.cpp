@@ -25,6 +25,25 @@ void BuildWWM( std::string fbxPath, bool rigged )
 	}
 }
 
+void BuildWWM( std::string fbxPath, bool rigged, float pushAway )
+{
+	FBXImporter importer;
+	if (rigged)
+	{
+		ModelRiggedResource riggedModelWrite;
+		importer.ImportFBXRigged( fbxPath, &riggedModelWrite );
+		std::string output = importer.SaveWMM( &riggedModelWrite, "Assets/Models/Rigged/" );
+		LOG_TRACE( "Rigged WWM Build complete for: %s - %s", fbxPath.c_str(), output.c_str() );
+	}
+	else
+	{
+		ModelStaticResource staticModelWrite;
+		importer.ImportFBXStatic( fbxPath, &staticModelWrite, pushAway );
+		std::string output = importer.SaveWMM( &staticModelWrite, "Assets/Models/Static/" );
+		LOG_TRACE( "Static WWM Build complete: %s - %s", fbxPath.c_str(), output.c_str() );
+	}
+}
+
 void BuildWWM(cs::List<VertexTextured> verticies, cs::List<int> indicies, std::string name)
 {
 	ModelStaticResource staticModelWrite;

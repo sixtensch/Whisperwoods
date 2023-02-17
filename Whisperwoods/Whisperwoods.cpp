@@ -52,6 +52,9 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
+	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_1.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
+	//BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false );
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
@@ -66,8 +69,6 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	};
 	cs::List<int> planeIndicies = { 0,1,3,0,3,2 };
 	BuildWWM(planeVerts, planeIndicies, "room_plane");
-
-
 
 	m_sound = std::make_unique<Sound>();
 	m_debug->CaptureSound(m_sound.get());
@@ -84,161 +85,78 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	m_resources = std::make_unique<Resources>();
 	m_resources->LoadAssetDirectory(m_renderer->GetRenderCore());
+
+	m_renderer->SetupEnvironmentAssets();
 }
-
-
 
 Whisperwoods::~Whisperwoods()
 {
 }
 
+
+//Mat4 ConvertToMat4(DirectX::XMFLOAT4X4* mat)
+//{
+//	Mat4 returnMat;
+//	returnMat(0, 0) = mat->_11;
+//	returnMat(0, 1) = mat->_12;
+//	returnMat(0, 2) = mat->_13;
+//	returnMat(0, 3) = mat->_14;
+//	returnMat(1, 0) = mat->_21;
+//	returnMat(1, 1) = mat->_22;
+//	returnMat(1, 2) = mat->_23;
+//	returnMat(1, 3) = mat->_24;
+//	returnMat(2, 0) = mat->_31;
+//	returnMat(2, 1) = mat->_32;
+//	returnMat(2, 2) = mat->_33;
+//	returnMat(2, 3) = mat->_34;
+//	returnMat(3, 0) = mat->_41;
+//	returnMat(3, 1) = mat->_42;
+//	returnMat(3, 2) = mat->_43;
+//	returnMat(3, 3) = mat->_44;
+//	return returnMat;
+//}
+
+
 void Whisperwoods::Run()
 {
 	// Main frame loop
-	LevelResource level = {};
-	LevelImporter::ImportImage("Examplemap.png", m_renderer->GetRenderCore(), &level);
 
-	// Audio test startup
-	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
-	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 1.1f, 0, 10, soundPtr);
-	testSource.Play();
+	//m_renderer->LoadLevel(&level);
 
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
-	// Test meshes
-	shared_ptr<MeshRenderableStatic> mesh2 = Renderer::CreateMeshStatic("ShadiiTest.wwm");
-	shared_ptr<MeshRenderableRigged> grafiki = Renderer::CreateMeshRigged("Grafiki_Animated.wwm");
-	
-	Player testPlayer("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
-	Empty testEmpty;
-	//testEmpty.AddChild(&testPlayer);
+	m_game->InitGame(m_renderer.get());
 
-
-	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	Mat4 worldPos = Mat::translation3(0, -5.5f, -2);
-	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
-	Mat4 worldCombined = worldScale * worldPos * worldRot;
-	
-	Mat4 roomScale = Mat::scale3(level.worldWidth, 1.0f, level.worldHeight);
-	Mat4 roomPos = Mat::translation3(0.0f, -0.0f, 0.0f);
-	Mat4 roomRot = Mat::rotation3(0.0f, 0.0f, 0.0f);
-	Mat4 roomCombined = roomScale * roomPos * roomRot;
-
-	Room testRoom("room_plane.wwm", "Examplemap.png", roomCombined, m_renderer.get());
-	testRoom.transform.rotation = Quaternion::GetEuler({ 0, cs::c_pi * 0.5f ,0 });
-	testPlayer.currentRoom = &testRoom;
-
-	testEmpty.AddChild(&testRoom);
-
-
-	//StaticObject ground( "Ground.wwm", worldCombined, { "TestSceneGround.wwmt" } );
-	StaticObject bigTrees( "BigTrees.wwm", worldCombined, { "TestSceneBigTree.wwmt" } );
-	StaticObject bigPlants( "BigPlants.wwm", worldCombined, { "TestSceneBanana.wwmt" } );
-	StaticObject smallPlants( "SmallPlants.wwm", worldCombined, { "TestSceneTopDownPlant.wwmt" } );
-	StaticObject mediumTrees( "MediumTrees.wwm", worldCombined, { "TestSceneMediumTree.wwmt" } );
-	StaticObject stones( "Stones.wwm", worldCombined, { "TestSceneStones.wwmt" } );
-	StaticObject grafiTree( "Grafitree.wwm", worldCombined, { "TestSceneGrafitree.wwmt" } );
-
-	// Grafiki animations test
-	Resources resources = Resources::Get();
-	Animator testAnimatorGrafiki((ModelRiggedResource*)resources.GetResource(ResourceTypeModelRigged, "Grafiki_Animated.wwm"));
-	AnimationResource* resource2 = (AnimationResource*)resources.GetResource( ResourceTypeAnimations, "Grafiki_Animations.wwa" );
-
-
-	Animation* animation4 = &resource2->animations[2];
-	Animation* animation5 = &resource2->animations[3];
-	Animation* animation6 = &resource2->animations[4];
-	float speed2 = 0.5f;
-	testAnimatorGrafiki.AddAnimation(animation4, 0, 1.0f, 1.0f);
-	testAnimatorGrafiki.AddAnimation(animation5, 0, 1.0f, 0.0f);
-	testAnimatorGrafiki.AddAnimation(animation6, 0, 1.0f, 0.0f);
-
-	// Test meshes transforms
-	float rotationY = cs::c_pi * 1.0f;
-	mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-	grafiki->worldMatrix = Mat::translation3(2.5f, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, rotationY, 0); // cs::c_pi * 0.9f
-
-	// Static shady materials test
-	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiBody.wwmt"));
-	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt"));
-	mesh2->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPupil.wwmt"));
-	
-	// Grafiki materials test
-	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiBody.wwmt"));
-	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiGum.wwmt"));
-	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt"));
-	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiPants.wwmt"));
-	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiSpikes.wwmt"));
-	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "ShadiiWhite.wwmt"));
-	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiPupil.wwmt"));
-	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiBeard.wwmt"));
-	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiWood.wwmt"));
-	grafiki->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "GrafikiCrystal.wwmt"));
-
-	// Text
-
-	dx::SimpleMath::Vector2 posTest;
-	posTest.x = 1270;
-	posTest.y = 710;
-	const wchar_t* inputText = L"Shadii";
-	cs::Color4f color(0.034f, 0.255f, 0.0f, 1.0f);
-	//These are just test values
-	
-	// Lights
-
-	shared_ptr<PointLight> point = make_shared<PointLight>();
-	point->color = cs::Color3f(0xFFFFFF);
-	point->intensity = 1.0f;
-	point->transform.position = Vec3(2, 0, 0);
-	Renderer::RegisterLight(point);
-
-	shared_ptr<SpotLight> spot = make_shared<SpotLight>();
-	spot->color = cs::Color3f(0x40FF40);
-	spot->intensity = 0.8f;
-	spot->transform.position = Vec3(-0.4f, 0.2f, 0);
-	spot->transform.rotation = Quaternion::GetIdentity();
-	spot->fovInner = 0.15f;
-	spot->fovOuter = 0.2f;
-	spot->range = 100.0f;
-	Renderer::RegisterLight(spot);
-
-	shared_ptr<DirectionalLight> directional = Renderer::GetDirectionalLight();
-	directional->transform.position = { 0, 10, 0 };
-	directional->transform.SetRotationEuler({ -dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
-	directional->diameter = 22.0f;
-	directional->intensity = 0.7f;
-	directional->color = cs::Color3f(0xFFFFD0);
-
-	shared_ptr<TextRenderable> text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color, { 1.0f, 1.0f });
 
 	int frames = 0;
 	cs::Timer deltaTimer;
-	// Test empty rotation imgui euler
-	Vec3 inputRotation;
 
 	
 	
-	//Enemy patrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(1.0f, -5.0f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -4.2f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.35f, -3.0f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.6f, -1.65f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.4f, -0.3f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.35f, 1.0f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.5f, 1.05f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.2f, 0.25f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.25f, -0.8f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.9f, -1.5f), true);
-	//patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.3f, -1.9f), false);
 
-	Enemy idleEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f)* Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
-	idleEnemy.AddCoordinateToPatrolPath(Vec2(2.0f, 2.0f), true);
-	idleEnemy.AddCoordinateToPatrolPath(Vec2(0.0f, 0.0f), true);
+	
+	/*patrolEnemy.AddCoordinateToPatrolPath(Vec2(1.0f, -5.0f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.5f, -4.2f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.35f, -3.0f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.6f, -1.65f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(3.4f, -0.3f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.35f, 1.0f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.5f, 1.05f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.2f, 0.25f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.25f, -0.8f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(0.9f, -1.5f), true);
+	patrolEnemy.AddCoordinateToPatrolPath(Vec2(2.3f, -1.9f), false);*/
+
+	//Enemy PatrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f)* Mat::translation3(0, -0.6f, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
+	//PatrolEnemy.AddCoordinateToPatrolPath(Vec2(2.0f, 2.0f), true);
+	//PatrolEnemy.AddCoordinateToPatrolPath(Vec2(0.0f, 0.0f), true);*/
 
 	Vec3 tempRot;
 
 	for (bool running = true; running; frames++)
 	{
+		m_renderer->BeginGui();
+
 		m_debug->ClearFrameTrace();
 		m_input->Update();
 		running = !m_renderer->UpdateWindow();
@@ -248,84 +166,27 @@ void Whisperwoods::Run()
 
 		static float dTimeAcc = 0.0f;
 		dTimeAcc += dTime;
-
+			
 		Input::Get().Update();
 		
-		testAnimatorGrafiki.Update(dTime);
-
-		testEmpty.Update(dTime);
-		testRoom.Update(dTime);
-		idleEnemy.Update(dTime);
-		testPlayer.Update(dTime);
+		
 		//patrolEnemy.Update(dTime);
 
-		m_game->Update();
+		m_game->Update(dTime);
 		m_sound->Update();
-		rotationY += 0.2f * dTime;
-		mesh2->worldMatrix = Mat::translation3(0, -0.8f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
-
+		
 		// Draw step
 		m_renderer->Draw();
 
 		//#ifdef WW_DEBUG
-		m_renderer->BeginGui();
-		Move(dTime, &testPlayer);
-
-		
-		Point2 sample = testRoom.worldToBitmapPoint(testPlayer.transform.position);
-		LevelPixel pixelSample = testRoom.sampleBitMap(testPlayer.transform.position);
-
-		if (ImGui::Begin("Map sameple"))
-		{
-			ImGui::Text("POINT: x:%d y: %d", sample.x, sample.y);
-			ImGui::DragFloat3("Rotation: ", (float*)&tempRot, 0.1f);
-			ImGui::Text("Type: %i", pixelSample);
-			ImGui::Text("Velocity: %f, %f, %f", testPlayer.m_velocity.x, testPlayer.m_velocity.y, testPlayer.m_velocity.z);
-			ImGui::Text("Collective Forward: %f", testPlayer.collectiveForwardValue);
-			ImGui::Text("SampleCollision: %f, %f", testPlayer.sampleVector.x, testPlayer.sampleVector.y);
-		}
-		Quaternion tempRotQ = Quaternion::GetEuler(tempRot);
-		testRoom.transform.rotation = tempRotQ;
-
-
-		if (ImGui::Begin("Animation"))
-		{
-			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[1].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[1].influence, 0.0f, 1.0f, "influence = %.3f");
-			ImGui::SliderFloat(testAnimatorGrafiki.loadedAnimations[2].sourceAnimation->name.c_str(), &testAnimatorGrafiki.loadedAnimations[2].influence, 0.0f, 1.0f, "influence = %.3f");
-			ImGui::SliderFloat("Speed", &speed2, 0.0f, 3.0f, "speed = %.3f");
-			testAnimatorGrafiki.playbackSpeed = speed2;
-			//testAnimatorGrafiki.loadedAnimations[1].speed = speed2;
-			//testAnimatorGrafiki.loadedAnimations[2].speed = speed2;
-		}
-		ImGui::End();
-
-
-		if (ImGui::Begin("EmptyTransform"))
-		{
-			
-			ImGui::Text("Player Parent transform stuff");
-			ImGui::DragFloat3("position", (float*)&testEmpty.transform.position, 0.1f);
-			ImGui::DragFloat3("rotation", (float*)&inputRotation, 0.1f);
-			ImGui::DragFloat3("scale", (float*)&testEmpty.transform.scale, 0.1f);
-			testEmpty.transform.rotation = Quaternion::GetEuler(inputRotation);
-		}
-		ImGui::End();
+		//m_renderer->BeginGui();
+		Move(dTime, m_game->GetPlayer());
 
 		m_debug->DrawConsole();
 		m_renderer->EndGui();
-//#endif
+		//#endif
 
 		m_renderer->Present();
-	}
-
-	// Audio test 2 shutdown
-	testSource.pitch = 0.75f;
-	testSource.Play();
-	int indexer = 0;
-	while (testSource.IsPlaying())
-	{
-		m_sound->Update();
-		indexer++;
 	}
 }
 
@@ -511,8 +372,8 @@ void Whisperwoods::Move(float dTime, Player* player)
 				slerped.NormalizeThis();
 			}
 
-			LOG_TRACE("Rot from: %f, %f, %f, %f", cameraCurrentRot.x, cameraCurrentRot.y, cameraCurrentRot.z, cameraCurrentRot.w);
-			LOG_TRACE("Rot to: %f, %f, %f, %f", conj2.x, conj2.y, conj2.z, conj2.w);
+			//LOG_TRACE("Rot from: %f, %f, %f, %f", cameraCurrentRot.x, cameraCurrentRot.y, cameraCurrentRot.z, cameraCurrentRot.w);
+			//LOG_TRACE("Rot to: %f, %f, %f, %f", conj2.x, conj2.y, conj2.z, conj2.w);
 
 			camera.SetRotation(slerped);
 		}

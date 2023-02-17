@@ -5,6 +5,8 @@
 #include "Window.h"
 #include "MeshRenderable.h"
 #include "TextRenderable.h"
+#include "LevelResource.h"
+#include "Level.h"
 class GUI;
 
 class Renderer sealed
@@ -21,6 +23,14 @@ public:
 	void EndGui();
 	void Present();
 
+	void SetupEnvironmentAssets();
+
+	static void SetPlayerMatrix(const Mat4& matrix);
+
+	static void LoadLevel(LevelResource* level, string image);
+
+	static void LoadEnvironment(const Level* level);
+
 	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 	static shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
 
@@ -35,7 +45,7 @@ public:
 	//static Renderer& Get();
 
 	// TODO: Check if there is a better way of gaining access to the render core.
-	const RenderCore* GetRenderCore();
+	RenderCore* GetRenderCore();
 
 private:
 	static Renderer* s_singleton;

@@ -4,13 +4,12 @@
 #include "Resources.h"
 
 
-Room::Room(std::string modelResource, std::string mapResource, Mat4 modelOffset, Renderer* renderer)
+Room::Room(const Level* level, std::string modelResource, Mat4 modelOffset, Renderer* renderer)
 {
-	Resources& resources = Resources::Get();
+	m_level = level;
+	m_levelResource = level->resource;
 
-	// Move to resource manager later.
-	m_levelResource = {};
-	LevelImporter::ImportImage("Examplemap.png", renderer->GetRenderCore(), &m_levelResource);
+	Resources& resources = Resources::Get();
 
 	//m_modelResource = (ModelStaticResource*)resources.GetResource(ResourceTypeModelStatic, modelResource);
 	m_renderable = Renderer::CreateMeshStatic(modelResource);
@@ -36,38 +35,62 @@ Point2 Room::worldToBitmapPoint(Vec3 worldPos)
 	Vec3 normalizedPos =  worldPos - roomWpos;
 	float relativeRight = right.Dot(normalizedPos) * BM_PIXELS_PER_UNIT;
 	float realtiveForward = forward.Dot(normalizedPos) * BM_PIXELS_PER_UNIT;
-	return Point2(relativeRight+(m_levelResource.pixelWidth/2), realtiveForward + (m_levelResource.pixelHeight/2));
+	return Point2(relativeRight+(m_levelResource->pixelWidth/2), realtiveForward + (m_levelResource->pixelHeight/2));
 }
 
 LevelPixel Room::sampleBitMap(Vec3 worldPos)
 {
 	Point2 point = worldToBitmapPoint(worldPos);
-	int x = cs::iclamp(point.x, 0, m_levelResource.pixelWidth-1);
-	int y = cs::iclamp(point.y, 0, m_levelResource.pixelHeight-1);
-	LevelPixel returnPixel = m_levelResource.bitmap[x + y * m_levelResource.pixelWidth];
+	int x = cs::iclamp(point.x, 0, m_levelResource->pixelWidth-1);
+	int y = cs::iclamp(point.y, 0, m_levelResource->pixelHeight-1);
+	LevelPixel returnPixel = m_levelResource->bitmap[x + y * m_levelResource->pixelWidth];
 	return returnPixel;
+}
+
+Vec3 Room::bitMapToWorldPos(Point2 samplePoint)
+{
+	if (!BM_PIXELS_PER_UNIT)
+	{
+		LOG_WARN("bitMapToWorldPos/defines: BM_PIXELS_PER_UNIT CAN NOT BE 0 -> DIVISION BY 0");
+		return Vec3(0, 0, 0);
+	}
+	float normalizedX = (float)(samplePoint.x) / (float)BM_PIXELS_PER_UNIT;
+	float normalizedY = (float)(samplePoint.y) / (float)BM_PIXELS_PER_UNIT;
+
+	Vec3 normalization(
+		(float)(m_levelResource->pixelWidth / 2) / (float)BM_PIXELS_PER_UNIT, 
+		0, 
+		(float)(m_levelResource->pixelHeight / 2) / (float)BM_PIXELS_PER_UNIT);
+
+	Vec3 localPos(normalizedX, 0, normalizedY);
+	localPos = localPos - normalization;
+	localPos.x = -localPos.x;
+	Vec3 worldPos = transform.GetWorldPosition(); 
+	Vec3 rotationConverted (transform.GetWorldRotation() * localPos);
+
+	return worldPos + rotationConverted;
 }
 
 Vec2 Room::GetNineSampleVector(Point2 point)
 {
-	int x = cs::iclamp(point.x, 0, m_levelResource.pixelWidth - 1);
-	int y = cs::iclamp(point.y, 0, m_levelResource.pixelHeight - 1);
-	int xP = cs::iclamp(point.x + 1, 0, m_levelResource.pixelWidth - 1);
-	int xM = cs::iclamp(point.x - 1, 0, m_levelResource.pixelWidth - 1);
-	int yP = cs::iclamp(point.y + 1, 0, m_levelResource.pixelWidth - 1);
-	int yM = cs::iclamp(point.y - 1, 0, m_levelResource.pixelWidth - 1);
-	LevelPixel p0 = m_levelResource.bitmap[x + y * m_levelResource.pixelWidth];
+	int x = cs::iclamp(point.x, 0, m_levelResource->pixelWidth - 1);
+	int y = cs::iclamp(point.y, 0, m_levelResource->pixelHeight - 1);
+	int xP = cs::iclamp(point.x + 1, 0, m_levelResource->pixelWidth - 1);
+	int xM = cs::iclamp(point.x - 1, 0, m_levelResource->pixelWidth - 1);
+	int yP = cs::iclamp(point.y + 1, 0, m_levelResource->pixelWidth - 1);
+	int yM = cs::iclamp(point.y - 1, 0, m_levelResource->pixelWidth - 1);
+	LevelPixel p0 = m_levelResource->bitmap[x + y * m_levelResource->pixelWidth];
 	
-	LevelPixel p1 = m_levelResource.bitmap[x + yP * m_levelResource.pixelWidth];
-	LevelPixel p2 = m_levelResource.bitmap[x + yM * m_levelResource.pixelWidth];
+	LevelPixel p1 = m_levelResource->bitmap[x + yP * m_levelResource->pixelWidth];
+	LevelPixel p2 = m_levelResource->bitmap[x + yM * m_levelResource->pixelWidth];
 
-	LevelPixel p3 = m_levelResource.bitmap[xP + y * m_levelResource.pixelWidth];
-	LevelPixel p4 = m_levelResource.bitmap[xP + yP * m_levelResource.pixelWidth];
-	LevelPixel p5 = m_levelResource.bitmap[xP + yM * m_levelResource.pixelWidth];
+	LevelPixel p3 = m_levelResource->bitmap[xP + y * m_levelResource->pixelWidth];
+	LevelPixel p4 = m_levelResource->bitmap[xP + yP * m_levelResource->pixelWidth];
+	LevelPixel p5 = m_levelResource->bitmap[xP + yM * m_levelResource->pixelWidth];
 
-	LevelPixel p6 = m_levelResource.bitmap[xM + y * m_levelResource.pixelWidth];
-	LevelPixel p7 = m_levelResource.bitmap[xM + yP * m_levelResource.pixelWidth];
-	LevelPixel p8 = m_levelResource.bitmap[xM + yM * m_levelResource.pixelWidth];
+	LevelPixel p6 = m_levelResource->bitmap[xM + y * m_levelResource->pixelWidth];
+	LevelPixel p7 = m_levelResource->bitmap[xM + yP * m_levelResource->pixelWidth];
+	LevelPixel p8 = m_levelResource->bitmap[xM + yM * m_levelResource->pixelWidth];
 
 	return Vec2(
 		(
@@ -93,12 +116,12 @@ Vec2 Room::GetNineSampleVector(Point2 point)
 Vec2 Room::sampleBitMapCollision(Vec3 worldPos)
 {
 	Point2 point = worldToBitmapPoint(worldPos);
-	int x = cs::iclamp(point.x, 0, m_levelResource.pixelWidth - 1);
-	int y = cs::iclamp(point.y, 0, m_levelResource.pixelHeight - 1);
-	int xP = cs::iclamp(point.x + 2, 0, m_levelResource.pixelWidth - 1);
-	int xM = cs::iclamp(point.x - 2, 0, m_levelResource.pixelWidth - 1);
-	int yP = cs::iclamp(point.y + 2, 0, m_levelResource.pixelWidth - 1);
-	int yM = cs::iclamp(point.y - 2, 0, m_levelResource.pixelWidth - 1);
+	int x = cs::iclamp(point.x, 0, m_levelResource->pixelWidth - 1);
+	int y = cs::iclamp(point.y, 0, m_levelResource->pixelHeight - 1);
+	int xP = cs::iclamp(point.x + 2, 0, m_levelResource->pixelWidth - 1);
+	int xM = cs::iclamp(point.x - 2, 0, m_levelResource->pixelWidth - 1);
+	int yP = cs::iclamp(point.y + 2, 0, m_levelResource->pixelWidth - 1);
+	int yM = cs::iclamp(point.y - 2, 0, m_levelResource->pixelWidth - 1);
 
 	Vec2 p0 = GetNineSampleVector({ x, y });
 	Vec2 p1 = GetNineSampleVector({ x, yP });

@@ -562,6 +562,141 @@ bool FBXImporter::ImportFBXStatic(std::string filePath, ModelStaticResource* con
 	return true;
 }
 
+bool FBXImporter::ImportFBXStatic( std::string filePath, ModelStaticResource* const outMesh, float pushAway )
+{
+	Assimp::Importer importer;
+	LOG_TRACE( "\nStarting static FBX Import for file: %s", filePath.c_str() );
+	const aiScene* scene = importer.ReadFile( filePath, /*aiProcessPreset_TargetRealtime_MaxQuality*/
+		aiProcess_CalcTangentSpace |
+		aiProcess_GenSmoothNormals |
+		aiProcess_GenUVCoords |
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_CalcTangentSpace |
+		aiProcess_Triangulate |
+		aiProcess_SortByPType
+	); // chonky preset
+	//aiProcessPreset_TargetRealtime_MaxQuality
+	//const aiScene* scene = importer.ReadFile(filePath,
+	//	/*aiProcess_MakeLeftHanded |
+	//	aiProcess_CalcTangentSpace |
+	//	aiProcess_Triangulate |
+	//	aiProcess_JoinIdenticalVertices |
+	//	aiProcess_SortByPType*/ /*aiProcessPreset_TargetRealtime_MaxQuality );*/ // chonky preset
+
+	if (scene == nullptr)
+	{
+		LOG_ERROR( "THERE WAS AN FBX IMPORT ERROR:" );
+		LOG_TRACE( importer.GetErrorString() );
+		return false;
+	}
+
+	std::string answerString = (scene->HasMeshes()) ? "True" : "False";
+	LOG_TRACE( "ASSIMP: opened file: %s, has meshes? - %s", filePath.c_str(), answerString.c_str() );
+	LOG_TRACE( "Number of meshes: %d\n", scene->mNumMeshes );
+
+	if (!scene->HasMeshes())
+	{
+		LOG_WARN( "proposed .fbx does not contain any meshes." );
+		return false;
+	}
+
+	int indexCounter = 0;
+	int numIndexCounter = 0;
+	int subMeshCounter = 0;
+	int vertexCounter = 0;
+
+	LOG_TRACE( "==STATIC IMPORT PROCESS START==\n", scene->mNumMeshes );
+
+	// Get name from the input path
+	outMesh->name = remove_extension( base_name( filePath ) );
+
+	for (unsigned int i = 0; i < scene->mNumMeshes; i++)
+	{
+		aiMesh* newMesh = scene->mMeshes[i];
+		// In case of empty, continue
+		if (!newMesh->HasFaces())
+			continue;
+
+		LOG_TRACE( "	Processing submesh %s - material: %s - Num incomming verts: %d",
+			newMesh->mName.C_Str(),
+			scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str(),
+			newMesh->mNumVertices );
+
+		// Add material name to the material name list.
+		outMesh->materialNames.Add( std::string( scene->mMaterials[newMesh->mMaterialIndex]->GetName().C_Str() ) );
+
+		int startIndex = numIndexCounter;
+		outMesh->startIndicies.Add( startIndex );
+
+		for (unsigned int j = 0; j < newMesh->mNumVertices; j++)
+		{
+			aiVector3D currentVert = newMesh->mVertices[j];
+			aiVector3D currentNorm = newMesh->mNormals[j];
+			aiVector3D currentTan = newMesh->mTangents[j];
+			aiVector3D currentBiTan = newMesh->mBitangents[j];
+			aiVector3D currentUV = newMesh->mTextureCoords[0][j];
+			//aiVector3D currentUV = currentUVSet[0];
+
+			VertexTextured newVertex(
+				Vec3( currentVert.x, currentVert.y, currentVert.z ), // Position
+				Vec3( currentNorm.x, currentNorm.y, currentNorm.z ), // Normal
+				Vec3( currentTan.x, currentTan.y, currentTan.z ), // Tangent
+				Vec3( currentBiTan.x, currentBiTan.y, currentBiTan.z ), // Bitangent
+				Vec4( currentUV.x, currentUV.y, (float)subMeshCounter, pushAway ) ); // UB, submeshIndex and Padding, submesh index is important for differentiating identical verticies of different materials.
+
+			//int existingIndex = -1;
+			//for (unsigned int k = 0; k < outMesh->verticies.Size(); k++)
+			//{
+			//	if (IsSame(outMesh->verticies[k], newVertex))
+			//	{	
+			//		//LOG_TRACE("%d is same as %d", j, k);
+			//		existingIndex = k;
+			//		break;
+			//	}
+			//}
+
+			//if (existingIndex == -1)
+			//{
+			//	//LOG_TRACE("Added Vertex [%d] P(%f,%f,%f)", outMesh->verticies.Size(), newVertex.pos.x, newVertex.pos.y, newVertex.pos.z);
+			//	outMesh->verticies.Add(newVertex); // Base verticies
+			//	outMesh->indicies.Add(indexCounter);
+			//	indexCounter++;
+			//}
+			//else
+			//{
+			//	outMesh->indicies.Add(existingIndex);
+			//}
+			//numIndexCounter++;
+			// Add to the output vertex list
+			outMesh->verticies.Add( newVertex );
+		}
+
+		// Process faces - indicies
+		for (unsigned int j = 0; j < newMesh->mNumFaces; j++)
+		{
+			for (unsigned int k = 0; k < newMesh->mFaces[j].mNumIndices; k++)
+			{
+				outMesh->indicies.Add( vertexCounter + newMesh->mFaces[j].mIndices[k] );
+				numIndexCounter++;
+			}
+			if (newMesh->mFaces[j].mNumIndices != 3)
+			{
+				LOG_TRACE( "Face %d had wierd number of indicies: %d", j, newMesh->mFaces[j].mNumIndices );
+			}
+		}
+
+		LOG_TRACE( "	Num indicies: %d, Num verts: ", numIndexCounter - startIndex, outMesh->verticies.Size() );
+		outMesh->indexCounts.Add( numIndexCounter - startIndex );
+		vertexCounter = outMesh->verticies.Size();
+		subMeshCounter++;
+	}
+	LOG_TRACE( "Done\n" );
+	LOG_TRACE( "Static Import Completed! Num verts: %d\n", outMesh->verticies.Size() );
+
+	return true;
+}
+
+
 void RecursiveNodeFetch(aiNode* node, std::vector<aiNode*>& outputVector)
 {
 	for (unsigned int i = 0; i < node->mNumChildren; i++)

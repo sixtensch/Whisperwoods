@@ -70,6 +70,7 @@ void Floodfill(Point2 position, cs::List<Point2>& edges, cs::List<Point2>& direc
 bool LevelImporter::ImportImage(string textureName, const RenderCore* core, LevelResource* const outLevel)
 {
 	outLevel->source = (const TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, textureName);
+	outLevel->name = textureName.substr(0, textureName.size() - 4);
 
 	if (!outLevel->source)
 	{
@@ -97,7 +98,7 @@ bool LevelImporter::ImportImage(string textureName, const RenderCore* core, Leve
 
 	outLevel->worldWidth = outLevel->pixelWidth * BM_PIXEL_SIZE;
 	outLevel->worldHeight = outLevel->pixelHeight * BM_PIXEL_SIZE;
-	outLevel->bitmap = unique_ptr<LevelPixel[]>(new LevelPixel[outLevel->pixelWidth * outLevel->pixelHeight]);
+	outLevel->bitmap = shared_ptr<LevelPixel[]>(new LevelPixel[outLevel->pixelWidth * outLevel->pixelHeight]);
 
 
 

@@ -19,11 +19,14 @@ public:
 	~RenderCore();
 
 	void NewFrame();
+	void TargetRenderTexture();
+	void UnbindRenderTexture();
 	void TargetShadowMap();
-	void TargetBackBuffer();
+	//void TargetBackBuffer(); // Use target render texture if you want to render anything to the scene.
 	void EndFrame();
 
 	void CreateVertexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const;
+	void CreateInstanceBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const;
 	void CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffer** out_bufferPP) const;
 	void CreateImageTexture(char* image, UINT resHeight, UINT resWidth, UINT sysMemPitch, DXGI_FORMAT format, ID3D11Texture2D** out_texturePP);
 	void CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const;
@@ -35,14 +38,21 @@ public:
 
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
+
+	void UpdatePlayerInfo( Mat4 matrix );
+
 	void UpdateMaterialInfo(const MaterialResource* material) const;
-	void DrawObject(const Renderable* renderable, bool shadowing);
+	void UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* data, uint count);
 
 	void SetVertexBuffer(ComPtr<ID3D11Buffer> buffer, uint stride, uint offset);
+	void SetInstanceBuffers(ComPtr<ID3D11Buffer> vBuffer, ComPtr<ID3D11Buffer> iBuffer, uint vStride, uint iStride, uint vOffset, uint iOffset);
 	void SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format = DXGI_FORMAT_R32_UINT);
 
-	void DrawIndexed(uint indexCount, uint start, uint base);
+	void BindInstancedPipeline(bool shadowed);
 
+	void DrawObject(const Renderable* renderable, bool shadowing);
+	void DrawIndexed(uint indexCount, uint indexStart, uint vertexBase);
+	void DrawInstanced(uint indexCount, uint instanceCount, uint startIndex, uint baseVertex, uint startInstance);
 
 	//void SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer);
 	void SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV);
@@ -54,9 +64,23 @@ public:
 		const cs::List<shared_ptr<PointLight>>& lightsPoint,
 		const cs::List<shared_ptr<SpotLight>>& lightsSpot);
 
+	void WritePPFXThresholdInfo(
+		const float luminanceThreshold, 
+		const float strength, 
+		const float minLuminance
+	);
+	
+	void WritePPFXColorgradeInfo(
+		const Vec2 vignetteBorderAndStrength, 
+		const Vec2 contrastAmountAndMidpoint, 
+		const float brightness, 
+		const float saturation
+	);
+
 	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 origin);
 
 	void DrawPPFX();
+	void DrawToBackBuffer();
 
 	void InitImGui() const;
 
@@ -89,11 +113,22 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_bbSRV;
 	cs::Color4f m_bbClearColor;
 
+	// Render texture
+	ComPtr<ID3D11Texture2D> m_renderTexture;
+	ComPtr<ID3D11RenderTargetView> m_renderTextureRTV;
+	ComPtr<ID3D11ShaderResourceView> m_renderTextureSRV;
+	ComPtr<ID3D11UnorderedAccessView> m_renderTextureUAV;
+
 	// PPFX
-	ComPtr<ID3D11Texture2D> m_ppfxBloomTexture;
-	ComPtr<ID3D11UnorderedAccessView> m_ppfxBloomUAV;
-	ComPtr<ID3D11ShaderResourceView> m_ppfxBloomSRV;
-	ComPtr<ID3D11RenderTargetView> m_ppfxBloomRTV;
+	ComPtr<ID3D11Texture2D> m_ppfxLumTexture;
+	
+	ComPtr<ID3D11UnorderedAccessView> m_ppfxLumUAV;
+	ComPtr<ID3D11RenderTargetView> m_ppfxLumRTV;
+	ComPtr<ID3D11ShaderResourceView> m_ppfxLumSRV;
+	
+	ComPtr<ID3D11Texture2D> m_ppfxLumSumTexture;
+	ComPtr<ID3D11ShaderResourceView> m_ppfxLumSumSRV;
+	ComPtr<ID3D11UnorderedAccessView> m_ppfxLumSumUAV;
 
 	ComPtr<ID3D11ComputeShader> m_thresholdCompute;
 	ComPtr<ID3D11ComputeShader> m_bloomCompute;

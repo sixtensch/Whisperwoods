@@ -5,21 +5,27 @@
 #include "GameObject.h"
 #include "Renderer.h"
 #include "CHSL/Vector.h"
+#include "Level.h"
 
 class Room : public GameObject
 {
 public:
 	// Map resource here
 	Mat4 m_modelOffset;
-	LevelResource m_levelResource;
 	ModelStaticResource* m_modelResource;
 	shared_ptr<MeshRenderableStatic> m_renderable;
 
+	const Level* m_level;
+	const LevelResource* m_levelResource;
+
 	Room() = default;
-	Room(std::string modelResource, std::string mapResource, Mat4 modelOffset, Renderer* renderer);
+	Room(const Level* level, std::string modelResource, Mat4 modelOffset, Renderer* renderer);
 
 	void Update(float deltaTime) override;
 
+	cs::List<GameObject*> traverseAndGenerateHiearchy;
+
+	Vec3 bitMapToWorldPos(Point2 samplePoint);
 	Vec2 GetNineSampleVector(Point2 point);
 	Point2 worldToBitmapPoint(Vec3 worldPos);
 	LevelPixel sampleBitMap(Vec3 worldPos);

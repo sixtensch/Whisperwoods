@@ -18,8 +18,8 @@
 
 // Constant buffer views
 
-#define REGISTER_CBV_USER_0             register(b1)
-#define REGISTER_CBV_USER_1             register(b2)
+#define REGISTER_CBV_USER_0             register(b1) // Used by ppfx threshold.
+#define REGISTER_CBV_USER_1             register(b2) // Used by ppfx colorgrading.
 #define REGISTER_CBV_USER_2             register(b3)
 #define REGISTER_CBV_USER_3             register(b4)
 
@@ -33,7 +33,6 @@
 #define REGISTER_CBV_MATERIAL_INFO      register(b11)
 #define REGISTER_CBV_CLIENT_INFO        register(b12)
 #define REGISTER_CBV_SHADING_INFO       register(b13)
-
 
 
 // Unordered access views
@@ -54,6 +53,15 @@
 #define REGISTER_SRV_ARMATURE_MATRIX    register(t6)
 
 // Shader resource views
+
+#define REGISTER_SRV_TEX_DEFAULT        register(t0)
+
+#define REGISTER_SRV_TEX_USER_0         register(t1)
+#define REGISTER_SRV_TEX_USER_1         register(t2)
+#define REGISTER_SRV_TEX_USER_2         register(t3)
+#define REGISTER_SRV_TEX_USER_3         register(t4)
+#define REGISTER_SRV_TEX_USER_4         register(t5)
+#define REGISTER_SRV_TEX_USER_5         register(t6)
 
 #define REGISTER_SRV_TEX_DIFFUSE        register(t7)
 #define REGISTER_SRV_TEX_SPECULAR       register(t8)

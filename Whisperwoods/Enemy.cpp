@@ -15,14 +15,16 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_walkingDirection = Vec2(0.0f, 0.0f);
 	m_enemyAlive = false; // Default false, has to be manually turned on
 	m_rotation = false;
-	m_rotationSpeed = 0.003f;
+	m_rotationSpeed = 1.0f;
 	m_offset = 0;
 	m_idleCounter = 0;
+	m_timeToGivePlayerAChanceToRunAway = m_amountOfTimeToRunAway;
 
 	m_lookBehind = false;
+	m_seesPlayer = false;
+	//m_currentRotation = Vec3(0, 0, 0);
 
-	
-	m_idleEnemy = false;
+	m_PatrolEnemy = false;
 	m_triggerTurn = false;
 	m_isMoving = true;
 
@@ -64,12 +66,14 @@ Enemy::~Enemy()
 
 void Enemy::Update(float dTime)
 {
+	m_timeToGivePlayerAChanceToRunAway += dTime;
 	//This has to be in update because we re-use enemy objects between rooms! Will cost like O(1), it's fine
 	if (m_patrolPath.size() < 3 && m_firstTrigger == false)
 	{
-		m_idleEnemy = true;
+		m_PatrolEnemy = true;
 		m_characterAnimator->StopAnimation(0);
 		m_characterAnimator->PlayAnimation(2, 0, 1, false, true);
+		m_lastPlayedAnimation = 2;
 		m_isMoving = false;
 		m_characterAnimator->playbackSpeed = 0.2f;
 	}
@@ -158,7 +162,7 @@ void Enemy::Update(float dTime)
 		
 	Vec2 newPosition = m_currentPosition;
 	// Time to walk
-	if(m_isMoving)
+	if(m_isMoving && m_seesPlayer == false && m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway)
 	{
 		newPosition = Vec2(m_currentPosition.x + m_walkingDirection.x * m_walkingSpeed * dTime, m_currentPosition.y + m_walkingDirection.y * m_walkingSpeed * dTime);
 	}
@@ -180,13 +184,13 @@ void Enemy::Update(float dTime)
 	transform.position.z = m_currentPosition.y; //because transform is Vec3, y would be "height"
 	
 
-	transform.CalculateWorldMatrix();
+	//transform.CalculateWorldMatrix();
 
 	//handle rotation:
 	float angle = atan2(m_walkingDirection.y, m_walkingDirection.x) * 180 / cs::c_pi;
 	float angleDecimal = angle / 180;
 
-	if (m_idleEnemy == true && first == true) //for default, ignore this and just accept it
+	if (m_PatrolEnemy == true && first == true) //for default, ignore this and just accept it
 	{
 		m_idleAngle = angleDecimal;
 		m_offset = angleDecimal;
@@ -204,12 +208,12 @@ void Enemy::Update(float dTime)
 	{
 		if (m_rotateClockWise == false)//counter clockwise, add onto the offset
 		{
-			if (m_rotationCounter > angleDecimal + m_rotationSpeed * 1.1) //DO NOT CHANGE THIS
+			if (m_rotationCounter > angleDecimal + m_rotationSpeed * dTime * 1.1) //DO NOT CHANGE THIS
 			{
 				angle = 180 - angle;
 				angleDecimal = angle / 180;
 			}
-			m_rotationCounter += m_rotationSpeed;
+			m_rotationCounter += m_rotationSpeed * dTime;
 			if (m_rotationCounter >= angleDecimal)
 			{
 				m_rotationCounter = angleDecimal;
@@ -218,12 +222,12 @@ void Enemy::Update(float dTime)
 		}
 		else // clockwise,   take away from offset
 		{
-			if (m_rotationCounter < angleDecimal - m_rotationSpeed * 1.1) // DO NOT CHANGE THIS
+			if (m_rotationCounter < angleDecimal - m_rotationSpeed * dTime * 1.1) // DO NOT CHANGE THIS
 			{
 				angle = 180 + angle;
 				angleDecimal = angle / 180;
 			}
-			m_rotationCounter -= m_rotationSpeed;
+			m_rotationCounter -= m_rotationSpeed * dTime;
 			if (m_rotationCounter <= angleDecimal)
 			{
 				m_rotationCounter = angleDecimal;
@@ -232,7 +236,7 @@ void Enemy::Update(float dTime)
 		}
 		m_offset = m_rotationCounter;
 	}
-	if(m_isMoving == false && m_idleEnemy == false)// 180 degree turn. Play animation here
+	if(m_isMoving == false && m_PatrolEnemy == false)// 180 degree turn. Play animation here
 	{
 		float angle2 = atan2(m_lastWalkingDirection.y, m_lastWalkingDirection.x) * 180 / cs::c_pi;
 		float angleDecimal2 = angle2 / 180;
@@ -250,6 +254,7 @@ void Enemy::Update(float dTime)
 				m_characterAnimator->StopAnimation(0);
 				m_characterAnimator->playbackSpeed = 0.35f;
 				m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
+				m_lastPlayedAnimation = 3;
 				m_triggerTurn = true;
 			}
 			else if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished() /*m_characterAnimator->loadedAnimations[3].time == 1*/) //animation is over
@@ -260,26 +265,29 @@ void Enemy::Update(float dTime)
 				m_triggerTurn = false;
 				m_characterAnimator->playbackSpeed = 1.0f;
 				m_characterAnimator->PlayAnimation(0, 0, 1, true, true);
+				m_lastPlayedAnimation = 0;
 			}
 		}
 		
 	}
-	if (m_idleEnemy == true) // behavior for idle enemy
+	if (m_PatrolEnemy == true) // behavior for idle enemy
 	{
-		if (m_idleCounter < 4 && m_characterAnimator->AnimationsFinished() && m_triggerTurn == false)
+		if (m_idleCounter < 4 && m_characterAnimator->AnimationsFinished() && m_triggerTurn == false) // run idle animation
 		{
 			m_characterAnimator->playbackSpeed = 0.2f;
 			m_characterAnimator->PlayAnimation(2, 0, 1, false, true);
+			m_lastPlayedAnimation = 2;
 			m_idleCounter++;
 		}
-		else if (m_idleCounter == 4 && m_characterAnimator->AnimationsFinished())
+		else if (m_idleCounter == 4 && m_characterAnimator->AnimationsFinished()) // has been idle long enough, run rotation animation
 		{
 			m_characterAnimator->StopAnimation(2);
 			m_characterAnimator->playbackSpeed = 0.35f;
 			m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
+			m_lastPlayedAnimation = 3;
 			m_idleCounter = 0;
 			m_triggerTurn = true;
-			if (m_lookBehind == true)
+			if (m_lookBehind == true) //these if/else is to change the direction 180 degrees
 			{
 				m_lookBehind = false;
 			}
@@ -288,7 +296,7 @@ void Enemy::Update(float dTime)
 				m_lookBehind = true;
 			}
 		}
-		if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished())
+		if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished())   // this section triggers ONLY when the roration animation is OVER
 		{
 			float angleReverse = atan2(m_walkingDirection.y, m_walkingDirection.x) * 180 / cs::c_pi;
 			if (m_lookBehind == true)
@@ -297,15 +305,20 @@ void Enemy::Update(float dTime)
 			}
 			float angleDecimalReverse = angleReverse / 180;
 			m_idleAngle = angleDecimalReverse;
-			
+
 
 			m_triggerTurn = false;
-			
+
 		}
 		m_offset = m_idleAngle;
 	}
-	
-	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset * Mat::rotation3(0.0f, -cs::c_pi * m_offset + cs::c_pi * 0.5f, 0.0f);
+	Vec3 test = transform.GetWorldRotation() * Vec3(1, 0, 0);
+	transform.SetRotationEuler(Vec3(0.0f, -cs::c_pi * m_offset + cs::c_pi * 0.5f, 0.0f));
+	//Vec3 test = transform.rotation * Vec3(0, 0, 1);
+	transform.CalculateWorldMatrix();
+	test = transform.GetWorldRotation() * Vec3(0, 0, 1);
+	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset;
+
 }
 
 void Enemy::AddCoordinateToPatrolPath(Vec2 coord, bool enclosed) // Make sure the Coordinates are sent in the correct order of the path
@@ -327,7 +340,122 @@ void Enemy::AddModel(std::string modelResource, std::string animationsPath, Mat4
 	m_modelOffset = modelOffset;
 	// Import the animations (Now using the resource manager)
 	Resources& resources = Resources::Get();
-	m_animationSet = (AnimationResource*)resources.GetResource( ResourceTypeAnimations, animationsPath );
+	m_animationSet = (AnimationResource*)resources.GetResource(ResourceTypeAnimations, animationsPath);
 	//m_animationSet = std::make_shared<AnimationResource>();
 	//importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 }
+
+int SomeFunction(Vec3 pos)
+{
+	return 0;
+}
+
+bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack, Room &room)
+{
+	// Let's start with if the enemy can see the player at all without TRUE line of sight
+
+	//forward vector (which direction enemy is looking)
+	Vec3 tempV = transform.rotation * Vec3(0, 0, 1);
+	m_forwardVector = Vec2(tempV.x, tempV.z);
+	m_forwardVector.Normalize();
+
+	//direction vector from enemy position to player position
+	Vec2 playerDirection(playerPosition.x - transform.worldPosition.x, playerPosition.y - transform.worldPosition.z);
+
+	float distance = playerDirection.Length(); //distance from enemy to player
+	//Vec2 vectorForLineOfSight = playerDirection;
+
+	playerDirection.Normalize();
+	float angle = acos(m_forwardVector.Dot(playerDirection)); // angle in radians
+	angle = angle * (180.0f / cs::c_pi); //angle in acutal degrees
+
+	m_seesPlayer = false;
+
+	if (angle < m_enemyViewAngle && distance < m_enemyViewDistance) // is the player within range and circle sector of the enemy?
+	{
+
+		//Now we check if the enemy has true line of sight to the player
+		m_seesPlayer = true;
+		room.sampleBitMap(Vec3(playerPosition.x, 0.0f, playerPosition.y));
+		room.sampleBitMap(Vec3(transform.worldPosition.x, 0.0f, transform.worldPosition.z));
+
+		for (float i = 0; i < distance; i += 0.025f)// for each 10 cm in "distance"
+		{
+			Vec3 pointOnLineOfSightVector = transform.worldPosition + Vec3(playerDirection.x , 0.0f, playerDirection.y) * i;
+			//pointOnLineOfSightVector = pointOnLineOfSightVector * i;
+
+			LevelPixel bitmapPoint = room.sampleBitMap(Vec3(pointOnLineOfSightVector.x, 0.0f, pointOnLineOfSightVector.z));
+			if (bitmapPoint != 0) // If terrain is not passible
+			{ 
+
+				m_seesPlayer = false;
+				break;
+			}
+		} //worldToBitmapPoint(Vec3 worldPos)
+	}
+	if(m_seesPlayer)  //if the enemy sees the player
+	{
+		m_timeToGivePlayerAChanceToRunAway = 0.0f; //reset the counter
+		if (quack.IsPlaying() == false) // audio cue
+		{
+			quack.pitch = distance / 4; //lmao funny noise
+			quack.Play();
+		}
+
+		//stop other animations
+		if (m_characterAnimator->IsPlaying(0))
+		{
+			m_characterAnimator->StopAnimation(0);
+		}
+		if (m_characterAnimator->IsPlaying(2))
+		{
+			m_characterAnimator->StopAnimation(2);
+		}
+		if (m_characterAnimator->IsPlaying(3))
+		{
+			m_characterAnimator->StopAnimation(3);
+		}
+		
+		//play the detected animation on loop
+		if(!m_characterAnimator->IsPlaying(1))
+		{
+			m_characterAnimator->PlayAnimation(1, 0, 1, true, true);
+			m_characterAnimator->playbackSpeed = 0.5f;
+		}
+	}
+	else // if not seen
+	{
+		quack.Stop(); // no more noises
+		if (m_characterAnimator->IsPlaying(1)) //is the detected animation running?
+		{
+			if (m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway) // has the player been given the time to run away?
+			{
+				m_characterAnimator->StopAnimation(1);
+				if (m_lastPlayedAnimation == 0)
+				{
+					m_characterAnimator->playbackSpeed = 1.0f;
+					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, true, true);
+				}
+				else if (m_lastPlayedAnimation == 2)
+				{
+					m_characterAnimator->playbackSpeed = 0.2f;
+					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, false, true);
+				}
+				else if (m_lastPlayedAnimation == 3)
+				{
+					m_characterAnimator->playbackSpeed = 0.35f;
+					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, false, true);
+				}
+			}
+		}
+		else if (m_timeToGivePlayerAChanceToRunAway < m_amountOfTimeToRunAway) // keep playing the animation of detection 
+		{
+			m_characterAnimator->PlayAnimation(1, 0, 1, true, true);
+			m_characterAnimator->playbackSpeed = 0.5f;
+		}
+
+	}
+
+	return m_seesPlayer; 
+}
+
