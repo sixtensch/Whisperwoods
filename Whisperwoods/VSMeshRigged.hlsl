@@ -18,7 +18,6 @@ struct VSOutput
 {
     float4 outPosition  : SV_POSITION;
     float4 wPosition    : WPOSITION0;
-    float4 wsPosition   : WSPOSITION0;
     float3 outNormal    : NORMAL0;
     float3 outTangent   : TANGENT0;
     float3 outBitangent : BITANGENT0;
@@ -54,8 +53,8 @@ VSOutput main(VSInput input)
     //sumPos += mul( Tx[input.bones1[3]] * input.weights1[3], startPosition ); // requiring a .wmm re-serialization
 
     output.wPosition = mul(float4(sumPos, 1.0f), WorldMatrix);
-    output.wsPosition = mul(output.wPosition, ViewMatrix);
-    output.outPosition = mul(output.wsPosition, ProjectionMatrix);
+    output.outPosition = mul(mul(output.wPosition, ViewMatrix), ProjectionMatrix);
+
 
     float4 startNormal = float4(input.normal, 0.0f);
     float3 sumNormal = float3(0, 0, 0);
@@ -64,8 +63,8 @@ VSOutput main(VSInput input)
     sumNormal += mul(Tx[input.bones[2]] * input.weights[2], startNormal).xyz;
     sumNormal += mul(Tx[input.bones[3]] * input.weights[3], startNormal).xyz;
     output.outNormal = mul(sumNormal, (float3x3)WorldMatrix);
+    output.outNormal = normalize(output.outNormal);
 
-    //output.outNormal = normalize(output.outNormal);
     float4 startTangent = float4(input.tangent, 1.0f);
     float3 sumTangent = float3(0, 0, 0);
     sumTangent += mul(Tx[input.bones[0]] * input.weights[0], startTangent).xyz;
@@ -73,7 +72,7 @@ VSOutput main(VSInput input)
     sumTangent += mul(Tx[input.bones[2]] * input.weights[2], startTangent).xyz;
     sumTangent += mul(Tx[input.bones[3]] * input.weights[3], startTangent).xyz;
     output.outTangent = mul(sumTangent, (float3x3)WorldMatrix);
-    //output.outTangent = normalize(output.outTangent);
+    output.outTangent = normalize(output.outTangent);
 
     float4 startBiTangent = float4(input.bitangent, 1.0f);
     float3 sumBiTangent = float3(0, 0, 0);
@@ -82,7 +81,21 @@ VSOutput main(VSInput input)
     sumBiTangent += mul(Tx[input.bones[2]] * input.weights[2], startBiTangent).xyz;
     sumBiTangent += mul(Tx[input.bones[3]] * input.weights[3], startBiTangent).xyz;
     output.outBitangent = mul(sumBiTangent, (float3x3)WorldMatrix);
-    //output.outBitangent = normalize(output.outBitangent);
+    output.outBitangent = normalize(output.outBitangent);
+
+    // Old setup (unweighted normals)
+    //output.wPosition = mul(float4(sumPos, 1.0f), WorldMatrix);
+    //output.wsPosition = mul(output.wPosition, ViewMatrix);
+    //output.outPosition = mul(output.wsPosition, ProjectionMatrix);
+
+    //output.outNormal = mul(input.normal, (float3x3)WorldMatrix);
+    ////output.outNormal = normalize(output.outNormal);
+
+    //output.outTangent = mul(input.tangent, (float3x3)WorldMatrix);
+    ////output.outTangent = normalize(output.outTangent);
+
+    //output.outBitangent = mul(input.bitangent, (float3x3)WorldMatrix);
+    ////output.outBitangent = normalize(output.outBitangent);
 
     output.outUV = float2(input.UV.x, -input.UV.y);
     return output;

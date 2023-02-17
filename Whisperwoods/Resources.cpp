@@ -21,6 +21,7 @@
 #define MAP_PATH "Assets/Maps/"
 #define STATIC_MODEL_PATH "Assets/Models/Static/"
 #define RIGGED_MODEL_PATH "Assets/Models/Rigged/"
+#define ANIMATIONS_PATH "Assets/Animations/"
 
 Resources* Resources::s_singleton = nullptr;
 
@@ -110,13 +111,16 @@ BasicResource* Resources::AllocateResource(ResourceType resourceType, const std:
 		resource = make_shared<MaterialResource>(resourceName);
 		break;
 
-	
 	case ResourceTypeModelStatic:
 		resource = make_shared<ModelStaticResource>(resourceName);
 		break;
 
 	case ResourceTypeModelRigged:
 		resource = make_shared<ModelRiggedResource>(resourceName);
+		break;
+	
+	case ResourceTypeAnimations:
+		resource = make_shared<AnimationResource>( resourceName );
 		break;
 
 	default:
@@ -210,6 +214,7 @@ void Resources::LoadCompositeResources(const RenderCore* const renderCore)
 	LoadMaterialResources();
 	LoadModelStaticResources(renderCore);
 	LoadModelRiggedResources(renderCore);
+	LoadAnimationsResources();
 }
 
 void Resources::LoadMaterialResources()
@@ -277,6 +282,24 @@ void Resources::LoadModelRiggedResources(const RenderCore* const renderCore)
 		renderCore->CreateVertexBuffer(modelRiggedResource->verticies.Data(), verticesByteWidth, modelRiggedResource->vertexBuffer.GetAddressOf());
 		renderCore->CreateArmatureStructuredBuffer(modelRiggedResource->armature.matrixBuffer, modelRiggedResource->armature.bones.Size());
 		renderCore->CreateArmatureSRV(modelRiggedResource->armature.matrixSRV, modelRiggedResource->armature.matrixBuffer, modelRiggedResource->armature.bones.Size());
+	}
+}
+
+void Resources::LoadAnimationsResources()
+{
+	cs::List<fs::path> animationsPaths = CollectFilePaths( ANIMATIONS_PATH );
+
+	for (fs::path& path : animationsPaths)
+	{
+		std::string filePath = path.string();
+		std::string filename = path.filename().string();
+		AnimationResource* animationsResource = (AnimationResource*)AllocateResource( ResourceTypeAnimations, filename, filename );
+
+		// Will throw exception if failed.
+		if (!FBXImporter::LoadWWA( filePath, animationsResource ))
+		{
+			EXC( "Failed to load animations resource '%s'.", filePath.c_str() );
+		}
 	}
 }
 

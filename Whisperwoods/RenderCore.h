@@ -19,7 +19,7 @@ public:
 	~RenderCore();
 
 	void NewFrame();
-	void TargetShadowMap(Light* light);
+	void TargetShadowMap();
 	void TargetBackBuffer();
 	void EndFrame();
 
@@ -30,7 +30,8 @@ public:
 	void CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const;
 	void LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Texture2D>& textureResource, ComPtr<ID3D11ShaderResourceView>& srv) const;
 
-
+	// This calls new for the out data
+	void DumpTexture(ID3D11Texture2D* texture, uint* outWidth, uint* outHeight, cs::Color4** newOutData) const;
 
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
@@ -47,12 +48,15 @@ public:
 	void SetArmatureArmatureSRV(ComPtr<ID3D11ShaderResourceView> matrixSRV);
 	void UpdateBoneMatrixBuffer(ComPtr<ID3D11Buffer> matrixBuffer, cs::List<DirectX::XMFLOAT4X4> bones);
 
+
 	void WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
 		const shared_ptr<DirectionalLight>& lightDirectional,
 		const cs::List<shared_ptr<PointLight>>& lightsPoint,
 		const cs::List<shared_ptr<SpotLight>>& lightsSpot);
 
 	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 origin);
+
+	void DrawPPFX();
 
 	void InitImGui() const;
 
@@ -62,6 +66,7 @@ private:
 	void BindPipeline(PipelineType pipeline, bool shadowing);
 
 	void InitPipelines();
+	void InitComputeShaders();
 	void InitConstantBuffers();
 	void InitLightBuffers();
 	void InitDefaultMaterials();
@@ -80,8 +85,21 @@ private:
 	// Back buffer
 	ComPtr<ID3D11Texture2D> m_bbTexture;
 	ComPtr<ID3D11RenderTargetView> m_bbRTV;
-	//ComPtr<ID3D11ShaderResourceView> m_bbSRV;
+	ComPtr<ID3D11UnorderedAccessView> m_bbUAV;
+	ComPtr<ID3D11ShaderResourceView> m_bbSRV;
 	cs::Color4f m_bbClearColor;
+
+	// PPFX
+	ComPtr<ID3D11Texture2D> m_ppfxBloomTexture;
+	ComPtr<ID3D11UnorderedAccessView> m_ppfxBloomUAV;
+	ComPtr<ID3D11ShaderResourceView> m_ppfxBloomSRV;
+	ComPtr<ID3D11RenderTargetView> m_ppfxBloomRTV;
+
+	ComPtr<ID3D11ComputeShader> m_thresholdCompute;
+	ComPtr<ID3D11ComputeShader> m_bloomCompute;
+	ComPtr<ID3D11ComputeShader> m_colorGradeCompute;
+
+	ComPtr<ID3D11SamplerState> m_bloomUpscaleSampler;
 
 	// Depth stencil
 	ComPtr<ID3D11Texture2D> m_dsTexture;
@@ -104,6 +122,7 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_defaultNormalSRV;
 
 	ComPtr<ID3D11SamplerState> m_sampler;
+	ComPtr<ID3D11SamplerState> m_pointSampler;
 
 	// Pipelines
 	Pipeline m_pipelines[PipelineTypeCount];
@@ -118,6 +137,14 @@ private:
 	ComPtr<ID3D11Buffer> m_lightBufferSpot;
 	ComPtr<ID3D11Buffer> m_lightBufferDir;
 	ComPtr<ID3D11Buffer> m_lightBufferStaging;
+
+	// Shadow resources
+	ComPtr<ID3D11Texture2D> m_shadowTexture;
+	ComPtr<ID3D11DepthStencilView> m_shadowDSV;
+	ComPtr<ID3D11ShaderResourceView> m_shadowSRV;
+	ComPtr<ID3D11RasterizerState> m_shadowRenderState;
+	ComPtr<ID3D11SamplerState> m_shadowSampler;
+	D3D11_VIEWPORT m_shadowViewport;
 
 	std::unique_ptr<dx::SpriteFont> m_fonts[FontCount];
 	std::unique_ptr<dx::SpriteBatch> m_spriteBatch;
