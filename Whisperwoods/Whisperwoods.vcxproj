@@ -38,6 +38,7 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="LevelHandler.cpp" />
     <ClCompile Include="LevelImporter.cpp" />
     <ClCompile Include="LevelResource.cpp" />
     <ClCompile Include="Light.cpp" />
@@ -87,6 +88,8 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GUI.h" />
+    <ClInclude Include="Level.h" />
+    <ClInclude Include="LevelHandler.h" />
     <ClInclude Include="Floor.h" />
     <ClInclude Include="StaticObject.h" />
     <ClInclude Include="LevelImporter.h" />
@@ -180,6 +183,12 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="VSMeshInstanced.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="VSMeshRigged.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

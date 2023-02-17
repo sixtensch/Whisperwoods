@@ -38,7 +38,7 @@ struct LevelResource : public BasicResource
 
 	cs::List<LevelExit> exits;
 
-	unique_ptr<LevelPixel[]> bitmap;
+	shared_ptr<LevelPixel[]> bitmap;
 
 	const TextureResource* source;
 };

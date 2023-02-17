@@ -4,6 +4,7 @@ enum PipelineType
 {
 	PipelineTypeStandard = 0,
 	PipelineTypeStandardRigged,
+	PipelineTypeEnvironment,
 	PipelineTypeShadow,
 	PipelineTypeParticle,
 	PipelineTypePPFX,

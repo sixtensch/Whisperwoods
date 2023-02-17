@@ -47,7 +47,6 @@ bool Renderer::UpdateWindow()
 
 void Renderer::Draw()
 {
-	m_renderHandler->playerMatrix = playerMat;
 	m_renderHandler->Draw();
 }
 
@@ -57,13 +56,32 @@ void Renderer::BeginGui()
 }
 
 void Renderer::EndGui()
-{
+{ 
 	m_gui->EndDraw();
 }
 
 void Renderer::Present()
 {
 	m_renderHandler->Present();
+}
+
+void Renderer::SetupEnvironmentAssets()
+{
+	m_renderHandler->SetupEnvironmentAssets();
+}
+
+void Renderer::SetPlayerMatrix(const Mat4& matrix)
+{
+}
+
+void Renderer::LoadLevel(LevelResource* level, string image)
+{
+	s_singleton->m_renderHandler->LoadLevel(level, image);
+}
+
+void Renderer::LoadEnvironment(const Level* level)
+{
+	s_singleton->m_renderHandler->LoadEnvironment(level);
 }
 
 shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpath)

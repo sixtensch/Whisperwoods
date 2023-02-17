@@ -11,6 +11,7 @@
 #define DIR_SHADERS		DIR_ASSETS L"Shaders/"
 #define DIR_TEXTURES	DIR_ASSETS L"Textures/"
 #define DIR_MODELS		DIR_ASSETS L"Models/"
+#define DIR_LEVELS		DIR_TEXTURES L"Maps/"
 
 #define WINDOW_NAME		"Whisperwoods"
 #define WINDOW_WIDTH	1920
@@ -33,7 +34,7 @@
 #define BM_C_EXIT					0x000000
 
 // Values used by both render core .hlsli file for compute shaders.
-#define BLOOM_MIP_LEVELS 5u
+#define BLOOM_MIP_LEVELS 4u
 #define COMPUTE_GROUP_COUNT_X 80u
 #define COMPUTE_GROUP_COUNT_Y 90u
 	

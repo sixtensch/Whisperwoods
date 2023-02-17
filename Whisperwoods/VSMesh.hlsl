@@ -14,7 +14,6 @@ struct VSOutput
 {
     float4 outPosition  : SV_POSITION;
     float4 wPosition    : WPOSITION0;
-    float4 wsPosition   : WSPOSITION0;
     float3 outNormal    : NORMAL0;
     float3 outTangent   : TANGENT0;
     float3 outBitangent : BITANGENT0;
@@ -27,12 +26,6 @@ cbuffer ViewInfo : REGISTER_CBV_VIEW_INFO
     matrix ProjectionMatrix;
 };
 
-
-cbuffer PlayerInfo : REGISTER_CBV_TESSELATION_INFO
-{
-    matrix playerMatrix;
-};
-
 cbuffer ObjectInfo : REGISTER_CBV_OBJECT_INFO
 {
     matrix WorldMatrix;
@@ -41,7 +34,7 @@ cbuffer ObjectInfo : REGISTER_CBV_OBJECT_INFO
 VSOutput main(VSInput input)
 {
     VSOutput output;
-
+	
     output.wPosition = mul(float4(input.position, 1.0f), WorldMatrix);
 
     // Experimental push away
@@ -83,11 +76,10 @@ VSOutput main(VSInput input)
     relativeVector.y = toFromPlayer.y;*/
     //output.wPosition = output.wPosition + relativeVector *input.UV.w;
 
-    output.wPosition = output.wPosition + toFromPlayer*input.UV.w*1.4f; // Multiply for more effect
 
     // Normal Shader
-    output.wsPosition = mul(output.wPosition, ViewMatrix);
-    output.outPosition = mul(output.wsPosition, ProjectionMatrix);
+    output.wPosition = output.wPosition + toFromPlayer*input.UV.w*1.4f; // Multiply for more effect
+    output.outPosition = mul(mul(output.wPosition, ViewMatrix), ProjectionMatrix);
 
     output.outNormal = mul(input.normal, (float3x3)WorldMatrix);
     //output.outNormal = normalize(output.outNormal);

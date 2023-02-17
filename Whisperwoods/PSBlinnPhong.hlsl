@@ -8,8 +8,7 @@ struct VSOutput
 {
 	float4 outPosition	: SV_POSITION;
     float4 wPosition    : WPOSITION0;
-	float4 wsPosition	: WSPOSITION0;
-    float3 outNormal	: NORMAL0;
+	float3 outNormal	: NORMAL0;
 	float3 outTangent   : TANGENT0;
 	float3 outBitangent : BITANGENT0;
 	float2 outUV		: TEXCOORD0;
@@ -125,7 +124,7 @@ float4 main(VSOutput input) : SV_TARGET
 		[unroll] for (x = -smoothing; x <= smoothing; x += 1.0f)
 		{
 			sum += shadowTexture.SampleCmpLevelZero( shadowSampler,
-				lsUV.xy + texOffset( x, y, 0 ), lsNDC.z + epsilon);
+				lsUV.xy + texOffset( x, y, 0 ), lsNDC.z - epsilon);
 		}
 	}
 	float shadowAff = sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f));
@@ -193,7 +192,8 @@ float4 main(VSOutput input) : SV_TARGET
 		);
     }
 	
-    color += float4(colorEmissive.xyz, 0.0f);
+    color += float4(colorEmissive.xyz, 0.0f) * 3.0f;
 	
-    return saturate(color );
+    color.a = saturate(color.a);
+    return color;
 }

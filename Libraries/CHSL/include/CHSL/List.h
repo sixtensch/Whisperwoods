@@ -572,11 +572,10 @@ namespace cs
     inline void List<T>::GrowToFit(int newCapacity)
     {
         int actual  = m_capacity;
-        do
+        while (actual < newCapacity)
         {
             actual *= 2;
         } 
-        while (actual < newCapacity);
 
         GrowArray(actual);
     }
