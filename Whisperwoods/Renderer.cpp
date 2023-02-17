@@ -47,7 +47,6 @@ bool Renderer::UpdateWindow()
 
 void Renderer::Draw()
 {
-	m_renderHandler->playerMatrix = playerMat;
 	m_renderHandler->Draw();
 }
 
@@ -69,6 +68,10 @@ void Renderer::Present()
 void Renderer::SetupEnvironmentAssets()
 {
 	m_renderHandler->SetupEnvironmentAssets();
+}
+
+void Renderer::SetPlayerMatrix(const Mat4& matrix)
+{
 }
 
 void Renderer::LoadLevel(LevelResource* level, string image)

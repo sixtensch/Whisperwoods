@@ -25,6 +25,8 @@ public:
 
 	void SetupEnvironmentAssets();
 
+	static void SetPlayerMatrix(const Mat4& matrix);
+
 	static void LoadLevel(LevelResource* level, string image);
 
 	static void LoadEnvironment(const Level* level);

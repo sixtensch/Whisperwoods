@@ -113,7 +113,7 @@ void RenderHandler::Present()
 void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
 {
 	m_renderCore->UpdateViewInfo(povCamera);
-	m_renderCore->UpdatePlayerInfo( playerMatrix );
+	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 	if ( !shadows )
 	{
 		m_renderCore->TargetRenderTexture();
@@ -374,6 +374,11 @@ bool RenderHandler::RegisterSpotLight(shared_ptr<SpotLight> spotLight)
 
 	m_lightsSpot.Add(spotLight);
 	return true;
+}
+
+void RenderHandler::SetPlayerMatrix(const Mat4& matrix)
+{
+	m_playerMatrix = matrix;
 }
 
 void RenderHandler::DrawInstances(bool shadows)

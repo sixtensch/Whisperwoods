@@ -262,9 +262,9 @@ void Whisperwoods::Run()
 	Enemy PatrolEnemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, 0, 0)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0));
 	for (int i = 0; i < 1/*testRoom.m_levelResource.patrolsClosed.Size()*/; i++)
 	{
-		for (int j = 0; j < testRoom.m_levelResource.patrolsClosed[i].controlPoints.Size(); j++)
+		for (int j = 0; j < testRoom.m_levelResource->patrolsClosed[i].controlPoints.Size(); j++)
 		{
-			Point2 bitPos = Point2(testRoom.m_levelResource.patrolsClosed[i].controlPoints[j]);
+			Point2 bitPos = Point2(testRoom.m_levelResource->patrolsClosed[i].controlPoints[j]);
 			Vec3 enemyPos = testRoom.bitMapToWorldPos(bitPos);
 			PatrolEnemy.AddCoordinateToPatrolPath(Vec2(-enemyPos.z, enemyPos.x), true);
 			Point2 test = testRoom.worldToBitmapPoint(enemyPos);
@@ -319,8 +319,9 @@ void Whisperwoods::Run()
 		rotationY += 0.2f * dTime;
 		mesh2->worldMatrix = Mat::translation3(0, -0.0f, 3) * Mat::rotation3(cs::c_pi * -0.5f, -rotationY, 0); // cs::c_pi * 0.9f
 		PatrolEnemy.SeesPlayer(Vec2(testPlayer.transform.worldPosition.x, testPlayer.transform.worldPosition.z), testSource, testRoom);
+		
 		// Draw step
-		m_renderer->playerMat = testPlayer.transform.worldMatrix;
+		Renderer::SetPlayerMatrix(testPlayer.transform.worldMatrix);
 		m_renderer->Draw();
 
 		//#ifdef WW_DEBUG

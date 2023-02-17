@@ -58,9 +58,9 @@ Vec3 Room::bitMapToWorldPos(Point2 samplePoint)
 	float normalizedY = (float)(samplePoint.y) / (float)BM_PIXELS_PER_UNIT;
 
 	Vec3 normalization(
-		(float)(m_levelResource.pixelWidth / 2) / (float)BM_PIXELS_PER_UNIT, 
+		(float)(m_levelResource->pixelWidth / 2) / (float)BM_PIXELS_PER_UNIT, 
 		0, 
-		(float)(m_levelResource.pixelHeight / 2) / (float)BM_PIXELS_PER_UNIT);
+		(float)(m_levelResource->pixelHeight / 2) / (float)BM_PIXELS_PER_UNIT);
 
 	Vec3 localPos(normalizedX, 0, normalizedY);
 	localPos = localPos - normalization;

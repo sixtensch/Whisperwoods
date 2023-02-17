@@ -29,7 +29,6 @@ public:
 	void ExecuteDraw(const Camera& povCamera, bool shadows);
 
 	RenderCore* GetCore() const;
-
 	Camera& GetCamera();
 
 	void SetupEnvironmentAssets();
@@ -42,6 +41,8 @@ public:
 	shared_ptr<DirectionalLight> GetDirectionalLight();
 	bool RegisterPointLight(shared_ptr<PointLight> pointLight);
 	bool RegisterSpotLight(shared_ptr<SpotLight> spotLight);
+
+	void SetPlayerMatrix(const Mat4& matrix);
 
 private:
 	void DrawInstances(bool shadows);
@@ -96,6 +97,8 @@ private:
 	shared_ptr<DirectionalLight> m_lightDirectional;
 	cs::List<shared_ptr<PointLight>> m_lightsPoint;
 	cs::List<shared_ptr<SpotLight>> m_lightsSpot;
+
+	Mat4 m_playerMatrix;
 
 	const Level* m_currentLevel;
 
