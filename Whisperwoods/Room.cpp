@@ -4,18 +4,21 @@
 #include "Resources.h"
 
 
-Room::Room(const Level* level, std::string modelResource, Mat4 modelOffset, Renderer* renderer)
+Room::Room(const Level* level, std::string modelResource, Mat4 modelOffset)
 {
 	m_level = level;
 	m_levelResource = level->resource;
 
 	Resources& resources = Resources::Get();
 
-	//m_modelResource = (ModelStaticResource*)resources.GetResource(ResourceTypeModelStatic, modelResource);
 	m_renderable = Renderer::CreateMeshStatic(modelResource);
 	m_modelOffset = modelOffset;
 	m_renderable->worldMatrix = m_modelOffset;
-	m_renderable->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "MapTest.wwmt"));
+
+	m_material = MaterialResource();
+	m_material.specular = Vec3(0.5f, 0.5f, 0.5f);
+	m_material.textureDiffuse = level->resource->source;
+	m_renderable->Materials().AddMaterial(&m_material);
 }
 
 void Room::Update(float deltaTime)

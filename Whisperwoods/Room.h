@@ -19,7 +19,7 @@ public:
 	const LevelResource* m_levelResource;
 
 	Room() = default;
-	Room(const Level* level, std::string modelResource, Mat4 modelOffset, Renderer* renderer);
+	Room(const Level* level, std::string modelResource, Mat4 modelOffset);
 
 	void Update(float deltaTime) override;
 
@@ -30,4 +30,7 @@ public:
 	Point2 worldToBitmapPoint(Vec3 worldPos);
 	LevelPixel sampleBitMap(Vec3 worldPos);
 	Vec2 sampleBitMapCollision(Vec3 worldPos);
+
+private:
+	MaterialResource m_material;
 };

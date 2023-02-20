@@ -8,7 +8,6 @@
 #include "Debug.h"
 #include "Player.h"
 #include "Enemy.h"
-#include "LevelHandler.h"
 
 class Whisperwoods sealed
 {

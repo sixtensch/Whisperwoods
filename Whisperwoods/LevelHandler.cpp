@@ -18,11 +18,11 @@ void LevelHandler::LoadFloors()
 	{
 		if (item.path().extension() == ".png")
 		{
-			m_resources.Add({});
+			m_resources.Add(make_shared<LevelResource>());
 
-			LevelResource* r = &m_resources.Back();
+			shared_ptr<LevelResource>& r = m_resources.Back();
 			string s = item.path().filename().string();
-			Renderer::LoadLevel(r, s);
+			Renderer::LoadLevel(r.get(), s);
 
 			m_resourceIndices[r->exits.Size() - 1].Add(m_resources.Size() - 1);
 		}
@@ -46,9 +46,30 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor)
 
 	cs::Random r;
 	
-	float levelScale = 1.0f;
+	l.resource = m_resources[0].get();
+	Environmentalize(l, r);
+}
 
-	l.resource = &m_resources[0];
+void LevelHandler::GenerateTestFloor(LevelFloor* outFloor)
+{
+	LevelFloor& f = *outFloor;
+	f = LevelFloor{};
+
+	f.startRoom = 0;
+	f.startPosition = Vec3(0, 0, 0);
+
+	cs::Random r;
+
+
+
+	// Add a level
+
+	AddLevelName(f, "fithLevel");
+	Environmentalize(f.rooms.Back(), r);
+}
+
+void LevelHandler::Environmentalize(Level& l, cs::Random& r)
+{
 	Vec3 offset = l.position + Vec3(l.resource->worldWidth * 0.5f, 0, -l.resource->worldHeight * 0.5f);
 
 	for (int x = 0; x < (int)l.resource->pixelWidth; x++)
@@ -57,14 +78,26 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor)
 		{
 			if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable) && r.Get(10) == 0)
 			{
-				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE) * levelScale) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.1f);
+				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE)) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.1f);
 				l.instances[LevelAssetBush1].Add(instanceMatrix);
 			}
 			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable) && r.Get(10) == 0)
 			{
-				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE) * levelScale) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.1f);
+				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE)) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.1f);
 				l.instances[LevelAssetBush2].Add(instanceMatrix);
 			}
+		}
+	}
+}
+
+void LevelHandler::AddLevelName(LevelFloor& f, string name)
+{
+	for (int i = 0; i < m_resources.Size(); i++)
+	{
+		if (m_resources[i]->name == name)
+		{
+			f.rooms.Add({});
+			f.rooms.Back().resource = m_resources[i].get();
 		}
 	}
 }
