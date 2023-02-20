@@ -56,7 +56,7 @@ public:
 	void SetPlayerMatrix(const Mat4& matrix);
 
 private:
-	void DrawInstances(bool shadows);
+	void DrawInstances(uint state, bool shadows);
 
 
 

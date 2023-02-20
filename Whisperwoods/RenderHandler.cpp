@@ -124,25 +124,25 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 		m_renderCore->TargetShadowMap();
 	}
 
-	DrawInstances(shadows);
+	DrawInstances(state, shadows);
 
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
-		if ( state == TimelineStateCurrent )
+		shared_ptr<WorldRenderable> data = {};
+		switch ( state )
 		{
-			if ( m_worldRenderables[i].first && m_worldRenderables[i].first->enabled )
-			{
-				m_renderCore->UpdateObjectInfo(m_worldRenderables[i].first.get());
-				m_renderCore->DrawObject(m_worldRenderables[i].first.get(), shadows);
-			}
+			case TimelineStateCurrent: 
+				data = m_worldRenderables[i].first;
+				break;
+
+			case TimelineStateFuture: 
+				data = m_worldRenderables[i].second;
+				break;
 		}
-		else
+		if ( data && data->enabled )
 		{
-			if ( m_worldRenderables[i].second && m_worldRenderables[i].second->enabled )
-			{
-				m_renderCore->UpdateObjectInfo(m_worldRenderables[i].second.get());
-				m_renderCore->DrawObject(m_worldRenderables[i].second.get(), shadows);
-			}
+			m_renderCore->UpdateObjectInfo(data.get());
+			m_renderCore->DrawObject(data.get(), shadows);
 		}
 	}
 }
@@ -186,11 +186,11 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	load(LevelAssetBush1, 
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
-		"BananaPlant.wwm", { "TestSceneBanana.wwmt" });
+		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
 
 
 	load(LevelAssetBush2, 
-		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
+		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" });
 
 	//load(LevelAssetBush1,
@@ -422,7 +422,7 @@ void RenderHandler::SetPlayerMatrix(const Mat4& matrix)
 	m_playerMatrix = matrix;
 }
 
-void RenderHandler::DrawInstances(bool shadows)
+void RenderHandler::DrawInstances(uint state, bool shadows)
 {
 	m_renderCore->BindInstancedPipeline(shadows);
 
@@ -450,29 +450,27 @@ void RenderHandler::DrawInstances(bool shadows)
 	}
 
 	m_renderCore->UpdateInstanceBuffer(m_envInstanceBuffer, m_envInstances.Data(), m_envInstances.Size());
-
-	uint time = 0;
 	
 	m_renderCore->SetInstanceBuffers(
-		m_envVertices[time],
+		m_envVertices[state],
 		m_envInstanceBuffer,
 		sizeof(VertexTextured), 
 		sizeof(Mat4), 
 		0, 0);
 
-	m_renderCore->SetIndexBuffer(m_envIndices[time].Get(), 0);
+	m_renderCore->SetIndexBuffer(m_envIndices[state].Get(), 0);
 
 
 
 	// Draw all the stuff!
 
-	for (EnvMaterial& m : m_envMaterials[time])
+	for (EnvMaterial& m : m_envMaterials[state])
 	{
 		m_renderCore->UpdateMaterialInfo(m.material);
 
 		for (uint i : m.submeshes)
 		{
-			EnvSubmesh& submesh = m_envSubmeshes[time][i];
+			EnvSubmesh& submesh = m_envSubmeshes[state][i];
 			EnvMesh& mesh = m_envMeshes[submesh.model];
 
 			m_renderCore->DrawInstanced(submesh.indexCount, mesh.instanceCount, submesh.indexOffset, 0, mesh.instanceOffset);
