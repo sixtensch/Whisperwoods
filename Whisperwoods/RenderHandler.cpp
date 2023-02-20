@@ -44,6 +44,7 @@ void RenderHandler::Draw()
 {
 	m_renderCore->NewFrame();
 
+	m_mainCamera.CalculatePerspectiveProjection();
 	m_renderCore->UpdateViewInfo(m_mainCamera);
 	
 	

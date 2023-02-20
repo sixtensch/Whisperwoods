@@ -143,8 +143,13 @@ void Renderer::SetTimelineState(bool future)
 {
 	switch ( future )
 	{
-		case false: m_renderHandler.get()->SetTimelineStateCurrent(); break;
-		case true: m_renderHandler.get()->SetTimelineStateFuture(); break;
+		case false: 
+			m_renderHandler.get()->SetTimelineStateCurrent(); 
+			break;
+
+		case true:
+			m_renderHandler.get()->SetTimelineStateFuture(); 
+			break;
 	}
 }
 

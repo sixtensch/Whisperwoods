@@ -6,15 +6,18 @@
 #include "Resources.h"
 #include "Input.h"
 
-Game::Game()
-{
-	m_future = false;
-	m_stamina = 10.0f;
-}
+Game::Game() :
+	m_floor(),
+	m_currentRoom(nullptr),
+	m_isInFuture(false),
+	m_isSwitching(false),
+	m_finishedCharging(false),
+	m_stamina(10.0f), 
+	m_switchVals({ 1.0f, 0.5f, 3.0f, 0.0f }),
+	m_camFovChangeSpeed(cs::c_pi / 4.0f)
+{}
 
-Game::~Game()
-{
-}
+Game::~Game() {}
 
 void Game::Update(float deltaTime, Renderer* renderer)
 {
@@ -26,7 +29,8 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		m_enemies[i]->Update(deltaTime);
 		m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource);
 	}
-	
+
+	Camera& cameraRef = renderer->GetCamera();
 	for (int i = 0; i < m_staticObjects.Size(); i++)
 	{
 		m_staticObjects[i]->Update(deltaTime);
@@ -34,17 +38,69 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
 
-	if (Input::Get().IsKeyPressed(KeybindPower))
+	// Time switch logic.
 	{
-		ChangeTimeline(renderer);
-	}
-	m_stamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_future;
+		static float initialCamFov;
+		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch())
+		{
+			m_isSwitching = true;
+			m_finishedCharging = false;
+			initialCamFov = cameraRef.GetFov();
+		}
 
+		static float totalFovDelta = 0.0f;
+		if (m_isSwitching)
+		{
+			if (!ChargeIsDone())
+			{
+				totalFovDelta += m_camFovChangeSpeed * deltaTime;
+				float newFov = initialCamFov + totalFovDelta;
+
+				// Max total fov cant exceed half circle.
+				if (newFov > cs::c_pi)
+				{
+					newFov = cs::c_pi;
+				}
+
+				cameraRef.SetFov(newFov);
+			}
+			else
+			{
+				if (!m_finishedCharging)
+				{
+					ChangeTimeline(renderer);
+					m_finishedCharging = true;
+					cameraRef.SetFov(initialCamFov);
+					totalFovDelta = 0.0f;
+				}
+			}
+
+			if (!SwitchIsDone())
+			{
+				m_switchVals.timeSinceSwitch += deltaTime;
+			}
+			else
+			{
+				m_switchVals.timeSinceSwitch = 0.0f;
+				m_isSwitching = false;
+			}
+
+
+			UpdateTimeSwitchBuffers(renderer);
+		}
+	}
+	
+
+	
+
+	
+
+	m_stamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
 	
 	if ( m_stamina < 0.f )
 	{
 		/// D E A T H ///
-		ChangeTimeline(renderer);
+		//ChangeTimeline(renderer);
 	}
 }
 
@@ -177,6 +233,38 @@ void Game::UnloadRoom()
 
 void Game::ChangeTimeline(Renderer* renderer)
 {
-	m_future = !m_future * (m_stamina > 0.f);
-	renderer->SetTimelineState(m_future);
+	m_isInFuture = !m_isInFuture;
+	renderer->SetTimelineState(m_isInFuture);
+}
+
+void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
+{
+	renderer->GetRenderCore()->WriteTimeSwitchInfo(
+		m_switchVals.timeSinceSwitch,
+		m_switchVals.chargeDuration,
+		m_switchVals.falloffDuration
+	);
+}
+
+bool Game::IsAllowedToSwitch()
+{
+	bool isAllowed = true;
+
+	// Not allowed if under cooldown.
+	isAllowed &= m_switchVals.timeSinceSwitch < m_switchVals.switchCooldown;
+
+	// Allowed if NOT currently charging.
+	isAllowed &= !m_isSwitching;
+
+	return isAllowed;
+}
+
+bool Game::ChargeIsDone()
+{
+	return m_switchVals.timeSinceSwitch >= m_switchVals.chargeDuration;
+}
+
+bool Game::SwitchIsDone()
+{
+	return m_switchVals.timeSinceSwitch >= (m_switchVals.chargeDuration + m_switchVals.falloffDuration);
 }
