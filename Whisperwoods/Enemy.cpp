@@ -15,7 +15,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_walkingDirection = Vec2(0.0f, 0.0f);
 	m_enemyAlive = false; // Default false, has to be manually turned on
 	m_rotation = false;
-	m_rotationSpeed = 1.0f;
+	
 	m_offset = 0;
 	m_idleCounter = 0;
 	m_timeToGivePlayerAChanceToRunAway = m_amountOfTimeToRunAway;
@@ -210,7 +210,7 @@ void Enemy::Update(float dTime)
 		{
 			if (m_rotationCounter > angleDecimal + m_rotationSpeed * dTime * 1.1) //DO NOT CHANGE THIS
 			{
-				angle = 180 - angle;
+				angle = 180 + angle;
 				angleDecimal = angle / 180;
 			}
 			m_rotationCounter += m_rotationSpeed * dTime;
@@ -222,10 +222,12 @@ void Enemy::Update(float dTime)
 		}
 		else // clockwise,   take away from offset
 		{
+
 			if (m_rotationCounter < angleDecimal - m_rotationSpeed * dTime * 1.1) // DO NOT CHANGE THIS
 			{
-				angle = 180 + angle;
-				angleDecimal = angle / 180;
+				angle = 180 - angle;
+				angleDecimal = angle / 180; //something here might get messed up with an angle. look for teleport
+
 			}
 			m_rotationCounter -= m_rotationSpeed * dTime;
 			if (m_rotationCounter <= angleDecimal)
@@ -314,7 +316,7 @@ void Enemy::Update(float dTime)
 	}
 	Vec3 test = transform.GetWorldRotation() * Vec3(1, 0, 0);
 	transform.SetRotationEuler(Vec3(0.0f, -cs::c_pi * m_offset + cs::c_pi * 0.5f, 0.0f));
-	//Vec3 test = transform.rotation * Vec3(0, 0, 1);
+
 	transform.CalculateWorldMatrix();
 	test = transform.GetWorldRotation() * Vec3(0, 0, 1);
 	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset;
@@ -345,12 +347,68 @@ void Enemy::AddModel(std::string modelResource, std::string animationsPath, Mat4
 	//importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 }
 
-int SomeFunction(Vec3 pos)
+void Swap(int &a, int &b)
 {
-	return 0;
+	int c = a;
+	a = b;
+	b = c;
 }
 
-bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack, Room &room)
+std::vector<cs::Point2> RayCast(int playerX, int playerY, int enemyX, int enemyY)
+{
+	std::vector<cs::Point2> returnVector;
+
+	bool steep = std::abs(enemyY - playerY) > std::abs(enemyX - playerX);
+	if (steep) 
+	{
+		Swap(playerX, playerY);
+		Swap(enemyX, enemyY);
+	}
+	if (playerX > enemyX) 
+	{
+		Swap(playerX, enemyX);
+		Swap(playerY, enemyY);
+	}
+
+	int deltax = enemyX - playerX;
+	int deltay = std::abs(enemyY - playerY);
+	int error = 0;
+	int ystep;
+	int y = playerY;
+
+	if (playerY < enemyY) 
+	{
+		ystep = 1; 
+	}
+	else
+	{ 
+		ystep = -1;
+	}
+
+	for (int x = playerX; x <= enemyX; x++) 
+	{
+		if (steep)
+		{
+			returnVector.push_back(cs::Point2(y, x));
+		}
+		else
+		{
+			returnVector.push_back(cs::Point2(x, y));
+		}
+
+		error += deltay;
+
+		if (2 * error >= deltax) 
+		{
+			y += ystep;
+			error -= deltax;
+		}
+	}
+
+	return returnVector;
+}
+
+bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack)
 {
 	// Let's start with if the enemy can see the player at all without TRUE line of sight
 
@@ -376,30 +434,31 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack, Room &room)
 
 		//Now we check if the enemy has true line of sight to the player
 		m_seesPlayer = true;
-		room.sampleBitMap(Vec3(playerPosition.x, 0.0f, playerPosition.y));
-		room.sampleBitMap(Vec3(transform.worldPosition.x, 0.0f, transform.worldPosition.z));
+		cs::Point2 playerBitMapPosition =  room.worldToBitmapPoint(Vec3(playerPosition.x, 0.0f, playerPosition.y));
+		cs::Point2 enemyBitMapPosition = room.worldToBitmapPoint(Vec3(transform.worldPosition.x, 0.0f, transform.worldPosition.z));
+		
+		int xPlayer = cs::iclamp(playerBitMapPosition.x, 0, room.m_levelResource->pixelWidth - 1);
+		int yPlayer = cs::iclamp(playerBitMapPosition.y, 0, room.m_levelResource->pixelHeight - 1);
+		int xEnemy = cs::iclamp(enemyBitMapPosition.x, 0, room.m_levelResource->pixelWidth - 1);
+		int yEnemy = cs::iclamp(enemyBitMapPosition.y, 0, room.m_levelResource->pixelHeight - 1);
+		//gives all bit map coordinates of line of sight, this is to save on performance by avoiding a million transformations
+		std::vector<cs::Point2> lineOfSight = RayCast(xPlayer, yPlayer, xEnemy, yEnemy);
 
-		for (float i = 0; i < distance; i += 0.025f)// for each 10 cm in "distance"
+
+		for (int i = 0; i < lineOfSight.size(); i++)
 		{
-			Vec3 pointOnLineOfSightVector = transform.worldPosition + Vec3(playerDirection.x , 0.0f, playerDirection.y) * i;
-			//pointOnLineOfSightVector = pointOnLineOfSightVector * i;
-
-			LevelPixelFlag bitmapPoint = room.sampleBitMap(Vec3(pointOnLineOfSightVector.x, 0.0f, pointOnLineOfSightVector.z)).flags;
-			if (bitmapPoint & LevelPixelFlagImpassable) // If terrain is not passible
+			LevelPixelFlag bitMapPixel = room.m_levelResource->bitmap[lineOfSight[i].x + lineOfSight[i].y * room.m_levelResource->pixelWidth].flags;
+			if (bitMapPixel & LevelPixelFlagImpassable) // If terrain is not passible
 			{ 
 				m_seesPlayer = false;
 				break;
 			}
-		} //worldToBitmapPoint(Vec3 worldPos)
+		}
+
 	}
 	if(m_seesPlayer)  //if the enemy sees the player
 	{
 		m_timeToGivePlayerAChanceToRunAway = 0.0f; //reset the counter
-		if (quack.IsPlaying() == false) // audio cue
-		{
-			quack.pitch = distance / 4; //lmao funny noise
-			quack.Play();
-		}
 
 		//stop other animations
 		if (m_characterAnimator->IsPlaying(0))
@@ -424,7 +483,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack, Room &room)
 	}
 	else // if not seen
 	{
-		quack.Stop(); // no more noises
+		//quack.Stop(); // no more noises
 		if (m_characterAnimator->IsPlaying(1)) //is the detected animation running?
 		{
 			if (m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway) // has the player been given the time to run away?
@@ -454,7 +513,38 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack, Room &room)
 		}
 
 	}
+	PlayEnemyActiveNoise(quack);
 
 	return m_seesPlayer; 
+}
+
+void Enemy::PlayEnemyActiveNoise(AudioSource& quack)
+{
+	if (m_characterAnimator->IsPlaying(0)) //run/walk animation
+	{
+		quack.Stop();
+		//if(sound is not playing for this animation
+			//play sound
+	}
+	else if (m_characterAnimator->IsPlaying(1)) //alert animation
+	{
+		
+		if (quack.IsPlaying() == false) // audio cue
+		{
+			quack.Play();
+		}
+	}
+	else if (m_characterAnimator->IsPlaying(2))  //idle animation
+	{
+		quack.Stop();
+		//if(sound is not playing for this animation
+			//play sound
+	}
+	else if (m_characterAnimator->IsPlaying(3)) //180 degree turn animation
+	{
+		quack.Stop();
+		//if(sound is not playing for this animation
+			//play sound
+	}
 }
 

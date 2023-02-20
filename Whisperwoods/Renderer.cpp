@@ -139,6 +139,15 @@ RenderCore* Renderer::GetRenderCore()
 	return m_renderHandler->GetCore();
 }
 
+void Renderer::SetTimelineState(bool future)
+{
+	switch ( future )
+	{
+		case false: m_renderHandler.get()->SetTimelineStateCurrent(); break;
+		case true: m_renderHandler.get()->SetTimelineStateFuture(); break;
+	}
+}
+
 //
 //Renderer& Renderer::Get()
 //{

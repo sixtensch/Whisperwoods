@@ -9,13 +9,14 @@
 #include "LevelHandler.h"
 #include "SoundResource.h"
 
+constexpr float STAMINA_DECAY_MULTIPLIER = 1.2f;
 class Game sealed
 {
 public:
 	Game();
 	~Game();
 
-	void Update(float deltaTime);
+	void Update(float deltaTime, Renderer* renderer);
 
 	void InitGame(Renderer* const renderer); // TODO: remove the need for renderer when generation is further progressed.
 	void DeInitGame();
@@ -23,6 +24,9 @@ public:
 	Player* GetPlayer();
 
 private:
+	void ChangeTimeline(Renderer* renderer);
+
+
 	std::unique_ptr<LevelHandler>	m_levelHandler;
 
 	shared_ptr<AudioSource> m_audioSource;
@@ -36,5 +40,8 @@ private:
 	cs::List<shared_ptr<Enemy>> m_enemies;
 	cs::List<shared_ptr<StaticObject>> m_staticObjects;
 
+private:
+	bool m_future;
+	float m_stamina;
 };
 

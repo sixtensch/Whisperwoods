@@ -4,16 +4,19 @@
 #include "LevelHandler.h"
 #include "SoundResource.h"
 #include "Resources.h"
+#include "Input.h"
 
 Game::Game()
 {
+	m_future = false;
+	m_stamina = 10.0f;
 }
 
 Game::~Game()
 {
 }
 
-void Game::Update(float deltaTime)
+void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_player->Update(deltaTime);
 	m_floors[0]->rooms[0]->Update(deltaTime);
@@ -24,9 +27,22 @@ void Game::Update(float deltaTime)
 		m_staticObjects[i]->Update(deltaTime);
 	}
 
-	m_enemies[0]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_audioSource, *(m_floors[0]->rooms[0].get()));
+	m_enemies[0]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *(m_floors[0]->rooms[0].get()), *m_audioSource);
 
 	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
+
+	if (Input::Get().IsKeyPressed(KeybindPower))
+	{
+		ChangeTimeline(renderer);
+	}
+	m_stamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_future;
+
+	
+	if ( m_stamina < 0.f )
+	{
+		/// D E A T H ///
+		ChangeTimeline(renderer);
+	}
 }
 
 void Game::InitGame(Renderer* const renderer)
@@ -34,7 +50,7 @@ void Game::InitGame(Renderer* const renderer)
 	// Audio test startup
 	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
-	m_audioSource->Play();
+	//m_audioSource->Play();
 
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
 
@@ -137,4 +153,10 @@ void Game::DeInitGame()
 Player* Game::GetPlayer()
 {
 	return m_player.get();
+}
+
+void Game::ChangeTimeline(Renderer* renderer)
+{
+	m_future = !m_future * (m_stamina > 0.f);
+	renderer->SetTimelineState(m_future);
 }
