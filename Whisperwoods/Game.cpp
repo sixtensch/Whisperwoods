@@ -26,7 +26,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		m_staticObjects[i]->Update(deltaTime);
 	}
 
-	m_enemies[0]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_audioSource, *(m_floors[0]->rooms[0].get()));
+	m_enemies[0]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *(m_floors[0]->rooms[0].get()), *m_audioSource);
 
 	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
 
@@ -41,7 +41,7 @@ void Game::InitGame(Renderer* const renderer)
 	// Audio test startup
 	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
-	m_audioSource->Play();
+	//m_audioSource->Play();
 
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
 
