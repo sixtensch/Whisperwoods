@@ -11,6 +11,7 @@
 RenderHandler::RenderHandler()
 {
 	m_renderableIDCounter = 0;
+	m_timelineState = TimelineStateCurrent;
 }
 
 RenderHandler::~RenderHandler()
@@ -64,12 +65,12 @@ void RenderHandler::Draw()
 
 	// ShadowPass
 
-	ExecuteDraw(m_lightDirectional->camera, true);
+	ExecuteDraw(m_lightDirectional->camera, m_timelineState, true);
 
 
 	// Main scene rendering
 
-	ExecuteDraw(m_mainCamera, false);
+	ExecuteDraw(m_mainCamera, m_timelineState, false);
 
 	m_renderCore->UnbindRenderTexture();
 
@@ -110,7 +111,7 @@ void RenderHandler::Present()
 	m_renderCore->EndFrame();
 }
 
-void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
+void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows)
 {
 	m_renderCore->UpdateViewInfo(povCamera);
 	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
@@ -123,14 +124,25 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, bool shadows)
 		m_renderCore->TargetShadowMap();
 	}
 
-	DrawInstances(shadows);
+	DrawInstances(state, shadows);
 
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
-		if ( m_worldRenderables[i]->enabled )
+		shared_ptr<WorldRenderable> data = {};
+		switch ( state )
 		{
-			m_renderCore->UpdateObjectInfo(m_worldRenderables[i].get());
-			m_renderCore->DrawObject(m_worldRenderables[i].get(), shadows);
+			case TimelineStateCurrent: 
+				data = m_worldRenderables[i].first;
+				break;
+
+			case TimelineStateFuture: 
+				data = m_worldRenderables[i].second;
+				break;
+		}
+		if ( data && data->enabled )
+		{
+			m_renderCore->UpdateObjectInfo(data.get());
+			m_renderCore->DrawObject(data.get(), shadows);
 		}
 	}
 }
@@ -174,11 +186,11 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	load(LevelAssetBush1, 
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
-		"BananaPlant.wwm", { "TestSceneBanana.wwmt" });
+		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
 
 
 	load(LevelAssetBush2, 
-		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
+		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" });
 
 	//load(LevelAssetBush1,
@@ -314,15 +326,36 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 
 	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpath));
 
-	shared_ptr<MeshRenderableStatic> newRenderable = make_shared<MeshRenderableStatic>(
+	const shared_ptr<MeshRenderableStatic> newRenderable = make_shared<MeshRenderableStatic>(
+		m_renderableIDCounter++,
+		model,
+		cs::Mat4()
+		);
+	m_worldRenderables.Add({ (shared_ptr<WorldRenderable>)newRenderable, (shared_ptr<WorldRenderable>)newRenderable });
+
+	return newRenderable;
+}
+
+std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> RenderHandler::CreateMeshStaticSwappable(const string& subpathCurrent, const string& subpathFuture)
+{
+	Resources& resources = Resources::Get();
+	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpathCurrent));
+	shared_ptr<MeshRenderableStatic> renderableCurrent = make_shared<MeshRenderableStatic>(
+		m_renderableIDCounter,
+		model,
+		cs::Mat4()
+	);
+	model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpathFuture));
+	shared_ptr<MeshRenderableStatic> renderableFuture = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter++,
 		model,
 		cs::Mat4()
 	);
-	
-	m_worldRenderables.Add((shared_ptr<WorldRenderable>)newRenderable);
-
-	return newRenderable;
+	std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> data = {};
+	data.first = (shared_ptr<MeshRenderableStatic>)renderableCurrent;
+	data.second = (shared_ptr<MeshRenderableStatic>)renderableFuture;
+	m_worldRenderables.Add(data);
+	return data;
 }
 
 shared_ptr<MeshRenderableRigged> RenderHandler::CreateMeshRigged(const string& subpath)
@@ -336,9 +369,7 @@ shared_ptr<MeshRenderableRigged> RenderHandler::CreateMeshRigged(const string& s
 		model,
 		cs::Mat4()
 		);
-
-	m_worldRenderables.Add((shared_ptr<WorldRenderable>)newRenderable);
-
+	m_worldRenderables.Add({ (shared_ptr<WorldRenderable>)newRenderable , (shared_ptr<WorldRenderable>)newRenderable });
 	return newRenderable;
 }
 
@@ -347,6 +378,16 @@ shared_ptr<TextRenderable> RenderHandler::CreateTextRenderable(const wchar_t* te
 	shared_ptr<TextRenderable> newRenderable = make_shared<TextRenderable>(text, fontPos, font, color, origin);
 	m_texts.Add((shared_ptr<TextRenderable>)newRenderable);
 	return newRenderable;
+}
+
+void RenderHandler::SetTimelineStateCurrent()
+{
+	m_timelineState = TimelineStateCurrent;
+}
+
+void RenderHandler::SetTimelineStateFuture()
+{
+	m_timelineState = TimelineStateFuture;
 }
 
 shared_ptr<DirectionalLight> RenderHandler::GetDirectionalLight()
@@ -381,7 +422,7 @@ void RenderHandler::SetPlayerMatrix(const Mat4& matrix)
 	m_playerMatrix = matrix;
 }
 
-void RenderHandler::DrawInstances(bool shadows)
+void RenderHandler::DrawInstances(uint state, bool shadows)
 {
 	m_renderCore->BindInstancedPipeline(shadows);
 
@@ -409,29 +450,27 @@ void RenderHandler::DrawInstances(bool shadows)
 	}
 
 	m_renderCore->UpdateInstanceBuffer(m_envInstanceBuffer, m_envInstances.Data(), m_envInstances.Size());
-
-	uint time = 0;
 	
 	m_renderCore->SetInstanceBuffers(
-		m_envVertices[time],
+		m_envVertices[state],
 		m_envInstanceBuffer,
 		sizeof(VertexTextured), 
 		sizeof(Mat4), 
 		0, 0);
 
-	m_renderCore->SetIndexBuffer(m_envIndices[time].Get(), 0);
+	m_renderCore->SetIndexBuffer(m_envIndices[state].Get(), 0);
 
 
 
 	// Draw all the stuff!
 
-	for (EnvMaterial& m : m_envMaterials[time])
+	for (EnvMaterial& m : m_envMaterials[state])
 	{
 		m_renderCore->UpdateMaterialInfo(m.material);
 
 		for (uint i : m.submeshes)
 		{
-			EnvSubmesh& submesh = m_envSubmeshes[time][i];
+			EnvSubmesh& submesh = m_envSubmeshes[state][i];
 			EnvMesh& mesh = m_envMeshes[submesh.model];
 
 			m_renderCore->DrawInstanced(submesh.indexCount, mesh.instanceCount, submesh.indexOffset, 0, mesh.instanceOffset);

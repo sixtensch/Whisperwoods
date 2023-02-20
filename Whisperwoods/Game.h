@@ -7,6 +7,8 @@
 #include "Light.h"
 #include "SoundResource.h"
 
+constexpr float STAMINA_DECAY_MULTIPLIER = 1.2f;
+
 class LevelHandler;
 
 class Game sealed
@@ -15,7 +17,7 @@ public:
 	Game();
 	~Game();
 
-	void Update(float deltaTime);
+	void Update(float deltaTime, Renderer* renderer);
 
 	void Init();
 	void DeInit();
@@ -26,6 +28,8 @@ public:
 	Player* GetPlayer();
 
 private:
+	void ChangeTimeline(Renderer* renderer);
+
 	void LoadRoom(Level* level);
 	void UnloadRoom();
 
@@ -45,5 +49,8 @@ private:
 	// Current floor data
 	LevelFloor m_floor;
 	shared_ptr<Room> m_currentRoom;
+
+	bool m_future;
+	float m_stamina;
 };
 

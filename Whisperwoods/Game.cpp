@@ -4,16 +4,19 @@
 #include "LevelHandler.h"
 #include "SoundResource.h"
 #include "Resources.h"
+#include "Input.h"
 
 Game::Game()
 {
+	m_future = false;
+	m_stamina = 10.0f;
 }
 
 Game::~Game()
 {
 }
 
-void Game::Update(float deltaTime)
+void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_player->Update(deltaTime);
 	m_currentRoom->Update(deltaTime);
@@ -30,6 +33,19 @@ void Game::Update(float deltaTime)
 	}
 
 	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
+
+	if (Input::Get().IsKeyPressed(KeybindPower))
+	{
+		ChangeTimeline(renderer);
+	}
+	m_stamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_future;
+
+	
+	if ( m_stamina < 0.f )
+	{
+		/// D E A T H ///
+		ChangeTimeline(renderer);
+	}
 }
 
 void Game::Init()
@@ -157,4 +173,10 @@ void Game::LoadRoom(Level* level)
 
 void Game::UnloadRoom()
 {
+}
+
+void Game::ChangeTimeline(Renderer* renderer)
+{
+	m_future = !m_future * (m_stamina > 0.f);
+	renderer->SetTimelineState(m_future);
 }

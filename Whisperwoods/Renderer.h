@@ -47,12 +47,13 @@ public:
 	// TODO: Check if there is a better way of gaining access to the render core.
 	RenderCore* GetRenderCore();
 
+	void SetTimelineState(bool future);
 private:
 	static Renderer* s_singleton;
 
 	HINSTANCE m_instance;
 
-	shared_ptr<Window> m_window;
+	shared_ptr<Window> m_window; 
 	unique_ptr<RenderHandler> m_renderHandler;
 	unique_ptr<GUI> m_gui;
 
