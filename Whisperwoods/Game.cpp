@@ -9,6 +9,7 @@
 Game::Game()
 {
 	m_future = false;
+	m_stamina = 10.0f;
 }
 
 Game::~Game()
@@ -30,9 +31,17 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
 
-	if ( Input::Get().IsKeyPressed(KeybindPower) )
+	if (Input::Get().IsKeyPressed(KeybindPower))
 	{
-		ChangeTimeline(true, renderer);
+		ChangeTimeline(renderer);
+	}
+	m_stamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_future;
+
+	
+	if ( m_stamina < 0.f )
+	{
+		/// D E A T H ///
+		ChangeTimeline(renderer);
 	}
 }
 
@@ -146,8 +155,8 @@ Player* Game::GetPlayer()
 	return m_player.get();
 }
 
-void Game::ChangeTimeline(bool future, Renderer* renderer)
+void Game::ChangeTimeline(Renderer* renderer)
 {
-	m_future = !m_future;
+	m_future = !m_future * (m_stamina > 0.f);
 	renderer->SetTimelineState(m_future);
 }
