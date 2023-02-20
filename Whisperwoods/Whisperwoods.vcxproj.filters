@@ -85,9 +85,6 @@
     <Filter Include="%2a Code\%2a Core\Debug">
       <UniqueIdentifier>{a3f7d3e4-c11f-4d29-b6e8-d7ede23b7358}</UniqueIdentifier>
     </Filter>
-    <Filter Include="%2a Code\%2a World\Floor">
-      <UniqueIdentifier>{c7d83c26-6fe9-4d16-9008-ece4aaf49615}</UniqueIdentifier>
-    </Filter>
     <Filter Include="%2a Code\%2a Core\%2a Animation">
       <UniqueIdentifier>{e938a359-b796-4387-aced-86b900f8bc8b}</UniqueIdentifier>
     </Filter>
@@ -306,9 +303,7 @@
     <ClCompile Include="Room.cpp">
       <Filter>%2a Code\%2a World\Room</Filter>
     </ClCompile>
-    <ClCompile Include="Floor.cpp">
-      <Filter>%2a Code\%2a World\Floor</Filter>
-    </ClCompile>
+    <ClCompile Include="LevelHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -469,9 +464,8 @@
     <ClInclude Include="Room.h">
       <Filter>%2a Code\%2a World\Room</Filter>
     </ClInclude>
-    <ClInclude Include="Floor.h">
-      <Filter>%2a Code\%2a World\Floor</Filter>
-    </ClInclude>
+    <ClInclude Include="Level.h" />
+    <ClInclude Include="LevelHandler.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VSMesh.hlsl">
@@ -493,6 +487,7 @@
       <Filter>%2a Code\%2a Shaders</Filter>
     </FxCompile>
     <FxCompile Include="VSShadow.hlsl" />
+    <FxCompile Include="VSMeshInstanced.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Constants.hlsli">

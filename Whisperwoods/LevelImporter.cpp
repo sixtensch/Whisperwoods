@@ -230,7 +230,7 @@ bool LevelImporter::ImportImage(string textureName, const RenderCore* core, Leve
 					{
 						(Vec2)edgeA + edgeDiff * 0.5f,
 						(edgeDir * nDirection > 0) ? edgeDir : -edgeDir,
-						std::sqrtf(edgeDistanceSq)
+						cs::fclamp(std::sqrtf(edgeDistanceSq), 6.0f, 10.0f)
 					});
 
 				continue;

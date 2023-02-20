@@ -49,7 +49,7 @@ private:
 	Vec2 m_lastWalkingDirection;
 	bool m_rotateClockWise;
 	bool m_rotation;
-	float m_rotationSpeed = 0.8;
+	float m_rotationSpeed = 0.8f;
 	float m_rotationCounter;
 	float m_offset;
 	bool m_isMoving;
