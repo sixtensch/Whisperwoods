@@ -212,9 +212,8 @@ void Debug::DrawConsole()
 			}
 
 			ImGui::Spacing();
-
-			ImGui::EndChild();
 		}
+		ImGui::EndChild();
 
 		if (m_showCommandLine)
 		{

@@ -1,5 +1,7 @@
 #include "Core.h"
 
+#define CATCH_PROGRAM	0
+
 #include <Windows.h>
 #include "Whisperwoods.h"
 

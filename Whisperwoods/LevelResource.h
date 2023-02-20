@@ -3,14 +3,23 @@
 #include "BasicResource.h"
 #include "TextureResource.h"
 
-enum LevelPixel : byte
+enum LevelPixelFlag : byte
 {
-	Impassable	= 0x1,
-	Inner		= 0x2,
+	LevelPixelFlagImpassable	= 0b001,
+	LevelPixelFlagInner		= 0b010,
+	LevelPixelFlagCrouchable	= 0b100,
 
-	Passable		= 0,
-	TerrainInner	= Impassable | Inner,
-	TerrainOuter	= Impassable & ~Inner
+	LevelPixelFlagPassable				= 0,
+	LevelPixelFlagPassableCrouchable	= 0 | LevelPixelFlagCrouchable,
+
+	LevelPixelFlagTerrainInner	= LevelPixelFlagImpassable | LevelPixelFlagInner,
+	LevelPixelFlagTerrainOuter	= LevelPixelFlagImpassable & ~LevelPixelFlagInner
+};
+
+struct LevelPixel
+{
+	LevelPixelFlag flags;
+	float density;
 };
 
 struct LevelPatrol

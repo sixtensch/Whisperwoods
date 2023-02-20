@@ -36,7 +36,7 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 
 void RenderHandler::LoadLevel(LevelResource* level, string image)
 {
-	LevelImporter::ImportImage("Examplemap.png", m_renderCore.get(), level);
+	LevelImporter::ImportImage("TestMap1.png", m_renderCore.get(), level);
 }
 
 void RenderHandler::Draw()
@@ -398,10 +398,7 @@ void RenderHandler::DrawInstances(bool shadows)
 	}
 
 	for (uint i = 0; i < LevelAssetCount; i++)
-		for (const Mat4& m : m_envMeshes[i].instances)
-		{
-			m_envMeshes[i].hotInstances.Add(m);
-		}
+		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{

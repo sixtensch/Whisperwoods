@@ -306,6 +306,9 @@
     <ClCompile Include="Room.cpp">
       <Filter>%2a Code\%2a World\Room</Filter>
     </ClCompile>
+    <ClCompile Include="Floor.cpp">
+      <Filter>%2a Code\%2a World\Floor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -465,6 +468,9 @@
     </ClInclude>
     <ClInclude Include="Room.h">
       <Filter>%2a Code\%2a World\Room</Filter>
+    </ClInclude>
+    <ClInclude Include="Floor.h">
+      <Filter>%2a Code\%2a World\Floor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

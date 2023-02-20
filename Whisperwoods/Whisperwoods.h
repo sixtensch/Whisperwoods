@@ -27,7 +27,6 @@ private:
 	std::unique_ptr<Config>			m_config;
 	std::unique_ptr<Input>			m_input;
 	std::unique_ptr<Renderer>		m_renderer;
-	std::unique_ptr<LevelHandler>	m_levelHandler;
 
 	std::unique_ptr<Game>		m_game;
 };

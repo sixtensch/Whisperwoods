@@ -34,6 +34,7 @@
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="FBXImporter.cpp" />
+    <ClCompile Include="Floor.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="Input.cpp" />
@@ -89,6 +90,7 @@
     <ClInclude Include="GUI.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="LevelHandler.h" />
+    <ClInclude Include="Floor.h" />
     <ClInclude Include="StaticObject.h" />
     <ClInclude Include="LevelImporter.h" />
     <ClInclude Include="LevelResource.h" />

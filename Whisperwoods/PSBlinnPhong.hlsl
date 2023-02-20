@@ -86,8 +86,8 @@ float4 main(VSOutput input) : SV_TARGET
 	
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
 	
-    if (diffuseSample.a < 0.1f)
-        discard;
+    //if (diffuseSample.a < 0.1f)
+    //    discard;
 	
     float4 specularSample = textureSpecular.Sample(textureSampler, uv);
     float4 emissiveSample = textureEmissive.Sample(textureSampler, uv);
@@ -113,7 +113,7 @@ float4 main(VSOutput input) : SV_TARGET
 	
     float dirNDotL = dot(normal, directionalLight.direction);
     float epsilon = 0.00005 / acos(saturate(dirNDotL));
-   // bool shadowAff = shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x;
+    //bool shadowAff = shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x;
 	
 	float sum = 0;
 	float x, y;

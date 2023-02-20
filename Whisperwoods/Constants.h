@@ -1,7 +1,7 @@
 #ifndef H_CONSTANTS
 #define H_CONSTANTS
 
-#define CATCH_PROGRAM	1
+//#define CATCH_PROGRAM	0
 #define WW_NODXGI
 
 #define MAJOR_VERSION	0
