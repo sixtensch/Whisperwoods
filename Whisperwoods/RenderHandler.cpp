@@ -128,10 +128,21 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
-		if ( m_worldRenderables[i][state] && m_worldRenderables[i][state]->enabled )
+		if ( state == TimelineStateCurrent )
 		{
-			m_renderCore->UpdateObjectInfo(m_worldRenderables[i][state].get());
-			m_renderCore->DrawObject(m_worldRenderables[i][state].get(), shadows);
+			if ( m_worldRenderables[i].first && m_worldRenderables[i].first->enabled )
+			{
+				m_renderCore->UpdateObjectInfo(m_worldRenderables[i].first.get());
+				m_renderCore->DrawObject(m_worldRenderables[i].first.get(), shadows);
+			}
+		}
+		else
+		{
+			if ( m_worldRenderables[i].second && m_worldRenderables[i].second->enabled )
+			{
+				m_renderCore->UpdateObjectInfo(m_worldRenderables[i].second.get());
+				m_renderCore->DrawObject(m_worldRenderables[i].second.get(), shadows);
+			}
 		}
 	}
 }
@@ -315,41 +326,36 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 
 	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpath));
 
-	shared_ptr<MeshRenderableStatic> newRenderable = make_shared<MeshRenderableStatic>(
+	const shared_ptr<MeshRenderableStatic> newRenderable = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter++,
 		model,
 		cs::Mat4()
-	);
-	
+		);
 	m_worldRenderables.Add({ (shared_ptr<WorldRenderable>)newRenderable, (shared_ptr<WorldRenderable>)newRenderable });
 
 	return newRenderable;
 }
 
-void RenderHandler::CreateMeshStaticSwappable(const string& subpathCurrent, const string& subpathFuture, const MeshRenderableStatic& data)
+std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> RenderHandler::CreateMeshStaticSwappable(const string& subpathCurrent, const string& subpathFuture)
 {
 	Resources& resources = Resources::Get();
 	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpathCurrent));
 	shared_ptr<MeshRenderableStatic> renderableCurrent = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter,
 		model,
-		data.worldMatrix
+		cs::Mat4()
 	);
-	renderableCurrent->enabled = data.enabled;
-	renderableCurrent->pipelineType = data.pipelineType;
-
-
 	model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpathFuture));
 	shared_ptr<MeshRenderableStatic> renderableFuture = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter++,
 		model,
-		data.worldMatrix
+		cs::Mat4()
 	);
-	renderableFuture->enabled = data.enabled;
-	renderableFuture->pipelineType = data.pipelineType;
-
-
-	m_worldRenderables.Add({ (shared_ptr<WorldRenderable>)renderableCurrent, (shared_ptr<WorldRenderable>)renderableFuture });
+	std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> data = {};
+	data.first = (shared_ptr<MeshRenderableStatic>)renderableCurrent;
+	data.second = (shared_ptr<MeshRenderableStatic>)renderableFuture;
+	m_worldRenderables.Add(data);
+	return data;
 }
 
 shared_ptr<MeshRenderableRigged> RenderHandler::CreateMeshRigged(const string& subpath)
@@ -363,9 +369,7 @@ shared_ptr<MeshRenderableRigged> RenderHandler::CreateMeshRigged(const string& s
 		model,
 		cs::Mat4()
 		);
-
-	m_worldRenderables.Add({ (shared_ptr<WorldRenderable>)newRenderable, (shared_ptr<WorldRenderable>)newRenderable });
-
+	m_worldRenderables.Add({ (shared_ptr<WorldRenderable>)newRenderable , (shared_ptr<WorldRenderable>)newRenderable });
 	return newRenderable;
 }
 

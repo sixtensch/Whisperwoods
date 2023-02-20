@@ -16,19 +16,6 @@
 class RenderHandler sealed
 {
 private:
-	struct RenderableState
-	{
-		const shared_ptr<WorldRenderable> Current;
-		const shared_ptr<WorldRenderable> Future;
-		shared_ptr<WorldRenderable> operator[](int input)
-		{
-			return input ? Future : Current;
-		}
-		RenderableState& operator=(const RenderableState& other) noexcept
-		{
-			return *this;
-		}
-	};
 	enum TimelineState // Readability only
 	{
 		TimelineStateCurrent = false,
@@ -54,9 +41,8 @@ public:
 	void LoadEnvironment(const Level* level);
 
 	shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
-	void CreateMeshStaticSwappable(const string& subpathCurrent, 
-								   const string& subpathFuture, 
-								   const MeshRenderableStatic& data);
+	std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> CreateMeshStaticSwappable(const string& subpathCurrent,
+								   const string& subpathFuture);
 	shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
 	shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin);
 
@@ -115,7 +101,7 @@ private:
 
 	TimelineState m_timelineState;
 	uint m_renderableIDCounter;
-	cs::List<RenderableState> m_worldRenderables;
+	cs::List<std::pair<shared_ptr<WorldRenderable>, shared_ptr<WorldRenderable>>> m_worldRenderables;
 	cs::List<shared_ptr<TextRenderable>> m_texts;
 
 	cs::Color3f m_lightAmbient;
