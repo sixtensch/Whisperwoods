@@ -48,7 +48,7 @@ void Floodfill(Point2 position, cs::List<Point2>& edges, cs::List<Point2>& direc
 			cs::Color4 c4 = data[p.x + p.y * w];
 			Point3 c(c4.r, c4.g, c4.b);
 
-			if (c == Point3(255, 255, 255) || c.y > 200)
+			if (c == Point3(255, 255, 255) || c.y >= 200)
 			{
 				found = true;
 				direction -= offsets[i];
