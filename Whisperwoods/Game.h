@@ -26,11 +26,8 @@ public:
 	Player* GetPlayer();
 
 private:
-	void AddRoom(Level* level);
-	void ClearRooms();
-
-	void LoadRoom(uint index);
-	void UnloadRoom(uint index);
+	void LoadRoom(Level* level);
+	void UnloadRoom();
 
 private:
 	std::unique_ptr<LevelHandler>	m_levelHandler;
@@ -47,8 +44,6 @@ private:
 
 	// Current floor data
 	LevelFloor m_floor;
-	Room* m_currentRoom;
-	cs::List<shared_ptr<Room>> m_rooms;
-
+	shared_ptr<Room> m_currentRoom;
 };
 

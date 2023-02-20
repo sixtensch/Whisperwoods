@@ -79,35 +79,26 @@ void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor);
 
-	AddRoom(&m_floor.rooms[0]);
-	LoadRoom(0);
+	LoadRoom(&m_floor.rooms[0]);
 
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
-
-	m_enemies.Add(shared_ptr<Enemy>(new Enemy("Carcinian_Animated.wwm", "Carcinian_Animations.wwa", Mat::scale3(1.25f, 1.25f, 1.25f) * Mat::translation3(0, 0, 0) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
-	for (int i = 0; i < 1; i++)
-	{
-		for (int j = 0; j < m_rooms[0]->m_levelResource->patrolsClosed[i].controlPoints.Size(); j++)
-		{
-			Point2 bitPos = Point2(m_rooms[0]->m_levelResource->patrolsClosed[i].controlPoints[j]);
-			Vec3 enemyPos = m_rooms[0]->bitMapToWorldPos(bitPos);
-			m_enemies[0]->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
-		}
-	}
 }
 
 void Game::LoadGame(uint gameSeed)
 {
-	LevelFloor floor = {};
-	m_levelHandler->GenerateFloor(&floor);
+	m_levelHandler->GenerateTestFloor(&m_floor);
 
-	for (int i = 0; )
+	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
 
-	Level& level = floor.rooms[0];
-	Renderer::LoadEnvironment(&level);
+	m_player->transform.position = m_floor.startPosition;
+
+	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
+	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
+	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
+	Mat4 worldCombined = worldScale * worldPos * worldRot;
 }
 
 Player* Game::GetPlayer()
@@ -115,32 +106,55 @@ Player* Game::GetPlayer()
 	return m_player.get();
 }
 
-void Game::AddRoom(Level* level)
+void Game::LoadRoom(Level* level)
 {
 	Mat4 roomMatrix =
 		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight) *
-		Mat::translation3(0.0f, 0.0f, 0.0f) *
-		Mat::rotation3(0.0f, 0.0f, 0.0f);
+		Mat::translation3(level->position.x, level->position.x, level->position.x)*
+		level->rotation.Matrix();
 
-	m_rooms.Add(shared_ptr<Room>(new Room(level, "room_plane.wwm", roomMatrix)));
-	m_rooms.Back()->transform.rotation = Quaternion::GetEuler({0, 0, 0});
+	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", roomMatrix));
+	m_currentRoom->transform.rotation = Quaternion::GetEuler({ 0, 0, 0 });
+
+	Renderer::LoadEnvironment(m_currentRoom->m_level);
+
+	m_player->currentRoom = m_currentRoom.get();
+
+	for (LevelPatrol& p : level->resource->patrolsClosed)
+	{
+		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
+			"Carcinian_Animated.wwm", 
+			"Carcinian_Animations.wwa", 
+			Mat::scale3(1.25f, 1.25f, 1.25f) * 
+			Mat::translation3(0, 0, 0) * 
+			Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
+		
+		for (int j = 0; j < p.controlPoints.Size(); j++)
+		{
+			Point2 bitPos = Point2(p.controlPoints[j]);
+			Vec3 enemyPos = m_currentRoom->bitMapToWorldPos(bitPos);
+			m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
+		}
+	}
+
+	for (LevelPatrol& p : level->resource->patrolsOpen)
+	{
+		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
+			"Carcinian_Animated.wwm",
+			"Carcinian_Animations.wwa",
+			Mat::scale3(1.25f, 1.25f, 1.25f) *
+			Mat::translation3(0, 0, 0) *
+			Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
+
+		for (int j = 0; j < p.controlPoints.Size(); j++)
+		{
+			Point2 bitPos = Point2(p.controlPoints[j]);
+			Vec3 enemyPos = m_currentRoom->bitMapToWorldPos(bitPos);
+			m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), false);
+		}
+	}
 }
 
-void Game::ClearRooms()
-{
-	m_rooms.Clear();
-}
-
-void Game::LoadRoom(uint index)
-{
-	shared_ptr<Room> r = m_rooms[index];
-
-	Renderer::LoadEnvironment(r->m_level);
-
-	m_currentRoom = r.get();
-	m_player->currentRoom = r.get();
-}
-
-void Game::UnloadRoom(uint index)
+void Game::UnloadRoom()
 {
 }
