@@ -45,7 +45,8 @@ namespace CB
 		float luminanceThreshold;
 		float strength;
 		float minLuminance;
-		float time;
+
+		float PADDING;
 	};
 
 	struct PPFXColorGradeInfo
@@ -58,9 +59,13 @@ namespace CB
 		Vec2 PADDING;
 	};
 
-	struct GameInfo
+	struct TimeSwitchInfo
 	{
-		float deltaTime;
+		float timeSinceSwitch;
+		float chargeDuration;
+		float falloffDuration;
+
+		float PADDING;
 	};
 }
 
@@ -75,5 +80,7 @@ struct ConstantBuffers
 
 	ComPtr<ID3D11Buffer> ppfxThresholdInfo;
 	ComPtr<ID3D11Buffer> ppfxColorGradeInfo;
+
+	ComPtr<ID3D11Buffer> timeSwitchInfo;
 	
 };
