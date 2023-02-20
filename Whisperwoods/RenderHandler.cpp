@@ -36,7 +36,7 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 
 void RenderHandler::LoadLevel(LevelResource* level, string image)
 {
-	LevelImporter::ImportImage("TestMap1.png", m_renderCore.get(), level);
+	LevelImporter::ImportImage(image, m_renderCore.get(), level);
 }
 
 void RenderHandler::Draw()
