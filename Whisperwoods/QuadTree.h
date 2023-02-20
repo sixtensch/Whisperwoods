@@ -1,8 +1,14 @@
 #pragma once
 #include <DirectXCollision.h>
+//#include "RenderHandler.h"
 #include "Core.h"
 #include <vector>
 #include <map>
+
+constexpr UINT MAX_LEAF_ELEMENTS = 10;
+constexpr UINT MAX_DEPTH = 8;
+
+struct EnvMesh;
 
 template <typename T>
 class QuadTree
@@ -51,7 +57,7 @@ private: // Recursive callers
 	void AddToNode(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, const shared_ptr<Node>& currentNode, int depth, int index = -1);
 
 	void CullNode(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, std::vector<const T*>& out_validElements) const;
-	void CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, cs::List<cs::List<const T*>>& out_indexedList) const;
+	void CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, EnvMesh out_indexedList[]) const;
 	
 	void FreeNode(shared_ptr<Node>& currentNode);
 
@@ -73,10 +79,6 @@ private:
 	float m_minHeight;
 
 	int m_quadSearch[4];
-
-private: // Settings
-	static const UINT s_maxLeafElements = 10;
-	static const UINT s_maxDepth = 8;
 };
 
 template<typename T>
@@ -124,7 +126,7 @@ inline void QuadTree<T>::Init(float maxHeight, float minHeight, float top, float
 		m_root->child[i] = nullptr;
 	}
 
-	m_root->data.reserve(s_maxLeafElements);
+	m_root->data.reserve(MAX_LEAF_ELEMENTS);
 	m_root->rootPartition = rootBox;
 }
 template<typename T>
@@ -204,7 +206,7 @@ inline void QuadTree<T>::AddToNode(shared_ptr<const T*> elementAddress, const dx
 		return;
 
 	// Max depth is reached
-	if ((depth >= s_maxDepth))
+	if ((depth >= MAX_DEPTH))
 	{
 		currentNode->data.push_back({ elementAddress, boundingBox, index });
 		return;
@@ -282,7 +284,7 @@ inline void QuadTree<T>::CullNode(const dx::BoundingFrustum& frustum, const shar
 }
 
 template<typename T>
-inline void QuadTree<T>::CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& node, cs::List<cs::List<const T*>>& out_indexedList) const
+inline void QuadTree<T>::CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& node, EnvMesh out_indexedList[]) const
 {
 	bool collision = frustum.Contains(node->rootPartition);
 	if (!collision)
@@ -292,7 +294,7 @@ inline void QuadTree<T>::CullNodeIndexed(const dx::BoundingFrustum& frustum, con
 	{
 		collision = frustum.Contains(nodeData.boundedVolume);
 		if (collision)
-			out_indexedList[nodeData.id].Add(*nodeData.element);
+			out_indexedList[nodeData.id].hotInstances.Add(**nodeData.element);
 	}
 	if (!IsLeaf(node))
 	{
@@ -335,7 +337,7 @@ inline bool QuadTree<T>::IsLeaf(const shared_ptr<Node>& currentNode) const
 template<typename T>
 inline bool QuadTree<T>::IsFull(const shared_ptr<Node>& currentNode) const
 {
-	return currentNode->data.size() >= s_maxLeafElements;
+	return currentNode->data.size() >= MAX_LEAF_ELEMENTS;
 }
 
 template<typename T>
@@ -410,9 +412,9 @@ inline void QuadTree<T>::SplitNode(const shared_ptr<Node>& currentNode)
 		currentNode->child[i]->child[2] = nullptr;
 		currentNode->child[i]->child[3] = nullptr;
 		
-		for (int j = 0; j < s_maxLeafElements; ++j)
+		for (int j = 0; j < MAX_LEAF_ELEMENTS; ++j)
 		{
-			currentNode->child[i]->data.reserve(s_maxLeafElements);
+			currentNode->child[i]->data.reserve(MAX_LEAF_ELEMENTS);
 		}
 	}
 }
@@ -424,8 +426,8 @@ inline void QuadTree<T>::CalcQuadOrder(const dx::BoundingFrustum& frustum)
 		frustum.Orientation.x,
 		frustum.Orientation.y,
 		frustum.Orientation.z,
-		frustum.Orientation.w
-	) * cs::Vec3(0,0,1.0f);
+		frustum.Orientation.w)
+		* cs::Vec3(0,0,1.0f);
 	cs::Vec2 xzVec = {directionalVec.x, directionalVec.z};
 	
 	std::map<float, int> rbTree;

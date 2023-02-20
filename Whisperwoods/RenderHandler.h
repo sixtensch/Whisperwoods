@@ -13,6 +13,24 @@
 #include "Level.h"
 #include "QuadTree.h"
 
+struct EnvMesh
+{
+	uint indexStarts[2];
+	uint vertexStarts[2];
+
+	cs::List<uint> submeshes[2];
+	const ModelStaticResource* models[2];
+
+	dx::BoundingBox boundedVolume;
+
+	cs::List<Mat4> instances;
+
+	// Hot-data
+	cs::List<Mat4> hotInstances;
+	uint instanceOffset;
+	uint instanceCount;
+};
+
 class RenderHandler sealed
 {
 private:
@@ -78,25 +96,7 @@ private:
 		uint model;
 		uint localSubmesh;
 	};
-
-	struct EnvMesh
-	{
-		uint indexStarts[2];
-		uint vertexStarts[2];
-
-		cs::List<uint> submeshes[2];
-		const ModelStaticResource* models[2];
-
-		//cs::Box2
-
-		cs::List<Mat4> instances;
-
-		// Hot-data
-		cs::List<Mat4> hotInstances;
-		uint instanceOffset;
-		uint instanceCount;
-	};
-
+	
 	unique_ptr<RenderCore> m_renderCore;
 
 	TimelineState m_timelineState;
@@ -121,7 +121,7 @@ private:
 	cs::List<EnvSubmesh> m_envSubmeshes[2];
 	EnvMesh m_envMeshes[LevelAssetCount];
 
-	//QuadTree<Mat4> m_envQuadTree;
+	QuadTree<Mat4> m_envQuadTree;
 
 	// Hot-data
 	cs::List<Mat4> m_envInstances;

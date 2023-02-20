@@ -12,6 +12,7 @@ RenderHandler::RenderHandler()
 {
 	m_renderableIDCounter = 0;
 	m_timelineState = TimelineStateCurrent;
+	m_envQuadTree.Init(20, -1, 50, 50); //TODO: actual startsize
 }
 
 RenderHandler::~RenderHandler()
@@ -312,10 +313,23 @@ void RenderHandler::LoadEnvironment(const Level* level)
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
 		m_envMeshes[i].instances.Clear(false);
-		m_envMeshes[i].instances.MassAdd(level->instances[i].Data(), level->instances[i].Size(), true);
+		//m_envMeshes[i].instances.MassAdd(level->instances[i].Data(), level->instances[i].Size(), true);
+		
+		dx::BoundingBox box;
+		for ( uint j = 0; j < level->instances[i].Size(); ++j )
+		{
+			m_envMeshes[i].instances.Add(level->instances[i][j]);
+
+			dx::XMMATRIX dxMat = level->instances[i][j].XMMatrix();
+			box.Transform(box, dx::XMMatrixTranspose(dxMat));
+			shared_ptr<const Mat4*> sptr = make_shared<const Mat4*>(&level->instances[i][j]);
+
+			m_envQuadTree.AddElementIndexed(sptr, box, j);
+		}
 
 		instanceCount += (uint)level->instances[i].Size();
 	}
+	
 
 	m_renderCore->CreateInstanceBuffer(nullptr, instanceCount * sizeof(Mat4), &m_envInstanceBuffer);
 }
@@ -429,7 +443,6 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 
 
 	// Culling here
-
 	m_envInstances.Clear(false);
 
 
@@ -440,6 +453,8 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
+
+	m_envQuadTree.CullTreeIndexed(, m_envMeshes);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
