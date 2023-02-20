@@ -7,11 +7,15 @@
 #include "Input.h"
 
 Game::Game() :
+	m_floor(),
+	m_currentRoom(nullptr),
 	m_isInFuture(false),
 	m_isSwitching(false),
 	m_finishedCharging(false),
 	m_stamina(10.0f), 
-	m_switchVals({ 1.0f, 1.0f, 5.0f, 0.0f }) {}
+	m_switchVals({ 1.0f, 0.5f, 3.0f, 0.0f }),
+	m_camFovChangeSpeed(cs::c_pi / 4.0f)
+{}
 
 Game::~Game() {}
 
@@ -36,7 +40,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 	// Time switch logic.
 	{
-		static float initialCamFov = 0.0f;
+		static float initialCamFov;
 		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch())
 		{
 			m_isSwitching = true;
@@ -44,14 +48,21 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			initialCamFov = cameraRef.GetFov();
 		}
 
-
+		static float totalFovDelta = 0.0f;
 		if (m_isSwitching)
 		{
-			static float camFovScalar = 1.0f;
 			if (!ChargeIsDone())
 			{
-				camFovScalar += 0.002f;
-				cameraRef.SetFov(initialCamFov * camFovScalar);
+				totalFovDelta += m_camFovChangeSpeed * deltaTime;
+				float newFov = initialCamFov + totalFovDelta;
+
+				// Max total fov cant exceed half circle.
+				if (newFov > cs::c_pi)
+				{
+					newFov = cs::c_pi;
+				}
+
+				cameraRef.SetFov(newFov);
 			}
 			else
 			{
@@ -60,7 +71,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 					ChangeTimeline(renderer);
 					m_finishedCharging = true;
 					cameraRef.SetFov(initialCamFov);
-					camFovScalar = 1.0f;
+					totalFovDelta = 0.0f;
 				}
 			}
 

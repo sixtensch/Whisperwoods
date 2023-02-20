@@ -67,9 +67,11 @@ private:
 	};
 
 	bool m_isInFuture;
-	bool m_isSwitching; // Switching = state during whole duration of time switch
-	bool m_finishedCharging; // Charging = state during duration of charging eon key
+	bool m_isSwitching; // Switching = is true during whole duration (start + end) of time switch.
+	bool m_finishedCharging; // Charging = only first part of whole duration (start)
 	float m_stamina;
+
+	float m_camFovChangeSpeed;
 
 	TimeSwitchValues m_switchVals;
 };

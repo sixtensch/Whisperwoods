@@ -124,7 +124,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
     {
         //color = Tint(color, lerp(1.0f.rrr, float3(0.0f, 0.0f, 2.0f), totalInflunce));
         //color = Brightness(color, lerp(brightness, 1.0f, totalInflunce));
-        color = Saturation(color, smoothstep(saturation, 0.0f, totalTimeSwitchInfluence * 5.0f));
+        color = Saturation(color, smoothstep(saturation, 0.0f, totalTimeSwitchInfluence));
         //color = Saturation(color, saturation);
         color = Contrast(color, contrast.x, contrast.y);
     }
