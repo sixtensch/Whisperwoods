@@ -64,7 +64,7 @@ void LevelHandler::GenerateTestFloor(LevelFloor* outFloor)
 
 	// Add a level
 
-	AddLevelName(f, "TestBig");
+	AddLevelName(f, "fithLevel");
 	Environmentalize(f.rooms.Back(), r);
 }
 
