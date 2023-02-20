@@ -172,7 +172,7 @@ void Whisperwoods::Run()
 		
 		//patrolEnemy.Update(dTime);
 
-		m_game->Update(dTime);
+		m_game->Update(dTime, m_renderer.get());
 		m_sound->Update();
 		
 		// Draw step

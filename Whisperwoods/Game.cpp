@@ -4,16 +4,18 @@
 #include "LevelHandler.h"
 #include "SoundResource.h"
 #include "Resources.h"
+#include "Input.h"
 
 Game::Game()
 {
+	m_future = false;
 }
 
 Game::~Game()
 {
 }
 
-void Game::Update(float deltaTime)
+void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_player->Update(deltaTime);
 	m_floors[0]->rooms[0]->Update(deltaTime);
@@ -27,6 +29,11 @@ void Game::Update(float deltaTime)
 	m_enemies[0]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_audioSource, *(m_floors[0]->rooms[0].get()));
 
 	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
+
+	if ( Input::Get().IsKeyPressed(KeybindPower) )
+	{
+		ChangeTimeline(true, renderer);
+	}
 }
 
 void Game::InitGame(Renderer* const renderer)
@@ -139,13 +146,8 @@ Player* Game::GetPlayer()
 	return m_player.get();
 }
 
-void Game::ChangeTimeline()
+void Game::ChangeTimeline(bool future, Renderer* renderer)
 {
-
-}
-void Game::SetFutureTime() const
-{
-}
-void Game::SetCurrentTime() const
-{
+	m_future = !m_future;
+	renderer->SetTimelineState(m_future);
 }
