@@ -1,5 +1,6 @@
 #include "Constants.hlsli"
 #include "ComputeConstants.hlsli"
+#include "TimeSwitchFuncs.hlsli"
 
 float3 Tint(float3 color, float3 tintColor)
 {
@@ -66,22 +67,19 @@ float3 AcesTonemap(float3 color)
     return saturate(sRGBSpace);
 }
 
-cbuffer THRESHOLD_INFO_BUFFER : REGISTER_CBV_USER_0
+cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
 {
-    float luminanceThreshold;
-    float strength;
-    float minLuminance;
-    float time;
-};
+    float timeSinceSwitch;
+    float timeSwitchStartDuration;
+    float timeSwitchEndDuration;
+}
 
-cbuffer COLORGRADE_INFO_BUFFER : REGISTER_CBV_USER_1
+cbuffer COLORGRADE_INFO_BUFFER : REGISTER_CBV_COLORGRADE_INFO
 {
     float2 vignette; // x: Inner border radius, y: Vignette strength
     float2 contrast; // x: Contrast amount, y: Midpoint value
     float brightness; // Brightness offset
     float saturation; // Saturation value
-
-    float2 PADDING; // Padding (padding)
 };
 
 RWTexture2D<unorm float4> backBufferTexture : REGISTER_UAV_RENDER_TARGET;
@@ -94,11 +92,12 @@ void main( uint3 DTid : SV_DispatchThreadID )
     const uint3 texPos = uint3(DTid.xy, 0u);
     const float2 texUV = float2(texPos.xy) / BACK_BUFFER_RESOLUTION;
     
-    float effectDuration = .5f;
-    float effectEndDutation = 1.5f;
-    float switchInfluence = smoothstep(0.0f, effectDuration, time); // Goes to 1.
-    float switchEndInfluence = 1.0f - smoothstep(effectDuration, effectDuration + effectEndDutation, time); // Goes to 1.
-    float totalInflunce = switchInfluence * switchEndInfluence;
+    const float totalTimeSwitchInfluence =
+        TotalTimeSwitchInfluence(
+        timeSinceSwitch,
+        timeSwitchStartDuration,
+        timeSwitchEndDuration
+    );
     
     float3 color = renderTexture.Load(texPos).rgb + lumSumTexture.Load(texPos).rgb;
     
@@ -119,12 +118,13 @@ void main( uint3 DTid : SV_DispatchThreadID )
     
     color = AcesTonemap(color);
     
+    
     // Color stuff.
     if (true)
     {
         //color = Tint(color, lerp(1.0f.rrr, float3(0.0f, 0.0f, 2.0f), totalInflunce));
         //color = Brightness(color, lerp(brightness, 1.0f, totalInflunce));
-        color = Saturation(color, smoothstep(saturation, 0.0f, totalInflunce * 5.0f));
+        color = Saturation(color, smoothstep(saturation, 0.0f, totalTimeSwitchInfluence * 5.0f));
         //color = Saturation(color, saturation);
         color = Contrast(color, contrast.x, contrast.y);
     }
