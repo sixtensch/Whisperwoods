@@ -15,7 +15,7 @@ public:
 	Game();
 	~Game();
 
-	void Update(float deltaTime);
+	void Update(float deltaTime, Renderer* renderer);
 
 	void InitGame(Renderer* const renderer); // TODO: remove the need for renderer when generation is further progressed.
 	void DeInitGame();
@@ -23,6 +23,9 @@ public:
 	Player* GetPlayer();
 
 private:
+	void ChangeTimeline(bool future, Renderer* renderer);
+
+
 	std::unique_ptr<LevelHandler>	m_levelHandler;
 
 	shared_ptr<AudioSource> m_audioSource;
@@ -36,5 +39,7 @@ private:
 	cs::List<shared_ptr<Enemy>> m_enemies;
 	cs::List<shared_ptr<StaticObject>> m_staticObjects;
 
+
+	bool m_future;
 };
 
