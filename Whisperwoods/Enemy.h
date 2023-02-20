@@ -21,8 +21,8 @@ public:
 	void AddCoordinateToPatrolPath(Vec2 coord, bool enclosed);
 	void EmptyPatrolPath(); // In order to re-use enemies, wipe the patrol path and add a new one when player reaches a new room rather than creating a new Enemy object.
 	void AddModel(std::string modelResource, std::string animationsPath, Mat4 modelOffset);
-	bool SeesPlayer(Vec2 playerPosition, AudioSource &quack, Room &room);
-	
+	bool SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack);
+
 	bool m_enemyAlive; // A bool to know if we render/update the enemy or not
 
 	shared_ptr<MeshRenderableRigged> m_carcinian;
@@ -32,7 +32,8 @@ public:
 
 private:
 
-	void PlayEnemyActiveNoise();
+	void PlayEnemyActiveNoise(AudioSource& quack);
+
 
 	// move/rotation variables
 	//*****************************
