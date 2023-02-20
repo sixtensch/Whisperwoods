@@ -1420,10 +1420,18 @@ void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, c
 
 void RenderCore::WritePPFXThresholdInfo(const float luminanceThreshold, const float strength, const float minLuminance)
 {
+	static float time = 0.0f;
+	time += 0.01f;
+
+	float effectDuration = 0.5f;
+	float effectEndDutation = 1.5f;
+	if (time > (effectDuration + effectEndDutation + 4.0f))
+		time = 0.0f;
 	CB::PPFXThresholdInfo thresholdInfo = {
 		luminanceThreshold,
 		strength,
-		minLuminance
+		minLuminance,
+		time,
 	};
 
 	D3D11_MAPPED_SUBRESOURCE msr = {};

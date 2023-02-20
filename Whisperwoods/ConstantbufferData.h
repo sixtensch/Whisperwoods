@@ -45,8 +45,7 @@ namespace CB
 		float luminanceThreshold;
 		float strength;
 		float minLuminance;
-
-		float PADDING;
+		float time;
 	};
 
 	struct PPFXColorGradeInfo
@@ -57,6 +56,11 @@ namespace CB
 		float saturation;
 
 		Vec2 PADDING;
+	};
+
+	struct GameInfo
+	{
+		float deltaTime;
 	};
 }
 
