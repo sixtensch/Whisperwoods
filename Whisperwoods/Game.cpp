@@ -95,8 +95,6 @@ void Game::LoadTest()
 			Point2 bitPos = Point2(m_rooms[0]->m_levelResource->patrolsClosed[i].controlPoints[j]);
 			Vec3 enemyPos = m_rooms[0]->bitMapToWorldPos(bitPos);
 			m_enemies[0]->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
-			Point2 test = m_rooms[0]->worldToBitmapPoint(enemyPos);
-			enemyPos = Vec3(0, 0, 0);
 		}
 	}
 }
@@ -105,6 +103,8 @@ void Game::LoadGame(uint gameSeed)
 {
 	LevelFloor floor = {};
 	m_levelHandler->GenerateFloor(&floor);
+
+	for (int i = 0; )
 
 	Level& level = floor.rooms[0];
 	Renderer::LoadEnvironment(&level);
