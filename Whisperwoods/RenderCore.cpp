@@ -68,8 +68,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.MinDepth = 0;
 	m_shadowViewport.MaxDepth = 1;
-	m_shadowViewport.Width = shadowMapWidth;
-	m_shadowViewport.Height = shadowMapHeight;
+	m_shadowViewport.Width = (float)shadowMapWidth;
+	m_shadowViewport.Height = (float)shadowMapHeight;
 
 	// Setup back buffer
 

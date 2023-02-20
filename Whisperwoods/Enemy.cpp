@@ -384,10 +384,9 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, AudioSource& quack, Room &room)
 			Vec3 pointOnLineOfSightVector = transform.worldPosition + Vec3(playerDirection.x , 0.0f, playerDirection.y) * i;
 			//pointOnLineOfSightVector = pointOnLineOfSightVector * i;
 
-			LevelPixel bitmapPoint = room.sampleBitMap(Vec3(pointOnLineOfSightVector.x, 0.0f, pointOnLineOfSightVector.z));
-			if (bitmapPoint != 0) // If terrain is not passible
+			LevelPixelFlag bitmapPoint = room.sampleBitMap(Vec3(pointOnLineOfSightVector.x, 0.0f, pointOnLineOfSightVector.z)).flags;
+			if (bitmapPoint & LevelPixelFlagImpassable) // If terrain is not passible
 			{ 
-
 				m_seesPlayer = false;
 				break;
 			}
