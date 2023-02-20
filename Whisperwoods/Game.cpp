@@ -6,21 +6,22 @@
 #include "Resources.h"
 #include "Input.h"
 
-Game::Game()
-{
-	m_future = false;
-	m_stamina = 10.0f;
-}
+Game::Game() :
+	m_isInFuture(false),
+	m_isSwitching(false),
+	m_finishedCharging(false),
+	m_stamina(10.0f), 
+	m_switchVals({ 1.0f, 1.0f, 5.0f, 0.0f }) {}
 
-Game::~Game()
-{
-}
+Game::~Game() {}
 
 void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_player->Update(deltaTime);
 	m_floors[0]->rooms[0]->Update(deltaTime);
 	m_enemies[0]->Update(deltaTime);
+
+	Camera& cameraRef = renderer->GetCamera();
 	
 	for (int i = 0; i < m_staticObjects.Size(); i++)
 	{
@@ -31,17 +32,62 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
 
-	if (Input::Get().IsKeyPressed(KeybindPower))
+	// Time switch logic.
 	{
-		ChangeTimeline(renderer);
-	}
-	m_stamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_future;
+		static float initialCamFov = 0.0f;
+		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch())
+		{
+			m_isSwitching = true;
+			m_finishedCharging = false;
+			initialCamFov = cameraRef.GetFov();
+		}
 
+
+		if (m_isSwitching)
+		{
+			static float camFovScalar = 1.0f;
+			if (!ChargeIsDone())
+			{
+				camFovScalar += 0.002f;
+				cameraRef.SetFov(initialCamFov * camFovScalar);
+			}
+			else
+			{
+				if (!m_finishedCharging)
+				{
+					ChangeTimeline(renderer);
+					m_finishedCharging = true;
+					cameraRef.SetFov(initialCamFov);
+					camFovScalar = 1.0f;
+				}
+			}
+
+			if (!SwitchIsDone())
+			{
+				m_switchVals.timeSinceSwitch += deltaTime;
+			}
+			else
+			{
+				m_switchVals.timeSinceSwitch = 0.0f;
+				m_isSwitching = false;
+			}
+
+
+			UpdateTimeSwitchBuffers(renderer);
+		}
+	}
+	
+
+	
+
+	
+
+	m_stamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
 	
 	if ( m_stamina < 0.f )
 	{
 		/// D E A T H ///
-		ChangeTimeline(renderer);
+		//ChangeTimeline(renderer);
 	}
 }
 
@@ -157,6 +203,38 @@ Player* Game::GetPlayer()
 
 void Game::ChangeTimeline(Renderer* renderer)
 {
-	m_future = !m_future * (m_stamina > 0.f);
-	renderer->SetTimelineState(m_future);
+	m_isInFuture = !m_isInFuture;
+	renderer->SetTimelineState(m_isInFuture);
+}
+
+void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
+{
+	renderer->GetRenderCore()->WriteTimeSwitchInfo(
+		m_switchVals.timeSinceSwitch,
+		m_switchVals.chargeDuration,
+		m_switchVals.falloffDuration
+	);
+}
+
+bool Game::IsAllowedToSwitch()
+{
+	bool isAllowed = true;
+
+	// Not allowed if under cooldown.
+	isAllowed &= m_switchVals.timeSinceSwitch < m_switchVals.switchCooldown;
+
+	// Allowed if NOT currently charging.
+	isAllowed &= !m_isSwitching;
+
+	return isAllowed;
+}
+
+bool Game::ChargeIsDone()
+{
+	return m_switchVals.timeSinceSwitch >= m_switchVals.chargeDuration;
+}
+
+bool Game::SwitchIsDone()
+{
+	return m_switchVals.timeSinceSwitch >= (m_switchVals.chargeDuration + m_switchVals.falloffDuration);
 }

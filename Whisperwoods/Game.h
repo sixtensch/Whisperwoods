@@ -25,7 +25,12 @@ public:
 
 private:
 	void ChangeTimeline(Renderer* renderer);
+	void UpdateTimeSwitchBuffers(Renderer* renderer);
 
+	// Time switch functions
+	bool IsAllowedToSwitch();
+	bool ChargeIsDone();
+	bool SwitchIsDone();
 
 	std::unique_ptr<LevelHandler>	m_levelHandler;
 
@@ -41,7 +46,21 @@ private:
 	cs::List<shared_ptr<StaticObject>> m_staticObjects;
 
 private:
-	bool m_future;
+
+	// TODO: Might benefit of becoming more of a CLASS that HANDLES time switching.
+	struct TimeSwitchValues {
+		float chargeDuration;
+		float falloffDuration;
+		float switchCooldown;
+
+		float timeSinceSwitch;
+	};
+
+	bool m_isInFuture;
+	bool m_isSwitching; // Switching = state during whole duration of time switch
+	bool m_finishedCharging; // Charging = state during duration of charging eon key
 	float m_stamina;
+
+	TimeSwitchValues m_switchVals;
 };
 
