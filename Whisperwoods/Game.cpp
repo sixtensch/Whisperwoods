@@ -24,7 +24,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update(deltaTime);
-		m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_audioSource, *m_currentRoom);
+		m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource);
 	}
 	
 	for (int i = 0; i < m_staticObjects.Size(); i++)
