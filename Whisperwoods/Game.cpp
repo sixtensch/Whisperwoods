@@ -119,10 +119,15 @@ void Game::LoadRoom(Level* level)
 {
 	Mat4 roomMatrix =
 		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight) *
-		Mat::translation3(level->position.x, level->position.x, level->position.x)*
+		Mat::translation3(level->position.x, level->position.x - 0.01, level->position.x)*
 		level->rotation.Matrix();
 
-	m_currentRoom = shared_ptr<Room>(new Room(level, "room_walls_floor.wwm", roomMatrix));
+	Mat4 roomCylinderMatrix =
+		Mat::scale3( level->resource->worldWidth, 1.0f, level->resource->worldHeight ) *
+		Mat::translation3( level->position.x, level->position.x, level->position.x ) *
+		level->rotation.Matrix();
+
+	m_currentRoom = shared_ptr<Room>(new Room(level,"room_plane.wwm", "room_walls_floor.wwm", roomMatrix, roomCylinderMatrix ));
 	m_currentRoom->transform.rotation = Quaternion::GetEuler({ 0, 0, 0 });
 
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
