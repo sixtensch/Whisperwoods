@@ -118,9 +118,9 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		static Vec3 rotationVec = {};
 		if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
 		{
-			cs::Vec3 delta = Vec3( 0.0f, (float)mouseState.x, 0.0f );
+			cs::Vec3 delta = Vec3( 0.0f, (float)mouseState.x * delta_time, 0.0f );
 			//LOG_TRACE("Mouse state X: %d", mouseState.x);
-			transform.rotation = transform.rotation * Quaternion::GetEuler( delta * delta_time * 4 );
+			transform.rotation = transform.rotation * (Quaternion::GetEuler( delta ));
 		}
 
 		// Camera follow point calculation.

@@ -57,7 +57,7 @@ bool Sound::Init()
 {
 	succeededOrWarn("Failed to create FMOD system", FMOD::System_Create(&this->m_system));
 	succeededOrWarn("Failed to init FMOD system", m_system->init(512, FMOD_INIT_NORMAL, 0));
-	succeededOrWarn("Failed to set spatial settings", m_system->set3DSettings(1, 1000, 1));
+	succeededOrWarn("Failed to set spatial settings", m_system->set3DSettings(1.0f, 1.0f, 1.0f));
 	LOG("Initialized Sound");
 	return true;
 }
@@ -65,7 +65,7 @@ bool Sound::Init()
 FMOD::Sound* Sound::LoadSound(std::string filePath)
 {
 	FMOD::Sound* newSound;
-	bool success = succeededOrWarn("Failed to create new sound", m_system->createSound(filePath.c_str(), FMOD_LOOP_OFF + FMOD_3D, nullptr, &newSound));
+	bool success = succeededOrWarn("Failed to create new sound", m_system->createSound(filePath.c_str(), FMOD_LOOP_OFF + FMOD_3D_LINEARSQUAREROLLOFF, nullptr, &newSound));
 	if (success)
 		m_sounds.push_back(newSound);
 	return newSound;
@@ -73,7 +73,7 @@ FMOD::Sound* Sound::LoadSound(std::string filePath)
 
 bool Sound::LoadSound(const std::string filePath, FMOD::Sound*& sound)
 {
-	FMOD_RESULT result = m_system->createSound(filePath.c_str(), FMOD_LOOP_OFF + FMOD_3D, nullptr, &sound);
+	FMOD_RESULT result = m_system->createSound(filePath.c_str(), FMOD_LOOP_OFF + FMOD_3D_LINEARSQUAREROLLOFF, nullptr, &sound);
 	return result == FMOD_OK;
 }
 
@@ -110,9 +110,21 @@ FMOD::Channel* Sound::PlaySound(FMOD::Sound* sound, FMOD_VECTOR pos, FMOD_VECTOR
 
 	succeededOrWarn("Failed to play sound", m_system->playSound(sound, nullptr, false, &ch));
 	succeededOrWarn("Failed to set channel 3D Attributes", ch->set3DAttributes(&pos, &vel));
-	succeededOrWarn("Failed to set channel 3D Range", ch->set3DMinMaxDistance(1.0f, maxRange));
+	succeededOrWarn("Failed to set channel 3D Range", ch->set3DMinMaxDistance(0.1f, maxRange ));
 	return ch;
 }
+
+FMOD::Channel* Sound::PlaySound( FMOD::Sound* sound, FMOD_VECTOR pos, FMOD_VECTOR vel, float minRange, float maxRange, float mix2d3d )
+{
+	FMOD::Channel* ch;
+	m_channels.push_back( ch );
+	succeededOrWarn( "Failed to play sound", m_system->playSound( sound, nullptr, false, &ch ) );
+	succeededOrWarn( "Failed to set channel 3D Attributes", ch->set3DAttributes( &pos, &vel ) );
+	succeededOrWarn( "Failed to set channel 3D Attributes", ch->set3DLevel( mix2d3d ) );
+	succeededOrWarn( "Failed to set channel 3D Range", ch->set3DMinMaxDistance( minRange, maxRange ) );
+	return ch;
+}
+
 
 
 FMOD::Channel* Sound::PlaySound(FMOD::Sound* sound, FMOD::Channel* channel, FMOD_VECTOR pos, FMOD_VECTOR vel, float maxRange)
@@ -126,9 +138,22 @@ FMOD::Channel* Sound::PlaySound(FMOD::Sound* sound, FMOD::Channel* channel, FMOD
 
 	succeededOrWarn("Failed to play sound", m_system->playSound(sound, nullptr, false, &channel));
 	succeededOrWarn("Failed to set channel 3D Attributes", channel->set3DAttributes(&pos, &vel));
-	succeededOrWarn("Failed to set channel 3D Range", channel->set3DMinMaxDistance(1.0f, maxRange));
+	succeededOrWarn("Failed to set channel 3D Range", channel->set3DMinMaxDistance(0.1f, maxRange));
 	return channel;
 }
+
+FMOD::Channel* Sound::PlaySound( FMOD::Sound* sound, FMOD::Channel* channel, FMOD_VECTOR pos, FMOD_VECTOR vel, float minRange, float maxRange, float mix2d3d )
+{
+	FMOD::Channel* ch;
+	m_channels.push_back( ch );
+	succeededOrWarn( "Failed to play sound", m_system->playSound( sound, nullptr, false, &ch ) );
+	succeededOrWarn( "Failed to set channel 3D Attributes", ch->set3DAttributes( &pos, &vel ) );
+	succeededOrWarn( "Failed to set channel 3D Attributes", ch->set3DLevel( mix2d3d ) );
+	succeededOrWarn( "Failed to set channel 3D Range", ch->set3DMinMaxDistance( minRange, maxRange ) );
+	return ch;
+}
+
+
 
 void Sound::Update(FMOD_VECTOR lPos, FMOD_VECTOR listenerVel)
 {
@@ -136,6 +161,14 @@ void Sound::Update(FMOD_VECTOR lPos, FMOD_VECTOR listenerVel)
 	FMOD_VECTOR up = { 0,1,0 };
 	succeededOrWarn("Failed when trying to set 3d attributes", this->m_system->set3DListenerAttributes(0, &lPos, &listenerVel, &forw, &up));
 	succeededOrWarn("Failed when trying to tick FMOD", this->m_system->update());
+}
+
+void Sound::Update( FMOD_VECTOR lPos, FMOD_VECTOR listenerVel, FMOD_VECTOR lForward, FMOD_VECTOR lUp )
+{
+	FMOD_VECTOR forw = { 0,0,1 };
+	FMOD_VECTOR up = { 0,1,0 };
+	succeededOrWarn( "Failed when trying to set 3d attributes", this->m_system->set3DListenerAttributes( 0, &lPos, &listenerVel, &lForward, &lUp ) );
+	succeededOrWarn( "Failed when trying to tick FMOD", this->m_system->update() );
 }
 
 void Sound::Update()

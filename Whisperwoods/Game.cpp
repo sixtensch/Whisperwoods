@@ -51,24 +51,17 @@ void Game::Update(float deltaTime, Renderer* renderer)
 void Game::Init()
 {
 	// Audio test startup
-
 	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
+
 	m_audioSource->Play();
 
-
-
 	// Level handling
-
 	m_levelHandler = std::make_unique<LevelHandler>();
 	m_levelHandler->LoadFloors();
 
-
-
 	// In-world objects and entities
-
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
-
 	m_directionalLight = Renderer::GetDirectionalLight();
 	m_directionalLight->transform.position = { 0, 10, 0 };
 	m_directionalLight->transform.SetRotationEuler({ -dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
@@ -129,7 +122,7 @@ void Game::LoadRoom(Level* level)
 		Mat::translation3(level->position.x, level->position.x, level->position.x)*
 		level->rotation.Matrix();
 
-	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", roomMatrix));
+	m_currentRoom = shared_ptr<Room>(new Room(level, "room_walls_floor.wwm", roomMatrix));
 	m_currentRoom->transform.rotation = Quaternion::GetEuler({ 0, 0, 0 });
 
 	Renderer::LoadEnvironment(m_currentRoom->m_level);

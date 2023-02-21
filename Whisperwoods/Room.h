@@ -6,6 +6,8 @@
 #include "Renderer.h"
 #include "CHSL/Vector.h"
 #include "Level.h"
+#include "AudioSource.h"
+#include "Sound.h"
 
 class Room : public GameObject
 {
@@ -14,6 +16,13 @@ public:
 	Mat4 m_modelOffset;
 	ModelStaticResource* m_modelResource;
 	shared_ptr<MeshRenderableStatic> m_renderable;
+
+	cs::List<shared_ptr<AudioSource>> m_ambianceSources;
+
+	// Might have to move
+	Mat4 m_wallsFloorOffset;
+	ModelStaticResource* m_roomWallsAndFloor;
+	shared_ptr<MeshRenderableStatic> m_wallsAndFloorRenderable;
 
 	const Level* m_level;
 	const LevelResource* m_levelResource;
