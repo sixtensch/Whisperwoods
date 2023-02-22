@@ -96,18 +96,19 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		if (Input::Get().IsKeybindDown( KeybindRight ))		inputVector += right;
 		if (Input::Get().IsKeybindDown( KeybindLeft ))		inputVector -= right;
 		float walkRunMultiplier = ((Input::Get().IsKeybindDown( KeybindSprint )) ? m_runSpeed : m_walkSpeed);
-		m_targetVelocity = (inputVector)*walkRunMultiplier;
+		m_targetVelocity = Vec3( inputVector.x * walkRunMultiplier, inputVector.y * walkRunMultiplier, inputVector.z * walkRunMultiplier );
 
 		if (m_targetVelocity.Length() > m_runSpeed)
 		{
-			m_targetVelocity.Normalize();
+			m_targetVelocity = m_targetVelocity.Normalize();
 			m_targetVelocity *= m_runSpeed;
 		}
+
 		m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * delta_time);
 
-		if (m_stamina < 0.1f)
+		if (m_stamina < 0.1f && m_targetVelocity.Length() > 0.0f)
 		{
-			m_targetVelocity.Normalize();
+			m_targetVelocity = m_targetVelocity.Normalize();
 			m_targetVelocity *= m_walkSpeed;
 		}
 
@@ -126,7 +127,19 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			converted *= m_runSpeed;
 		}
 
-		m_velocity = Lerp( m_velocity, m_targetVelocity-converted, delta_time * movementMultiplier );
+		Vec3 targetWithCollision = m_targetVelocity - converted;
+
+		if (!std::isnan( targetWithCollision.x ) && !std::isnan( targetWithCollision.y ) && !std::isnan( targetWithCollision.z ))
+		{
+			m_velocity = Lerp( m_velocity, m_targetVelocity-converted, delta_time * movementMultiplier );
+		}
+		else
+		{
+			LOG_WARN( "Velocity target was NAN: m_targetVelocity: %f %f %f - converted: %f %f %f", 
+				m_targetVelocity.x, m_targetVelocity.y, m_targetVelocity.z,
+				converted.x, converted.y, converted.z	
+			);
+		}
 
 		if (transform.parent != nullptr)
 		{
@@ -187,11 +200,8 @@ void Player::Update(float delta_time)
 			m_animationSpeed = 0;
 	}
 
-
 	m_stamina = cs::fclamp(m_stamina + (1.0f * delta_time), 0.05f, m_maxStamina);
-
 	characterAnimator->playbackSpeed = m_animationSpeed;
-
 	characterAnimator->Update( delta_time );
 	transform.CalculateWorldMatrix();
 	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
