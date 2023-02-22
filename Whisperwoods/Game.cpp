@@ -17,7 +17,8 @@ Game::Game() :
 	m_switchVals({ 1.0f, 0.5f, 3.0f, 0.0f }),
 	m_detectionLevelGlobal(0.0f),
 	m_detectionLevelFloor(0.0f),
-	m_camFovChangeSpeed(cs::c_pi / 4.0f)
+	m_camFovChangeSpeed(cs::c_pi / 4.0f),
+	m_reachedLowestStamina(false)
 {}
 
 Game::~Game() {}
@@ -26,13 +27,34 @@ void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_player->Update(deltaTime);
 	m_currentRoom->Update(deltaTime);
+	bool isSeen = false;
 
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update(deltaTime);
 		if (m_enemies[i]->m_carcinian->enabled == true)
 		{
-			m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource);
+			if (m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource) == true)
+			{
+				isSeen = true;
+			}
+		}
+	}
+	if (isSeen == true)
+	{
+		m_timeUnseen = 0.0f;
+		if (IsDetected(deltaTime))
+		{
+			// game over
+			m_player->characterModel->enabled = false;
+		}
+	}
+	else
+	{
+		m_timeUnseen += deltaTime;
+		if (m_timeUnseen > m_timeBeforeDetectionLowers)
+		{
+			LowerToFloor(deltaTime);
 		}
 	}
 
@@ -47,15 +69,24 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	// Time switch logic.
 	{
 		static float initialCamFov;
-		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch())
+		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch() && m_reachedLowestStamina == false)  
 		{
 			m_isSwitching = true;
 			m_finishedCharging = false;
 			initialCamFov = cameraRef.GetFov();
 		}
 
+		if (m_reachedLowestStamina == true && m_forcedBackToPresent == false)
+		{
+			m_isSwitching = true;
+			m_finishedCharging = false;
+			initialCamFov = cameraRef.GetFov();
+			m_forcedBackToPresent = true;
+		}
+		
+
 		static float totalFovDelta = 0.0f;
-		if (m_isSwitching)
+		if (m_isSwitching )
 		{
 			if (!ChargeIsDone())
 			{
@@ -117,11 +148,15 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 	m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
 	
-	if ( m_maxStamina < 0.f )
+	if ( m_maxStamina < 1.0f ) // DO NOT CHANGE THIS
 	{
-		m_maxStamina = 0.0f;
+		m_maxStamina = 1.0f; // DO NOT CHANGE THIS
+		
 		/// D E A T H ///
-		//ChangeTimeline(renderer);
+		if (m_reachedLowestStamina == false )
+		{
+			m_reachedLowestStamina = true;
+		}
 	}
 }
 
@@ -248,6 +283,31 @@ void Game::LoadRoom(Level* level)
 
 void Game::UnloadRoom()
 {
+}
+
+bool Game::IsDetected(float deltaTime)
+{
+	m_detectionLevelGlobal += m_detectionRate * deltaTime;
+	m_detectionLevelFloor += (m_detectionRate / 4) * deltaTime;
+
+	if (m_detectionLevelGlobal >= 1.0f)
+	{
+		return true; //game over
+	}
+
+	return false; // game is not over
+}
+
+void Game::LowerToFloor(float deltaTime)
+{
+	if (m_detectionLevelGlobal > m_detectionLevelFloor)
+	{
+		m_detectionLevelGlobal -= (m_detectionRate / 2) * deltaTime;
+	}
+	if (m_detectionLevelGlobal < m_detectionLevelFloor)
+	{
+		m_detectionLevelGlobal = m_detectionLevelFloor;
+	}
 }
 
 void Game::ChangeTimeline(Renderer* renderer)

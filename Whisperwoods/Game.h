@@ -37,6 +37,9 @@ private:
 	bool SwitchIsDone();
 	void LoadRoom(Level* level);
 	void UnloadRoom();
+	bool IsDetected(float deltaTime);
+	void LowerToFloor(float deltaTime);
+
 
 private:
 	std::unique_ptr<LevelHandler>	m_levelHandler;
@@ -73,8 +76,13 @@ private:
 
 	float m_detectionLevelGlobal;
 	float m_detectionLevelFloor;
-
+	bool m_reachedLowestStamina;
 	float m_camFovChangeSpeed;
+
+	const float m_detectionRate = 0.2;
+	const float m_timeBeforeDetectionLowers = 10.0f; //in seconds
+	float m_timeUnseen = 0.0f; // for determining when to derease global detection
+	bool m_forcedBackToPresent = false;
 
 	TimeSwitchValues m_switchVals;
 };

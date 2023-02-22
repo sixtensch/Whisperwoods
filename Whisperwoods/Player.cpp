@@ -103,6 +103,8 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			m_targetVelocity *= m_walkSpeed;
 		}
 
+		
+
 		Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
 		if (m_velocity.Length() > m_runSpeed)
 		{
@@ -182,6 +184,7 @@ void Player::Update(float delta_time)
 
 
 	m_stamina = cs::fclamp(m_stamina + (1.0f * delta_time), 0, m_maxStamina);
+
 
 	characterAnimator->playbackSpeed = m_animationSpeed;
 
