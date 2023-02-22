@@ -40,6 +40,11 @@ private:
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
 
+	cs::List<shared_ptr<MeshRenderableStatic>> m_testRenderables;
+	int m_testRep;
+	int m_testCount;
+	uint m_testSeed;
+
 	// Current room data
 	cs::List<shared_ptr<PointLight>> m_pointLights;
 	cs::List<shared_ptr<SpotLight>> m_spotLights;

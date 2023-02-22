@@ -46,6 +46,8 @@ public:
 	shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
 	shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin);
 
+	void DestroyMeshStatic(shared_ptr<MeshRenderableStatic> renderable);
+
 	void SetTimelineStateCurrent();
 	void SetTimelineStateFuture();
 

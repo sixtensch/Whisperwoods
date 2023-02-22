@@ -13,7 +13,7 @@ public:
 	LevelHandler(LevelHandler&&) = delete;
 
 	void LoadFloors();
-	void GenerateFloor(LevelFloor* outFloor);
+	void GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount, int rep);
 	void GenerateTestFloor(LevelFloor* outFloor);
 
 private:

@@ -29,7 +29,7 @@ void LevelHandler::LoadFloors()
 	}
 }
 
-void LevelHandler::GenerateFloor(LevelFloor* outFloor)
+void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount, int rep)
 {
 	LevelFloor& f = *outFloor;
 	f = LevelFloor{};
@@ -37,17 +37,61 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor)
 	f.startRoom = 0;
 	f.startPosition = Vec3(0, 0, 0);
 
+	struct RoomPrimer
+	{
+		cs::List<uint> connections;
+		Vec2 position;
+		Vec2 push;
+	};
+
+	cs::List<RoomPrimer> rooms;
+
 
 
 	// Add a level
 
-	f.rooms.Add({});
-	Level& l = f.rooms.Back();
+	cs::Random r(seed);
 
-	cs::Random r;
-	
-	l.resource = m_resources[0].get();
-	Environmentalize(l, r);
+	// Generate
+	for (uint i = 0; i < roomCount; i++)
+	{
+		rooms.Add({ {}, { r.Getf(-5.0f, 5.0f), r.Getf(-5.0f, 5.0f) }, {} });
+	}
+
+	// Push apart
+	for (int repetitions = 0; repetitions < rep; repetitions++)
+	{
+		for (uint i = 0; i < roomCount; i++)
+		{
+			rooms[i].push = { 0, 0 };
+
+			for (uint j = 0; j < roomCount; j++)
+			{
+				if (i == j)
+				{
+					continue;
+				}
+
+				Vec2 direction = rooms[j].position - rooms[i].position;
+				rooms[i].push += direction.Normalized() / cs::fmax(direction.LengthSq(), 0.3f);
+			}
+		}
+
+		for (uint i = 0; i < roomCount; i++)
+		{
+			rooms[i].position += rooms[i].push * -0.5f;
+		}
+	}
+
+	for (RoomPrimer p : rooms)
+	{
+		f.rooms.Add({});
+		Level& l = f.rooms.Back();
+
+		//l.resource =
+		l.position = p.position;
+		l.connections.MassAdd(p.connections.Data(), p.connections.Size(), true);
+	}
 }
 
 void LevelHandler::GenerateTestFloor(LevelFloor* outFloor)

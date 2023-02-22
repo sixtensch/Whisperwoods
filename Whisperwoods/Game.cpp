@@ -6,6 +6,8 @@
 #include "Resources.h"
 #include "Input.h"
 
+#include <imgui.h>
+
 Game::Game()
 {
 	m_future = false;
@@ -46,6 +48,46 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		/// D E A T H ///
 		ChangeTimeline(renderer);
 	}
+
+
+	if (ImGui::Begin("Map Debugger"))
+	{
+		ImGui::InputInt("Room Count", &m_testCount);
+		ImGui::InputInt("Separation Steps", &m_testRep);
+		bool gen = false;
+		if (ImGui::Button("Generate"))
+		{
+			gen = true;
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Generate New"))
+		{
+			gen = true;
+			m_testSeed++;
+		}
+
+		if (gen)
+		{
+			LevelFloor f;
+			m_levelHandler->GenerateFloor(&f, m_testSeed, m_testCount, m_testRep);
+
+			for (int i = 0; i < m_testRenderables.Size(); i++)
+			{
+				Renderer::DestroyMeshStatic(m_testRenderables[i]);
+			}
+
+			m_testRenderables.Clear();
+
+			for (int i = 0; i < f.rooms.Size(); i++)
+			{
+				Level& l = f.rooms[i];
+				m_testRenderables.Add(Renderer::CreateMeshStatic("ShadiiTest.wwm"));
+				m_testRenderables.Back()->worldMatrix = Mat::translation3(l.position.x * 0.5f, 3, l.position.y * 0.5f) * Mat::scale3(0.5f);
+			}
+		}
+	}
+	ImGui::End();
 }
 
 void Game::Init()
