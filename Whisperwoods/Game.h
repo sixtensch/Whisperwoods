@@ -29,7 +29,12 @@ public:
 
 private:
 	void ChangeTimeline(Renderer* renderer);
+	void UpdateTimeSwitchBuffers(Renderer* renderer);
 
+	// Time switch functions
+	bool IsAllowedToSwitch();
+	bool ChargeIsDone();
+	bool SwitchIsDone();
 	void LoadRoom(Level* level);
 	void UnloadRoom();
 
@@ -50,7 +55,24 @@ private:
 	LevelFloor m_floor;
 	shared_ptr<Room> m_currentRoom;
 
-	bool m_future;
+private:
+
+	// TODO: Might benefit of becoming more of a CLASS that HANDLES time switching.
+	struct TimeSwitchValues {
+		float chargeDuration;
+		float falloffDuration;
+		float switchCooldown;
+
+		float timeSinceSwitch;
+	};
+
+	bool m_isInFuture;
+	bool m_isSwitching; // Switching = is true during whole duration (start + end) of time switch.
+	bool m_finishedCharging; // Charging = only first part of whole duration (start)
 	float m_stamina;
+
+	float m_camFovChangeSpeed;
+
+	TimeSwitchValues m_switchVals;
 };
 

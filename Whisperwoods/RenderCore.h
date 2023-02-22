@@ -77,6 +77,12 @@ public:
 		const float saturation
 	);
 
+	void WriteTimeSwitchInfo(
+		float timeSinceSwitch,
+		float chargeDuration,
+		float falloffDuration
+	);
+
 	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 origin);
 
 	void DrawPPFX();

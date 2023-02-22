@@ -1257,7 +1257,7 @@ void RenderCore::InitConstantBuffers()
 		m_constantBuffers.ppfxThresholdInfo.GetAddressOf()
 	));
 
-	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVUser0, 1, m_constantBuffers.ppfxThresholdInfo.GetAddressOf()));
+	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVThresholdInfo, 1, m_constantBuffers.ppfxThresholdInfo.GetAddressOf()));
 
 
 	// Color grade info
@@ -1270,7 +1270,19 @@ void RenderCore::InitConstantBuffers()
 		m_constantBuffers.ppfxColorGradeInfo.GetAddressOf()
 	));
 
-	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVUser1, 1, m_constantBuffers.ppfxColorGradeInfo.GetAddressOf()));
+	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVColorgradeInfo, 1, m_constantBuffers.ppfxColorGradeInfo.GetAddressOf()));
+
+	// Time switch info
+
+	desc.ByteWidth = sizeof(CB::TimeSwitchInfo);
+
+	EXC_COMCHECK(m_device->CreateBuffer(
+		&desc,
+		nullptr,
+		m_constantBuffers.timeSwitchInfo.GetAddressOf()
+	));
+
+	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVTimeSwitchInfo, 1, m_constantBuffers.timeSwitchInfo.GetAddressOf()));
 }
 
 void RenderCore::InitLightBuffers()
@@ -1445,5 +1457,19 @@ void RenderCore::WritePPFXColorgradeInfo(const Vec2 vignetteBorderAndStrength, c
 	EXC_COMCHECK(m_context->Map(m_constantBuffers.ppfxColorGradeInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
 	memcpy(msr.pData, &colorGradeInfo, sizeof(CB::PPFXColorGradeInfo));
 	EXC_COMINFO(m_context->Unmap(m_constantBuffers.ppfxColorGradeInfo.Get(), 0u));
+}
+
+void RenderCore::WriteTimeSwitchInfo(float timeSinceSwitch, float chargeDuration, float falloffDuration)
+{
+	CB::TimeSwitchInfo timeSwitchInfo = {
+		timeSinceSwitch,
+		chargeDuration,
+		falloffDuration
+	};
+
+	D3D11_MAPPED_SUBRESOURCE msr = {};
+	EXC_COMCHECK(m_context->Map(m_constantBuffers.timeSwitchInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+	memcpy(msr.pData, &timeSwitchInfo, sizeof(CB::TimeSwitchInfo));
+	EXC_COMINFO(m_context->Unmap(m_constantBuffers.timeSwitchInfo.Get(), 0u));
 }
 
