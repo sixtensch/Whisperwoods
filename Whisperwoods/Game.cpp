@@ -9,6 +9,7 @@
 
 Game::Game() :
 	m_floor(),
+	m_isHubby( false ),
 	m_currentRoom(nullptr),
 	m_isInFuture(false),
 	m_isSwitching(false),
@@ -104,13 +105,10 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		ImGui::DragFloat( "Detection Level Global", &m_detectionLevelGlobal, 0.1f, 0.0f, 1.0f );
 ;		//ImGui::Text( "Detection level global: %f", m_detectionLevelGlobal );
 		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
-
 		ImGui::Checkbox( "Future", &m_isInFuture );
 	}
 	ImGui::End();
 #endif
-
-	
 
 	m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
 	
@@ -158,30 +156,38 @@ void Game::DeInit()
 	}
 }
 
+void Game::LoadHubby()
+{
+	m_levelHandler->GenerateHubby( &m_floor );
+	LoadRoom( &m_floor.rooms[0] );
+	Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
+	Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
+	Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
+	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = true;
+}
+
 void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor);
-
 	LoadRoom(&m_floor.rooms[0]);
-
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = false;
 }
 
 void Game::LoadGame(uint gameSeed)
 {
 	m_levelHandler->GenerateTestFloor(&m_floor);
-
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
-
 	m_player->transform.position = m_floor.startPosition;
-
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = false;
 }
 
 Player* Game::GetPlayer()
@@ -193,7 +199,7 @@ void Game::LoadRoom(Level* level)
 {
 	Mat4 roomMatrix =
 		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight) *
-		Mat::translation3(level->position.x, level->position.x - 0.01, level->position.x)*
+		Mat::translation3(level->position.x, level->position.x + 0.01f, level->position.x)*
 		level->rotation.Matrix();
 
 	Mat4 roomCylinderMatrix =

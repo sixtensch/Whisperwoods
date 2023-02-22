@@ -128,7 +128,7 @@ void Whisperwoods::Run()
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
 	m_game->Init();
-	m_game->LoadTest();
+	m_game->LoadHubby();
 
 
 	int frames = 0;
