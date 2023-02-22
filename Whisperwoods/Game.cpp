@@ -146,7 +146,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 	
 
-	m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
+	m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging;
 	
 	if ( m_maxStamina < 1.0f ) // DO NOT CHANGE THIS
 	{
@@ -288,7 +288,7 @@ void Game::UnloadRoom()
 bool Game::IsDetected(float deltaTime)
 {
 	m_detectionLevelGlobal += m_detectionRate * deltaTime;
-	m_detectionLevelFloor += (m_detectionRate / 4) * deltaTime;
+	m_detectionLevelFloor += (m_detectionRate / 3) * deltaTime;
 
 	if (m_detectionLevelGlobal >= 1.0f)
 	{
