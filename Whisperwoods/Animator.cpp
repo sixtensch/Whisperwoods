@@ -133,13 +133,14 @@ Quaternion AnimatorAnimation::GetInterpolatedValue( cs::List<QuatKeyFrame> keys,
 	}
 }
 
-Animator::Animator(ModelRiggedResource* modelReference) : modelReference(modelReference)
+Animator::Animator(ModelRiggedResource* modelReference, shared_ptr<MeshRenderableRigged> p_instanceReference) : modelReference(modelReference)
 {
 	// Add tracking channels for all bones (possible optimization target vector)
 	for (int i = 0; i < modelReference->armature.bones.Size(); i++)
 	{
 		combinedChannels.Add(AnimatorCombinedChannel(modelReference->armature.bones[i].name));
 	}
+	instanceReference = p_instanceReference;
 	looping = true;
 	minInfluenceThreshold = 0.1f;
 	playbackSpeed = 1;
@@ -275,11 +276,13 @@ void Animator::UpdateArmature()
 		modelMatrixList.Add(DirectX::XMFLOAT4X4());
 	}
 
-	modelReference->armature.boneMatricies.Clear();
+	modelReference->armature.boneMatricies.Clear(); // TODO: Remove
+	instanceReference->instanceBoneMatricies.Clear();
 	for (int i = 0; i < modelReference->armature.bones.Size(); i++)
 	{
 		DirectX::XMFLOAT4X4 mat;
-		modelReference->armature.boneMatricies.Add(mat);
+		modelReference->armature.boneMatricies.Add(mat); // TODO: Remove
+		instanceReference->instanceBoneMatricies.Add(mat);
 	}
 
 	Bone* rootBone = &modelReference->armature.bones[0];
@@ -297,7 +300,8 @@ void Animator::UpdateArmature()
 	rootFinalXM = DirectX::XMMatrixMultiply(globalInverseXM, rootFinalXM);
 	DirectX::XMStoreFloat4x4(&rootBone->posedMatrix, rootFinalXM);
 	DirectX::XMStoreFloat4x4(&modelMatrixList[0], rootModelXM);
-	modelReference->armature.boneMatricies[0] = rootBone->posedMatrix;
+	modelReference->armature.boneMatricies[0] = rootBone->posedMatrix; // TODO: Remove
+	instanceReference->instanceBoneMatricies[0] = rootBone->posedMatrix;
 
 	for (int i = 1; i < combinedChannels.Size(); i++)
 	{
@@ -317,7 +321,8 @@ void Animator::UpdateArmature()
 		boneFinalXM = DirectX::XMMatrixMultiply(globalInverseXM, boneFinalXM);
 		DirectX::XMStoreFloat4x4(&bone->posedMatrix, boneFinalXM);
 		DirectX::XMStoreFloat4x4(&modelMatrixList[i], boneModelXM);
-		modelReference->armature.boneMatricies[i] = bone->posedMatrix;
+		modelReference->armature.boneMatricies[i] = bone->posedMatrix; // TODO:Remove
+		instanceReference->instanceBoneMatricies[i] = bone->posedMatrix;
 	}
 }
 

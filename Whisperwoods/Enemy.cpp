@@ -31,7 +31,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 
 	m_carcinian = Renderer::CreateMeshRigged(modelResource);
 	//FBXImporter importer;
-	m_characterAnimator = std::make_unique<Animator>((ModelRiggedResource*)Resources::Get().GetResource(ResourceTypeModelRigged, "Carcinian_Animated.wwm"));
+	m_characterAnimator = std::make_unique<Animator>((ModelRiggedResource*)Resources::Get().GetResource(ResourceTypeModelRigged, "Carcinian_Animated.wwm"), m_carcinian);
 	
 
 
@@ -513,38 +513,38 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack)
 		}
 
 	}
-	PlayEnemyActiveNoise(quack);
+	//PlayEnemyActiveNoise(quack);
 
 	return m_seesPlayer; 
 }
 
 void Enemy::PlayEnemyActiveNoise(AudioSource& quack)
 {
-	if (m_characterAnimator->IsPlaying(0)) //run/walk animation
-	{
-		quack.Stop();
-		//if(sound is not playing for this animation
-			//play sound
-	}
-	else if (m_characterAnimator->IsPlaying(1)) //alert animation
-	{
-		
-		if (quack.IsPlaying() == false) // audio cue
-		{
-			quack.Play();
-		}
-	}
-	else if (m_characterAnimator->IsPlaying(2))  //idle animation
-	{
-		quack.Stop();
-		//if(sound is not playing for this animation
-			//play sound
-	}
-	else if (m_characterAnimator->IsPlaying(3)) //180 degree turn animation
-	{
-		quack.Stop();
-		//if(sound is not playing for this animation
-			//play sound
-	}
+	//if (m_characterAnimator->IsPlaying(0)) //run/walk animation
+	//{
+	//	quack.Stop();
+	//	//if(sound is not playing for this animation
+	//		//play sound
+	//}
+	//else if (m_characterAnimator->IsPlaying(1)) //alert animation
+	//{
+	//	
+	//	if (quack.IsPlaying() == false) // audio cue
+	//	{
+	//		quack.Play();
+	//	}
+	//}
+	//else if (m_characterAnimator->IsPlaying(2))  //idle animation
+	//{
+	//	quack.Stop();
+	//	//if(sound is not playing for this animation
+	//		//play sound
+	//}
+	//else if (m_characterAnimator->IsPlaying(3)) //180 degree turn animation
+	//{
+	//	quack.Stop();
+	//	//if(sound is not playing for this animation
+	//		//play sound
+	//}
 }
 

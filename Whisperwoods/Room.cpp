@@ -2,6 +2,7 @@
 #include "Room.h"
 #include "LevelImporter.h"
 #include "Resources.h"
+#include "SoundResource.h"
 
 
 Room::Room(const Level* level, std::string modelResource, Mat4 modelOffset)
@@ -9,7 +10,26 @@ Room::Room(const Level* level, std::string modelResource, Mat4 modelOffset)
 	m_level = level;
 	m_levelResource = level->resource;
 
-	Resources& resources = Resources::Get();
+	//// Add ambiance sounds around the room
+	//Resources& resources = Resources::Get();
+	//int numSounds = 3;
+	//float radius = m_levelResource->worldWidth / 2.0f;
+	//for (int i = 0; i < numSounds; i++)
+	//{
+	//	float angle = ((cs::c_pi * 2.0f) / numSounds) * (float)i;
+
+	//	Vec3 pos( cos( angle ), 0.0f, sin( angle ) );
+	//	pos = pos * radius*1.5f;
+	//	pos.y = 8.0f;
+	//	std::string soundName = "Jungle_AmbianceLoop0" + std::to_string( (i+1)%6 ) + ".wav";
+	//	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource( ResourceTypeSound, soundName ))->currentSound;
+	//	shared_ptr<AudioSource> audioSource = make_shared<AudioSource>( pos, 0.5f, 1.0f, 0.0f, radius*3.0f, soundPtr );
+	//	audioSource->mix2d3d = 0.75f;
+	//	audioSource->loop = true;
+	//	audioSource->Play();
+	//	//this->AddChild( audioSource.get() );
+	//	m_ambianceSources.Add( audioSource );
+	//}
 
 	m_renderable = Renderer::CreateMeshStatic(modelResource);
 	m_modelOffset = modelOffset;
@@ -18,13 +38,62 @@ Room::Room(const Level* level, std::string modelResource, Mat4 modelOffset)
 	m_material = MaterialResource();
 	m_material.specular = Vec3(0.5f, 0.5f, 0.5f);
 	m_material.textureDiffuse = level->resource->source;
-	m_renderable->Materials().AddMaterial(&m_material);
+	m_renderable->Materials().AddMaterial( &m_material );
 }
+
+Room::Room( const Level* level, std::string modelResource, std::string modelResource2, Mat4 modelOffset, Mat4 modelOffset2 )
+{
+	m_level = level;
+	m_levelResource = level->resource;
+
+
+	// Add ambiance sounds around the room
+	Resources& resources = Resources::Get();
+	int numSounds = 3;
+	float radius = m_levelResource->worldWidth / 2.0f;
+	for (int i = 0; i < numSounds; i++)
+	{
+		float angle = ((cs::c_pi * 2.0f) / numSounds) * (float)i;
+
+		Vec3 pos( cos( angle ), 0.0f, sin( angle ) );
+		pos = pos * radius * 1.5f;
+		pos.y = 8.0f;
+		std::string soundName = "Jungle_AmbianceLoop0" + std::to_string( (i + 1) % 6 ) + ".wav";
+		FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource( ResourceTypeSound, soundName ))->currentSound;
+		shared_ptr<AudioSource> audioSource = make_shared<AudioSource>( pos, 0.5f, 1.0f, 0.0f, radius * 3.0f, soundPtr );
+		audioSource->mix2d3d = 0.75f;
+		audioSource->loop = true;
+		audioSource->Play();
+		//this->AddChild( audioSource.get() );
+		m_ambianceSources.Add( audioSource );
+	}
+
+	// Plane
+	m_renderable = Renderer::CreateMeshStatic( modelResource );
+	m_modelOffset = modelOffset;
+	m_renderable->worldMatrix = m_modelOffset;
+	m_material = MaterialResource();
+	m_material.specular = Vec3( 0.5f, 0.5f, 0.5f );
+	m_material.textureDiffuse = level->resource->source;
+	m_renderable->Materials().AddMaterial( &m_material );
+	
+	
+	// Cylinder thing
+	m_wallsFloorOffset = modelOffset2;
+	ModelStaticResource* m_roomWallsAndFloor;
+	m_wallsAndFloorRenderable = Renderer::CreateMeshStatic( modelResource2 );
+	m_wallsAndFloorRenderable->worldMatrix = modelOffset2;
+	m_wallsAndFloorRenderable->Materials().AddMaterial( (const MaterialResource*)Resources::Get().GetResource( ResourceTypeMaterial, "TestSceneBigTree.wwmt" ) );
+	m_wallsAndFloorRenderable->Materials().AddMaterial( (const MaterialResource*)Resources::Get().GetResource( ResourceTypeMaterial, "TestSceneGround.wwmt" ) );
+
+}
+
 
 void Room::Update(float deltaTime)
 {
 	transform.CalculateWorldMatrix();
 	m_renderable->worldMatrix = transform.worldMatrix * m_modelOffset;
+	m_wallsAndFloorRenderable->worldMatrix = transform.worldMatrix * m_wallsFloorOffset;
 }
 
 Point2 Room::worldToBitmapPoint(Vec3 worldPos)

@@ -70,6 +70,10 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//cs::List<int> planeIndicies = { 0,1,3,0,3,2 };
 	//BuildWWM(planeVerts, planeIndicies, "room_plane");
 
+	BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
+
+
+
 	m_sound = std::make_unique<Sound>();
 	m_debug->CaptureSound(m_sound.get());
 
@@ -149,7 +153,23 @@ void Whisperwoods::Run()
 		//patrolEnemy.Update(dTime);
 
 		m_game->Update(dTime, m_renderer.get());
-		m_sound->Update();
+
+		Camera& camera = Renderer::GetCamera();
+		Quaternion rotation = camera.GetRotation();
+		rotation = rotation.Conjugate();
+		Vec3 forward( 0, 0, 1 );
+		forward = rotation * forward;
+		forward.Normalize();
+		Vec3 up( 0, 1, 0 );
+		up = rotation * up;
+		up.Normalize();
+
+		Vec3 cPos = camera.GetPosition();
+		FMOD_VECTOR listenerPos = { cPos.x, cPos.y, cPos.z };
+		FMOD_VECTOR listenerForward = { forward.x,  forward.y,  forward.z };
+		FMOD_VECTOR listenerVelocity = {0,0,0};
+		FMOD_VECTOR listenerUp = { up.x, up.y, up.z };
+		m_sound->Update( listenerPos, listenerVelocity, listenerForward, listenerUp );
 		
 		// Draw step
 		m_renderer->Draw();
@@ -164,6 +184,8 @@ void Whisperwoods::Run()
 
 		m_renderer->Present();
 	}
+
+	m_game->DeInit();
 }
 
 Vec3 Lerp(Vec3 a, Vec3 b, float t)
