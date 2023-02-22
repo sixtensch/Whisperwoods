@@ -321,6 +321,16 @@ void RenderHandler::LoadEnvironment(const Level* level)
 	m_renderCore->CreateInstanceBuffer(nullptr, instanceCount * sizeof(Mat4), &m_envInstanceBuffer);
 }
 
+void RenderHandler::UnLoadEnvironment()
+{
+	m_envInstances.Clear( false );
+	for (uint i = 0; i < LevelAssetCount; i++)
+	{
+		m_envMeshes[i].hotInstances.Clear( false );
+	}
+	m_worldRenderables.Clear();
+}
+
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
 {
 	Resources& resources = Resources::Get();

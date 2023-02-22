@@ -25,9 +25,17 @@ Game::~Game() {}
 
 void Game::Update(float deltaTime, Renderer* renderer)
 {
-	m_player->Update(deltaTime);
-	m_currentRoom->Update(deltaTime);
+	// Always do the following:
+	Camera& cameraRef = renderer->GetCamera();
 
+	// Player update
+	m_player->Update(deltaTime);
+	m_player->UpdateStamina( m_maxStamina );
+	float currentStamina = m_player->GetCurrentStamina();
+	Renderer::SetPlayerMatrix( m_player->transform.worldMatrix );
+
+	// Room update
+	m_currentRoom->Update(deltaTime);
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update(deltaTime);
@@ -36,70 +44,96 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource);
 		}
 	}
-
-	Camera& cameraRef = renderer->GetCamera();
+	
+	// Static objects update
 	for (int i = 0; i < m_staticObjects.Size(); i++)
 	{
 		m_staticObjects[i]->Update(deltaTime);
 	}
 	
-	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
-
-	// Time switch logic.
+	if (!m_isHubby) // if not in hubby
 	{
-		static float initialCamFov;
-		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch())
+		// Time switch logic.
 		{
-			m_isSwitching = true;
-			m_finishedCharging = false;
-			initialCamFov = cameraRef.GetFov();
+			static float initialCamFov;
+			if (Input::Get().IsKeyPressed( KeybindPower ) && IsAllowedToSwitch())
+			{
+				m_isSwitching = true;
+				m_finishedCharging = false;
+				initialCamFov = cameraRef.GetFov();
+			}
+
+			static float totalFovDelta = 0.0f;
+			if (m_isSwitching)
+			{
+				if (!ChargeIsDone())
+				{
+					totalFovDelta += m_camFovChangeSpeed * deltaTime;
+					float newFov = initialCamFov + totalFovDelta;
+
+					// Max total fov cant exceed half circle.
+					if (newFov > cs::c_pi)
+					{
+						newFov = cs::c_pi;
+					}
+
+					cameraRef.SetFov( newFov );
+				}
+				else
+				{
+					if (!m_finishedCharging)
+					{
+						ChangeTimeline( renderer );
+						m_finishedCharging = true;
+						cameraRef.SetFov( initialCamFov );
+						totalFovDelta = 0.0f;
+					}
+				}
+
+				if (!SwitchIsDone())
+				{
+					m_switchVals.timeSinceSwitch += deltaTime;
+				}
+				else
+				{
+					m_switchVals.timeSinceSwitch = 0.0f;
+					m_isSwitching = false;
+				}
+
+
+				UpdateTimeSwitchBuffers( renderer );
+			}
 		}
 
-		static float totalFovDelta = 0.0f;
-		if (m_isSwitching)
+		m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
+		if (m_maxStamina < 0.1f)
 		{
-			if (!ChargeIsDone())
-			{
-				totalFovDelta += m_camFovChangeSpeed * deltaTime;
-				float newFov = initialCamFov + totalFovDelta;
+			m_maxStamina = 0.1f;
+			// Unload
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
+			/// D E A T H ///
+			//ChangeTimeline(renderer);
+		}
 
-				// Max total fov cant exceed half circle.
-				if (newFov > cs::c_pi)
-				{
-					newFov = cs::c_pi;
-				}
-
-				cameraRef.SetFov(newFov);
-			}
-			else
-			{
-				if (!m_finishedCharging)
-				{
-					ChangeTimeline(renderer);
-					m_finishedCharging = true;
-					cameraRef.SetFov(initialCamFov);
-					totalFovDelta = 0.0f;
-				}
-			}
-
-			if (!SwitchIsDone())
-			{
-				m_switchVals.timeSinceSwitch += deltaTime;
-			}
-			else
-			{
-				m_switchVals.timeSinceSwitch = 0.0f;
-				m_isSwitching = false;
-			}
-
-
-			UpdateTimeSwitchBuffers(renderer);
+		if (Input::Get().IsDXKeyPressed( DXKey::H ))
+		{
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
 		}
 	}
-	
+	else // If in hubby
+	{
+		if (Input::Get().IsDXKeyPressed( DXKey::L ))
+		{
+			UnLoadPrevious();
+			LoadTest();
+			m_player->ReloadPlayer();
+		}
+	}
 
-	m_player->UpdateStamina(m_maxStamina);
-	float currentStamina = m_player->GetCurrentStamina();
 #if WW_DEBUG
 	if (ImGui::Begin("Gameplay Vars"))
 	{
@@ -113,14 +147,6 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	ImGui::End();
 #endif
 
-	m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
-	
-	if ( m_maxStamina < 0.f )
-	{
-		m_maxStamina = 0.0f;
-		/// D E A T H ///
-		//ChangeTimeline(renderer);
-	}
 }
 
 void Game::Init()
@@ -193,6 +219,11 @@ void Game::LoadGame(uint gameSeed)
 	m_isHubby = false;
 }
 
+void Game::UnLoadPrevious()
+{
+	UnloadRoom();
+}
+
 Player* Game::GetPlayer()
 {
 	return m_player.get();
@@ -254,6 +285,10 @@ void Game::LoadRoom(Level* level)
 
 void Game::UnloadRoom()
 {
+	Renderer::UnLoadEnvironment();
+	m_player->currentRoom = nullptr;
+	m_currentRoom = nullptr;
+	m_enemies.Clear();
 }
 
 void Game::ChangeTimeline(Renderer* renderer)

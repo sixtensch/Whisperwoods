@@ -62,6 +62,14 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	cameraIsLocked = true;
 }
 
+void Player::ReloadPlayer()
+{
+	Resources& resources = Resources::Get();
+	characterModel = Renderer::CreateMeshRigged( m_modelResource );
+	characterAnimator->instanceReference = characterModel;
+	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiCombined.wwmt" ) );
+}
+
 void Player::UpdateStamina(float maxStamina)
 {
 	m_maxStamina = maxStamina;
@@ -155,7 +163,6 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 
 void Player::Update(float delta_time)
 {
-	// Handle the input and movement (beta) TODO: collision shit.
 	PlayerMovement(delta_time, 10);
 	characterAnimator->loadedAnimations[2].influence = (m_velocity.Length() / m_walkSpeed);
 	characterAnimator->loadedAnimations[3].influence = (m_velocity.Length() / m_runSpeed);
@@ -181,7 +188,7 @@ void Player::Update(float delta_time)
 	}
 
 
-	m_stamina = cs::fclamp(m_stamina + (1.0f * delta_time), 0, m_maxStamina);
+	m_stamina = cs::fclamp(m_stamina + (1.0f * delta_time), 0.05f, m_maxStamina);
 
 	characterAnimator->playbackSpeed = m_animationSpeed;
 

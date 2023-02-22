@@ -27,6 +27,7 @@ public:
 	void LoadHubby();
 	void LoadTest();
 	void LoadGame(uint gameSeed);
+	void UnLoadPrevious();
 
 	Player* GetPlayer();
 
