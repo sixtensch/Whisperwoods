@@ -35,7 +35,6 @@ void LevelHandler::GenerateHubby( LevelFloor* outFloor )
 	f = LevelFloor{};
 	f.startRoom = 0;
 	f.startPosition = Vec3( 0, 0, 0 );
-
 	cs::Random r;
 
 	// Add a level
@@ -88,7 +87,7 @@ void LevelHandler::Environmentalize(Level& l, cs::Random& r)
 		{
 			if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagTerrainInner & ~LevelPixelFlagTerrainOuter))
 			{
-				if (r.Get( 50 ) == 0)
+				if (r.Get( 10 ) == 0)
 				{
 					Mat4 instanceMatrix =
 						Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, -0.2, y * BM_PIXEL_SIZE ) ) *
@@ -97,30 +96,18 @@ void LevelHandler::Environmentalize(Level& l, cs::Random& r)
 					Mat4 stoneMatrix =
 						Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) *
 						Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) *
-						Mat::scale3( 0.3f + r.Getf() * 0.3f );
+						Mat::scale3( 0.2f + r.Getf() * 0.2f );
 					Mat4 banana =
 						Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) *
 						Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) *
 						Mat::scale3( 0.3f + r.Getf() * 0.3f );
 					//l.instances[LevelAssetBush1].Add(instanceMatrix);
 					int rand = r.Get( 100 );
-					if (rand < 5)
+					if (rand < 25)
 					{
 						l.instances[LevelAssetMediumStone2].Add( stoneMatrix );
 					}
-					else if (rand < 30)
-					{
-						l.instances[LevelAssetMediumTree3].Add( instanceMatrix );
-					}
-					else if (rand < 40)
-					{
-						l.instances[LevelAssetMediumTree2].Add( instanceMatrix );
-					}
-					else if (rand < 60)
-					{
-						l.instances[LevelAssetMediumTree1].Add( instanceMatrix );
-					}
-					else if (rand < 95)
+					else if (rand < 75)
 					{
 						l.instances[LevelAssetBush1].Add( banana );
 					}
@@ -146,9 +133,21 @@ void LevelHandler::Environmentalize(Level& l, cs::Random& r)
 				{
 					l.instances[LevelAssetMediumStone1].Add( instanceMatrix );
 				}
+				else if (rand < 30)
+				{
+					l.instances[LevelAssetMediumTree3].Add( instanceMatrix );
+				}
+				else if (rand < 40)
+				{
+					l.instances[LevelAssetMediumTree2].Add( instanceMatrix );
+				}
 				else if (rand < 50)
 				{
 					l.instances[LevelAssetMediumBigTrunk2].Add( instanceMatrix );
+				}
+				else if (rand < 60)
+				{
+					l.instances[LevelAssetMediumTree1].Add( instanceMatrix );
 				}
 				else if (rand < 75)
 				{
