@@ -52,12 +52,24 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiPants.wwmt" ) );
 	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiSpikes.wwmt" ) );
 
+	m_stamina = 10.0f;
+	m_maxStamina = 10.0f;
 	m_walkSpeed = 1.5f;
 	m_runSpeed = 3.5f;
 	cameraFollowDistance = 3.0f;
 	//cameraFollowHeight = 2.0f;
 	cameraFollowTilt = cs::c_pi / 4;
 	cameraIsLocked = true;
+}
+
+void Player::UpdateStamina(float maxStamina)
+{
+	m_maxStamina = maxStamina;
+}
+
+float Player::GetCurrentStamina()
+{
+	return m_stamina;
 }
 
 void Player::PlayerMovement(float delta_time, float movementMultiplier)
@@ -82,6 +94,13 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		{
 			m_targetVelocity.Normalize();
 			m_targetVelocity *= m_runSpeed;
+		}
+		m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * delta_time);
+
+		if (m_stamina < 0.1f)
+		{
+			m_targetVelocity.Normalize();
+			m_targetVelocity *= m_walkSpeed;
 		}
 
 		Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
@@ -160,6 +179,9 @@ void Player::Update(float delta_time)
 		else
 			m_animationSpeed = 0;
 	}
+
+
+	m_stamina = cs::fclamp(m_stamina + (1.0f * delta_time), 0, m_maxStamina);
 
 	characterAnimator->playbackSpeed = m_animationSpeed;
 

@@ -5,7 +5,7 @@
 #include "SoundResource.h"
 #include "Resources.h"
 #include "Input.h"
-#include "imgui.h"
+#include <imgui.h>
 
 Game::Game() :
 	m_floor(),
@@ -13,8 +13,10 @@ Game::Game() :
 	m_isInFuture(false),
 	m_isSwitching(false),
 	m_finishedCharging(false),
-	m_stamina(10.0f), 
+	m_maxStamina(10.0f),
 	m_switchVals({ 1.0f, 0.5f, 3.0f, 0.0f }),
+	m_detectionLevelGlobal(0.0f),
+	m_detectionLevelFloor(0.0f),
 	m_camFovChangeSpeed(cs::c_pi / 4.0f)
 {}
 
@@ -28,7 +30,10 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update(deltaTime);
-		m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource);
+		if (m_enemies[i]->m_carcinian->enabled == true)
+		{
+			m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource);
+		}
 	}
 
 	Camera& cameraRef = renderer->GetCamera();
@@ -36,7 +41,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		m_staticObjects[i]->Update(deltaTime);
 	}
-
+	
 	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
 
 	// Time switch logic.
@@ -92,20 +97,29 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	}
 	
 
+	m_player->UpdateStamina(m_maxStamina);
+	float currentStamina = m_player->GetCurrentStamina();
 #if WW_DEBUG
-	if ( ImGui::Begin("Game Info") )
+	if (ImGui::Begin("Gameplay Vars"))
 	{
-		ImGui::InputFloat("Stamina", &m_stamina);
-		ImGui::Checkbox("Future", &m_isInFuture);
+		ImGui::Text("Max Stamina: %f", m_maxStamina);
+		ImGui::Text("Current Stamina: %f", currentStamina);
+		ImGui::DragFloat( "Detection Level Global", &m_detectionLevelGlobal, 0.1f, 0.0f, 1.0f );
+;		//ImGui::Text( "Detection level global: %f", m_detectionLevelGlobal );
+		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
+
+		ImGui::Checkbox( "Future", &m_isInFuture );
 	}
 	ImGui::End();
 #endif
+
 	
 
-	m_stamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
+	m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
 	
-	if ( m_stamina < 0.f )
+	if ( m_maxStamina < 0.f )
 	{
+		m_maxStamina = 0.0f;
 		/// D E A T H ///
 		//ChangeTimeline(renderer);
 	}
@@ -212,7 +226,7 @@ void Game::LoadRoom(Level* level)
 			Vec3 enemyPos = m_currentRoom->bitMapToWorldPos(bitPos);
 			m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
 		}
-	}
+	} 
 
 	for (LevelPatrol& p : level->resource->patrolsOpen)
 	{
@@ -240,6 +254,14 @@ void Game::ChangeTimeline(Renderer* renderer)
 {
 	m_isInFuture = !m_isInFuture;
 	renderer->SetTimelineState(m_isInFuture);
+
+	for (int i = 0; i < m_enemies.Size(); i++)
+	{
+		if (m_enemies[i]->m_enemyAlive == true)
+		{
+			m_enemies[i]->ChangeTimelineState(m_isInFuture);
+		}
+	}
 }
 
 void Game::UpdateTimeSwitchBuffers(Renderer* renderer)

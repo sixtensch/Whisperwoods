@@ -327,11 +327,15 @@ void Enemy::AddCoordinateToPatrolPath(Vec2 coord, bool enclosed) // Make sure th
 {
 	m_patrolPath.push_back(coord);
 	m_enclosedLoop = enclosed;
+	m_enemyAlive = true;
+	m_firstTrigger = false;
+	m_currentPatrolIndex = 1;
 }
 
 void Enemy::EmptyPatrolPath()
 {
 	m_patrolPath.clear();
+	m_enemyAlive = false;
 }
 
 void Enemy::AddModel(std::string modelResource, std::string animationsPath, Mat4 modelOffset)
@@ -427,16 +431,17 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack)
 	float angle = acos(m_forwardVector.Dot(playerDirection)); // angle in radians
 	angle = angle * (180.0f / cs::c_pi); //angle in acutal degrees
 
+	
 	m_seesPlayer = false;
-
+	
 	if (angle < m_enemyViewAngle && distance < m_enemyViewDistance) // is the player within range and circle sector of the enemy?
 	{
 
 		//Now we check if the enemy has true line of sight to the player
 		m_seesPlayer = true;
-		cs::Point2 playerBitMapPosition =  room.worldToBitmapPoint(Vec3(playerPosition.x, 0.0f, playerPosition.y));
+		cs::Point2 playerBitMapPosition = room.worldToBitmapPoint(Vec3(playerPosition.x, 0.0f, playerPosition.y));
 		cs::Point2 enemyBitMapPosition = room.worldToBitmapPoint(Vec3(transform.worldPosition.x, 0.0f, transform.worldPosition.z));
-		
+
 		int xPlayer = cs::iclamp(playerBitMapPosition.x, 0, room.m_levelResource->pixelWidth - 1);
 		int yPlayer = cs::iclamp(playerBitMapPosition.y, 0, room.m_levelResource->pixelHeight - 1);
 		int xEnemy = cs::iclamp(enemyBitMapPosition.x, 0, room.m_levelResource->pixelWidth - 1);
@@ -449,14 +454,14 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack)
 		{
 			LevelPixelFlag bitMapPixel = room.m_levelResource->bitmap[lineOfSight[i].x + lineOfSight[i].y * room.m_levelResource->pixelWidth].flags;
 			if (bitMapPixel & LevelPixelFlagImpassable) // If terrain is not passible
-			{ 
+			{
 				m_seesPlayer = false;
 				break;
 			}
 		}
 
 	}
-	if(m_seesPlayer)  //if the enemy sees the player
+	if (m_seesPlayer)  //if the enemy sees the player
 	{
 		m_timeToGivePlayerAChanceToRunAway = 0.0f; //reset the counter
 
@@ -473,9 +478,9 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack)
 		{
 			m_characterAnimator->StopAnimation(3);
 		}
-		
+
 		//play the detected animation on loop
-		if(!m_characterAnimator->IsPlaying(1))
+		if (!m_characterAnimator->IsPlaying(1))
 		{
 			m_characterAnimator->PlayAnimation(1, 0, 1, true, true);
 			m_characterAnimator->playbackSpeed = 0.5f;
@@ -513,9 +518,51 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack)
 		}
 
 	}
-	//PlayEnemyActiveNoise(quack);
-
+	if(m_seesPlayer == true)
+		PlayEnemyActiveNoise(quack);
+	
 	return m_seesPlayer; 
+}
+
+void Enemy::ChangeTimelineState(bool isInFuture)
+{
+	if (isInFuture == true)
+	{
+		m_carcinian->enabled = false;
+		m_seesPlayer = false;
+		/* 
+		if(sound is playing)
+		{
+			Stop playing sound
+		}
+		*/
+		if (m_characterAnimator->IsPlaying(1)) //is the detected animation running?
+		{
+			if (m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway) // has the player been given the time to run away?
+			{
+				m_characterAnimator->StopAnimation(1);
+				if (m_lastPlayedAnimation == 0)
+				{
+					m_characterAnimator->playbackSpeed = 1.0f;
+					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, true, true);
+				}
+				else if (m_lastPlayedAnimation == 2)
+				{
+					m_characterAnimator->playbackSpeed = 0.2f;
+					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, false, true);
+				}
+				else if (m_lastPlayedAnimation == 3)
+				{
+					m_characterAnimator->playbackSpeed = 0.35f;
+					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, false, true);
+				}
+			}
+		}
+	}
+	else
+	{
+		m_carcinian->enabled = true;
+	}
 }
 
 void Enemy::PlayEnemyActiveNoise(AudioSource& quack)
