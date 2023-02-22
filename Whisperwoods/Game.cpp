@@ -30,7 +30,10 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update(deltaTime);
-		m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource);
+		if (m_enemies[i]->m_carcinian->enabled == true)
+		{
+			m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource);
+		}
 	}
 
 	Camera& cameraRef = renderer->GetCamera();
@@ -38,7 +41,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		m_staticObjects[i]->Update(deltaTime);
 	}
-
+	
 	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
 
 	// Time switch logic.
@@ -251,6 +254,14 @@ void Game::ChangeTimeline(Renderer* renderer)
 {
 	m_isInFuture = !m_isInFuture;
 	renderer->SetTimelineState(m_isInFuture);
+
+	for (int i = 0; i < m_enemies.Size(); i++)
+	{
+		if (m_enemies[i]->m_enemyAlive == true)
+		{
+			m_enemies[i]->ChangeTimelineState(m_isInFuture);
+		}
+	}
 }
 
 void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
