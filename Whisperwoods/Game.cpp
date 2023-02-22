@@ -69,20 +69,20 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	// Time switch logic.
 	{
 		static float initialCamFov;
-		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch() && m_reachedLowestStamina == false)  
+		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch() /*&& m_reachedLowestStamina == false*/)  
 		{
 			m_isSwitching = true;
 			m_finishedCharging = false;
 			initialCamFov = cameraRef.GetFov();
 		}
 
-		if (m_reachedLowestStamina == true && m_forcedBackToPresent == false)
-		{
-			m_isSwitching = true;
-			m_finishedCharging = false;
-			initialCamFov = cameraRef.GetFov();
-			m_forcedBackToPresent = true;
-		}
+		//if (m_reachedLowestStamina == true && m_forcedBackToPresent == false)
+		//{
+		//	m_isSwitching = true;
+		//	m_finishedCharging = false;
+		//	initialCamFov = cameraRef.GetFov();
+		//	m_forcedBackToPresent = true;
+		//}
 		
 
 		static float totalFovDelta = 0.0f;
@@ -138,7 +138,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		ImGui::DragFloat( "Detection Level Global", &m_detectionLevelGlobal, 0.1f, 0.0f, 1.0f );
 ;		//ImGui::Text( "Detection level global: %f", m_detectionLevelGlobal );
 		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
-
+		ImGui::Text("Time left until future death: %f", m_timeYouSurviveInFuture - m_dangerousTimeInFuture);
 		ImGui::Checkbox( "Future", &m_isInFuture );
 	}
 	ImGui::End();
@@ -152,11 +152,25 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		m_maxStamina = 1.0f; // DO NOT CHANGE THIS
 		
-		/// D E A T H ///
+		
 		if (m_reachedLowestStamina == false )
 		{
 			m_reachedLowestStamina = true;
 		}
+		else
+		{
+			m_dangerousTimeInFuture += deltaTime;
+		}
+
+		/// D E A T H ///
+		if (m_dangerousTimeInFuture >= m_timeYouSurviveInFuture) // how long you can survive in future with 0 stamina (seconds)
+		{
+			m_player->characterModel->enabled = false;
+		}
+	}
+	if (!m_isInFuture)
+	{
+		m_dangerousTimeInFuture = 0.0f;
 	}
 }
 
