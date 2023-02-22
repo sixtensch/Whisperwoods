@@ -233,11 +233,11 @@ void Game::LoadRoom(Level* level)
 {
 	Mat4 roomMatrix =
 		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight) *
-		Mat::translation3(level->position.x, level->position.x + 0.01f, level->position.x)*
+		Mat::translation3(level->position.x, level->position.x - 0.01f, level->position.x)*
 		level->rotation.Matrix();
 
 	Mat4 roomCylinderMatrix =
-		Mat::scale3( level->resource->worldWidth, 1.0f, level->resource->worldHeight ) *
+		Mat::scale3( level->resource->worldWidth*1.5f, 1.0f, level->resource->worldHeight * 1.5f ) *
 		Mat::translation3( level->position.x, level->position.x, level->position.x ) *
 		level->rotation.Matrix();
 

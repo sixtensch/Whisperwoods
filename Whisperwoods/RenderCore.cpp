@@ -682,7 +682,6 @@ void RenderCore::UpdatePlayerInfo( Mat4 matrix )
 	EXC_COMINFO( m_context->Unmap( m_constantBuffers.playerInfo.Get(), 0u ) );
 }
 
-
 void RenderCore::UpdateMaterialInfo(const MaterialResource* material) const
 {
 	if (material == nullptr)

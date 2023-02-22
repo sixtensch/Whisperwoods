@@ -86,20 +86,83 @@ void LevelHandler::Environmentalize(Level& l, cs::Random& r)
 	{
 		for (int y = 0; y < (int)l.resource->pixelHeight; y++)
 		{
-			if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable) && r.Get(20) == 0)
+			if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagTerrainInner & ~LevelPixelFlagTerrainOuter))
 			{
-				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE)) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.15f);
-				l.instances[LevelAssetBush1].Add(instanceMatrix);
+				if (r.Get( 50 ) == 0)
+				{
+					Mat4 instanceMatrix =
+						Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, -0.2, y * BM_PIXEL_SIZE ) ) *
+						Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) *
+						Mat::scale3( 0.1f );
+					Mat4 stoneMatrix =
+						Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) *
+						Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) *
+						Mat::scale3( 0.3f + r.Getf() * 0.3f );
+					Mat4 banana =
+						Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) *
+						Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) *
+						Mat::scale3( 0.3f + r.Getf() * 0.3f );
+					//l.instances[LevelAssetBush1].Add(instanceMatrix);
+					int rand = r.Get( 100 );
+					if (rand < 5)
+					{
+						l.instances[LevelAssetMediumStone2].Add( stoneMatrix );
+					}
+					else if (rand < 30)
+					{
+						l.instances[LevelAssetMediumTree3].Add( instanceMatrix );
+					}
+					else if (rand < 40)
+					{
+						l.instances[LevelAssetMediumTree2].Add( instanceMatrix );
+					}
+					else if (rand < 60)
+					{
+						l.instances[LevelAssetMediumTree1].Add( instanceMatrix );
+					}
+					else if (rand < 95)
+					{
+						l.instances[LevelAssetBush1].Add( banana );
+					}
+					else
+					{
+						l.instances[LevelAssetMediumStone1].Add( stoneMatrix );
+					}
+				}
 			}
-			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable) && r.Get(20) == 0)
+			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable) && r.Get(50) == 0)
 			{
-				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE)) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.3f);
-				l.instances[LevelAssetBush2].Add(instanceMatrix);
+				Mat4 instanceMatrix = 
+					Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE)) * 
+					Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * 
+					Mat::scale3(0.1f, 0.1f, 0.1f );
+				Mat4 trunkMatrix =
+					Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) *
+					Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) *
+					Mat::scale3( 0.03f, 0.03f, 0.1f );
+				int rand = r.Get( 100 );
+
+				if (rand < 25)
+				{
+					l.instances[LevelAssetMediumStone1].Add( instanceMatrix );
+				}
+				else if (rand < 50)
+				{
+					l.instances[LevelAssetMediumBigTrunk2].Add( instanceMatrix );
+				}
+				else if (rand < 75)
+				{
+					l.instances[LevelAssetMediumBigTrunk1].Add( trunkMatrix );
+				}
+				else
+				{
+					l.instances[LevelAssetMediumBigTrunk2].Add( trunkMatrix );
+				}
 			}
 			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].density < (float)r.Get( 100 )/100.0f) && (l.resource->bitmap[x + l.resource->pixelWidth * y].density != 0) && r.Get( 20 ) == 0)
 			{
 				Mat4 instanceMatrix = Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) * Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) * Mat::scale3( 0.1f+ (0.5f-(l.resource->bitmap[x + l.resource->pixelWidth * y].density*0.5f)));
-				l.instances[LevelAssetBush1].Add( instanceMatrix );
+				l.instances[LevelAssetBush1].Add( instanceMatrix );	
 			}
 		}
 	}

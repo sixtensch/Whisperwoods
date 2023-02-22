@@ -19,8 +19,6 @@ public:
 
 	void Update(float deltaTime, Renderer* renderer);
 
-	void ReloadGame();
-
 	void Init();
 	void DeInit();
 

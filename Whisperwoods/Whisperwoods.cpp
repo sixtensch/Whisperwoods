@@ -54,7 +54,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
 	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_1.fbx", false);
 	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
-	//BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false );
+	BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false, 1.0f );
 	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Future.fbx", false);
 	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false);
 	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Future.fbx", false);

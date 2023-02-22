@@ -1,11 +1,10 @@
-d   1 1 1
-s   0.1 0.1 0.1
+d   1 0.9 0.85
+s   0.05 0.05 0.05
 e   1 1 1
 g   4
 a   1
 h   0
-t   16
+t   24
 
 D   Ground_Diffuse.png
 S   Ground_SpecularGloss.png
-N   Ground_Normal.png
