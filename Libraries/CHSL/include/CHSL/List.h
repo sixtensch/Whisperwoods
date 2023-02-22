@@ -306,7 +306,7 @@ namespace cs
             {
                 high = mid - 1;
             }
-        }
+        } 
 
         return -1;
     }
@@ -350,7 +350,7 @@ namespace cs
             {
                 high = mid - 1;
             }
-        }
+        } 
 
         return nullptr;
     }
@@ -452,7 +452,7 @@ namespace cs
             memcpy(MassAdd(valueCount), values, valueCount * sizeof(T));
             return;
         }
-
+        
         GrowToFit(valueCount + m_size);
 
         for (int i = 0; i < valueCount; i++)
@@ -571,16 +571,12 @@ namespace cs
     template<typename T>
     inline void List<T>::GrowToFit(int newCapacity)
     {
-        if (newCapacity <= m_capacity)
-        {
-            return;
-        }
-
-        int actual = m_capacity;
+        int actual  = m_capacity;
         do
         {
             actual *= 2;
-        } while (actual < newCapacity);
+        } 
+        while (actual < newCapacity);
 
         GrowArray(actual);
     }
