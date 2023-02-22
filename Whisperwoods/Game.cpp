@@ -5,6 +5,7 @@
 #include "SoundResource.h"
 #include "Resources.h"
 #include "Input.h"
+#include <imgui.h>
 
 Game::Game() :
 	m_floor(),
@@ -12,7 +13,7 @@ Game::Game() :
 	m_isInFuture(false),
 	m_isSwitching(false),
 	m_finishedCharging(false),
-	m_stamina(10.0f), 
+	m_maxStamina(10.0f),
 	m_switchVals({ 1.0f, 0.5f, 3.0f, 0.0f }),
 	m_camFovChangeSpeed(cs::c_pi / 4.0f)
 {}
@@ -91,14 +92,24 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	}
 	
 
+	m_player->UpdateStamina(m_maxStamina);
+	float currentStamina = m_player->GetCurrentStamina();
 	
-
-	
-
-	m_stamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
-	
-	if ( m_stamina < 0.f )
+	if (ImGui::Begin("Gameplay Vars"))
 	{
+		ImGui::Text("Max Stamina: %f", m_maxStamina);
+		ImGui::Text("Current Stamina: %f", currentStamina);
+	}
+	ImGui::End();
+
+
+	
+
+	m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
+	
+	if ( m_maxStamina < 0.f )
+	{
+		m_maxStamina = 0.0f;
 		/// D E A T H ///
 		//ChangeTimeline(renderer);
 	}

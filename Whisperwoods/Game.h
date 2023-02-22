@@ -69,7 +69,7 @@ private:
 	bool m_isInFuture;
 	bool m_isSwitching; // Switching = is true during whole duration (start + end) of time switch.
 	bool m_finishedCharging; // Charging = only first part of whole duration (start)
-	float m_stamina;
+	float m_maxStamina;
 
 	float m_camFovChangeSpeed;
 
