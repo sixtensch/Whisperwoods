@@ -301,8 +301,18 @@ void Game::UnloadRoom()
 
 bool Game::IsDetected(float deltaTime)
 {
-	m_detectionLevelGlobal += m_detectionRate * deltaTime;
-	m_detectionLevelFloor += (m_detectionRate / 3) * deltaTime;
+	float rate = m_detectionRate;
+	if (Input::Get().IsKeybindDown(KeybindCrouch)) // is crouching 
+	{
+		rate = rate * 0.75f;
+	}
+	else if (Input::Get().IsKeybindDown(KeybindSprint)) // is running
+	{
+		rate = rate * 1.3f;
+	}
+
+	m_detectionLevelGlobal += rate * deltaTime;
+	m_detectionLevelFloor += (rate / 3) * deltaTime;
 
 	if (m_detectionLevelGlobal >= 1.0f)
 	{

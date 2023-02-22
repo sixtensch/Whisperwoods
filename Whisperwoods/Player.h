@@ -24,7 +24,7 @@ class Player : public GameObject
 	}
 
 public:
-
+	
 	Vec3 m_velocity;
 	bool cameraIsLocked;
 	float cameraFollowDistance;
