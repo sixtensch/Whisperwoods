@@ -12,7 +12,23 @@ RenderHandler::RenderHandler()
 {
 	m_renderableIDCounter = 0;
 	m_timelineState = TimelineStateCurrent;
-	m_envQuadTree.Init(20, -1, 50, 50); //TODO: actual startsize
+	m_envQuadTree.Init(2, -1, 50, 50); //TODO: actual startsize
+
+
+	const dx::BoundingBox BananaPlant = {
+		dx::XMFLOAT3(0,0,0),
+		dx::XMFLOAT3(1,1,1)
+	};
+	const dx::BoundingBox BananaPlant2TEMP = {
+		dx::XMFLOAT3(0,0,0),
+		dx::XMFLOAT3(1,1,1)
+	};
+
+	// Add to the list
+
+	boundingVolumes[0] = BananaPlant;
+	boundingVolumes[1] = BananaPlant2TEMP;
+
 }
 
 RenderHandler::~RenderHandler()
@@ -315,16 +331,17 @@ void RenderHandler::LoadEnvironment(const Level* level)
 		m_envMeshes[i].instances.Clear(false);
 		//m_envMeshes[i].instances.MassAdd(level->instances[i].Data(), level->instances[i].Size(), true);
 		
-		dx::BoundingBox box;
-		for ( uint j = 0; j < level->instances[i].Size(); ++j )
+		for ( auto& matrix : level->instances[i] )
 		{
-			m_envMeshes[i].instances.Add(level->instances[i][j]);
+			m_envMeshes[i].instances.Add(matrix);
 
-			dx::XMMATRIX dxMat = level->instances[i][j].XMMatrix();
-			box.Transform(box, dx::XMMatrixTranspose(dxMat));
-			shared_ptr<const Mat4*> sptr = make_shared<const Mat4*>(&level->instances[i][j]);
+			dx::BoundingBox bBox = {};
+			// Improvements can be made here, do math for Mat4 transform on boundingVolume instead
+			dx::XMMATRIX dxMatrix = dx::XMMatrixTranspose(matrix.XMMatrix());
+			boundingVolumes[i].Transform(bBox, dxMatrix);
+			shared_ptr<const Mat4*> sptr = make_shared<const Mat4*>(&matrix);
 
-			m_envQuadTree.AddElementIndexed(sptr, box, j);
+			m_envQuadTree.AddElementIndexed(sptr, bBox, i);
 		}
 
 		instanceCount += (uint)level->instances[i].Size();
@@ -445,16 +462,20 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 	// Culling here
 	m_envInstances.Clear(false);
 
+	// Create the view frustum for the culling
+	dx::BoundingFrustum viewFrustum = {};
+	viewFrustum.CreateFromMatrix(viewFrustum, m_mainCamera.GetProjectionMatrix().XMMatrix());
+	viewFrustum.Transform(viewFrustum, dx::XMMatrixTranspose(m_mainCamera.GetWorldMatrix().XMMatrix()));
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
 		m_envMeshes[i].hotInstances.Clear(false);
 	}
 
-	for (uint i = 0; i < LevelAssetCount; i++)
-		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
+	//for (uint i = 0; i < LevelAssetCount; i++)
+	//	m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 
-	m_envQuadTree.CullTreeIndexed(, m_envMeshes);
+	m_envQuadTree.CullTreeIndexed(viewFrustum, m_envMeshes);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
@@ -469,8 +490,8 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 	m_renderCore->SetInstanceBuffers(
 		m_envVertices[state],
 		m_envInstanceBuffer,
-		sizeof(VertexTextured), 
-		sizeof(Mat4), 
+		sizeof(VertexTextured),
+		sizeof(Mat4),
 		0, 0);
 
 	m_renderCore->SetIndexBuffer(m_envIndices[state].Get(), 0);

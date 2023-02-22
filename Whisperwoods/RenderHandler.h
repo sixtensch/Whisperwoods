@@ -122,6 +122,7 @@ private:
 	EnvMesh m_envMeshes[LevelAssetCount];
 
 	QuadTree<Mat4> m_envQuadTree;
+	dx::BoundingBox boundingVolumes[LevelAssetCount];
 
 	// Hot-data
 	cs::List<Mat4> m_envInstances;

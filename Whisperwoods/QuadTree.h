@@ -5,8 +5,8 @@
 #include <vector>
 #include <map>
 
-constexpr UINT MAX_LEAF_ELEMENTS = 10;
-constexpr UINT MAX_DEPTH = 8;
+constexpr UINT MAX_LEAF_ELEMENTS = 65;
+constexpr UINT MAX_DEPTH = 10;
 
 struct EnvMesh;
 
@@ -26,6 +26,18 @@ private: // Misc
 
 		dx::BoundingBox rootPartition;
 		shared_ptr<Node> child[4];
+	};
+
+	struct QuadData
+	{
+		float dotValue;
+		int index;
+
+		// Reverse sorting
+		bool operator<(const QuadData& other)
+		{
+			return dotValue > other.dotValue;
+		}
 	};
 public: // Methods
 	/// <summary>The tree works like a binary tree with a constant of 4 children per node. 
@@ -51,13 +63,13 @@ public: // Core functionality
 	void AddElementIndexed(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, int index);
 
 	std::vector<const T*> CullTree(const dx::BoundingFrustum& frustum);
-	void CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects);
+	void CullTreeIndexed(const dx::BoundingFrustum& frustum, EnvMesh out_culledObjects[LevelAssetCount]);
 
 private: // Recursive callers
 	void AddToNode(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, const shared_ptr<Node>& currentNode, int depth, int index = -1);
 
 	void CullNode(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, std::vector<const T*>& out_validElements) const;
-	void CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, EnvMesh out_indexedList[]) const;
+	void CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, EnvMesh out_indexedList[LevelAssetCount]) const;
 	
 	void FreeNode(shared_ptr<Node>& currentNode);
 
@@ -175,7 +187,7 @@ inline std::vector<const T*> QuadTree<T>::CullTree(const dx::BoundingFrustum& fr
 /// <para>It is assumed that the indexes are valid and are not out of bounds</para>
 /// </summary>
 template<typename T>
-inline void QuadTree<T>::CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects)
+inline void QuadTree<T>::CullTreeIndexed(const dx::BoundingFrustum& frustum, EnvMesh out_culledObjects[LevelAssetCount])
 {
 	CalcQuadOrder(frustum);
 	CullNodeIndexed(frustum, m_root, out_culledObjects);
@@ -284,7 +296,7 @@ inline void QuadTree<T>::CullNode(const dx::BoundingFrustum& frustum, const shar
 }
 
 template<typename T>
-inline void QuadTree<T>::CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& node, EnvMesh out_indexedList[]) const
+inline void QuadTree<T>::CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& node, EnvMesh out_indexedList[LevelAssetCount]) const
 {
 	bool collision = frustum.Contains(node->rootPartition);
 	if (!collision)
@@ -294,7 +306,7 @@ inline void QuadTree<T>::CullNodeIndexed(const dx::BoundingFrustum& frustum, con
 	{
 		collision = frustum.Contains(nodeData.boundedVolume);
 		if (collision)
-			out_indexedList[nodeData.id].hotInstances.Add(**nodeData.element);
+			out_indexedList[nodeData.id].hotInstances.Add(*(*nodeData.element));
 	}
 	if (!IsLeaf(node))
 	{
@@ -430,14 +442,18 @@ inline void QuadTree<T>::CalcQuadOrder(const dx::BoundingFrustum& frustum)
 		* cs::Vec3(0,0,1.0f);
 	cs::Vec2 xzVec = {directionalVec.x, directionalVec.z};
 	
-	std::map<float, int> rbTree;
-	rbTree.emplace(xzVec.Dot({ -1,  1 }), 0); // topleft
-	rbTree.emplace(xzVec.Dot({  1,  1 }), 1); // topright
-	rbTree.emplace(xzVec.Dot({ -1, -1 }), 2); // bottomleft
-	rbTree.emplace(xzVec.Dot({  1, -1 }), 3); // bottomright
+
+	QuadData arr[] = {
+		{xzVec.Dot({ -0.707,  0.707 }), 0 },
+		{xzVec.Dot({  0.707,  0.707 }), 1 },
+		{xzVec.Dot({ -0.707, -0.707 }), 2 },
+		{xzVec.Dot({  0.707, -0.707 }), 3 }
+	};
+	std::sort(arr, arr + 4);
+
 
 	for ( int i = 0; i < 4; ++i )
 	{
-		m_quadSearch[i] = rbTree[i];
+		m_quadSearch[i] = arr[i].index;
 	}
 }
