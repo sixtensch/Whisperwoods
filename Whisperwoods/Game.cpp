@@ -96,7 +96,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 	m_player->UpdateStamina(m_maxStamina);
 	float currentStamina = m_player->GetCurrentStamina();
-	
+#if WW_DEBUG
 	if (ImGui::Begin("Gameplay Vars"))
 	{
 		ImGui::Text("Max Stamina: %f", m_maxStamina);
@@ -104,9 +104,11 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		ImGui::DragFloat( "Detection Level Global", &m_detectionLevelGlobal, 0.1f, 0.0f, 1.0f );
 ;		//ImGui::Text( "Detection level global: %f", m_detectionLevelGlobal );
 		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
+
+		ImGui::Checkbox( "Future", &m_isInFuture );
 	}
 	ImGui::End();
-
+#endif
 
 	
 
