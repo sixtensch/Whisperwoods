@@ -21,7 +21,7 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	//importer.ImportFBXAnimations(animationsPath, animationSet.get());
 	// Init the animator
 	//ModelRiggedResource* modelResource = (ModelRiggedResource*)resources.GetResource( ResourceTypeModelRigged, m_modelResource );
-	characterAnimator = make_shared<Animator>( (ModelRiggedResource*)resources.GetResource( ResourceTypeModelRigged, m_modelResource ) );
+	characterAnimator = make_shared<Animator>( (ModelRiggedResource*)resources.GetResource( ResourceTypeModelRigged, m_modelResource ), characterModel );
 
 	// Hardcoded animation retrieving because loops are annoying.
 	// Idle

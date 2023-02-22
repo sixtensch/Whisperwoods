@@ -31,7 +31,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 
 	m_carcinian = Renderer::CreateMeshRigged(modelResource);
 	//FBXImporter importer;
-	m_characterAnimator = std::make_unique<Animator>((ModelRiggedResource*)Resources::Get().GetResource(ResourceTypeModelRigged, "Carcinian_Animated.wwm"));
+	m_characterAnimator = std::make_unique<Animator>((ModelRiggedResource*)Resources::Get().GetResource(ResourceTypeModelRigged, "Carcinian_Animated.wwm"), m_carcinian);
 	
 
 

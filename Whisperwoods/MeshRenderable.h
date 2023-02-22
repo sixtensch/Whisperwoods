@@ -23,7 +23,7 @@ class MeshRenderableRigged : public WorldRenderable
 public:
 	MeshRenderableRigged(uint id, const ModelRiggedResource* model, Mat4 worldMatrix);
 
-
+	cs::List<DirectX::XMFLOAT4X4> instanceBoneMatricies;
 
 	void Draw(const DrawInfo& drawInfo) const override;
 	MaterialBundle& Materials();

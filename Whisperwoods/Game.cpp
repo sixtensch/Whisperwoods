@@ -66,7 +66,7 @@ void Game::Init()
 	m_directionalLight->transform.position = { 0, 10, 0 };
 	m_directionalLight->transform.SetRotationEuler({ -dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
 	m_directionalLight->diameter = 22.0f;
-	m_directionalLight->intensity = 1.2f;
+	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
 }
 
