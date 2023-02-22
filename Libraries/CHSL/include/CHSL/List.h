@@ -75,7 +75,9 @@ namespace cs
         void Remove(int index);
         void MassRemove(const int indices[], int indexCount);
         void Add(const T& value);
-        void MassAdd(const T values[], int valueCount, bool copy = false);  // Sequentially add, or bulk copy, large volume of data into the array
+        void MassAdd(const T values[], int valueCount, bool copy = true);  // Sequentially add, or bulk copy, large volume of data into the array
+        void MassAdd(const cs::List<T>& list, bool copy = true);
+        void MassAdd(const cs::List<T>& list, int start, int end, bool copy = true);
         T* MassAdd(int valueCount);                                         // Brace for impact, growing array and returning pointer to where data can be placed.
         void Clear(bool shrink = true);
         T Pop();
@@ -461,6 +463,23 @@ namespace cs
         }
 
         m_size += valueCount;
+    }
+
+    template<typename T>
+    inline void List<T>::MassAdd(const cs::List<T>& list, bool copy)
+    {
+        MassAdd(list.Data(), list.Size(), copy);
+    }
+
+    template<typename T>
+    inline void List<T>::MassAdd(const cs::List<T>& list, int start, int end, bool copy)
+    {
+        if (start > end)
+        {
+            return;
+        }
+
+        MassAdd(list.Data() + start, end - start, copy);
     }
 
     template<typename T>

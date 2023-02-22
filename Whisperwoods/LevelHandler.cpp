@@ -90,7 +90,7 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 
 		//l.resource =
 		l.position = p.position;
-		l.connections.MassAdd(p.connections.Data(), p.connections.Size(), true);
+		l.connections.MassAdd(p.connections);
 	}
 }
 
