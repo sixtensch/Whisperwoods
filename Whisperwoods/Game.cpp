@@ -216,7 +216,7 @@ void Game::LoadRoom(Level* level)
 			Vec3 enemyPos = m_currentRoom->bitMapToWorldPos(bitPos);
 			m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
 		}
-	}
+	} 
 
 	for (LevelPatrol& p : level->resource->patrolsOpen)
 	{
