@@ -15,6 +15,8 @@ Game::Game() :
 	m_finishedCharging(false),
 	m_maxStamina(10.0f),
 	m_switchVals({ 1.0f, 0.5f, 3.0f, 0.0f }),
+	m_detectionLevelGlobal(0.0f),
+	m_detectionLevelFloor(0.0f),
 	m_camFovChangeSpeed(cs::c_pi / 4.0f)
 {}
 
@@ -99,6 +101,9 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		ImGui::Text("Max Stamina: %f", m_maxStamina);
 		ImGui::Text("Current Stamina: %f", currentStamina);
+		ImGui::DragFloat( "Detection Level Global", &m_detectionLevelGlobal, 0.1f, 0.0f, 1.0f );
+;		//ImGui::Text( "Detection level global: %f", m_detectionLevelGlobal );
+		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
 	}
 	ImGui::End();
 

@@ -71,6 +71,9 @@ private:
 	bool m_finishedCharging; // Charging = only first part of whole duration (start)
 	float m_maxStamina;
 
+	float m_detectionLevelGlobal;
+	float m_detectionLevelFloor;
+
 	float m_camFovChangeSpeed;
 
 	TimeSwitchValues m_switchVals;
