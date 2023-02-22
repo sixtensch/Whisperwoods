@@ -5,6 +5,7 @@
 #include "SoundResource.h"
 #include "Resources.h"
 #include "Input.h"
+#include "imgui.h"
 
 Game::Game() :
 	m_floor(),
@@ -91,8 +92,14 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	}
 	
 
-	
-
+#if WW_DEBUG
+	if ( ImGui::Begin("Game Info") )
+	{
+		ImGui::InputFloat("Stamina", &m_stamina);
+		ImGui::Checkbox("Future", &m_isInFuture);
+	}
+	ImGui::End();
+#endif
 	
 
 	m_stamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
