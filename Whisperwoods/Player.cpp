@@ -21,7 +21,7 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	//importer.ImportFBXAnimations(animationsPath, animationSet.get());
 	// Init the animator
 	//ModelRiggedResource* modelResource = (ModelRiggedResource*)resources.GetResource( ResourceTypeModelRigged, m_modelResource );
-	characterAnimator = make_shared<Animator>( (ModelRiggedResource*)resources.GetResource( ResourceTypeModelRigged, m_modelResource ) );
+	characterAnimator = make_shared<Animator>( (ModelRiggedResource*)resources.GetResource( ResourceTypeModelRigged, m_modelResource ), characterModel );
 
 	// Hardcoded animation retrieving because loops are annoying.
 	// Idle
@@ -118,9 +118,9 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		static Vec3 rotationVec = {};
 		if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
 		{
-			cs::Vec3 delta = Vec3( 0.0f, (float)mouseState.x, 0.0f );
+			cs::Vec3 delta = Vec3( 0.0f, (float)mouseState.x * delta_time, 0.0f );
 			//LOG_TRACE("Mouse state X: %d", mouseState.x);
-			transform.rotation = transform.rotation * Quaternion::GetEuler( delta * delta_time * 4 );
+			transform.rotation = transform.rotation * (Quaternion::GetEuler( delta ));
 		}
 
 		// Camera follow point calculation.

@@ -40,7 +40,6 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor)
 
 
 	// Add a level
-
 	f.rooms.Add({});
 	Level& l = f.rooms.Back();
 
@@ -64,7 +63,7 @@ void LevelHandler::GenerateTestFloor(LevelFloor* outFloor)
 
 	// Add a level
 
-	AddLevelName(f, "TestBig");
+	AddLevelName(f, "sixthLevel");
 	Environmentalize(f.rooms.Back(), r);
 }
 
@@ -76,15 +75,20 @@ void LevelHandler::Environmentalize(Level& l, cs::Random& r)
 	{
 		for (int y = 0; y < (int)l.resource->pixelHeight; y++)
 		{
-			if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable) && r.Get(10) == 0)
+			if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable) && r.Get(20) == 0)
 			{
-				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE)) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.1f);
+				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE)) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.15f);
 				l.instances[LevelAssetBush1].Add(instanceMatrix);
 			}
-			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable) && r.Get(10) == 0)
+			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable) && r.Get(20) == 0)
 			{
-				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE)) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.1f);
+				Mat4 instanceMatrix = Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE)) * Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * Mat::scale3(0.3f);
 				l.instances[LevelAssetBush2].Add(instanceMatrix);
+			}
+			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].density < (float)r.Get( 100 )/100.0f) && (l.resource->bitmap[x + l.resource->pixelWidth * y].density != 0) && r.Get( 20 ) == 0)
+			{
+				Mat4 instanceMatrix = Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) * Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) * Mat::scale3( 0.1f+ (l.resource->bitmap[x + l.resource->pixelWidth * y].density*0.5f));
+				l.instances[LevelAssetBush1].Add( instanceMatrix );
 			}
 		}
 	}

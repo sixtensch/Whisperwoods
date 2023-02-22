@@ -58,6 +58,15 @@ namespace CB
 
 		Vec2 PADDING;
 	};
+
+	struct TimeSwitchInfo
+	{
+		float timeSinceSwitch;
+		float chargeDuration;
+		float falloffDuration;
+
+		float PADDING;
+	};
 }
 
 struct ConstantBuffers
@@ -71,5 +80,7 @@ struct ConstantBuffers
 
 	ComPtr<ID3D11Buffer> ppfxThresholdInfo;
 	ComPtr<ID3D11Buffer> ppfxColorGradeInfo;
+
+	ComPtr<ID3D11Buffer> timeSwitchInfo;
 	
 };

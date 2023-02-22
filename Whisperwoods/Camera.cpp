@@ -117,3 +117,13 @@ const Mat4 Camera::GetProjectionMatrix() const
 {
 	return m_projection;
 }
+
+float Camera::GetFov() const
+{
+	return m_fov;
+}
+
+void Camera::SetFov(float fov)
+{
+	m_fov = fov;
+}

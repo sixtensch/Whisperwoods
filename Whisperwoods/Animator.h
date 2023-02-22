@@ -5,6 +5,7 @@
 #include "Transform.h"
 #include <thread>
 #include <mutex>
+#include "MeshRenderable.h"
 
 #define NUM_THREADS 4;
 
@@ -114,9 +115,11 @@ public:
 	float playbackSpeed;
 	bool looping;
 	cs::List<AnimatorCombinedChannel> combinedChannels;
+
+	shared_ptr<MeshRenderableRigged> instanceReference;
 	
 	// Initialization stuff
-	Animator(ModelRiggedResource* modelReference);
+	Animator(ModelRiggedResource* modelReference, shared_ptr<MeshRenderableRigged> p_instanceReference);
 	void AddAnimation(Animation* sourceAnimation, float startTime, float speed, float influence);
 
 	Vec3 Lerp(Vec3 a, Vec3 b, float t);
