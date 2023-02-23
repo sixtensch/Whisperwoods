@@ -105,7 +105,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
         float3 posArr[] = { float3(1.0f, 0.0f, 0.0f), float3(4.0f, 0.0f, 2.0f) };
 	    
         // Will not loop if the state is in the future.
-        for (int i = 0; i < coneCount * !isInFuture; i++)
+        for (uint i = 0; i < coneCount * !isInFuture; i++)
         {
             float4 enemyPosAndDir = worldPosAndDir[i];
             
