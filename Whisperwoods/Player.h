@@ -24,7 +24,7 @@ class Player : public GameObject
 	}
 
 public:
-
+	
 	Vec3 m_velocity;
 	bool cameraIsLocked;
 	float cameraFollowDistance;
@@ -33,6 +33,7 @@ public:
 	Room* currentRoom;
 	float collectiveForwardValue;
 	Vec3 sampleVector;
+	bool playerInFuture;
 
 	shared_ptr<MeshRenderableRigged> characterModel;
 	AnimationResource* animationSet;
@@ -47,6 +48,7 @@ public:
 	void ReloadPlayer();
 
 	void UpdateStamina(float maxStamina);
+	void ResetStaminaToMax(float staminaMax);
 	float GetCurrentStamina();
 
 	void PlayerMovement(float delta_time, float movementMultiplier);

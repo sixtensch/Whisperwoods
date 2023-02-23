@@ -11,6 +11,10 @@
 #include "Light.h"
 #include "MaterialResource.h"
 #include "Bone.h"
+#include "Enemy.h"
+
+
+
 
 class RenderCore
 {
@@ -80,12 +84,16 @@ public:
 	void WriteTimeSwitchInfo(
 		float timeSinceSwitch,
 		float chargeDuration,
-		float falloffDuration
+		float falloffDuration,
+		bool isInFuture
 	);
+
+	void WriteEnemyConeInfo(const cs::List<shared_ptr<Enemy>>& enemies);
 
 	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 origin);
 
 	void DrawPPFX();
+	void DrawPositionalEffects();
 	void DrawToBackBuffer();
 
 	void InitImGui() const;
@@ -125,11 +133,22 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_renderTextureSRV;
 	ComPtr<ID3D11UnorderedAccessView> m_renderTextureUAV;
 
+	// Render texture copy
+	ComPtr<ID3D11Texture2D> m_renderTextureCopy;
+	ComPtr<ID3D11ShaderResourceView> m_renderTextureCopySRV;
+
+	// Position texture
+	ComPtr<ID3D11Texture2D> m_positionTexture;
+	ComPtr<ID3D11RenderTargetView> m_positionTextureRTV;
+	ComPtr<ID3D11ShaderResourceView> m_positionTextureSRV;
+
+	
+
 	// PPFX
 	ComPtr<ID3D11Texture2D> m_ppfxLumTexture;
 	
 	ComPtr<ID3D11UnorderedAccessView> m_ppfxLumUAV;
-	ComPtr<ID3D11RenderTargetView> m_ppfxLumRTV;
+	ComPtr<ID3D11RenderTargetView> m_ppfxLumRTV; // This is only created for being able to call CreateBitmaps() function. No other function.
 	ComPtr<ID3D11ShaderResourceView> m_ppfxLumSRV;
 	
 	ComPtr<ID3D11Texture2D> m_ppfxLumSumTexture;
@@ -139,6 +158,7 @@ private:
 	ComPtr<ID3D11ComputeShader> m_thresholdCompute;
 	ComPtr<ID3D11ComputeShader> m_bloomCompute;
 	ComPtr<ID3D11ComputeShader> m_colorGradeCompute;
+	ComPtr<ID3D11ComputeShader> m_positionalEffectCompute;
 
 	ComPtr<ID3D11SamplerState> m_bloomUpscaleSampler;
 

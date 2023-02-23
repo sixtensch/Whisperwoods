@@ -486,8 +486,15 @@
     <FxCompile Include="CSColorGrade.hlsl">
       <Filter>%2a Code\%2a Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="VSShadow.hlsl" />
-    <FxCompile Include="VSMeshInstanced.hlsl" />
+    <FxCompile Include="VSShadow.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VSMeshInstanced.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="CSPositionalEffectPass.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Constants.hlsli">
@@ -498,6 +505,12 @@
       <Filter>%2a Code\%2a Shaders</Filter>
     </None>
     <None Include="ComputeConstants.hlsli">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </None>
+    <None Include="TimeSwitchFuncs.hlsli">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </None>
+    <None Include="FogFuncs.hlsli">
       <Filter>%2a Code\%2a Shaders</Filter>
     </None>
   </ItemGroup>

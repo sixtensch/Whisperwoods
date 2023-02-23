@@ -1,4 +1,5 @@
 #pragma once
+
 #include "MeshRenderable.h"
 #include "GameObject.h"
 #include "AnimationResource.h"
@@ -8,7 +9,6 @@
 
 //temp include
 #include "AudioSource.h"
-
 
 
 class Enemy : public GameObject
@@ -24,12 +24,15 @@ public:
 	bool SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack);
 	void ChangeTimelineState(bool isInFuture);
 
-	bool m_enemyAlive; // A bool to know if we render/update the enemy or not in the current room
+	bool enemyAlive; // A bool to know if we render/update the enemy or not in the current room
 
 	shared_ptr<MeshRenderableRigged> m_carcinian;
 	AnimationResource* m_animationSet;
 	unique_ptr<Animator> m_characterAnimator;
 
+	float GetViewAngle() const;
+	float GetViewDistance() const;
+	Vec2 GetForwardVector() const;
 
 private:
 
@@ -70,7 +73,7 @@ private:
 	int m_lastPlayedAnimation;
 	float m_timeToGivePlayerAChanceToRunAway;
 	const float m_amountOfTimeToRunAway = 1.0f; //how long enemies give player to run away in seconds
-	const float m_enemyViewDistance = 8.0f; //how far enemies can see
+	const float m_enemyViewDistance = 6.0f; //how far enemies can see
 	const float m_enemyViewAngle = 50.0f; // angle to each side of view vector
 	//****************************
 };

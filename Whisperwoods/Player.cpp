@@ -54,12 +54,13 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 
 	m_stamina = 10.0f;
 	m_maxStamina = 10.0f;
-	m_walkSpeed = 1.5f;
+	m_walkSpeed = 2.0f;
 	m_runSpeed = 3.5f;
 	cameraFollowDistance = 3.0f;
 	//cameraFollowHeight = 2.0f;
 	cameraFollowTilt = cs::c_pi / 4;
 	cameraIsLocked = true;
+	playerInFuture = false;
 }
 
 void Player::ReloadPlayer()
@@ -73,6 +74,12 @@ void Player::ReloadPlayer()
 void Player::UpdateStamina(float maxStamina)
 {
 	m_maxStamina = maxStamina;
+}
+
+void Player::ResetStaminaToMax(float staminaMax)
+{
+	m_maxStamina = staminaMax;
+	m_stamina = staminaMax;
 }
 
 float Player::GetCurrentStamina()
@@ -95,7 +102,8 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		if (Input::Get().IsKeybindDown( KeybindBackward ))	inputVector -= forward;
 		if (Input::Get().IsKeybindDown( KeybindRight ))		inputVector += right;
 		if (Input::Get().IsKeybindDown( KeybindLeft ))		inputVector -= right;
-		float walkRunMultiplier = ((Input::Get().IsKeybindDown( KeybindSprint )) ? m_runSpeed : m_walkSpeed);
+		float walkRunMultiplier = ((Input::Get().IsKeybindDown( KeybindSprint ) && !playerInFuture) ? m_runSpeed : m_walkSpeed);
+		
 		m_targetVelocity = Vec3( inputVector.x * walkRunMultiplier, inputVector.y * walkRunMultiplier, inputVector.z * walkRunMultiplier );
 
 		if (m_targetVelocity.Length() > m_runSpeed)
@@ -111,6 +119,8 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			m_targetVelocity = m_targetVelocity.Normalize();
 			m_targetVelocity *= m_walkSpeed;
 		}
+
+		
 
 		Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
 		if (m_velocity.Length() > m_runSpeed)
@@ -200,7 +210,10 @@ void Player::Update(float delta_time)
 			m_animationSpeed = 0;
 	}
 
-	m_stamina = cs::fclamp(m_stamina + (1.0f * delta_time), 0.05f, m_maxStamina);
+
+	m_stamina = cs::fclamp(m_stamina + (1.0f * delta_time), 0, m_maxStamina); //or 0.0f rather than 0
+
+
 	characterAnimator->playbackSpeed = m_animationSpeed;
 	characterAnimator->Update( delta_time );
 	transform.CalculateWorldMatrix();

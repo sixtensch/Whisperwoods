@@ -5,6 +5,30 @@
 
 #include <unordered_map>
 
+struct EnvironmentalizeParameters
+{
+	int spawnSeed;
+	int scaleSeed;
+	int rotationSeed;
+	int diversitySeed;
+	float rotateMult;
+	float xMult;
+	float yMult;
+	float scaleBase;
+	float scaleMult;
+	float densityUnwalkableOuter;
+	float densityUnwalkableInner;
+	float densityWalkable;
+	float minDensity;
+	float scaleMultiplierStones;
+	float scaleMultiplierTrees;
+	float scaleMultiplierFoliage;
+	float scaleEffectDensity;
+	int edgeSampleDistanceTrunks;
+	int edgeSampleDistanceTrees;
+	int edgeSampleDistanceStones;
+};
+
 class LevelHandler
 {
 public:
@@ -13,12 +37,12 @@ public:
 	LevelHandler(LevelHandler&&) = delete;
 
 	void LoadFloors();
-	void GenerateHubby( LevelFloor* outFloor );
-	void GenerateFloor(LevelFloor* outFloor);
-	void GenerateTestFloor(LevelFloor* outFloor);
+	void GenerateHubby( LevelFloor* outFloor, EnvironmentalizeParameters params);
+	void GenerateFloor(LevelFloor* outFloor, EnvironmentalizeParameters params);
+	void GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParameters params);
 
 private:
-	void Environmentalize(Level& l, cs::Random& r);
+	void Environmentalize(Level& l, EnvironmentalizeParameters parameters);
 	void AddLevelName(LevelFloor& f, string name);
 
 private:

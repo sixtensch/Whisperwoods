@@ -6,8 +6,9 @@
 #include "StaticObject.h"
 #include "Light.h"
 #include "SoundResource.h"
+#include "LevelHandler.h"
 
-constexpr float STAMINA_DECAY_MULTIPLIER = 1.2f;
+constexpr float STAMINA_DECAY_MULTIPLIER = 0.6f;
 
 class LevelHandler;
 
@@ -32,6 +33,7 @@ public:
 private:
 	void ChangeTimeline(Renderer* renderer);
 	void UpdateTimeSwitchBuffers(Renderer* renderer);
+	void UpdateEnemyConeBuffers(Renderer* renderer);
 
 	// Time switch functions
 	bool IsAllowedToSwitch();
@@ -39,6 +41,9 @@ private:
 	bool SwitchIsDone();
 	void LoadRoom(Level* level);
 	void UnloadRoom();
+	bool IsDetected(float deltaTime);
+	void LowerToFloor(float deltaTime);
+
 
 private:
 	std::unique_ptr<LevelHandler>	m_levelHandler;
@@ -68,6 +73,7 @@ private:
 		float timeSinceSwitch;
 	};
 
+	EnvironmentalizeParameters m_envParams;
 
 	bool m_isHubby;
 	bool m_isInFuture;
@@ -77,8 +83,15 @@ private:
 
 	float m_detectionLevelGlobal;
 	float m_detectionLevelFloor;
-
+	bool m_reachedLowestStamina;
 	float m_camFovChangeSpeed;
+
+	const float m_detectionRate = 0.2;
+	const float m_timeBeforeDetectionLowers = 10.0f; //in seconds
+	float m_timeUnseen = 0.0f; // for determining when to derease global detection
+	float m_dangerousTimeInFuture = 0.0f;
+	const float m_timeYouSurviveInFuture = 2.5f;
+
 
 	TimeSwitchValues m_switchVals;
 };
