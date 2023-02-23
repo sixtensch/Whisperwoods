@@ -42,10 +42,12 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	//importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 	m_firstTrigger = false;
 
-	Animation* carcinAnim0 = &m_animationSet->animations[0];
-	Animation* carcinAnim1 = &m_animationSet->animations[1];
-	Animation* carcinAnim2 = &m_animationSet->animations[3];
-	Animation* carcinAnim3 = &m_animationSet->animations[4];
+	Animation* carcinAnim0 = &m_animationSet->animations[1];
+	Animation* carcinAnim1 = &m_animationSet->animations[0];
+	Animation* carcinAnim2 = &m_animationSet->animations[4];
+	Animation* carcinAnim3 = &m_animationSet->animations[5];
+	Animation* carcinAnim4 = &m_animationSet->animations[2];
+	Animation* carcinAnim5 = &m_animationSet->animations[3];
 
 	float speed3 = 1.0f;
 	
