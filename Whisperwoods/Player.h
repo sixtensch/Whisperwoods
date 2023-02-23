@@ -44,6 +44,7 @@ public:
 
 	Player() = default;
 	Player(std::string modelResource, std::string animationsPath, Mat4 modelOffset);
+	void ReloadPlayer();
 
 	void UpdateStamina(float maxStamina);
 	float GetCurrentStamina();

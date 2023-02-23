@@ -9,6 +9,7 @@
 
 Game::Game() :
 	m_floor(),
+	m_isHubby( false ),
 	m_currentRoom(nullptr),
 	m_isInFuture(false),
 	m_isSwitching(false),
@@ -25,9 +26,16 @@ Game::~Game() {}
 
 void Game::Update(float deltaTime, Renderer* renderer)
 {
+	// Always do the following:
+	Camera& cameraRef = renderer->GetCamera();
+
+	// Player update
 	m_player->Update(deltaTime);
 	m_currentRoom->Update(deltaTime);
 	bool isSeen = false;
+	m_player->UpdateStamina( m_maxStamina );
+	float currentStamina = m_player->GetCurrentStamina();
+	Renderer::SetPlayerMatrix( m_player->transform.worldMatrix );
 
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
@@ -65,7 +73,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	}
 	
 	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
-
+	//if (!m_isHubby) // if not in hubby
 	// Time switch logic.
 	{
 		static float initialCamFov;
@@ -93,43 +101,69 @@ void Game::Update(float deltaTime, Renderer* renderer)
 				totalFovDelta += m_camFovChangeSpeed * deltaTime;
 				float newFov = initialCamFov + totalFovDelta;
 
-				// Max total fov cant exceed half circle.
-				if (newFov > cs::c_pi)
+					// Max total fov cant exceed half circle.
+					if (newFov > cs::c_pi)
+					{
+						newFov = cs::c_pi;
+					}
+
+					cameraRef.SetFov( newFov );
+				}
+				else
 				{
-					newFov = cs::c_pi;
+					if (!m_finishedCharging)
+					{
+						ChangeTimeline( renderer );
+						m_finishedCharging = true;
+						cameraRef.SetFov( initialCamFov );
+						totalFovDelta = 0.0f;
+					}
 				}
 
-				cameraRef.SetFov(newFov);
-			}
-			else
-			{
-				if (!m_finishedCharging)
+				if (!SwitchIsDone())
 				{
-					ChangeTimeline(renderer);
-					m_finishedCharging = true;
-					cameraRef.SetFov(initialCamFov);
-					totalFovDelta = 0.0f;
+					m_switchVals.timeSinceSwitch += deltaTime;
 				}
-			}
-
-			if (!SwitchIsDone())
-			{
-				m_switchVals.timeSinceSwitch += deltaTime;
-			}
-			else
-			{
-				m_switchVals.timeSinceSwitch = 0.0f;
-				m_isSwitching = false;
-			}
+				else
+				{
+					m_switchVals.timeSinceSwitch = 0.0f;
+					m_isSwitching = false;
+				}
 
 
-			UpdateTimeSwitchBuffers(renderer);
+				UpdateTimeSwitchBuffers( renderer );
+			}
+		}
+
+		m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
+		if (m_maxStamina < 0.1f)
+		{
+			m_maxStamina = 0.1f;
+			// Unload
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
+			/// D E A T H ///
+			//ChangeTimeline(renderer);
+		}
+
+		if (Input::Get().IsDXKeyPressed( DXKey::H ))
+		{
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
 		}
 	}
-	
+	else // If in hubby
+	{
+		if (Input::Get().IsDXKeyPressed( DXKey::L ))
+		{
+			UnLoadPrevious();
+			LoadTest();
+			m_player->ReloadPlayer();
+		}
+	}
 
-	m_player->UpdateStamina(m_maxStamina);
-	float currentStamina = m_player->GetCurrentStamina();
 #if WW_DEBUG
 	if (ImGui::Begin("Gameplay Vars"))
 	{
@@ -210,30 +244,43 @@ void Game::DeInit()
 	}
 }
 
+void Game::LoadHubby()
+{
+	m_levelHandler->GenerateHubby( &m_floor );
+	LoadRoom( &m_floor.rooms[0] );
+	Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
+	Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
+	Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
+	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = true;
+}
+
 void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor);
-
 	LoadRoom(&m_floor.rooms[0]);
-
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = false;
 }
 
 void Game::LoadGame(uint gameSeed)
 {
 	m_levelHandler->GenerateTestFloor(&m_floor);
-
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
-
 	m_player->transform.position = m_floor.startPosition;
-
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = false;
+}
+
+void Game::UnLoadPrevious()
+{
+	UnloadRoom();
 }
 
 Player* Game::GetPlayer()
@@ -245,11 +292,11 @@ void Game::LoadRoom(Level* level)
 {
 	Mat4 roomMatrix =
 		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight) *
-		Mat::translation3(level->position.x, level->position.x - 0.01, level->position.x)*
+		Mat::translation3(level->position.x, level->position.x - 0.01f, level->position.x)*
 		level->rotation.Matrix();
 
 	Mat4 roomCylinderMatrix =
-		Mat::scale3( level->resource->worldWidth, 1.0f, level->resource->worldHeight ) *
+		Mat::scale3( level->resource->worldWidth*1.5f, 1.0f, level->resource->worldHeight * 1.5f ) *
 		Mat::translation3( level->position.x, level->position.x, level->position.x ) *
 		level->rotation.Matrix();
 
@@ -297,6 +344,10 @@ void Game::LoadRoom(Level* level)
 
 void Game::UnloadRoom()
 {
+	Renderer::UnLoadEnvironment();
+	m_player->currentRoom = nullptr;
+	m_currentRoom = nullptr;
+	m_enemies.Clear();
 }
 
 bool Game::IsDetected(float deltaTime)
