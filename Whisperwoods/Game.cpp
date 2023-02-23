@@ -5,16 +5,19 @@
 #include "SoundResource.h"
 #include "Resources.h"
 #include "Input.h"
-#include "imgui.h"
+#include <imgui.h>
 
 Game::Game() :
 	m_floor(),
+	m_isHubby( false ),
 	m_currentRoom(nullptr),
 	m_isInFuture(false),
 	m_isSwitching(false),
 	m_finishedCharging(false),
-	m_stamina(10.0f), 
+	m_maxStamina(10.0f),
 	m_switchVals({ 1.0f, 0.5f, 3.0f, 0.0f }),
+	m_detectionLevelGlobal(0.0f),
+	m_detectionLevelFloor(0.0f),
 	m_camFovChangeSpeed(cs::c_pi / 4.0f)
 {}
 
@@ -22,93 +25,128 @@ Game::~Game() {}
 
 void Game::Update(float deltaTime, Renderer* renderer)
 {
-	m_player->Update(deltaTime);
-	m_currentRoom->Update(deltaTime);
+	// Always do the following:
+	Camera& cameraRef = renderer->GetCamera();
 
+	// Player update
+	m_player->Update(deltaTime);
+	m_player->UpdateStamina( m_maxStamina );
+	float currentStamina = m_player->GetCurrentStamina();
+	Renderer::SetPlayerMatrix( m_player->transform.worldMatrix );
+
+	// Room update
+	m_currentRoom->Update(deltaTime);
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update(deltaTime);
-		m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource);
+		if (m_enemies[i]->m_carcinian->enabled == true)
+		{
+			m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource);
+		}
 	}
-
-	Camera& cameraRef = renderer->GetCamera();
+	
+	// Static objects update
 	for (int i = 0; i < m_staticObjects.Size(); i++)
 	{
 		m_staticObjects[i]->Update(deltaTime);
 	}
-
-	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
-
-	// Time switch logic.
+	
+	if (!m_isHubby) // if not in hubby
 	{
-		static float initialCamFov;
-		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch())
+		// Time switch logic.
 		{
-			m_isSwitching = true;
-			m_finishedCharging = false;
-			initialCamFov = cameraRef.GetFov();
+			static float initialCamFov;
+			if (Input::Get().IsKeyPressed( KeybindPower ) && IsAllowedToSwitch())
+			{
+				m_isSwitching = true;
+				m_finishedCharging = false;
+				initialCamFov = cameraRef.GetFov();
+			}
+
+			static float totalFovDelta = 0.0f;
+			if (m_isSwitching)
+			{
+				if (!ChargeIsDone())
+				{
+					totalFovDelta += m_camFovChangeSpeed * deltaTime;
+					float newFov = initialCamFov + totalFovDelta;
+
+					// Max total fov cant exceed half circle.
+					if (newFov > cs::c_pi)
+					{
+						newFov = cs::c_pi;
+					}
+
+					cameraRef.SetFov( newFov );
+				}
+				else
+				{
+					if (!m_finishedCharging)
+					{
+						ChangeTimeline( renderer );
+						m_finishedCharging = true;
+						cameraRef.SetFov( initialCamFov );
+						totalFovDelta = 0.0f;
+					}
+				}
+
+				if (!SwitchIsDone())
+				{
+					m_switchVals.timeSinceSwitch += deltaTime;
+				}
+				else
+				{
+					m_switchVals.timeSinceSwitch = 0.0f;
+					m_isSwitching = false;
+				}
+
+
+				UpdateTimeSwitchBuffers( renderer );
+			}
 		}
 
-		static float totalFovDelta = 0.0f;
-		if (m_isSwitching)
+		m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
+		if (m_maxStamina < 0.1f)
 		{
-			if (!ChargeIsDone())
-			{
-				totalFovDelta += m_camFovChangeSpeed * deltaTime;
-				float newFov = initialCamFov + totalFovDelta;
+			m_maxStamina = 0.1f;
+			// Unload
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
+			/// D E A T H ///
+			//ChangeTimeline(renderer);
+		}
 
-				// Max total fov cant exceed half circle.
-				if (newFov > cs::c_pi)
-				{
-					newFov = cs::c_pi;
-				}
-
-				cameraRef.SetFov(newFov);
-			}
-			else
-			{
-				if (!m_finishedCharging)
-				{
-					ChangeTimeline(renderer);
-					m_finishedCharging = true;
-					cameraRef.SetFov(initialCamFov);
-					totalFovDelta = 0.0f;
-				}
-			}
-
-			if (!SwitchIsDone())
-			{
-				m_switchVals.timeSinceSwitch += deltaTime;
-			}
-			else
-			{
-				m_switchVals.timeSinceSwitch = 0.0f;
-				m_isSwitching = false;
-			}
-
-
-			UpdateTimeSwitchBuffers(renderer);
+		if (Input::Get().IsDXKeyPressed( DXKey::H ))
+		{
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
 		}
 	}
-	
+	else // If in hubby
+	{
+		if (Input::Get().IsDXKeyPressed( DXKey::L ))
+		{
+			UnLoadPrevious();
+			LoadTest();
+			m_player->ReloadPlayer();
+		}
+	}
 
 #if WW_DEBUG
-	if ( ImGui::Begin("Game Info") )
+	if (ImGui::Begin("Gameplay Vars"))
 	{
-		ImGui::InputFloat("Stamina", &m_stamina);
-		ImGui::Checkbox("Future", &m_isInFuture);
+		ImGui::Text("Max Stamina: %f", m_maxStamina);
+		ImGui::Text("Current Stamina: %f", currentStamina);
+		ImGui::DragFloat( "Detection Level Global", &m_detectionLevelGlobal, 0.1f, 0.0f, 1.0f );
+;		//ImGui::Text( "Detection level global: %f", m_detectionLevelGlobal );
+		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
+		ImGui::Checkbox( "Future", &m_isInFuture );
 	}
 	ImGui::End();
 #endif
-	
 
-	m_stamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
-	
-	if ( m_stamina < 0.f )
-	{
-		/// D E A T H ///
-		//ChangeTimeline(renderer);
-	}
 }
 
 void Game::Init()
@@ -147,30 +185,43 @@ void Game::DeInit()
 	}
 }
 
+void Game::LoadHubby()
+{
+	m_levelHandler->GenerateHubby( &m_floor );
+	LoadRoom( &m_floor.rooms[0] );
+	Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
+	Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
+	Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
+	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = true;
+}
+
 void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor);
-
 	LoadRoom(&m_floor.rooms[0]);
-
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = false;
 }
 
 void Game::LoadGame(uint gameSeed)
 {
 	m_levelHandler->GenerateTestFloor(&m_floor);
-
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
-
 	m_player->transform.position = m_floor.startPosition;
-
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = false;
+}
+
+void Game::UnLoadPrevious()
+{
+	UnloadRoom();
 }
 
 Player* Game::GetPlayer()
@@ -182,11 +233,11 @@ void Game::LoadRoom(Level* level)
 {
 	Mat4 roomMatrix =
 		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight) *
-		Mat::translation3(level->position.x, level->position.x - 0.01, level->position.x)*
+		Mat::translation3(level->position.x, level->position.x - 0.01f, level->position.x)*
 		level->rotation.Matrix();
 
 	Mat4 roomCylinderMatrix =
-		Mat::scale3( level->resource->worldWidth, 1.0f, level->resource->worldHeight ) *
+		Mat::scale3( level->resource->worldWidth*1.5f, 1.0f, level->resource->worldHeight * 1.5f ) *
 		Mat::translation3( level->position.x, level->position.x, level->position.x ) *
 		level->rotation.Matrix();
 
@@ -212,7 +263,7 @@ void Game::LoadRoom(Level* level)
 			Vec3 enemyPos = m_currentRoom->bitMapToWorldPos(bitPos);
 			m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
 		}
-	}
+	} 
 
 	for (LevelPatrol& p : level->resource->patrolsOpen)
 	{
@@ -234,12 +285,24 @@ void Game::LoadRoom(Level* level)
 
 void Game::UnloadRoom()
 {
+	Renderer::UnLoadEnvironment();
+	m_player->currentRoom = nullptr;
+	m_currentRoom = nullptr;
+	m_enemies.Clear();
 }
 
 void Game::ChangeTimeline(Renderer* renderer)
 {
 	m_isInFuture = !m_isInFuture;
 	renderer->SetTimelineState(m_isInFuture);
+
+	for (int i = 0; i < m_enemies.Size(); i++)
+	{
+		if (m_enemies[i]->m_enemyAlive == true)
+		{
+			m_enemies[i]->ChangeTimelineState(m_isInFuture);
+		}
+	}
 }
 
 void Game::UpdateTimeSwitchBuffers(Renderer* renderer)

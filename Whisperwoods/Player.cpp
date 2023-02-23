@@ -52,12 +52,32 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiPants.wwmt" ) );
 	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiSpikes.wwmt" ) );
 
+	m_stamina = 10.0f;
+	m_maxStamina = 10.0f;
 	m_walkSpeed = 1.5f;
 	m_runSpeed = 3.5f;
 	cameraFollowDistance = 3.0f;
 	//cameraFollowHeight = 2.0f;
 	cameraFollowTilt = cs::c_pi / 4;
 	cameraIsLocked = true;
+}
+
+void Player::ReloadPlayer()
+{
+	Resources& resources = Resources::Get();
+	characterModel = Renderer::CreateMeshRigged( m_modelResource );
+	characterAnimator->instanceReference = characterModel;
+	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiCombined.wwmt" ) );
+}
+
+void Player::UpdateStamina(float maxStamina)
+{
+	m_maxStamina = maxStamina;
+}
+
+float Player::GetCurrentStamina()
+{
+	return m_stamina;
 }
 
 void Player::PlayerMovement(float delta_time, float movementMultiplier)
@@ -76,12 +96,20 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		if (Input::Get().IsKeybindDown( KeybindRight ))		inputVector += right;
 		if (Input::Get().IsKeybindDown( KeybindLeft ))		inputVector -= right;
 		float walkRunMultiplier = ((Input::Get().IsKeybindDown( KeybindSprint )) ? m_runSpeed : m_walkSpeed);
-		m_targetVelocity = (inputVector)*walkRunMultiplier;
+		m_targetVelocity = Vec3( inputVector.x * walkRunMultiplier, inputVector.y * walkRunMultiplier, inputVector.z * walkRunMultiplier );
 
 		if (m_targetVelocity.Length() > m_runSpeed)
 		{
-			m_targetVelocity.Normalize();
+			m_targetVelocity = m_targetVelocity.Normalize();
 			m_targetVelocity *= m_runSpeed;
+		}
+
+		m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * delta_time);
+
+		if (m_stamina < 0.1f && m_targetVelocity.Length() > 0.0f)
+		{
+			m_targetVelocity = m_targetVelocity.Normalize();
+			m_targetVelocity *= m_walkSpeed;
 		}
 
 		Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
@@ -99,7 +127,19 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			converted *= m_runSpeed;
 		}
 
-		m_velocity = Lerp( m_velocity, m_targetVelocity-converted, delta_time * movementMultiplier );
+		Vec3 targetWithCollision = m_targetVelocity - converted;
+
+		if (!std::isnan( targetWithCollision.x ) && !std::isnan( targetWithCollision.y ) && !std::isnan( targetWithCollision.z ))
+		{
+			m_velocity = Lerp( m_velocity, m_targetVelocity-converted, delta_time * movementMultiplier );
+		}
+		else
+		{
+			LOG_WARN( "Velocity target was NAN: m_targetVelocity: %f %f %f - converted: %f %f %f", 
+				m_targetVelocity.x, m_targetVelocity.y, m_targetVelocity.z,
+				converted.x, converted.y, converted.z	
+			);
+		}
 
 		if (transform.parent != nullptr)
 		{
@@ -136,7 +176,6 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 
 void Player::Update(float delta_time)
 {
-	// Handle the input and movement (beta) TODO: collision shit.
 	PlayerMovement(delta_time, 10);
 	characterAnimator->loadedAnimations[2].influence = (m_velocity.Length() / m_walkSpeed);
 	characterAnimator->loadedAnimations[3].influence = (m_velocity.Length() / m_runSpeed);
@@ -161,8 +200,8 @@ void Player::Update(float delta_time)
 			m_animationSpeed = 0;
 	}
 
+	m_stamina = cs::fclamp(m_stamina + (1.0f * delta_time), 0.05f, m_maxStamina);
 	characterAnimator->playbackSpeed = m_animationSpeed;
-
 	characterAnimator->Update( delta_time );
 	transform.CalculateWorldMatrix();
 	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;

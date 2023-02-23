@@ -57,6 +57,8 @@ public:
 
 	void SetupEnvironmentAssets();
 	void LoadEnvironment(const Level* level);
+	void UnLoadEnvironment();
+
 
 	shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 	std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> CreateMeshStaticSwappable(const string& subpathCurrent,
