@@ -8,7 +8,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 {
 	m_currentPosition = Vec2(0.0f, 0.0f);
 	m_currentPatrolIndex = 1; // Starts on patrol index 0 and walks towards index 1
-	m_walkingSpeed = 2.0f;
+	m_walkingSpeed = 1.5f;
 	m_enclosedLoop = false; // Default value
 	m_indexChanger = 1;
 	m_distanceToPatrolPoint = 0.0f;
@@ -54,7 +54,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_characterAnimator->AddAnimation(carcinAnim2, 0, speed3, 0.0f);
 	m_characterAnimator->AddAnimation(carcinAnim3, 0, speed3, 0.0f);
 
-
+	m_characterAnimator->playbackSpeed = 1.0f;
 	m_characterAnimator->PlayAnimation(0, 0, 1, true, true);
 
 	m_carcinian->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "Carcinian.wwmt"));
