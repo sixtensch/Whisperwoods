@@ -96,8 +96,10 @@ void RenderHandler::Draw()
 	
 	// Draw final image to back buffer with tone mapping.
 	{
-		m_renderCore->DrawToBackBuffer();
+		//m_renderCore->DrawToBackBuffer();
 	}
+
+	m_renderCore->DrawFullScreenQuad();
 	
 	// Render text
 	{

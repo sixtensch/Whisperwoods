@@ -85,7 +85,8 @@ public:
 		float timeSinceSwitch,
 		float chargeDuration,
 		float falloffDuration,
-		bool isInFuture
+		bool isInFuture,
+		float detectionLevel
 	);
 
 	void WriteEnemyConeInfo(const cs::List<shared_ptr<Enemy>>& enemies);
@@ -95,6 +96,7 @@ public:
 	void DrawPPFX();
 	void DrawPositionalEffects();
 	void DrawToBackBuffer();
+	void DrawFullScreenQuad();
 
 	void InitImGui() const;
 

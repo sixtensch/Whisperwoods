@@ -147,9 +147,9 @@ void Game::Update(float deltaTime, Renderer* renderer)
 				m_isSwitching = false;
 			}
 
-
+			LOG("Called from is switching");
 			UpdateTimeSwitchBuffers( renderer );
-			
+
 		}
 
 		m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging;
@@ -241,6 +241,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		if (m_dangerousTimeInFuture >= m_timeYouSurviveInFuture) // how long you can survive in future with 0 stamina (seconds)
 		{
 			ChangeTimeline(renderer);
+			LOG("Called from death");
 			UpdateTimeSwitchBuffers(renderer);
 			m_maxStamina = 10.0f;
 			m_player->ResetStaminaToMax(m_maxStamina);
@@ -257,7 +258,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	// Final steps
 	{
 		UpdateEnemyConeBuffers(renderer);
-}
+	}
 }
 
 void Game::Init()
@@ -477,11 +478,14 @@ void Game::ChangeTimeline(Renderer* renderer)
 
 void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
 {
+	LOG("State: %i", m_isInFuture);
 	renderer->GetRenderCore()->WriteTimeSwitchInfo(
 		m_switchVals.timeSinceSwitch,
 		m_switchVals.chargeDuration,
 		m_switchVals.falloffDuration,
-		m_isInFuture
+		m_isInFuture,
+
+		m_detectionLevelFloor
 	);
 	
 }

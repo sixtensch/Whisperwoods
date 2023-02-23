@@ -66,7 +66,8 @@ namespace CB
 		float falloffDuration;
 		bool isInFuture;
 
-		char PADDING[3];
+		float detectionLevel;
+		float PADDING[3];		
 	};
 
 	struct EnemyConeInfo

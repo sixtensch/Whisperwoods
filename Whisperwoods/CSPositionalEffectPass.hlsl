@@ -74,8 +74,10 @@ cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
     float timeSwitchEndDuration;
     bool isInFuture;
     
-    bool PADDING[3];
+    float detectionLevel;
+    float PADDING[3];
 }
+
 
 cbuffer ENEMY_CONE_INFO_BUFFER : REGISTER_CBV_ENEMY_CONE_INFO
 {

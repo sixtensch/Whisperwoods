@@ -1,5 +1,4 @@
 #include "Constants.hlsli"
-#include "ComputeConstants.hlsli"
 #include "TimeSwitchFuncs.hlsli"
 
 float3 Tint(float3 color, float3 tintColor)
@@ -67,6 +66,14 @@ float3 AcesTonemap(float3 color)
     return saturate(sRGBSpace);
 }
 
+cbuffer COLORGRADE_INFO_BUFFER : REGISTER_CBV_COLORGRADE_INFO
+{
+    float2 vignette; // x: Inner border radius, y: Vignette strength
+    float2 contrast; // x: Contrast amount, y: Midpoint value
+    float brightness; // Brightness offset
+    float saturation; // Saturation value
+};
+
 cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
 {
     float timeSinceSwitch;
@@ -78,25 +85,17 @@ cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
     float PADDING[3];
 }
 
-
-cbuffer COLORGRADE_INFO_BUFFER : REGISTER_CBV_COLORGRADE_INFO
+struct PS_INPUT
 {
-    float2 vignette; // x: Inner border radius, y: Vignette strength
-    float2 contrast; // x: Contrast amount, y: Midpoint value
-    float brightness; // Brightness offset
-    float saturation; // Saturation value
+    float4 pos : SV_POSITION;
+    float2 uv : TEXCOORD;
 };
 
-RWTexture2D<unorm float4> backBufferTexture : REGISTER_UAV_RENDER_TARGET;
-Texture2D<float4> renderTexture             : REGISTER_SRV_COPY_SOURCE;
-Texture2D<float4> lumSumTexture             : REGISTER_SRV_TEX_USER_4;
+Texture2D renderTexture : REGISTER_SRV_COPY_SOURCE;
+Texture2D lumSumTexture : REGISTER_SRV_TEX_USER_4;
 
-[numthreads(NUM_THREADS.x, NUM_THREADS.y, 1)]
-void main( uint3 DTid : SV_DispatchThreadID )
-{   
-    const uint3 texPos = uint3(DTid.xy, 0u);
-    const float2 texUV = float2(texPos.xy) / BACK_BUFFER_RESOLUTION;
-    
+float4 main(PS_INPUT input) : SV_TARGET
+{
     const float totalTimeSwitchInfluence =
         TotalTimeSwitchInfluence(
         timeSinceSwitch,
@@ -104,39 +103,19 @@ void main( uint3 DTid : SV_DispatchThreadID )
         timeSwitchEndDuration
     );
     
+    uint3 texPos = uint3(input.uv.x * WINDOW_WIDTH, input.uv.y * WINDOW_HEIGHT, 0u);
+    
     float3 color = renderTexture.Load(texPos).rgb + lumSumTexture.Load(texPos).rgb;
-    
-    // Circle creation
-    if (false)
-    {
-        float circleInfluence = sin(totalTimeSwitchInfluence * 2.0f);
-        float2 pixelCoords = float2(texPos.xy);
-        float2 circleCenter = BACK_BUFFER_RESOLUTION * 0.5f;
-        float circleRadius = BACK_BUFFER_RESOLUTION.x  * circleInfluence;
-        float circleThickness = 60.0f;
-        float signedDistance = length(pixelCoords - circleCenter) - circleRadius;
-        float glowAmount = smoothstep(0.0f, circleThickness, abs(signedDistance));
-        glowAmount = (1.0f - pow(glowAmount, 0.125f)) ;
-    
-        float3 glowColor = float3(0.3f, 1.2f, 1.6f) * circleInfluence;
-        color += lerp(0.0f, glowColor, glowAmount);
-    }
-    
     color = AcesTonemap(color);
     
+    //color = Tint(color, lerp(1.0f.rrr, float3(0.0f, 0.0f, 2.0f), totalInflunce));
+    //color = Brightness(color, lerp(brightness, 1.0f, totalInflunce));
+    color = Saturation(color, smoothstep(saturation, 0.0f, totalTimeSwitchInfluence));
+    //color = Saturation(color, saturation);
+    color = Contrast(color, contrast.x, contrast.y);
     
-    // Color stuff.
-    if (true)
-    {
-        //color = Tint(color, lerp(1.0f.rrr, float3(0.0f, 0.0f, 2.0f), totalInflunce));
-        //color = Brightness(color, lerp(brightness, 1.0f, totalInflunce));
-        color = Saturation(color, smoothstep(saturation, 0.0f, totalTimeSwitchInfluence));
-        //color = Saturation(color, saturation);
-        color = Contrast(color, contrast.x, contrast.y);
-    }
-    
-    color = Vignette(color, texUV, vignette.x, vignette.y);
+    color = Vignette(color, input.uv, lerp(vignette.x, vignette.x * 3.0f, detectionLevel), vignette.y);
     
     //color = pow(color, (1.0f / 2.2f)); // Gamma correction.
-    backBufferTexture[texPos.xy] = float4(color, 1.0f);
+    return float4(color, 1.0f);
 }
