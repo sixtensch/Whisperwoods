@@ -125,7 +125,6 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 		m_renderCore->TargetShadowMap();
 	}
 
-	DrawInstances(state, shadows);
 
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
@@ -146,6 +145,7 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 			m_renderCore->DrawObject(data.get(), shadows);
 		}
 	}
+	DrawInstances(state, shadows);
 }
 
 RenderCore* RenderHandler::GetCore() const
@@ -187,16 +187,39 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	load(LevelAssetBush1, 
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
-		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
-
+		 "ShadiiTest.wwm", { "Tree_Charred_Tiled.wwmt", "Tree_Charred_Tiled.wwmt", "Tree_Charred_Tiled.wwmt" });
 
 	load(LevelAssetBush2, 
 		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
-		"BananaPlant.wwm", { "TestSceneBanana.wwmt" });
+		"BananaPlant.wwm", { "Tree_Charred_Tiled.wwmt" });
 
-	//load(LevelAssetBush1,
-	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
-	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
+	load( LevelAssetMediumTree1,
+		"Medium_Tree_1_Present.wwm", { "Willow_Tree_Tiled.wwmt", "Trees_Foliage.wwmt" },
+		"Medium_Tree_1_Future.wwm", { "Tree_Charred_Tiled.wwmt" } );
+
+	load( LevelAssetMediumTree2,
+		"Medium_Tree_2_Present.wwm", { "Willow_Tree_Tiled.wwmt", "Trees_Foliage.wwmt" },
+		"Medium_Tree_2_Future.wwm", { "Tree_Charred_Tiled.wwmt" } );
+
+	load( LevelAssetMediumTree3,
+		"Medium_Tree_2_Present.wwm", { "Brown_Bark_Tiled.wwmt", "Trees_Foliage.wwmt" },
+		"Medium_Tree_1_Future.wwm", { "Tree_Charred_Tiled.wwmt" } );
+
+	load( LevelAssetMediumStone1,
+		"Stone_1_Present.wwm", { "Stone_1_Present.wwmt" },
+		"Stone_1_Future.wwm", { "Stone_1_Future.wwmt" });
+
+	load( LevelAssetMediumStone2,
+		"Stone_2_Present.wwm", { "Stone_2_Present.wwmt" },
+		"Stone_2_Future.wwm", { "Stone_2_Future.wwmt" } );
+
+	load( LevelAssetMediumBigTrunk1,
+		"Big_Trunk_1.wwm", { "Brown_Bark_Tiled.wwmt" },
+		"Big_Trunk_1.wwm", { "Tree_Charred_Tiled.wwmt" } );
+
+	load( LevelAssetMediumBigTrunk2,
+		"Big_Trunk_2.wwm", { "Brown_Bark_Tiled.wwmt" },
+		"Big_Trunk_2.wwm", { "Tree_Charred_Tiled.wwmt" } );
 
 
 
@@ -319,6 +342,16 @@ void RenderHandler::LoadEnvironment(const Level* level)
 	}
 
 	m_renderCore->CreateInstanceBuffer(nullptr, instanceCount * sizeof(Mat4), &m_envInstanceBuffer);
+}
+
+void RenderHandler::UnLoadEnvironment()
+{
+	m_envInstances.Clear( false );
+	for (uint i = 0; i < LevelAssetCount; i++)
+	{
+		m_envMeshes[i].hotInstances.Clear( false );
+	}
+	m_worldRenderables.Clear();
 }
 
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)

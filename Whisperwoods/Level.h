@@ -6,7 +6,13 @@ enum LevelAsset : uint
 {
 	LevelAssetBush1,	// BananaPlant
 	LevelAssetBush2,	// BananaPlant
-
+	LevelAssetMediumTree1,	// BananaPlant
+	LevelAssetMediumTree2,	// BananaPlant
+	LevelAssetMediumTree3,	// BananaPlant
+	LevelAssetMediumStone1,	// BananaPlant
+	LevelAssetMediumStone2,	// BananaPlant
+	LevelAssetMediumBigTrunk1,	// BananaPlant
+	LevelAssetMediumBigTrunk2,	// BananaPlant
 	LevelAssetCount
 };
 
