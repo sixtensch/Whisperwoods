@@ -30,6 +30,9 @@ cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
     float timeSinceSwitch;
     float timeSwitchStartDuration;
     float timeSwitchEndDuration;
+    bool isInFuture;
+    
+    bool PADDING[3];
 }
 
 [numthreads(NUM_THREADS.x, NUM_THREADS.y, 1)]

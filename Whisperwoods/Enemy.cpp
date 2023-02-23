@@ -1,6 +1,7 @@
-#include "core.h"
+#include "Core.h"
 #include "Enemy.h"
 #include "Renderer.h"
+#include "RenderCore.h"
 #include "FBXImporter.h"
 #include "Resources.h"
 
@@ -563,6 +564,21 @@ void Enemy::ChangeTimelineState(bool isInFuture)
 	{
 		m_carcinian->enabled = true;
 	}
+}
+
+float Enemy::GetViewAngle() const
+{
+	return m_enemyViewAngle;
+}
+
+float Enemy::GetViewDistance() const
+{
+	return m_enemyViewDistance;
+}
+
+Vec2 Enemy::GetForwardVector() const
+{
+	return m_forwardVector;
 }
 
 void Enemy::PlayEnemyActiveNoise(AudioSource& quack)

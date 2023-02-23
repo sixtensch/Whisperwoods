@@ -1,4 +1,5 @@
 #pragma once
+
 #include "MeshRenderable.h"
 #include "GameObject.h"
 #include "AnimationResource.h"
@@ -8,7 +9,6 @@
 
 //temp include
 #include "AudioSource.h"
-
 
 
 class Enemy : public GameObject
@@ -30,6 +30,9 @@ public:
 	AnimationResource* m_animationSet;
 	unique_ptr<Animator> m_characterAnimator;
 
+	float GetViewAngle() const;
+	float GetViewDistance() const;
+	Vec2 GetForwardVector() const;
 
 private:
 

@@ -31,7 +31,7 @@ enum RegCBV : char
 	RegCBVThresholdInfo = 1, // Lum threshold, strength, min lum
 	RegCBVColorgradeInfo = 2, // Vignette, contrast, britghness, saturation
 	RegCBVTimeSwitchInfo = 3, // Time since switch, start dur, end dur
-	RegCBVUser3 = 4,
+	RegCBVEnemyConeInfo = 4, // 
 
 	RegCBVSystem0 = 5,
 	RegCBVSystem1 = 6,

@@ -80,8 +80,17 @@ Texture2D textureEmissive : REGISTER_SRV_TEX_EMISSIVE;
 Texture2D textureNormal : REGISTER_SRV_TEX_NORMAL;
 Texture2D shadowTexture : REGISTER_SRV_SHADOW_DEPTH;
 
-float4 main(VSOutput input) : SV_TARGET
+struct PS_OUTPUT
 {
+    float4 MainTarget : SV_TARGET0;
+    float4 PositionTarget : SV_TARGET1;
+};
+
+PS_OUTPUT main(VSOutput input)
+{
+	// Output struct for both main texture target and positional target.
+    PS_OUTPUT output;
+	
     float2 uv = input.outUV * tiling;
 	
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
@@ -192,8 +201,14 @@ float4 main(VSOutput input) : SV_TARGET
 		);
     }
 	
+    
     color += float4(colorEmissive.xyz, 0.0f) * 3.0f;
 	
     color.a = saturate(color.a);
-    return color;
+	
+	
+    output.MainTarget = color;
+    output.PositionTarget = input.wPosition;
+	
+    return output;
 }

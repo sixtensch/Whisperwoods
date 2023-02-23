@@ -64,6 +64,17 @@ namespace CB
 		float timeSinceSwitch;
 		float chargeDuration;
 		float falloffDuration;
+		bool isInFuture;
+
+		char PADDING[3];
+	};
+
+	struct EnemyConeInfo
+	{
+		Vec4 worldPosAndDir[ENEMY_CONE_INFO_CAPACITY]; // XY is world pos in XZ plane and ZW is world direction in XZ plane.
+		float coneLength; // Length of the vision cone for all enemies.
+		float coneAngle; // Angle of the cone (whole cone) in radians for all enemies.
+		uint coneCount;
 
 		float PADDING;
 	};
@@ -82,5 +93,6 @@ struct ConstantBuffers
 	ComPtr<ID3D11Buffer> ppfxColorGradeInfo;
 
 	ComPtr<ID3D11Buffer> timeSwitchInfo;
-	
+
+	ComPtr<ID3D11Buffer> enemyConeInfo;
 };
