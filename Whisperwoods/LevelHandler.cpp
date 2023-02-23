@@ -105,7 +105,7 @@ void LevelHandler::Environmentalize(Level& l, cs::Random& r)
 					int rand = r.Get( 100 );
 					if (rand < 25)
 					{
-						l.instances[LevelAssetMediumStone2].Add( stoneMatrix );
+						l.instances[LevelAssetStone2].Add( stoneMatrix );
 					}
 					else if (rand < 75)
 					{
@@ -113,7 +113,7 @@ void LevelHandler::Environmentalize(Level& l, cs::Random& r)
 					}
 					else
 					{
-						l.instances[LevelAssetMediumStone1].Add( stoneMatrix );
+						l.instances[LevelAssetStone1].Add( stoneMatrix );
 					}
 				}
 			}
@@ -131,31 +131,31 @@ void LevelHandler::Environmentalize(Level& l, cs::Random& r)
 
 				if (rand < 25)
 				{
-					l.instances[LevelAssetMediumStone1].Add( instanceMatrix );
+					l.instances[LevelAssetStone1].Add( instanceMatrix );
 				}
 				else if (rand < 30)
 				{
-					l.instances[LevelAssetMediumTree3].Add( instanceMatrix );
+					l.instances[LevelAssetTree3].Add( instanceMatrix );
 				}
 				else if (rand < 40)
 				{
-					l.instances[LevelAssetMediumTree2].Add( instanceMatrix );
+					l.instances[LevelAssetTree2].Add( instanceMatrix );
 				}
 				else if (rand < 50)
 				{
-					l.instances[LevelAssetMediumBigTrunk2].Add( instanceMatrix );
+					l.instances[LevelAssetBigTrunk2].Add( instanceMatrix );
 				}
 				else if (rand < 60)
 				{
-					l.instances[LevelAssetMediumTree1].Add( instanceMatrix );
+					l.instances[LevelAssetTree1].Add( instanceMatrix );
 				}
 				else if (rand < 75)
 				{
-					l.instances[LevelAssetMediumBigTrunk1].Add( trunkMatrix );
+					l.instances[LevelAssetBigTrunk1].Add( trunkMatrix );
 				}
 				else
 				{
-					l.instances[LevelAssetMediumBigTrunk2].Add( trunkMatrix );
+					l.instances[LevelAssetBigTrunk2].Add( trunkMatrix );
 				}
 			}
 			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].density < (float)r.Get( 100 )/100.0f) && (l.resource->bitmap[x + l.resource->pixelWidth * y].density != 0) && r.Get( 20 ) == 0)
