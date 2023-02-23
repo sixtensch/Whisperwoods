@@ -6,6 +6,7 @@
 #include "StaticObject.h"
 #include "Light.h"
 #include "SoundResource.h"
+#include "LevelHandler.h"
 
 constexpr float STAMINA_DECAY_MULTIPLIER = 1.2f;
 
@@ -71,6 +72,7 @@ private:
 		float timeSinceSwitch;
 	};
 
+	EnvironmentalizeParameters m_envParams;
 
 	bool m_isHubby;
 	bool m_isInFuture;
