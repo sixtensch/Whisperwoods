@@ -348,7 +348,7 @@ void RenderHandler::LoadEnvironment(const Level* level)
 	
 	uint instanceCount = 0;
 
-	//m_envQuadTree.
+	m_envQuadTree.Reconstruct(level->resource->pixelHeight, level->resource->pixelWidth);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
