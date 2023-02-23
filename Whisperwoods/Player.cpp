@@ -75,6 +75,12 @@ void Player::UpdateStamina(float maxStamina)
 	m_maxStamina = maxStamina;
 }
 
+void Player::ResetStaminaToMax(float staminaMax)
+{
+	m_maxStamina = staminaMax;
+	m_stamina = staminaMax;
+}
+
 float Player::GetCurrentStamina()
 {
 	return m_stamina;
@@ -111,6 +117,8 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			m_targetVelocity = m_targetVelocity.Normalize();
 			m_targetVelocity *= m_walkSpeed;
 		}
+
+		
 
 		Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
 		if (m_velocity.Length() > m_runSpeed)
@@ -200,7 +208,10 @@ void Player::Update(float delta_time)
 			m_animationSpeed = 0;
 	}
 
-	m_stamina = cs::fclamp(m_stamina + (1.0f * delta_time), 0.05f, m_maxStamina);
+
+	m_stamina = cs::fclamp(m_stamina + (1.0f * delta_time), 0, m_maxStamina); //or 0.0f rather than 0
+
+
 	characterAnimator->playbackSpeed = m_animationSpeed;
 	characterAnimator->Update( delta_time );
 	transform.CalculateWorldMatrix();

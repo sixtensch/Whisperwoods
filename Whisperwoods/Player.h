@@ -24,7 +24,7 @@ class Player : public GameObject
 	}
 
 public:
-
+	
 	Vec3 m_velocity;
 	bool cameraIsLocked;
 	float cameraFollowDistance;
@@ -47,6 +47,7 @@ public:
 	void ReloadPlayer();
 
 	void UpdateStamina(float maxStamina);
+	void ResetStaminaToMax(float staminaMax);
 	float GetCurrentStamina();
 
 	void PlayerMovement(float delta_time, float movementMultiplier);
