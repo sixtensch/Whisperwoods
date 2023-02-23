@@ -22,8 +22,10 @@ public:
 	void Init();
 	void DeInit();
 
+	void LoadHubby();
 	void LoadTest();
 	void LoadGame(uint gameSeed);
+	void UnLoadPrevious();
 
 	Player* GetPlayer();
 
@@ -38,6 +40,9 @@ private:
 	bool SwitchIsDone();
 	void LoadRoom(Level* level);
 	void UnloadRoom();
+	bool IsDetected(float deltaTime);
+	void LowerToFloor(float deltaTime);
+
 
 private:
 	std::unique_ptr<LevelHandler>	m_levelHandler;
@@ -67,6 +72,8 @@ private:
 		float timeSinceSwitch;
 	};
 
+
+	bool m_isHubby;
 	bool m_isInFuture;
 	bool m_isSwitching; // Switching = is true during whole duration (start + end) of time switch.
 	bool m_finishedCharging; // Charging = only first part of whole duration (start)
@@ -74,8 +81,15 @@ private:
 
 	float m_detectionLevelGlobal;
 	float m_detectionLevelFloor;
-
+	bool m_reachedLowestStamina;
 	float m_camFovChangeSpeed;
+
+	const float m_detectionRate = 0.2;
+	const float m_timeBeforeDetectionLowers = 10.0f; //in seconds
+	float m_timeUnseen = 0.0f; // for determining when to derease global detection
+	float m_dangerousTimeInFuture = 0.0f;
+	const float m_timeYouSurviveInFuture = 2.5f;
+
 
 	TimeSwitchValues m_switchVals;
 };

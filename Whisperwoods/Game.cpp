@@ -9,6 +9,7 @@
 
 Game::Game() :
 	m_floor(),
+	m_isHubby( false ),
 	m_currentRoom(nullptr),
 	m_isInFuture(false),
 	m_isSwitching(false),
@@ -17,66 +18,111 @@ Game::Game() :
 	m_switchVals({ 1.0f, 0.5f, 3.0f, 0.0f }),
 	m_detectionLevelGlobal(0.0f),
 	m_detectionLevelFloor(0.0f),
-	m_camFovChangeSpeed(cs::c_pi / 4.0f)
+	m_camFovChangeSpeed(cs::c_pi / 4.0f),
+	m_reachedLowestStamina(false)
 {}
 
 Game::~Game() {}
 
 void Game::Update(float deltaTime, Renderer* renderer)
 {
+	// Always do the following:
+	Camera& cameraRef = renderer->GetCamera();
+
+	// Player update
 	m_player->Update(deltaTime);
 	m_currentRoom->Update(deltaTime);
+	bool isSeen = false;
+	m_player->UpdateStamina( m_maxStamina );
+	float currentStamina = m_player->GetCurrentStamina();
+	Renderer::SetPlayerMatrix( m_player->transform.worldMatrix );
 
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update(deltaTime);
 		if (m_enemies[i]->m_carcinian->enabled == true)
 		{
-			m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource);
+			if (m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource) == true)
+			{
+				isSeen = true;
+			}
+		}
+	}
+	static float initialCamFov;
+	if (isSeen == true)
+	{
+		m_timeUnseen = 0.0f;
+		if (IsDetected(deltaTime))
+		{
+			// D E A T H
+			m_maxStamina = 10.0f;
+			m_player->ResetStaminaToMax(m_maxStamina);
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
+			isSeen = false;
+			m_detectionLevelGlobal = 0.0f;
+			m_detectionLevelFloor = 0.0f;
+		}
+	}
+	else
+	{
+		m_timeUnseen += deltaTime;
+		if (m_timeUnseen > m_timeBeforeDetectionLowers)
+		{
+			LowerToFloor(deltaTime);
 		}
 	}
 
-	Camera& cameraRef = renderer->GetCamera();
 	for (int i = 0; i < m_staticObjects.Size(); i++)
 	{
 		m_staticObjects[i]->Update(deltaTime);
 	}
 	
 	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
-
+	if (!m_isHubby) // if not in hubby
 	// Time switch logic.
 	{
-		static float initialCamFov;
-		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch())
+		
+		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch() /*&& m_reachedLowestStamina == false*/)  
 		{
 			m_isSwitching = true;
 			m_finishedCharging = false;
 			initialCamFov = cameraRef.GetFov();
 		}
 
+		//if (m_reachedLowestStamina == true && m_forcedBackToPresent == false)
+		//{
+		//	m_isSwitching = true;
+		//	m_finishedCharging = false;
+		//	initialCamFov = cameraRef.GetFov();
+		//	m_forcedBackToPresent = true;
+		//}
+		
+
 		static float totalFovDelta = 0.0f;
-		if (m_isSwitching)
+		if (m_isSwitching )
 		{
 			if (!ChargeIsDone())
 			{
 				totalFovDelta += m_camFovChangeSpeed * deltaTime;
 				float newFov = initialCamFov + totalFovDelta;
 
-				// Max total fov cant exceed half circle.
-				if (newFov > cs::c_pi)
-				{
-					newFov = cs::c_pi;
-				}
+					// Max total fov cant exceed half circle.
+					if (newFov > cs::c_pi)
+					{
+						newFov = cs::c_pi;
+					}
 
-				cameraRef.SetFov(newFov);
+					cameraRef.SetFov( newFov );
 			}
 			else
 			{
 				if (!m_finishedCharging)
 				{
-					ChangeTimeline(renderer);
+					ChangeTimeline( renderer );
 					m_finishedCharging = true;
-					cameraRef.SetFov(initialCamFov);
+					cameraRef.SetFov( initialCamFov );
 					totalFovDelta = 0.0f;
 				}
 			}
@@ -92,22 +138,41 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			}
 
 
-			UpdateTimeSwitchBuffers(renderer);
+			UpdateTimeSwitchBuffers( renderer );
+			
+		}
+
+		m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging;
+		if (m_maxStamina < 1.0f)
+		{
+			m_maxStamina = 1.0f;
+		}
+
+		if (Input::Get().IsDXKeyPressed( DXKey::H ) && !m_isInFuture)
+		{
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
 		}
 	}
-	
+	else // If in hubby
+	{
+		if (Input::Get().IsDXKeyPressed( DXKey::L ))
+		{
+			UnLoadPrevious();
+			LoadTest();
+			m_player->ReloadPlayer();
+		}
+	}
 
-	m_player->UpdateStamina(m_maxStamina);
-	float currentStamina = m_player->GetCurrentStamina();
 #if WW_DEBUG
 	if (ImGui::Begin("Gameplay Vars"))
 	{
 		ImGui::Text("Max Stamina: %f", m_maxStamina);
 		ImGui::Text("Current Stamina: %f", currentStamina);
 		ImGui::DragFloat( "Detection Level Global", &m_detectionLevelGlobal, 0.1f, 0.0f, 1.0f );
-;		//ImGui::Text( "Detection level global: %f", m_detectionLevelGlobal );
 		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
-
+		ImGui::Text("Time left until future death: %f", m_timeYouSurviveInFuture - m_dangerousTimeInFuture);
 		ImGui::Checkbox( "Future", &m_isInFuture );
 	}
 	ImGui::End();
@@ -115,13 +180,36 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 	
 
-	m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
+	m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging;
 	
-	if ( m_maxStamina < 0.f )
+	if ( m_maxStamina < 1.0f ) // DO NOT CHANGE THIS
 	{
-		m_maxStamina = 0.0f;
+		m_maxStamina = 1.0f; // DO NOT CHANGE THIS
+		
+		
+		if (m_reachedLowestStamina == false )
+		{
+			m_reachedLowestStamina = true;
+		}
+		else
+		{
+			m_dangerousTimeInFuture += deltaTime;
+		}
+
 		/// D E A T H ///
-		//ChangeTimeline(renderer);
+		if (m_dangerousTimeInFuture >= m_timeYouSurviveInFuture) // how long you can survive in future with 0 stamina (seconds)
+		{
+			ChangeTimeline(renderer);
+			m_maxStamina = 10.0f;
+			m_player->ResetStaminaToMax(m_maxStamina);
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
+		}
+	}
+	if (!m_isInFuture)
+	{
+		m_dangerousTimeInFuture = 0.0f;
 	}
 
 	// Final steps
@@ -166,30 +254,43 @@ void Game::DeInit()
 	}
 }
 
+void Game::LoadHubby()
+{
+	m_levelHandler->GenerateHubby( &m_floor );
+	LoadRoom( &m_floor.rooms[0] );
+	Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
+	Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
+	Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
+	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = true;
+}
+
 void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor);
-
 	LoadRoom(&m_floor.rooms[0]);
-
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = false;
 }
 
 void Game::LoadGame(uint gameSeed)
 {
 	m_levelHandler->GenerateTestFloor(&m_floor);
-
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
-
 	m_player->transform.position = m_floor.startPosition;
-
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = false;
+}
+
+void Game::UnLoadPrevious()
+{
+	UnloadRoom();
 }
 
 Player* Game::GetPlayer()
@@ -201,11 +302,11 @@ void Game::LoadRoom(Level* level)
 {
 	Mat4 roomMatrix =
 		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight) *
-		Mat::translation3(level->position.x, level->position.x - 0.01, level->position.x)*
+		Mat::translation3(level->position.x, level->position.x - 0.01f, level->position.x)*
 		level->rotation.Matrix();
 
 	Mat4 roomCylinderMatrix =
-		Mat::scale3( level->resource->worldWidth, 1.0f, level->resource->worldHeight ) *
+		Mat::scale3( level->resource->worldWidth*1.5f, 1.0f, level->resource->worldHeight * 1.5f ) *
 		Mat::translation3( level->position.x, level->position.x, level->position.x ) *
 		level->rotation.Matrix();
 
@@ -253,6 +354,45 @@ void Game::LoadRoom(Level* level)
 
 void Game::UnloadRoom()
 {
+	Renderer::UnLoadEnvironment();
+	m_player->currentRoom = nullptr;
+	m_currentRoom = nullptr;
+	m_enemies.Clear();
+}
+
+bool Game::IsDetected(float deltaTime)
+{
+	float rate = m_detectionRate;
+	if (Input::Get().IsKeybindDown(KeybindCrouch)) // is crouching 
+	{
+		rate = rate * 0.75f;
+	}
+	else if (Input::Get().IsKeybindDown(KeybindSprint)) // is running
+	{
+		rate = rate * 1.3f;
+	}
+
+	m_detectionLevelGlobal += rate * deltaTime;
+	m_detectionLevelFloor += (rate / 3) * deltaTime;
+
+	if (m_detectionLevelGlobal >= 1.0f)
+	{
+		return true; //game over
+	}
+
+	return false; // game is not over
+}
+
+void Game::LowerToFloor(float deltaTime)
+{
+	if (m_detectionLevelGlobal > m_detectionLevelFloor)
+	{
+		m_detectionLevelGlobal -= (m_detectionRate / 2) * deltaTime;
+	}
+	if (m_detectionLevelGlobal < m_detectionLevelFloor)
+	{
+		m_detectionLevelGlobal = m_detectionLevelFloor;
+	}
 }
 
 void Game::ChangeTimeline(Renderer* renderer)

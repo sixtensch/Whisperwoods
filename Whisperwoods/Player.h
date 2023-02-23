@@ -24,7 +24,7 @@ class Player : public GameObject
 	}
 
 public:
-
+	
 	Vec3 m_velocity;
 	bool cameraIsLocked;
 	float cameraFollowDistance;
@@ -44,8 +44,10 @@ public:
 
 	Player() = default;
 	Player(std::string modelResource, std::string animationsPath, Mat4 modelOffset);
+	void ReloadPlayer();
 
 	void UpdateStamina(float maxStamina);
+	void ResetStaminaToMax(float staminaMax);
 	float GetCurrentStamina();
 
 	void PlayerMovement(float delta_time, float movementMultiplier);

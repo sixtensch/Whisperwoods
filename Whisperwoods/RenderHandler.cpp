@@ -9,6 +9,23 @@ RenderHandler::RenderHandler()
 {
 	m_renderableIDCounter = 0;
 	m_timelineState = TimelineStateCurrent;
+	m_envQuadTree.Init(2, -1, 50, 50); //TODO: actual startsize
+
+
+	const dx::BoundingBox BananaPlant = {
+		dx::XMFLOAT3(0,0,0),
+		dx::XMFLOAT3(1,1,1)
+	};
+	const dx::BoundingBox BananaPlant2TEMP = {
+		dx::XMFLOAT3(0,0,0),
+		dx::XMFLOAT3(1,1,1)
+	};
+
+	// Add to the list
+
+	boundingVolumes[0] = BananaPlant;
+	boundingVolumes[1] = BananaPlant2TEMP;
+
 }
 
 RenderHandler::~RenderHandler()
@@ -115,7 +132,6 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 		m_renderCore->TargetShadowMap();
 	}
 
-	DrawInstances(state, shadows);
 
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
@@ -136,6 +152,7 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 			m_renderCore->DrawObject(data.get(), shadows);
 		}
 	}
+	DrawInstances(state, shadows);
 }
 
 RenderCore* RenderHandler::GetCore() const
@@ -177,16 +194,39 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	load(LevelAssetBush1, 
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
-		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
-
+		 "ShadiiTest.wwm", { "Tree_Charred_Tiled.wwmt", "Tree_Charred_Tiled.wwmt", "Tree_Charred_Tiled.wwmt" });
 
 	load(LevelAssetBush2, 
 		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" });
 
-	//load(LevelAssetBush1,
-	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
-	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
+	load(LevelAssetTree1,
+		"Medium_Tree_1_Present.wwm", {"Brown_Bark_Tiled.wwmt", "Trees_Foliage.wwmt" },
+		"Medium_Tree_1_Future.wwm", {"Tree_Charred_Tiled.wwmt"});
+
+	load(LevelAssetTree2,
+		"Medium_Tree_2_Present.wwm", { "Pink_Palm_Tiled.wwmt", "Trees_Foliage.wwmt" },
+		"Medium_Tree_2_Future.wwm", { "Tree_Charred_Tiled.wwmt" });
+
+	load(LevelAssetTree3,
+		"Medium_Tree_3_Present.wwm", { "Trees_Foliage.wwmt", "Willow_Tree_Tiled.wwmt" },
+		"Medium_Tree_3_Future.wwm", { "Tree_Charred_Tiled.wwmt" });
+
+	load(LevelAssetBigTrunk1,
+		"Big_Trunk_1.wwm", { "Brown_Bark_Tiled.wwmt" },
+		"Big_Trunk_1.wwm", { "Tree_Charred_Tiled.wwmt" });
+
+	load(LevelAssetBigTrunk2,
+		"Big_Trunk_2.wwm", { "Brown_Bark_Tiled.wwmt" },
+		"Big_Trunk_2.wwm", { "Tree_Charred_Tiled.wwmt" });
+
+	load(LevelAssetStone1,
+		"Stone_1_Present.wwm", { "Stone_1_Present.wwmt" },
+		"Stone_1_Future.wwm", { "Stone_1_Future.wwmt" });
+
+	load(LevelAssetStone2,
+		"Stone_2_Present.wwm", { "Stone_2_Present.wwmt" },
+		"Stone_2_Future.wwm", { "Stone_2_Future.wwmt" });
 
 
 
@@ -298,17 +338,41 @@ void RenderHandler::LoadEnvironment(const Level* level)
 	
 	uint instanceCount = 0;
 
-	//m_envQuadTree.
+	m_envQuadTree.Reconstruct(level->resource->pixelHeight, level->resource->pixelWidth);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
 		m_envMeshes[i].instances.Clear(false);
-		m_envMeshes[i].instances.MassAdd(level->instances[i].Data(), level->instances[i].Size(), true);
+		//m_envMeshes[i].instances.MassAdd(level->instances[i].Data(), level->instances[i].Size(), true);
+		
+		for ( auto& matrix : level->instances[i] )
+		{
+			m_envMeshes[i].instances.Add(matrix);
+
+			dx::BoundingBox bBox = {};
+			// Improvements can be made here, do math for Mat4 transform on boundingVolume instead
+			dx::XMMATRIX dxMatrix = dx::XMMatrixTranspose(matrix.XMMatrix());
+			boundingVolumes[i].Transform(bBox, dxMatrix);
+			shared_ptr<const Mat4*> sptr = make_shared<const Mat4*>(&matrix);
+
+			m_envQuadTree.AddElementIndexed(sptr, bBox, i);
+		}
 
 		instanceCount += (uint)level->instances[i].Size();
 	}
+	
 
 	m_renderCore->CreateInstanceBuffer(nullptr, instanceCount * sizeof(Mat4), &m_envInstanceBuffer);
+}
+
+void RenderHandler::UnLoadEnvironment()
+{
+	m_envInstances.Clear( false );
+	for (uint i = 0; i < LevelAssetCount; i++)
+	{
+		m_envMeshes[i].hotInstances.Clear( false );
+	}
+	m_worldRenderables.Clear();
 }
 
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
@@ -417,11 +481,27 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 {
 	m_renderCore->BindInstancedPipeline(shadows);
 
-
-
 	// Culling here
-
 	m_envInstances.Clear(false);
+
+	// Create the view frustum for the culling
+	dx::BoundingFrustum viewFrustum = {};
+	viewFrustum.CreateFromMatrix(viewFrustum, m_mainCamera.GetProjectionMatrix().XMMatrix());
+	Vec3 position = m_mainCamera.GetPosition();
+	viewFrustum.Origin = {
+		position.x,
+		position.y,
+		position.z
+	};
+	Quaternion rotation = m_mainCamera.GetRotation().Conjugate();
+	viewFrustum.Orientation = {
+		rotation.x,
+		rotation.y,
+		rotation.z,
+		rotation.w
+	};
+
+
 
 
 	for (uint i = 0; i < LevelAssetCount; i++)
@@ -429,8 +509,10 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 		m_envMeshes[i].hotInstances.Clear(false);
 	}
 
-	for (uint i = 0; i < LevelAssetCount; i++)
-		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
+	//for (uint i = 0; i < LevelAssetCount; i++)
+	//	m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
+
+	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 5);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
@@ -445,8 +527,8 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 	m_renderCore->SetInstanceBuffers(
 		m_envVertices[state],
 		m_envInstanceBuffer,
-		sizeof(VertexTextured), 
-		sizeof(Mat4), 
+		sizeof(VertexTextured),
+		sizeof(Mat4),
 		0, 0);
 
 	m_renderCore->SetIndexBuffer(m_envIndices[state].Get(), 0);

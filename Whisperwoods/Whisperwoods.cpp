@@ -54,7 +54,17 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
 	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_1.fbx", false);
 	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
-	//BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false );
+	BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false, 1.0f );
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Stone_2_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Stone_2_Present.fbx", false);
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
@@ -128,7 +138,7 @@ void Whisperwoods::Run()
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
 	m_game->Init();
-	m_game->LoadTest();
+	m_game->LoadHubby();
 
 
 	int frames = 0;

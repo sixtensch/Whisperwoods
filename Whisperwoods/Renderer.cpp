@@ -72,6 +72,7 @@ void Renderer::SetupEnvironmentAssets()
 
 void Renderer::SetPlayerMatrix(const Mat4& matrix)
 {
+	s_singleton->m_renderHandler->SetPlayerMatrix( matrix );
 }
 
 void Renderer::LoadLevel(LevelResource* level, string image)
@@ -82,6 +83,11 @@ void Renderer::LoadLevel(LevelResource* level, string image)
 void Renderer::LoadEnvironment(const Level* level)
 {
 	s_singleton->m_renderHandler->LoadEnvironment(level);
+}
+
+void Renderer::UnLoadEnvironment()
+{
+	s_singleton->m_renderHandler->UnLoadEnvironment();
 }
 
 shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpath)
