@@ -33,6 +33,7 @@ public:
 	Room* currentRoom;
 	float collectiveForwardValue;
 	Vec3 sampleVector;
+	bool playerInFuture;
 
 	shared_ptr<MeshRenderableRigged> characterModel;
 	AnimationResource* animationSet;

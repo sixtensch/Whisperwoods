@@ -9,12 +9,12 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 {
 	m_currentPosition = Vec2(0.0f, 0.0f);
 	m_currentPatrolIndex = 1; // Starts on patrol index 0 and walks towards index 1
-	m_walkingSpeed = 2.0f;
+	m_walkingSpeed = 1.5f;
 	m_enclosedLoop = false; // Default value
 	m_indexChanger = 1;
 	m_distanceToPatrolPoint = 0.0f;
 	m_walkingDirection = Vec2(0.0f, 0.0f);
-	m_enemyAlive = false; // Default false, has to be manually turned on
+	enemyAlive = false; // Default false, has to be manually turned on
 	m_rotation = false;
 	
 	m_offset = 0;
@@ -55,7 +55,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_characterAnimator->AddAnimation(carcinAnim2, 0, speed3, 0.0f);
 	m_characterAnimator->AddAnimation(carcinAnim3, 0, speed3, 0.0f);
 
-
+	m_characterAnimator->playbackSpeed = 1.0f;
 	m_characterAnimator->PlayAnimation(0, 0, 1, true, true);
 
 	m_carcinian->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "Carcinian.wwmt"));
@@ -328,7 +328,7 @@ void Enemy::AddCoordinateToPatrolPath(Vec2 coord, bool enclosed) // Make sure th
 {
 	m_patrolPath.push_back(coord);
 	m_enclosedLoop = enclosed;
-	m_enemyAlive = true;
+	enemyAlive = true;
 	m_firstTrigger = false;
 	m_currentPatrolIndex = 1;
 }
@@ -336,7 +336,7 @@ void Enemy::AddCoordinateToPatrolPath(Vec2 coord, bool enclosed) // Make sure th
 void Enemy::EmptyPatrolPath()
 {
 	m_patrolPath.clear();
-	m_enemyAlive = false;
+	enemyAlive = false;
 }
 
 void Enemy::AddModel(std::string modelResource, std::string animationsPath, Mat4 modelOffset)

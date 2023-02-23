@@ -8,7 +8,7 @@
 #include "SoundResource.h"
 #include "LevelHandler.h"
 
-constexpr float STAMINA_DECAY_MULTIPLIER = 1.2f;
+constexpr float STAMINA_DECAY_MULTIPLIER = 0.6f;
 
 class LevelHandler;
 
