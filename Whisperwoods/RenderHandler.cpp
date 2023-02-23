@@ -194,6 +194,42 @@ void RenderHandler::SetupEnvironmentAssets()
 		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" });
 
+	load(LevelAssetTree1,
+		"Medium_Tree_1_Present.wwm", {"Brown_Bark_Tiled.wwmt", "Trees_Foliage.wwmt" },
+		"Medium_Tree_1_Future.wwm", {"Tree_Charred_Tiled.wwmt"});
+
+	load(LevelAssetTree2,
+		"Medium_Tree_2_Present.wwm", { "Pink_Palm_Tiled.wwmt", "Trees_Foliage.wwmt" },
+		"Medium_Tree_2_Future.wwm", { "Tree_Charred_Tiled.wwmt" });
+
+	load(LevelAssetTree3,
+		"Medium_Tree_3_Present.wwm", { "Trees_Foliage.wwmt", "Willow_Tree_Tiled.wwmt" },
+		"Medium_Tree_3_Future.wwm", { "Tree_Charred_Tiled.wwmt" });
+
+	load(LevelAssetBigTrunk1,
+		"Big_Trunk_1.wwm", { "Brown_Bark_Tiled.wwmt" },
+		"Big_Trunk_1.wwm", { "Tree_Charred_Tiled.wwmt" });
+
+	load(LevelAssetBigTrunk2,
+		"Big_Trunk_2.wwm", { "Brown_Bark_Tiled.wwmt" },
+		"Big_Trunk_2.wwm", { "Tree_Charred_Tiled.wwmt" });
+
+	load(LevelAssetStone1,
+		"Stone_1_Present.wwm", { "Stone_1_Present.wwmt" },
+		"Stone_1_Future.wwm", { "Stone_1_Future.wwmt" });
+
+	load(LevelAssetStone2,
+		"Stone_2_Present.wwm", { "Stone_2_Present.wwmt" },
+		"Stone_2_Future.wwm", { "Stone_2_Future.wwmt" });
+
+
+	/*LevelAssetTree2,	// MediumPinkThistleTree
+		LevelAssetTree3,	// GrayFeatherTree
+		LevelAssetBigTrunk1,	//ThickBackgroundTrunk
+		LevelAssetBigTrunk2,	//SlenderBackgroundTrunk
+		LevelAssetStone1,	// SingleStone
+		LevelAssetStone2,	// StoneCluster*/
+
 	//load(LevelAssetBush1,
 	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
 	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
