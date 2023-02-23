@@ -13,7 +13,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_indexChanger = 1;
 	m_distanceToPatrolPoint = 0.0f;
 	m_walkingDirection = Vec2(0.0f, 0.0f);
-	m_enemyAlive = false; // Default false, has to be manually turned on
+	enemyAlive = false; // Default false, has to be manually turned on
 	m_rotation = false;
 	
 	m_offset = 0;
@@ -327,7 +327,7 @@ void Enemy::AddCoordinateToPatrolPath(Vec2 coord, bool enclosed) // Make sure th
 {
 	m_patrolPath.push_back(coord);
 	m_enclosedLoop = enclosed;
-	m_enemyAlive = true;
+	enemyAlive = true;
 	m_firstTrigger = false;
 	m_currentPatrolIndex = 1;
 }
@@ -335,7 +335,7 @@ void Enemy::AddCoordinateToPatrolPath(Vec2 coord, bool enclosed) // Make sure th
 void Enemy::EmptyPatrolPath()
 {
 	m_patrolPath.clear();
-	m_enemyAlive = false;
+	enemyAlive = false;
 }
 
 void Enemy::AddModel(std::string modelResource, std::string animationsPath, Mat4 modelOffset)

@@ -29,6 +29,15 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	// Always do the following:
 	Camera& cameraRef = renderer->GetCamera();
 
+	if (m_isInFuture == false)
+	{
+		m_player->playerInFuture = false;
+	}
+	else
+	{
+		m_player->playerInFuture = true;
+	}
+
 	// Player update
 	m_player->Update(deltaTime);
 	m_currentRoom->Update(deltaTime);
@@ -397,7 +406,7 @@ void Game::ChangeTimeline(Renderer* renderer)
 
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
-		if (m_enemies[i]->m_enemyAlive == true)
+		if (m_enemies[i]->enemyAlive == true)
 		{
 			m_enemies[i]->ChangeTimelineState(m_isInFuture);
 		}

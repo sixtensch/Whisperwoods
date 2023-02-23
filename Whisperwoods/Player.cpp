@@ -54,12 +54,13 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 
 	m_stamina = 10.0f;
 	m_maxStamina = 10.0f;
-	m_walkSpeed = 1.5f;
+	m_walkSpeed = 2.0f;
 	m_runSpeed = 3.5f;
 	cameraFollowDistance = 3.0f;
 	//cameraFollowHeight = 2.0f;
 	cameraFollowTilt = cs::c_pi / 4;
 	cameraIsLocked = true;
+	playerInFuture = false;
 }
 
 void Player::ReloadPlayer()
@@ -101,7 +102,8 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		if (Input::Get().IsKeybindDown( KeybindBackward ))	inputVector -= forward;
 		if (Input::Get().IsKeybindDown( KeybindRight ))		inputVector += right;
 		if (Input::Get().IsKeybindDown( KeybindLeft ))		inputVector -= right;
-		float walkRunMultiplier = ((Input::Get().IsKeybindDown( KeybindSprint )) ? m_runSpeed : m_walkSpeed);
+		float walkRunMultiplier = ((Input::Get().IsKeybindDown( KeybindSprint ) && !playerInFuture) ? m_runSpeed : m_walkSpeed);
+		
 		m_targetVelocity = Vec3( inputVector.x * walkRunMultiplier, inputVector.y * walkRunMultiplier, inputVector.z * walkRunMultiplier );
 
 		if (m_targetVelocity.Length() > m_runSpeed)
