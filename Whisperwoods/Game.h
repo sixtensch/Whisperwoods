@@ -22,8 +22,10 @@ public:
 	void Init();
 	void DeInit();
 
+	void LoadHubby();
 	void LoadTest();
 	void LoadGame(uint gameSeed);
+	void UnLoadPrevious();
 
 	Player* GetPlayer();
 
@@ -66,6 +68,8 @@ private:
 		float timeSinceSwitch;
 	};
 
+
+	bool m_isHubby;
 	bool m_isInFuture;
 	bool m_isSwitching; // Switching = is true during whole duration (start + end) of time switch.
 	bool m_finishedCharging; // Charging = only first part of whole duration (start)

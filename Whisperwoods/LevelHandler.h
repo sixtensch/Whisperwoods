@@ -13,6 +13,7 @@ public:
 	LevelHandler(LevelHandler&&) = delete;
 
 	void LoadFloors();
+	void GenerateHubby( LevelFloor* outFloor );
 	void GenerateFloor(LevelFloor* outFloor);
 	void GenerateTestFloor(LevelFloor* outFloor);
 

@@ -125,7 +125,6 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 		m_renderCore->TargetShadowMap();
 	}
 
-	DrawInstances(state, shadows);
 
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
@@ -146,6 +145,7 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 			m_renderCore->DrawObject(data.get(), shadows);
 		}
 	}
+	DrawInstances(state, shadows);
 }
 
 RenderCore* RenderHandler::GetCore() const
@@ -187,8 +187,7 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	load(LevelAssetBush1, 
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
-		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
-
+		 "ShadiiTest.wwm", { "Tree_Charred_Tiled.wwmt", "Tree_Charred_Tiled.wwmt", "Tree_Charred_Tiled.wwmt" });
 
 	load(LevelAssetBush2, 
 		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
@@ -355,6 +354,16 @@ void RenderHandler::LoadEnvironment(const Level* level)
 	}
 
 	m_renderCore->CreateInstanceBuffer(nullptr, instanceCount * sizeof(Mat4), &m_envInstanceBuffer);
+}
+
+void RenderHandler::UnLoadEnvironment()
+{
+	m_envInstances.Clear( false );
+	for (uint i = 0; i < LevelAssetCount; i++)
+	{
+		m_envMeshes[i].hotInstances.Clear( false );
+	}
+	m_worldRenderables.Clear();
 }
 
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
