@@ -222,18 +222,6 @@ void RenderHandler::SetupEnvironmentAssets()
 		"Stone_2_Future.wwm", { "Stone_2_Future.wwmt" });
 
 
-	/*LevelAssetTree2,	// MediumPinkThistleTree
-		LevelAssetTree3,	// GrayFeatherTree
-		LevelAssetBigTrunk1,	//ThickBackgroundTrunk
-		LevelAssetBigTrunk2,	//SlenderBackgroundTrunk
-		LevelAssetStone1,	// SingleStone
-		LevelAssetStone2,	// StoneCluster*/
-
-	//load(LevelAssetBush1,
-	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
-	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
-
-
 
 	// Fill global index- and vertex buffers, and setup lists of meshes, submeshes, and materials.
 
