@@ -19,7 +19,7 @@ Game::Game() :
 	m_detectionLevelGlobal(0.0f),
 	m_detectionLevelFloor(0.0f),
 	m_camFovChangeSpeed(cs::c_pi / 4.0f),
-	m_envParams({})
+	m_envParams({}),
 	m_reachedLowestStamina(false)
 {}
 
@@ -263,12 +263,12 @@ void Game::Init()
 	m_envParams.yMult = 3.0f;
 	m_envParams.scaleBase = 0.1f;
 	m_envParams.scaleMult = 1.1f;
-	m_envParams.densityUnwalkableOuter = 0.150f;
-	m_envParams.densityUnwalkableInner = 0.190f;
+	m_envParams.densityUnwalkableOuter = 0.130f;
+	m_envParams.densityUnwalkableInner = 0.200f;
 	m_envParams.densityWalkable = 0.15f;
 	m_envParams.minDensity = 0.25f;
 	m_envParams.scaleMultiplierStones = 0.4f;
-	m_envParams.scaleMultiplierTrees = 0.05f;
+	m_envParams.scaleMultiplierTrees = 0.2f;
 	m_envParams.scaleMultiplierFoliage = 0.3f;
 	m_envParams.scaleEffectDensity = -0.7f;
 	m_envParams.edgeSampleDistanceTrunks = 10;

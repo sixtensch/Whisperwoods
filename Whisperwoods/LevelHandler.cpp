@@ -116,7 +116,7 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 			Mat4 trunkMatrix =
 				Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2, y * BM_PIXEL_SIZE)) *
 				Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-				Mat::scale3(scaleVal * parameters.scaleMultiplierTrees*0.5f);
+				Mat::scale3(scaleVal * parameters.scaleMultiplierTrees*0.25f);
 
 			if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagTerrainInner & ~LevelPixelFlagTerrainOuter))
 			{
@@ -141,23 +141,23 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 				{
 					if (diversityVal < 0.33f && !edgeStones)
 					{
-						l.instances[LevelAssetMediumStone1].Add(stoneMatrix);
+						l.instances[LevelAssetStone1].Add(stoneMatrix);
 					}
 					else if (diversityVal < 0.4f && !edgeTree)
 					{
-						l.instances[LevelAssetMediumTree1].Add(treeMatrix);
+						l.instances[LevelAssetTree1].Add(treeMatrix);
 					}
 					else if (diversityVal < 0.45f && !edgeTree)
 					{
-						l.instances[LevelAssetMediumTree2].Add(treeMatrix);
+						l.instances[LevelAssetTree2].Add(treeMatrix);
 					}
 					else if (diversityVal < 0.5f && !edgeTree)
 					{
-						l.instances[LevelAssetMediumTree3].Add(treeMatrix);
+						l.instances[LevelAssetTree3].Add(treeMatrix);
 					}
 					else if (diversityVal < 0.66f && !edgeStones)
 					{
-						l.instances[LevelAssetMediumStone2].Add(stoneMatrix);
+						l.instances[LevelAssetStone2].Add(stoneMatrix);
 					}
 					else 
 					{
@@ -191,31 +191,31 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 
 					if (diversityVal < 0.1f && !edgeStones)
 					{
-						l.instances[LevelAssetMediumStone1].Add(stoneMatrix);
+						l.instances[LevelAssetStone1].Add(stoneMatrix);
 					}
 					else if (diversityVal < 0.2f && !edgeStones)
 					{
-						l.instances[LevelAssetMediumStone2].Add(stoneMatrix);
+						l.instances[LevelAssetStone2].Add(stoneMatrix);
 					}
 					else if (diversityVal < 0.4f && !edgeTree)
 					{
-						l.instances[LevelAssetMediumTree2].Add(treeMatrix);
+						l.instances[LevelAssetTree1].Add(treeMatrix);
 					}
 					else if (diversityVal < 0.6f && !edgeTree)
 					{
-						l.instances[LevelAssetMediumTree2].Add(treeMatrix);
+						l.instances[LevelAssetTree2].Add(treeMatrix);
 					}
 					else if (diversityVal < 0.8f && !edgeTree)
 					{
-						l.instances[LevelAssetMediumTree3].Add(treeMatrix);
+						l.instances[LevelAssetTree3].Add(treeMatrix);
 					}
 					else if (diversityVal < 0.9f && !edgeTrunk)
 					{
-						l.instances[LevelAssetMediumBigTrunk1].Add(trunkMatrix);
+						l.instances[LevelAssetBigTrunk1].Add(trunkMatrix);
 					}
 					else if (!edgeTrunk)
 					{
-						l.instances[LevelAssetMediumBigTrunk2].Add(trunkMatrix);
+						l.instances[LevelAssetBigTrunk2].Add(trunkMatrix);
 					}
 				}
 			}
