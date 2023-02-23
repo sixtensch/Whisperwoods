@@ -33,6 +33,7 @@ public:
 private:
 	void ChangeTimeline(Renderer* renderer);
 	void UpdateTimeSwitchBuffers(Renderer* renderer);
+	void UpdateEnemyConeBuffers(Renderer* renderer);
 
 	// Time switch functions
 	bool IsAllowedToSwitch();

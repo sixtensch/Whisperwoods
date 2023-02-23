@@ -3,7 +3,6 @@
 #include "MeshRenderable.h"
 #include "ModelResource.h"
 #include "GameObject.h"
-#include "Renderer.h"
 #include "CHSL/Vector.h"
 #include "Level.h"
 #include "AudioSource.h"

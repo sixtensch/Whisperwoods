@@ -2,6 +2,7 @@
 #include "Room.h"
 #include "LevelImporter.h"
 #include "Resources.h"
+#include "Renderer.h"
 #include "SoundResource.h"
 
 

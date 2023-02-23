@@ -3,9 +3,6 @@
 #include "Vertex.h"
 #include "Resources.h"
 
-// TODO: Testing include for PPFX include
-#include "Input.h"
-
 #include "LevelImporter.h"
 
 RenderHandler::RenderHandler()
@@ -64,7 +61,7 @@ void RenderHandler::Draw()
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_renderCore->UpdateViewInfo(m_mainCamera);
 	
-	
+
 	// Main scene rendering
 
 	for (int i = 0; i < m_lightsPoint.Size(); i++)
@@ -78,7 +75,7 @@ void RenderHandler::Draw()
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	m_renderCore->TargetRenderTexture();
+	//m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
 
 
 	// ShadowPass
@@ -89,19 +86,12 @@ void RenderHandler::Draw()
 	// Main scene rendering
 
 	ExecuteDraw(m_mainCamera, m_timelineState, false);
-
 	m_renderCore->UnbindRenderTexture();
 
-	// Render PPFX
+	// PPFX / FX
 	{
-		static bool ppfxOn = false;
-		if (Input::Get().IsDXKeyPressed(DXKey::E))
-			ppfxOn = !ppfxOn;
-
-		if (ppfxOn)
-		{
-			m_renderCore->DrawPPFX();
-		}
+		m_renderCore->DrawPositionalEffects();
+		m_renderCore->DrawPPFX();
 	}
 	
 	// Draw final image to back buffer with tone mapping.
