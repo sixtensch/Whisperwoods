@@ -39,5 +39,7 @@
 #define BLOOM_MIP_LEVELS 4u
 #define COMPUTE_GROUP_COUNT_X 80u
 #define COMPUTE_GROUP_COUNT_Y 90u
+#define COMPUTE_THREADS_X 8u
+#define COMPUTE_THREADS_Y 8u
 	
 #endif

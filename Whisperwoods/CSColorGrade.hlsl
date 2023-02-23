@@ -85,11 +85,21 @@ cbuffer COLORGRADE_INFO_BUFFER : REGISTER_CBV_COLORGRADE_INFO
     float saturation; // Saturation value
 };
 
+cbuffer ENEMY_CONE_INFO_BUFFER : REGISTER_CBV_ENEMY_CONE_INFO
+{
+    float4 worldPosAndDir[ENEMY_CONE_INFO_CAPACITY]; // XY is world pos in XZ plane and ZW is world direction in XZ plane.
+    float coneLength;
+    float coneAngle;
+    uint coneCount;
+    
+    float MOREPADDING;
+}
+
 RWTexture2D<unorm float4> backBufferTexture : REGISTER_UAV_RENDER_TARGET;
 Texture2D<float4> renderTexture             : REGISTER_SRV_COPY_SOURCE;
 Texture2D<float4> lumSumTexture             : REGISTER_SRV_TEX_USER_4;
 
-[numthreads(NUM_THREADS.x, NUM_THREADS.y, 1)]
+[numthreads(COMPUTE_THREADS_X, COMPUTE_THREADS_Y, 1)]
 void main( uint3 DTid : SV_DispatchThreadID )
 {   
     const uint3 texPos = uint3(DTid.xy, 0u);

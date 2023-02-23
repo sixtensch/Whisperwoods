@@ -406,7 +406,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	sd.BorderColor[0] = 0.0f;
 	sd.BorderColor[1] = 0.0f;
 	sd.BorderColor[2] = 0.0f;
-	sd.BorderColor[3] = 0.0f;
+	sd.BorderColor[3] = 1.0f;
 	sd.MinLOD = 0.0f;
 	sd.MaxLOD = D3D11_FLOAT32_MAX;
 
@@ -424,7 +424,7 @@ void RenderCore::NewFrame()
 	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_renderTextureRTV.GetAddressOf(), m_dsDSV.Get()));
 
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
+	//EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
 
 	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get()));
 	EXC_COMINFO(m_context->OMSetBlendState(m_blendState.Get(), nullptr, 0xffffffff));
@@ -849,7 +849,7 @@ void RenderCore::DrawPPFX()
 		
 		EXC_COMINFO(m_context->CSSetShaderResources(renderTexSRVReg, 1u, m_renderTextureSRV.GetAddressOf()));
 		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, m_ppfxLumUAV.GetAddressOf(), nullptr)); // Last argument is ignored.
-		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+		EXC_COMINFO(m_context->Dispatch(WINDOW_WIDTH / COMPUTE_THREADS_X, WINDOW_HEIGHT / COMPUTE_THREADS_Y, 1u));
 		
 		// Generate all mips for lumen texture for artificial blur used in bloom pass.
 		EXC_COMINFO(m_context->GenerateMips(m_ppfxLumSRV.Get()));
@@ -864,7 +864,8 @@ void RenderCore::DrawPPFX()
 		
 		EXC_COMINFO(m_context->CSSetShaderResources(lumTexSRVReg, 1u, m_ppfxLumSRV.GetAddressOf()));
 		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, m_ppfxLumSumUAV.GetAddressOf(), nullptr));
-		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+		//EXC_COMINFO(m_context->Dispatch(WINDOW_WIDTH / COMPUTE_THREADS_X, WINDOW_HEIGHT / COMPUTE_THREADS_Y, 1u));
+		EXC_COMINFO(m_context->Dispatch(WINDOW_WIDTH / COMPUTE_THREADS_X, WINDOW_HEIGHT / COMPUTE_THREADS_Y, 1u));
 	
 		EXC_COMINFO(m_context->CSSetShaderResources(lumTexSRVReg, 1u, &nullSRV)); // Unbind lum SRV.
 		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, &nullUAV, nullptr)); // Unbind render tex UAV from compute.
@@ -892,7 +893,7 @@ void RenderCore::DrawPositionalEffects()
 		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(renderTexUAVReg, 1u, m_renderTextureUAV.GetAddressOf(), nullptr));
 		EXC_COMINFO(m_context->CSSetShaderResources(renderTexCopySRVReg, 1u, m_renderTextureCopySRV.GetAddressOf()));
 		EXC_COMINFO(m_context->CSSetShaderResources(positionalTexSRVReg, 1u, m_positionTextureSRV.GetAddressOf()));
-		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+		EXC_COMINFO(m_context->Dispatch(WINDOW_WIDTH / COMPUTE_THREADS_X, WINDOW_HEIGHT / COMPUTE_THREADS_Y, 1u));
 
 		// Unbind views for other dependencies.
 		EXC_COMINFO(m_context->CSSetShaderResources(renderTexCopySRVReg, 1u, &nullSRV));
@@ -927,7 +928,7 @@ void RenderCore::DrawToBackBuffer()
 		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(RegUAVRenderTarget, 1u, m_bbUAV.GetAddressOf(), nullptr)); // Bind bb.
 		EXC_COMINFO(m_context->CSSetShaderResources(RegSRVUser4, 1u, m_ppfxLumSumSRV.GetAddressOf()));
 		EXC_COMINFO(m_context->CSSetShaderResources(RegSRVCopySource, 1u, m_renderTextureSRV.GetAddressOf())); // Bind render tex.
-		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+		EXC_COMINFO(m_context->Dispatch(WINDOW_WIDTH / COMPUTE_THREADS_X, WINDOW_HEIGHT / COMPUTE_THREADS_Y, 1u));
 	}
 
 	ID3D11UnorderedAccessView* nullUAV = nullptr;

@@ -87,13 +87,11 @@ cbuffer ENEMY_CONE_INFO_BUFFER : REGISTER_CBV_ENEMY_CONE_INFO
     float MOREPADDING;
 }
 
-
-
 Texture2D<float4> positionalTexture : REGISTER_SRV_TEX_DEFAULT;
 Texture2D<float4> renderTextureCopy : REGISTER_SRV_COPY_SOURCE;
 RWTexture2D<float4> renderTexture : REGISTER_UAV_RENDER_TARGET;
 
-[numthreads(NUM_THREADS.x, NUM_THREADS.y, 1)]
+[numthreads(COMPUTE_THREADS_X, COMPUTE_THREADS_Y, 1)]
 void main( uint3 DTid : SV_DispatchThreadID )
 {
     const uint3 texPos = uint3(DTid.xy, 0u);

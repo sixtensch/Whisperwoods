@@ -35,7 +35,7 @@ cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
     bool PADDING[3];
 }
 
-[numthreads(NUM_THREADS.x, NUM_THREADS.y, 1)]
+[numthreads(COMPUTE_THREADS_X, COMPUTE_THREADS_Y, 1)]
 void main( uint3 DTid : SV_DispatchThreadID )
 {
     uint3 texPos = uint3(DTid.xy, 0);
