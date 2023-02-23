@@ -421,7 +421,7 @@ std::vector<cs::Point2> RayCast(int playerX, int playerY, int enemyX, int enemyY
 	return returnVector;
 }
 
-bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack)
+bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool inFuture)
 {
 	// Let's start with if the enemy can see the player at all without TRUE line of sight
 
@@ -470,6 +470,12 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack)
 		}
 
 	}
+
+	if (inFuture == true) // this solves animation problem with time jump
+	{
+		m_seesPlayer = false;
+	}
+
 	if (m_seesPlayer)  //if the enemy sees the player
 	{
 		
