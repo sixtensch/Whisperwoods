@@ -6,6 +6,9 @@
 #include <d3dcompiler.h>
 #include <WICTextureLoader.h>
 
+
+#define RTV_COUNT 2u // TODO: Maybe make this a const member variable for more official use? 
+
 RenderCore::RenderCore(shared_ptr<Window> window)
 {
 	m_window = window;
@@ -113,6 +116,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	rttd.MiscFlags = 0u;
 
 	EXC_COMCHECK(m_device->CreateTexture2D(&rttd, nullptr, m_renderTexture.GetAddressOf()));
+	EXC_COMCHECK(m_device->CreateTexture2D(&rttd, nullptr, m_renderTextureCopy.GetAddressOf()));
 
 	rtvd = {};
 	rtvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -127,13 +131,14 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	uavd.Texture2D = { 0 };
 
 	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_renderTexture.Get(), &uavd, m_renderTextureUAV.GetAddressOf()));
-
+	
 	srvd = {};
 	srvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvd.Texture2D = { 0, 1 };
 
 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_renderTexture.Get(), &srvd, m_renderTextureSRV.GetAddressOf()));
+	EXC_COMCHECK(m_device->CreateShaderResourceView(m_renderTextureCopy.Get(), &srvd, m_renderTextureCopySRV.GetAddressOf()));
 
 	// PPFX Textures and views
 
@@ -172,6 +177,25 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_ppfxLumSumTexture.Get(), &srvd, m_ppfxLumSumSRV.GetAddressOf()));
 	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_ppfxLumSumTexture.Get(), nullptr, m_ppfxLumSumUAV.GetAddressOf()));
 
+	// Position texture
+
+	D3D11_TEXTURE2D_DESC postd;
+	postd.Width = window->GetWidth();
+	postd.Height = window->GetHeight();
+	postd.MipLevels = 1u;
+	postd.ArraySize = 1u;
+	postd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	postd.Usage = D3D11_USAGE_DEFAULT;
+	postd.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+	postd.SampleDesc = { 1u, 0u };
+	postd.CPUAccessFlags = 0;
+	postd.MiscFlags = 0u;
+	
+	EXC_COMCHECK(m_device->CreateTexture2D(&postd, nullptr, m_positionTexture.GetAddressOf()));
+	
+	// Create views for position texture.
+ 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_positionTexture.Get(), nullptr, m_positionTextureSRV.GetAddressOf()));
+	EXC_COMCHECK(m_device->CreateRenderTargetView(m_positionTexture.Get(), nullptr, m_positionTextureRTV.GetAddressOf()));
 
 	// Depth stencil
 
@@ -421,7 +445,14 @@ void RenderCore::TargetShadowMap()
 void RenderCore::TargetRenderTexture()
 {
 	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
-	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_renderTextureRTV.GetAddressOf(), m_dsDSV.Get()));
+	EXC_COMINFO(m_context->ClearRenderTargetView(m_positionTextureRTV.Get(), (float*)&m_bbClearColor));
+
+	ID3D11RenderTargetView* rtvs[RTV_COUNT] = {
+		m_renderTextureRTV.Get(), 
+		m_positionTextureRTV.Get() 
+	};
+
+	EXC_COMINFO(m_context->OMSetRenderTargets(RTV_COUNT, rtvs, m_dsDSV.Get()));
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, m_shadowSRV.GetAddressOf()));
 	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get())); // Backface culling
 	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
@@ -429,15 +460,13 @@ void RenderCore::TargetRenderTexture()
 
 void RenderCore::UnbindRenderTexture()
 {
-	ID3D11RenderTargetView* nullRTV = nullptr;
-	EXC_COMINFO(m_context->OMSetRenderTargets(1u, &nullRTV, nullptr));
-}
+	static ID3D11RenderTargetView* nullRTVs[RTV_COUNT] = {
+		nullptr,
+		nullptr
+	};
 
-//void RenderCore::TargetBackBuffer()
-//{
-//	
-//  
-//}
+	EXC_COMINFO(m_context->OMSetRenderTargets(RTV_COUNT, nullRTVs, nullptr));
+}
 
 void RenderCore::EndFrame()
 {
@@ -811,14 +840,9 @@ void RenderCore::DrawPPFX()
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	ID3D11RenderTargetView* nullRTV = nullptr;
 
-	const RegUAV bbTexUAVReg			= RegUAVRenderTarget;
-	const RegUAV renderTexUAVReg		= RegUAVDefault;
 	const RegSRV renderTexSRVReg		= RegSRVCopySource;
 	const RegUAV lumTexUAVReg			= RegUAVSystem0;
 	const RegSRV lumTexSRVReg			= RegSRVUser0;
-	
-	// Bound once as a UAV which is going to be read from and written to at different stages of the PPFX pass.
-	 // Last argument is ignored.
 	
 	// Luminance threshold pass
 	{
@@ -848,6 +872,34 @@ void RenderCore::DrawPPFX()
 	}
 	
 	
+}
+
+void RenderCore::DrawPositionalEffects()
+{
+	static ID3D11UnorderedAccessView* nullUAV = nullptr;
+	static ID3D11ShaderResourceView* nullSRV = nullptr;
+
+	const RegUAV renderTexUAVReg = RegUAVRenderTarget;
+	const RegSRV renderTexCopySRVReg = RegSRVCopySource;
+	const RegSRV positionalTexSRVReg = RegSRVDefault;
+
+	// Copies picture of render texture into other resource to use as SRV.
+	m_context->CopyResource(m_renderTextureCopy.Get(), m_renderTexture.Get());
+
+	// Draws all positional effects into render texture.
+	{
+		EXC_COMINFO(m_context->CSSetShader(m_positionalEffectCompute.Get(), nullptr, 0u));
+
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(renderTexUAVReg, 1u, m_renderTextureUAV.GetAddressOf(), nullptr));
+		EXC_COMINFO(m_context->CSSetShaderResources(renderTexCopySRVReg, 1u, m_renderTextureCopySRV.GetAddressOf()));
+		EXC_COMINFO(m_context->CSSetShaderResources(positionalTexSRVReg, 1u, m_positionTextureSRV.GetAddressOf()));
+		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+
+		// Unbind views for other dependencies.
+		EXC_COMINFO(m_context->CSSetShaderResources(renderTexCopySRVReg, 1u, &nullSRV));
+		EXC_COMINFO(m_context->CSSetShaderResources(positionalTexSRVReg, 1u, &nullSRV));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(renderTexUAVReg, 1u, &nullUAV, nullptr));
+	}
 }
 
 void RenderCore::DrawToBackBuffer()
@@ -1170,6 +1222,14 @@ void RenderCore::InitComputeShaders()
 		nullptr,
 		m_colorGradeCompute.GetAddressOf()
 	));
+
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSPositionalEffectPass.cso", &blob));
+	EXC_COMCHECK(m_device->CreateComputeShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		m_positionalEffectCompute.GetAddressOf()
+	));
 }
 
 void RenderCore::InitConstantBuffers()
@@ -1231,6 +1291,9 @@ void RenderCore::InitConstantBuffers()
 	));
 
 	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVShadingInfo, 1, m_constantBuffers.shadingInfo.GetAddressOf()));
+	// TODO: Temporary bind to CS as positional compute shader needs camera info. 
+	// This data should be bound with other more relevant data in its own buffer for use in the compute shader.
+	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVShadingInfo, 1, m_constantBuffers.shadingInfo.GetAddressOf()));
 
 
 
@@ -1283,6 +1346,16 @@ void RenderCore::InitConstantBuffers()
 	));
 
 	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVTimeSwitchInfo, 1, m_constantBuffers.timeSwitchInfo.GetAddressOf()));
+
+	desc.ByteWidth = sizeof(CB::EnemyConeInfo);
+
+	EXC_COMCHECK(m_device->CreateBuffer(
+		&desc,
+		nullptr,
+		m_constantBuffers.enemyConeInfo.GetAddressOf()
+	));
+
+	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVEnemyConeInfo, 1, m_constantBuffers.enemyConeInfo.GetAddressOf()));
 }
 
 void RenderCore::InitLightBuffers()
@@ -1459,17 +1532,50 @@ void RenderCore::WritePPFXColorgradeInfo(const Vec2 vignetteBorderAndStrength, c
 	EXC_COMINFO(m_context->Unmap(m_constantBuffers.ppfxColorGradeInfo.Get(), 0u));
 }
 
-void RenderCore::WriteTimeSwitchInfo(float timeSinceSwitch, float chargeDuration, float falloffDuration)
+void RenderCore::WriteTimeSwitchInfo(float timeSinceSwitch, float chargeDuration, float falloffDuration, bool isInFuture)
 {
 	CB::TimeSwitchInfo timeSwitchInfo = {
 		timeSinceSwitch,
 		chargeDuration,
-		falloffDuration
-	};
+		falloffDuration,
+		isInFuture
+	}; 
 
 	D3D11_MAPPED_SUBRESOURCE msr = {};
 	EXC_COMCHECK(m_context->Map(m_constantBuffers.timeSwitchInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
 	memcpy(msr.pData, &timeSwitchInfo, sizeof(CB::TimeSwitchInfo));
 	EXC_COMINFO(m_context->Unmap(m_constantBuffers.timeSwitchInfo.Get(), 0u));
+}
+
+void RenderCore::WriteEnemyConeInfo(const cs::List<shared_ptr<Enemy>>& enemies)
+{
+	CB::EnemyConeInfo enemyConeInfo = {};
+
+	const uint enemyCount = cs::imin(ENEMY_CONE_INFO_CAPACITY, enemies.Size());
+
+	if (enemyCount > 0u)
+	{
+		const float combinedViewAngleRad = enemies[0]->GetViewAngle() * cs::c_pi / 180.0f;
+		enemyConeInfo.coneAngle = combinedViewAngleRad;
+		enemyConeInfo.coneLength = enemies[0]->GetViewDistance();
+
+		for (int i = 0; i < enemyCount; i++)
+		{
+			const Enemy& enemy = *enemies[i];
+			Vec4 worldPosAndDir = Vec4();
+			Vec2 enemyDir = enemy.GetForwardVector();
+			Vec3 enemyPos = enemy.transform.worldPosition;
+
+			// Make sure that position values are in xz plane.
+			enemyConeInfo.worldPosAndDir[i] = Vec4(enemyPos.x, enemyPos.z, enemyDir.x, enemyDir.y);
+		}
+	}
+
+	enemyConeInfo.coneCount = enemyCount;
+
+	D3D11_MAPPED_SUBRESOURCE msr = {};
+	EXC_COMCHECK(m_context->Map(m_constantBuffers.enemyConeInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+	memcpy(msr.pData, &enemyConeInfo, sizeof(CB::EnemyConeInfo));
+	EXC_COMINFO(m_context->Unmap(m_constantBuffers.enemyConeInfo.Get(), 0u));
 }
 

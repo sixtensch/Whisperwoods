@@ -123,6 +123,11 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		/// D E A T H ///
 		//ChangeTimeline(renderer);
 	}
+
+	// Final steps
+	{
+		UpdateEnemyConeBuffers(renderer);
+}
 }
 
 void Game::Init()
@@ -269,8 +274,15 @@ void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
 	renderer->GetRenderCore()->WriteTimeSwitchInfo(
 		m_switchVals.timeSinceSwitch,
 		m_switchVals.chargeDuration,
-		m_switchVals.falloffDuration
+		m_switchVals.falloffDuration,
+		m_isInFuture
 	);
+	
+}
+
+void Game::UpdateEnemyConeBuffers(Renderer* renderer)
+{
+	renderer->GetRenderCore()->WriteEnemyConeInfo(m_enemies);
 }
 
 bool Game::IsAllowedToSwitch()
