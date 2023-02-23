@@ -32,9 +32,9 @@ Room::Room(const Level* level, std::string modelResource, Mat4 modelOffset)
 	//	m_ambianceSources.Add( audioSource );
 	//}
 
-	m_renderable = Renderer::CreateMeshStatic(modelResource);
+	/*m_renderable = Renderer::CreateMeshStatic(modelResource);
 	m_modelOffset = modelOffset;
-	m_renderable->worldMatrix = m_modelOffset;
+	m_renderable->worldMatrix = m_modelOffset;*/
 
 	m_material = MaterialResource();
 	m_material.specular = Vec3(0.5f, 0.5f, 0.5f);
@@ -69,14 +69,14 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 		m_ambianceSources.Add( audioSource );
 	}
 
-	// Plane
-	m_renderable = Renderer::CreateMeshStatic( modelResource );
-	m_modelOffset = modelOffset;
-	m_renderable->worldMatrix = m_modelOffset;
-	m_material = MaterialResource();
-	m_material.specular = Vec3( 0.5f, 0.5f, 0.5f );
-	m_material.textureDiffuse = level->resource->source;
-	m_renderable->Materials().AddMaterial( &m_material );
+	//// Plane
+	//m_renderable = Renderer::CreateMeshStatic( modelResource );
+	//m_modelOffset = modelOffset;
+	//m_renderable->worldMatrix = m_modelOffset;
+	//m_material = MaterialResource();
+	//m_material.specular = Vec3( 0.5f, 0.5f, 0.5f );
+	//m_material.textureDiffuse = level->resource->source;
+	//m_renderable->Materials().AddMaterial( &m_material );
 	
 	
 	// Cylinder thing
@@ -93,7 +93,7 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 void Room::Update(float deltaTime)
 {
 	transform.CalculateWorldMatrix();
-	m_renderable->worldMatrix = transform.worldMatrix * m_modelOffset;
+	//m_renderable->worldMatrix = transform.worldMatrix * m_modelOffset;
 	m_wallsAndFloorRenderable->worldMatrix = transform.worldMatrix * m_wallsFloorOffset;
 }
 
