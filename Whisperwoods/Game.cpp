@@ -9,7 +9,7 @@
 
 Game::Game() :
 	m_floor(),
-	m_isHubby( false ),
+	m_isHubby(false),
 	m_currentRoom(nullptr),
 	m_isInFuture(false),
 	m_isSwitching(false),
@@ -18,7 +18,8 @@ Game::Game() :
 	m_switchVals({ 1.0f, 0.5f, 3.0f, 0.0f }),
 	m_detectionLevelGlobal(0.0f),
 	m_detectionLevelFloor(0.0f),
-	m_camFovChangeSpeed(cs::c_pi / 4.0f)
+	m_camFovChangeSpeed(cs::c_pi / 4.0f),
+	m_envParams({})
 {}
 
 Game::~Game() {}
@@ -132,6 +133,12 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			LoadTest();
 			m_player->ReloadPlayer();
 		}
+		if (Input::Get().IsDXKeyPressed(DXKey::H))
+		{
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
+		}
 	}
 
 #if WW_DEBUG
@@ -143,6 +150,31 @@ void Game::Update(float deltaTime, Renderer* renderer)
 ;		//ImGui::Text( "Detection level global: %f", m_detectionLevelGlobal );
 		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
 		ImGui::Checkbox( "Future", &m_isInFuture );
+	}
+	ImGui::End();
+
+	if (ImGui::Begin("Environment Parameters"))
+	{
+		ImGui::DragInt("Spawn Seed", &m_envParams.spawnSeed, 0.1f);
+		ImGui::DragInt("Scale Seed", &m_envParams.scaleSeed, 0.1f);
+		ImGui::DragInt("Rotation Seed", &m_envParams.rotationSeed, 0.1f);
+		ImGui::DragInt("Diversity Seed", &m_envParams.diversitySeed, 0.1f);
+		ImGui::DragFloat("Rotation Multiplier", &m_envParams.rotateMult, 0.01f);
+		ImGui::DragFloat("X Multiplier", &m_envParams.xMult, 0.01f);
+		ImGui::DragFloat("Y Multiplier", &m_envParams.yMult, 0.01f);
+		ImGui::DragFloat("Scale base", &m_envParams.scaleBase, 0.01f);
+		ImGui::DragFloat("Scale multiplier", &m_envParams.scaleMult, 0.01f);
+		ImGui::DragFloat("Density Unwalkable Outer", &m_envParams.densityUnwalkableOuter, 0.01f);
+		ImGui::DragFloat("Density Unwalkable Inner", &m_envParams.densityUnwalkableInner, 0.01f);
+		ImGui::DragFloat("Density Walkable", &m_envParams.densityWalkable, 0.01f);
+		ImGui::DragFloat("Min Density Spawn", &m_envParams.minDensity, 0.01f);
+		ImGui::DragFloat("Scale multiplier Sones", &m_envParams.scaleMultiplierStones, 0.01f);
+		ImGui::DragFloat("Scale multiplier Trees", &m_envParams.scaleMultiplierTrees, 0.01f);
+		ImGui::DragFloat("Scale multiplier Foliage", &m_envParams.scaleMultiplierFoliage, 0.01f);
+		ImGui::DragFloat("Scale Effect Density", &m_envParams.scaleEffectDensity, 0.01f);
+		ImGui::DragInt("Edge Distance Trunks", &m_envParams.edgeSampleDistanceTrunks, 0.1f);
+		ImGui::DragInt("Edge Distance Trees", &m_envParams.edgeSampleDistanceTrees, 0.1f);
+		ImGui::DragInt("Edge Distance Stones", &m_envParams.edgeSampleDistanceStones, 0.1f);
 	}
 	ImGui::End();
 #endif
@@ -157,6 +189,28 @@ void Game::Init()
 
 	m_audioSource->Play();
 
+	// Environment parameters
+	m_envParams.spawnSeed = 652;
+	m_envParams.scaleSeed = 635;
+	m_envParams.rotationSeed = 425;
+	m_envParams.diversitySeed = 1337;
+	m_envParams.rotateMult = 1.350f;
+	m_envParams.xMult = 3.0f;
+	m_envParams.yMult = 3.0f;
+	m_envParams.scaleBase = 0.1f;
+	m_envParams.scaleMult = 1.1f;
+	m_envParams.densityUnwalkableOuter = 0.150f;
+	m_envParams.densityUnwalkableInner = 0.190f;
+	m_envParams.densityWalkable = 0.15f;
+	m_envParams.minDensity = 0.25f;
+	m_envParams.scaleMultiplierStones = 0.4f;
+	m_envParams.scaleMultiplierTrees = 0.05f;
+	m_envParams.scaleMultiplierFoliage = 0.3f;
+	m_envParams.scaleEffectDensity = -0.7f;
+	m_envParams.edgeSampleDistanceTrunks = 10;
+	m_envParams.edgeSampleDistanceTrees = 8;
+	m_envParams.edgeSampleDistanceStones = 2;
+
 	// Level handling
 	m_levelHandler = std::make_unique<LevelHandler>();
 	m_levelHandler->LoadFloors();
@@ -169,6 +223,8 @@ void Game::Init()
 	m_directionalLight->diameter = 22.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
+
+
 }
 
 void Game::DeInit()
@@ -187,7 +243,7 @@ void Game::DeInit()
 
 void Game::LoadHubby()
 {
-	m_levelHandler->GenerateHubby( &m_floor );
+	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
 	LoadRoom( &m_floor.rooms[0] );
 	Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
 	Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
@@ -198,7 +254,7 @@ void Game::LoadHubby()
 
 void Game::LoadTest()
 {
-	m_levelHandler->GenerateTestFloor(&m_floor);
+	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[0]);
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
 	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
@@ -209,7 +265,7 @@ void Game::LoadTest()
 
 void Game::LoadGame(uint gameSeed)
 {
-	m_levelHandler->GenerateTestFloor(&m_floor);
+	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
 	m_player->transform.position = m_floor.startPosition;
 	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
@@ -237,7 +293,7 @@ void Game::LoadRoom(Level* level)
 		level->rotation.Matrix();
 
 	Mat4 roomCylinderMatrix =
-		Mat::scale3( level->resource->worldWidth*1.5f, 1.0f, level->resource->worldHeight * 1.5f ) *
+		Mat::scale3( level->resource->worldWidth*1.2f, 1.0f, level->resource->worldHeight * 1.2f ) *
 		Mat::translation3( level->position.x, level->position.x, level->position.x ) *
 		level->rotation.Matrix();
 
