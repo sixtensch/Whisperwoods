@@ -100,7 +100,7 @@ void LevelHandler::Environmentalize(Level& l, cs::Random& r)
 					Mat4 banana =
 						Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) *
 						Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) *
-						Mat::scale3( 0.3f + r.Getf() * 0.3f );
+						Mat::scale3( 0.25f + r.Getf() * 0.25f );
 					//l.instances[LevelAssetBush1].Add(instanceMatrix);
 					int rand = r.Get( 100 );
 					if (rand < 25)
@@ -160,7 +160,7 @@ void LevelHandler::Environmentalize(Level& l, cs::Random& r)
 			}
 			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].density < (float)r.Get( 100 )/100.0f) && (l.resource->bitmap[x + l.resource->pixelWidth * y].density != 0) && r.Get( 20 ) == 0)
 			{
-				Mat4 instanceMatrix = Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) * Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) * Mat::scale3( 0.1f+ (0.5f-(l.resource->bitmap[x + l.resource->pixelWidth * y].density*0.5f)));
+				Mat4 instanceMatrix = Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) * Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) * Mat::scale3( 0.1f+ (0.3f-(l.resource->bitmap[x + l.resource->pixelWidth * y].density*0.3f)));
 				l.instances[LevelAssetBush1].Add( instanceMatrix );	
 			}
 		}
