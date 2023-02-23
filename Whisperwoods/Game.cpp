@@ -48,13 +48,21 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			}
 		}
 	}
+	static float initialCamFov;
 	if (isSeen == true)
 	{
 		m_timeUnseen = 0.0f;
 		if (IsDetected(deltaTime))
 		{
-			// game over
-			m_player->characterModel->enabled = false;
+			// D E A T H
+			m_maxStamina = 10.0f;
+			m_player->ResetStaminaToMax(m_maxStamina);
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
+			isSeen = false;
+			m_detectionLevelGlobal = 0.0f;
+			m_detectionLevelFloor = 0.0f;
 		}
 	}
 	else
@@ -66,17 +74,16 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		}
 	}
 
-	Camera& cameraRef = renderer->GetCamera();
 	for (int i = 0; i < m_staticObjects.Size(); i++)
 	{
 		m_staticObjects[i]->Update(deltaTime);
 	}
 	
 	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
-	//if (!m_isHubby) // if not in hubby
+	if (!m_isHubby) // if not in hubby
 	// Time switch logic.
 	{
-		static float initialCamFov;
+		
 		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch() /*&& m_reachedLowestStamina == false*/)  
 		{
 			m_isSwitching = true;
@@ -108,46 +115,40 @@ void Game::Update(float deltaTime, Renderer* renderer)
 					}
 
 					cameraRef.SetFov( newFov );
-				}
-				else
-				{
-					if (!m_finishedCharging)
-					{
-						ChangeTimeline( renderer );
-						m_finishedCharging = true;
-						cameraRef.SetFov( initialCamFov );
-						totalFovDelta = 0.0f;
-					}
-				}
-
-				if (!SwitchIsDone())
-				{
-					m_switchVals.timeSinceSwitch += deltaTime;
-				}
-				else
-				{
-					m_switchVals.timeSinceSwitch = 0.0f;
-					m_isSwitching = false;
-				}
-
-
-				UpdateTimeSwitchBuffers( renderer );
 			}
+			else
+			{
+				if (!m_finishedCharging)
+				{
+					ChangeTimeline( renderer );
+					m_finishedCharging = true;
+					cameraRef.SetFov( initialCamFov );
+					totalFovDelta = 0.0f;
+				}
+			}
+
+			if (!SwitchIsDone())
+			{
+				m_switchVals.timeSinceSwitch += deltaTime;
+			}
+			else
+			{
+				m_switchVals.timeSinceSwitch = 0.0f;
+				m_isSwitching = false;
+			}
+
+
+			UpdateTimeSwitchBuffers( renderer );
+			
 		}
 
-		m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture;
-		if (m_maxStamina < 0.1f)
+		m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging;
+		if (m_maxStamina < 1.0f)
 		{
-			m_maxStamina = 0.1f;
-			// Unload
-			UnLoadPrevious();
-			LoadHubby();
-			m_player->ReloadPlayer();
-			/// D E A T H ///
-			//ChangeTimeline(renderer);
+			m_maxStamina = 1.0f;
 		}
 
-		if (Input::Get().IsDXKeyPressed( DXKey::H ))
+		if (Input::Get().IsDXKeyPressed( DXKey::H ) && !m_isInFuture)
 		{
 			UnLoadPrevious();
 			LoadHubby();
@@ -170,7 +171,6 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		ImGui::Text("Max Stamina: %f", m_maxStamina);
 		ImGui::Text("Current Stamina: %f", currentStamina);
 		ImGui::DragFloat( "Detection Level Global", &m_detectionLevelGlobal, 0.1f, 0.0f, 1.0f );
-;		//ImGui::Text( "Detection level global: %f", m_detectionLevelGlobal );
 		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
 		ImGui::Text("Time left until future death: %f", m_timeYouSurviveInFuture - m_dangerousTimeInFuture);
 		ImGui::Checkbox( "Future", &m_isInFuture );
@@ -199,7 +199,12 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		/// D E A T H ///
 		if (m_dangerousTimeInFuture >= m_timeYouSurviveInFuture) // how long you can survive in future with 0 stamina (seconds)
 		{
-			m_player->characterModel->enabled = false;
+			ChangeTimeline(renderer);
+			m_maxStamina = 10.0f;
+			m_player->ResetStaminaToMax(m_maxStamina);
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
 		}
 	}
 	if (!m_isInFuture)

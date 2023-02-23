@@ -47,6 +47,7 @@ public:
 	void ReloadPlayer();
 
 	void UpdateStamina(float maxStamina);
+	void ResetStaminaToMax(float staminaMax);
 	float GetCurrentStamina();
 
 	void PlayerMovement(float delta_time, float movementMultiplier);

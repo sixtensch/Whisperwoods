@@ -75,6 +75,12 @@ void Player::UpdateStamina(float maxStamina)
 	m_maxStamina = maxStamina;
 }
 
+void Player::ResetStaminaToMax(float staminaMax)
+{
+	m_maxStamina = staminaMax;
+	m_stamina = staminaMax;
+}
+
 float Player::GetCurrentStamina()
 {
 	return m_stamina;

@@ -86,7 +86,6 @@ private:
 	const float m_detectionRate = 0.2;
 	const float m_timeBeforeDetectionLowers = 10.0f; //in seconds
 	float m_timeUnseen = 0.0f; // for determining when to derease global detection
-	//bool m_forcedBackToPresent = false;
 	float m_dangerousTimeInFuture = 0.0f;
 	const float m_timeYouSurviveInFuture = 2.5f;
 
