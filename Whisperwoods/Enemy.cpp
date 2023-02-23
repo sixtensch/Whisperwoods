@@ -52,12 +52,15 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 
 	float speed3 = 1.0f;
 	
-	m_characterAnimator->AddAnimation(carcinAnim0, 0, speed3, 0.0f);
-	m_characterAnimator->AddAnimation(carcinAnim1, 0, speed3, 0.0f);
-	m_characterAnimator->AddAnimation(carcinAnim2, 0, speed3, 0.0f);
-	m_characterAnimator->AddAnimation(carcinAnim3, 0, speed3, 0.0f);
+	m_characterAnimator->AddAnimation(carcinAnim0, 0, speed3, 0.0f);//run/walk
+	m_characterAnimator->AddAnimation(carcinAnim1, 0, speed3, 0.0f); // detection start
+	m_characterAnimator->AddAnimation(carcinAnim2, 0, speed3, 0.0f); // idle	
+	m_characterAnimator->AddAnimation(carcinAnim3, 0, speed3, 0.0f); //turn around
 
-	m_characterAnimator->playbackSpeed = 1.0f;
+	m_characterAnimator->AddAnimation(carcinAnim4, 0, speed3, 0.0f); // detected cycle
+	m_characterAnimator->AddAnimation(carcinAnim5, 0, speed3, 0.0f); // detected end
+
+	m_characterAnimator->playbackSpeed = 0.8f;
 	m_characterAnimator->PlayAnimation(0, 0, 1, true, true);
 
 	m_carcinian->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "Carcinian.wwmt"));
@@ -256,19 +259,21 @@ void Enemy::Update(float dTime)
 			//m_characterAnimator->loadedAnimations[3].
 			if (m_triggerTurn == false)
 			{
-				m_characterAnimator->StopAnimation(0);
+				if (m_characterAnimator->IsPlaying(0))
+					m_characterAnimator->StopAnimation(0);
 				m_characterAnimator->playbackSpeed = 0.35f;
 				m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
 				m_lastPlayedAnimation = 3;
 				m_triggerTurn = true;
 			}
-			else if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished() /*m_characterAnimator->loadedAnimations[3].time == 1*/) //animation is over
+			else if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished()) //animation is over
 			{
-				m_characterAnimator->StopAnimation(3);
+				if (m_characterAnimator->IsPlaying(3))
+					m_characterAnimator->StopAnimation(3);
 				m_offset = angleDecimal;
 				m_isMoving = true;
 				m_triggerTurn = false;
-				m_characterAnimator->playbackSpeed = 1.0f;
+				m_characterAnimator->playbackSpeed = 0.8f;
 				m_characterAnimator->PlayAnimation(0, 0, 1, true, true);
 				m_lastPlayedAnimation = 0;
 			}
@@ -277,16 +282,17 @@ void Enemy::Update(float dTime)
 	}
 	if (m_PatrolEnemy == true) // behavior for idle enemy
 	{
-		if (m_idleCounter < 4 && m_characterAnimator->AnimationsFinished() && m_triggerTurn == false) // run idle animation
+		if (m_idleCounter < 4 && m_characterAnimator->AnimationsFinished() && m_triggerTurn == false && !m_characterAnimator->IsPlaying(1)) // run idle animation
 		{
 			m_characterAnimator->playbackSpeed = 0.2f;
 			m_characterAnimator->PlayAnimation(2, 0, 1, false, true);
 			m_lastPlayedAnimation = 2;
 			m_idleCounter++;
 		}
-		else if (m_idleCounter == 4 && m_characterAnimator->AnimationsFinished()) // has been idle long enough, run rotation animation
+		else if (m_idleCounter == 4 && m_characterAnimator->AnimationsFinished() && !m_characterAnimator->IsPlaying(1)) // has been idle long enough, run rotation animation
 		{
-			m_characterAnimator->StopAnimation(2);
+			if(m_characterAnimator->IsPlaying(2))
+				m_characterAnimator->StopAnimation(2);
 			m_characterAnimator->playbackSpeed = 0.35f;
 			m_characterAnimator->PlayAnimation(3, 0, 1, false, true);
 			m_lastPlayedAnimation = 3;
@@ -301,7 +307,7 @@ void Enemy::Update(float dTime)
 				m_lookBehind = true;
 			}
 		}
-		if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished())   // this section triggers ONLY when the roration animation is OVER
+		if (m_triggerTurn == true && m_characterAnimator->AnimationsFinished() && !m_characterAnimator->IsPlaying(1))   // this section triggers ONLY when the roration animation is OVER
 		{
 			float angleReverse = atan2(m_walkingDirection.y, m_walkingDirection.x) * 180 / cs::c_pi;
 			if (m_lookBehind == true)
@@ -466,6 +472,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack)
 	}
 	if (m_seesPlayer)  //if the enemy sees the player
 	{
+		
 		m_timeToGivePlayerAChanceToRunAway = 0.0f; //reset the counter
 
 		//stop other animations
@@ -481,25 +488,39 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack)
 		{
 			m_characterAnimator->StopAnimation(3);
 		}
-
-		//play the detected animation on loop
-		if (!m_characterAnimator->IsPlaying(1))
+	
+		if (m_startingDetectionAnimation == false)
 		{
-			m_characterAnimator->PlayAnimation(1, 0, 1, true, true);
+			m_startingDetectionAnimation = true;
 			m_characterAnimator->playbackSpeed = 0.5f;
+			m_characterAnimator->PlayAnimation(1, 0, 1, false, true);
 		}
+		else // is true
+		{
+			
+			if (m_characterAnimator->AnimationsFinished())
+			{
+				//start "looping" detect animation
+				m_characterAnimator->playbackSpeed = 0.5f;
+				m_characterAnimator->PlayAnimation(4, 0, 1, true, true);
+				m_characterAnimator->StopAnimation(1);
+			}
+		}
+
 	}
 	else // if not seen
 	{
 		//quack.Stop(); // no more noises
-		if (m_characterAnimator->IsPlaying(1)) //is the detected animation running?
+		if (m_characterAnimator->IsPlaying(5))  //is the detected animation running?
 		{
-			if (m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway) // has the player been given the time to run away?
+			m_startingDetectionAnimation = false;
+			if (m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway && m_characterAnimator->AnimationsFinished()) // has the player been given the time to run away?
 			{
-				m_characterAnimator->StopAnimation(1);
+				if (m_characterAnimator->IsPlaying(5))
+					m_characterAnimator->StopAnimation(5);
 				if (m_lastPlayedAnimation == 0)
 				{
-					m_characterAnimator->playbackSpeed = 1.0f;
+					m_characterAnimator->playbackSpeed = 0.8f;
 					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, true, true);
 				}
 				else if (m_lastPlayedAnimation == 2)
@@ -513,10 +534,18 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack)
 					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, false, true);
 				}
 			}
+			else
+			{
+				m_isMoving = false;
+			}
 		}
-		else if (m_timeToGivePlayerAChanceToRunAway < m_amountOfTimeToRunAway) // keep playing the animation of detection 
+		else if (m_timeToGivePlayerAChanceToRunAway < m_amountOfTimeToRunAway && !m_characterAnimator->IsPlaying(5)) // keep playing the animation of detection 
 		{
-			m_characterAnimator->PlayAnimation(1, 0, 1, true, true);
+			if (m_characterAnimator->IsPlaying(1))
+				m_characterAnimator->StopAnimation(1);
+			if (m_characterAnimator->IsPlaying(4))
+				m_characterAnimator->StopAnimation(4);
+			m_characterAnimator->PlayAnimation(5, 0, 1, false, true);
 			m_characterAnimator->playbackSpeed = 0.5f;
 		}
 
@@ -543,10 +572,11 @@ void Enemy::ChangeTimelineState(bool isInFuture)
 		{
 			if (m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway) // has the player been given the time to run away?
 			{
+				
 				m_characterAnimator->StopAnimation(1);
 				if (m_lastPlayedAnimation == 0)
 				{
-					m_characterAnimator->playbackSpeed = 1.0f;
+					m_characterAnimator->playbackSpeed = 0.8f;
 					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, true, true);
 				}
 				else if (m_lastPlayedAnimation == 2)
