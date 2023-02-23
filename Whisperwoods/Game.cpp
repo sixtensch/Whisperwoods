@@ -241,6 +241,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		if (m_dangerousTimeInFuture >= m_timeYouSurviveInFuture) // how long you can survive in future with 0 stamina (seconds)
 		{
 			ChangeTimeline(renderer);
+			UpdateTimeSwitchBuffers(renderer);
 			m_maxStamina = 10.0f;
 			m_player->ResetStaminaToMax(m_maxStamina);
 			UnLoadPrevious();
