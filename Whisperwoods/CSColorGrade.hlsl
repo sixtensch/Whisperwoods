@@ -72,6 +72,9 @@ cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
     float timeSinceSwitch;
     float timeSwitchStartDuration;
     float timeSwitchEndDuration;
+    bool isInFuture;
+    
+    bool PADDING[3];
 }
 
 cbuffer COLORGRADE_INFO_BUFFER : REGISTER_CBV_COLORGRADE_INFO
@@ -104,15 +107,16 @@ void main( uint3 DTid : SV_DispatchThreadID )
     // Circle creation
     if (false)
     {
+        float circleInfluence = sin(totalTimeSwitchInfluence * 2.0f);
         float2 pixelCoords = float2(texPos.xy);
         float2 circleCenter = BACK_BUFFER_RESOLUTION * 0.5f;
-        float circleRadius = BACK_BUFFER_RESOLUTION.y * 0.5f * 1.0f;
-        float circleThickness = 30.0f;
+        float circleRadius = BACK_BUFFER_RESOLUTION.x  * circleInfluence;
+        float circleThickness = 60.0f;
         float signedDistance = length(pixelCoords - circleCenter) - circleRadius;
         float glowAmount = smoothstep(0.0f, circleThickness, abs(signedDistance));
-        glowAmount = 1.0f - pow(glowAmount, 0.125f);
+        glowAmount = (1.0f - pow(glowAmount, 0.125f)) ;
     
-        float3 glowColor = float3(0.1f, 0.6f, 0.8f);
+        float3 glowColor = float3(0.3f, 1.2f, 1.6f) * circleInfluence;
         color += lerp(0.0f, glowColor, glowAmount);
     }
     
