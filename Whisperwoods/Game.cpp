@@ -307,7 +307,7 @@ void Game::Init()
 	m_directionalLight = Renderer::GetDirectionalLight();
 	m_directionalLight->transform.position = { 0, 10, 0 };
 	m_directionalLight->transform.SetRotationEuler({ -dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
-	m_directionalLight->diameter = 22.0f;
+	m_directionalLight->diameter = 200.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
 
@@ -390,6 +390,12 @@ void Game::LoadRoom(Level* level)
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
 	m_player->currentRoom = m_currentRoom.get();
+
+	for ( LevelPickup& pickup : level->resource->pickups )
+	{
+		shared_ptr<Pickup> item = make_shared<EssenceBloom>(m_player.get(), pickup.position);
+		m_pickups.Add(item);
+	}
 
 	for (LevelPatrol& p : level->resource->patrolsClosed)
 	{

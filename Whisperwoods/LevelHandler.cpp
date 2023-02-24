@@ -70,7 +70,7 @@ void LevelHandler::GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParam
 
 	// Add a level
 
-	AddLevelName(f, "sixthLevel");
+	AddLevelName(f, "testRoomOne");
 	Environmentalize(f.rooms.Back(), params);
 }
 

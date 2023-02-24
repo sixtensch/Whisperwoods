@@ -4,13 +4,12 @@
 #include "Player.h"
 
 
-class Pickup : GameObject
+class Pickup : public GameObject
 {
 public:
-	Pickup();
+	Pickup(const Player* player, Vec2 mapCoordPos);
 	virtual ~Pickup();
 
-	void Init(const Player& player);
 	virtual void Update(float deltaTime) override;
 	virtual void OnPickup(float deltaTime) = 0;
 

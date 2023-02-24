@@ -3,7 +3,7 @@
 class EssenceBloom sealed : public Pickup
 {
 public:
-	EssenceBloom();
+	EssenceBloom(const Player* player, Vec2 mapCoordPos);
 	virtual ~EssenceBloom();
 
 	void OnPickup(float deltatime) override;
