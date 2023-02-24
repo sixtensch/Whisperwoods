@@ -347,6 +347,7 @@ void Game::LoadHubby()
 	Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = true;
+	m_player->transform.position = Vec3(0, 0, 0);
 }
 
 void Game::LoadTest()
