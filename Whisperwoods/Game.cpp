@@ -15,10 +15,10 @@ Game::Game() :
 	m_isSwitching(false),
 	m_finishedCharging(false),
 	m_maxStamina(10.0f),
-	m_switchVals({ 1.0f, 0.5f, 3.0f, 0.0f }),
+	m_switchVals({ 0.3f, 0.5f, 3.0f, 0.0f }),
 	m_detectionLevelGlobal(0.0f),
 	m_detectionLevelFloor(0.0f),
-	m_camFovChangeSpeed(cs::c_pi / 4.0f),
+	m_camFovChangeSpeed(cs::c_pi / 2.0f),
 	m_envParams({}),
 	m_reachedLowestStamina(false),
 	m_coolDownCounter(m_timeAbilityCooldown)
