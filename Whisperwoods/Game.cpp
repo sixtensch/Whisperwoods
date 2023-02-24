@@ -50,13 +50,11 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update(deltaTime);
-		if (m_enemies[i]->m_carcinian->enabled == true)
+		if (m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource, m_isInFuture) == true)
 		{
-			if (m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource) == true)
-			{
-				isSeen = true;
-			}
+			isSeen = true;
 		}
+		
 	}
 	static float initialCamFov;
 	if (isSeen == true)
