@@ -64,6 +64,7 @@ private:
 
 private:
 
+
 	// TODO: Might benefit of becoming more of a CLASS that HANDLES time switching.
 	struct TimeSwitchValues {
 		float chargeDuration;
@@ -81,17 +82,18 @@ private:
 	bool m_finishedCharging; // Charging = only first part of whole duration (start)
 	float m_maxStamina;
 
-	float m_detectionLevelGlobal;
-	float m_detectionLevelFloor;
+	float m_detectionLevelGlobal; //how detected you currently are
+	float m_detectionLevelFloor; // minimum detection that detection goes down to
 	bool m_reachedLowestStamina;
 	float m_camFovChangeSpeed;
 
-	const float m_detectionRate = 0.2;
+	const float m_detectionRate = 0.5;
 	const float m_timeBeforeDetectionLowers = 10.0f; //in seconds
 	float m_timeUnseen = 0.0f; // for determining when to derease global detection
-	float m_dangerousTimeInFuture = 0.0f;
-	const float m_timeYouSurviveInFuture = 2.5f;
-
+	float m_dangerousTimeInFuture = 0.0f;// time in seconds
+	const float m_timeYouSurviveInFuture = 1.5f;// time in seconds
+	const float m_timeAbilityCooldown = 5.0f; // time in seconds
+	float m_coolDownCounter; 
 
 	TimeSwitchValues m_switchVals;
 };
