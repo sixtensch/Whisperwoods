@@ -168,7 +168,7 @@ void Enemy::Update(float dTime)
 		
 	Vec2 newPosition = m_currentPosition;
 	// Time to walk
-	if(m_isMoving && m_seesPlayer == false && m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway)
+	if(m_isMoving && m_seesPlayer == false && m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway && !m_characterAnimator->IsPlaying(5))
 	{
 		newPosition = Vec2(m_currentPosition.x + m_walkingDirection.x * m_walkingSpeed * dTime, m_currentPosition.y + m_walkingDirection.y * m_walkingSpeed * dTime);
 	}
@@ -522,8 +522,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 			m_startingDetectionAnimation = false;
 			if (m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway && m_characterAnimator->AnimationsFinished()) // has the player been given the time to run away?
 			{
-				if (m_characterAnimator->IsPlaying(5))
-					m_characterAnimator->StopAnimation(5);
+				m_characterAnimator->StopAnimation(5);
 				if (m_lastPlayedAnimation == 0)
 				{
 					m_characterAnimator->playbackSpeed = 0.8f;
@@ -539,10 +538,6 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 					m_characterAnimator->playbackSpeed = 0.35f;
 					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, false, true);
 				}
-			}
-			else
-			{
-				m_isMoving = false;
 			}
 		}
 		else if (m_timeToGivePlayerAChanceToRunAway < m_amountOfTimeToRunAway && !m_characterAnimator->IsPlaying(5)) // keep playing the animation of detection 
