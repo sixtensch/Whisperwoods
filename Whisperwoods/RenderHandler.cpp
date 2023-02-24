@@ -194,7 +194,7 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	load(LevelAssetBush1, 
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
-		 "ShadiiTest.wwm", { "Tree_Charred_Tiled.wwmt", "Tree_Charred_Tiled.wwmt", "Tree_Charred_Tiled.wwmt" });
+		"BananaPlant.wwm", { "Tree_Charred_Tiled.wwmt" });
 
 	load(LevelAssetBush2, 
 		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
