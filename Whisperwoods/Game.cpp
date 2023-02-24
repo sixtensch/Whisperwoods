@@ -315,9 +315,9 @@ void Game::Init()
 	// In-world objects and entities
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
 	m_directionalLight = Renderer::GetDirectionalLight();
-	m_directionalLight->transform.position = { 0, 10, 0 };
+	m_directionalLight->transform.position = { 0, 10, -10 };
 	m_directionalLight->transform.SetRotationEuler({ -dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
-	m_directionalLight->diameter = 22.0f;
+	m_directionalLight->diameter = 50.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
 
