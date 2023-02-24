@@ -265,7 +265,6 @@ void Game::Init()
 	// Audio test startup
 	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
-
 	m_audioSource->Play();
 
 	// Environment parameters
@@ -278,7 +277,7 @@ void Game::Init()
 	m_envParams.yMult = 3.0f;
 	m_envParams.scaleBase = 0.1f;
 	m_envParams.scaleMult = 1.1f;
-	m_envParams.densityUnwalkableOuter = 0.130f;
+	m_envParams.densityUnwalkableOuter = 0.100f;
 	m_envParams.densityUnwalkableInner = 0.200f;
 	m_envParams.densityWalkable = 0.15f;
 	m_envParams.minDensity = 0.25f;
@@ -297,13 +296,11 @@ void Game::Init()
 	// In-world objects and entities
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
 	m_directionalLight = Renderer::GetDirectionalLight();
-	m_directionalLight->transform.position = { 0, 10, 0 };
+	m_directionalLight->transform.position = { -10, 10, -10 };
 	m_directionalLight->transform.SetRotationEuler({ -dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
-	m_directionalLight->diameter = 22.0f;
+	m_directionalLight->diameter = 50.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
-
-
 }
 
 void Game::DeInit()
