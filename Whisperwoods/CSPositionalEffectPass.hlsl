@@ -1,30 +1,7 @@
 #include "Constants.hlsli"
 #include "ComputeConstants.hlsli"
 
-float3 DrawEnemyCone(float3 color, float3 enemyPos, float3 worldPos, float3 viewDirection, float coneLength, float coneAngle)
-{
-    float3 enemyToPoint = worldPos - enemyPos;
-    float angle = dot(normalize(enemyToPoint), normalize(viewDirection));
-    float isInCone = step(cos(coneAngle), angle);
-    float coneInfluence = 1.0f - smoothstep(0.0f, coneLength * 1.2f, length(enemyToPoint));
-    
-    float minHeight = 100.0f;
-    float heightInfluence = step(worldPos.y, minHeight);
-	
-    float totalInfluence = coneInfluence * isInCone * heightInfluence;
-    float3 coneColor = float3(5.0f, 0.4f, 0.0f);
-	
-    //return lerp(color, coneColor, coneInfluence * isInCone * heightInfluence);
-    return coneColor * totalInfluence;
-}
 
-float3 ApplyExpFog(float3 color, float density, float distance, float3 fogColor, float fogStrength)
-{
-    float fogFactor = 1.0f / exp(pow(distance * density, 2.0f));
-    fogFactor = 1.0f - fogFactor;
-    
-    return lerp(color, fogColor * fogStrength, fogFactor);
-}
 
 
 struct LightDirectional
@@ -72,9 +49,10 @@ cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
     float timeSinceSwitch;
     float timeSwitchStartDuration;
     float timeSwitchEndDuration;
-    bool isInFuture;
+    float isInFuture;
     
-    bool PADDING[3];
+    float detectionLevel;
+    float PADDING[3];
 }
 
 cbuffer ENEMY_CONE_INFO_BUFFER : REGISTER_CBV_ENEMY_CONE_INFO
@@ -87,7 +65,33 @@ cbuffer ENEMY_CONE_INFO_BUFFER : REGISTER_CBV_ENEMY_CONE_INFO
     float MOREPADDING;
 }
 
+float3 DrawEnemyCone(float3 color, float3 enemyPos, float3 worldPos, float3 viewDirection, float coneLength, float coneAngle)
+{
+    float3 enemyToPoint = worldPos - enemyPos;
+    float angle = dot(normalize(enemyToPoint), normalize(viewDirection));
+    float isInCone = step(cos(coneAngle), angle);
+    float coneInfluence = 1.0f - smoothstep(0.0f, coneLength * 1.2f, length(enemyToPoint));
+    
+    float maxHeight = 1.5f;
+    float heightInfluence = 1.0f - smoothstep(0.0f, maxHeight, worldPos.y);
+	
+    float totalInfluence = coneInfluence * isInCone * heightInfluence;
+    float colorStrength = lerp(1.0f, 5.0f, detectionLevel);
+    float3 baseConeColor = float3(0.5f, 0.2f, 0.0f);
+    float3 detectedConeColor = float3(1.0f, 0.0f, 0.0f);
+    float3 coneColor = lerp(baseConeColor, detectedConeColor, detectionLevel) * colorStrength;
+    
+    //return lerp(color, coneColor, coneInfluence * isInCone * heightInfluence);
+    return coneColor * totalInfluence;
+}
 
+float3 ApplyExpFog(float3 color, float density, float distance, float3 fogColor, float fogStrength)
+{
+    float fogFactor = 1.0f / exp(pow(distance * density, 2.0f));
+    fogFactor = 1.0f - fogFactor;
+    
+    return lerp(color, fogColor * fogStrength, fogFactor);
+}
 
 Texture2D<float4> positionalTexture : REGISTER_SRV_TEX_DEFAULT;
 Texture2D<float4> renderTextureCopy : REGISTER_SRV_COPY_SOURCE;
@@ -105,7 +109,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
         float3 posArr[] = { float3(1.0f, 0.0f, 0.0f), float3(4.0f, 0.0f, 2.0f) };
 	    
         // Will not loop if the state is in the future.
-        for (uint i = 0; i < coneCount * !isInFuture; i++)
+        for (uint i = 0; i < coneCount; i++)
         {
             float4 enemyPosAndDir = worldPosAndDir[i];
             
@@ -116,7 +120,11 @@ void main( uint3 DTid : SV_DispatchThreadID )
                 float3(enemyPosAndDir.z, 0.0f, enemyPosAndDir.w),
                 coneLength,
                 coneAngle
-            );
+            ) * !isInFuture;
+            
+            float dist = distance(enemyPosAndDir.xy, float2(worldPos.x, worldPos.z));
+            float distInfluence = 1.0f - smoothstep(0.0f, 0.3f, dist);
+            color.rgb += float3(2.0f, 0.0f, 0.0f) * distInfluence * isInFuture;
         }
     }
     
