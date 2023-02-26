@@ -213,15 +213,25 @@ PS_OUTPUT main(VSOutput input)
 		);
     }
 	
+	
+    float3 finalEmissiveColor = 0.0f;
+	// Detection scaled emission calculations.
+	{
+        float emissiveBrightness = length(colorEmissive);
+	
+        float3 detectionColor = normalize(float3(1.0f, 0.0f, 0.0f)) * emissiveBrightness * 1.0f;
+        detectionColor *= ceil(colorEmissive); // If the sample is 0, dont affect color. 
+		
+        float detectionBaseInfluence = 1.0f - emissiveSample.a;
+        float detectionLevelScaling = 1.5f; // Makes detection level reach max faster.
+        float detectionInfluence = smoothstep(0.0f, 1.0f, detectionLevelGlobal * detectionLevelScaling);
+        float totalInfluence = detectionBaseInfluence * detectionInfluence;
+		
+        finalEmissiveColor = lerp(colorEmissive, detectionColor, totalInfluence);
+    }
+    
+	
 	// Used to scale ALL emissive for more dramatic glow.
-    float detectionInfluence = 1.0f - emissiveSample.a;
-    float emissiveBrightness = length(colorEmissive);
-	
-    float3 detectionColor = normalize(float3(1.0f, 0.0f, 0.0f)) * emissiveBrightness * 1.0f;
-    detectionColor *= ceil(colorEmissive); // If the sample is 0, dont affect color. 
-    float3 finalEmissiveColor = lerp(colorEmissive, detectionColor, clamp(
-    detectionLevelGlobal * 3.0f * detectionInfluence, 0.0f, 1.0f));
-	
     float emissiveScalar = 2.0f;
     color.rgb += finalEmissiveColor * emissiveScalar;
 	

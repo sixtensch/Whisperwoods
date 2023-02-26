@@ -68,18 +68,23 @@ cbuffer ENEMY_CONE_INFO_BUFFER : REGISTER_CBV_ENEMY_CONE_INFO
 float3 DrawEnemyCone(float3 color, float3 enemyPos, float3 worldPos, float3 viewDirection, float coneLength, float coneAngle)
 {
     float3 enemyToPoint = worldPos - enemyPos;
-    float angle = dot(normalize(enemyToPoint), normalize(viewDirection));
-    float isInCone = step(cos(coneAngle), angle);
+    float dirAlignment = dot(normalize(enemyToPoint), normalize(viewDirection));
+    float isInCone = step(cos(coneAngle), dirAlignment); // If aligned within cone angle.
     float coneInfluence = 1.0f - smoothstep(0.0f, coneLength * 1.2f, length(enemyToPoint));
     
-    float maxHeight = 1.5f;
+    float maxHeight = 2.0f;
     float heightInfluence = 1.0f - smoothstep(0.0f, maxHeight, worldPos.y);
 	
     float totalInfluence = coneInfluence * isInCone * heightInfluence;
-    float colorStrength = lerp(1.0f, 5.0f, detectionLevel);
+    
+    float detectionScaling = 1.2f; // Makes detection reach max faster
+    float detectionInfluence = detectionLevel * detectionScaling;
+    float minStrength = 1.0f;
+    float maxStrength = 7.0f;
+    float colorStrength = lerp(minStrength, maxStrength, detectionInfluence);
     float3 baseConeColor = float3(0.5f, 0.2f, 0.0f);
     float3 detectedConeColor = float3(1.0f, 0.0f, 0.0f);
-    float3 coneColor = lerp(baseConeColor, detectedConeColor, detectionLevel) * colorStrength;
+    float3 coneColor = lerp(baseConeColor, detectedConeColor, detectionInfluence) * colorStrength;
     
     //return lerp(color, coneColor, coneInfluence * isInCone * heightInfluence);
     return coneColor * totalInfluence;
