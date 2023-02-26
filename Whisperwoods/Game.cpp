@@ -15,12 +15,13 @@ Game::Game() :
 	m_isSwitching(false),
 	m_finishedCharging(false),
 	m_maxStamina(10.0f),
-	m_switchVals({ 1.0f, 0.5f, 3.0f, 0.0f }),
+	m_switchVals({ 0.3f, 0.5f, 3.0f, 0.0f }),
 	m_detectionLevelGlobal(0.0f),
 	m_detectionLevelFloor(0.0f),
-	m_camFovChangeSpeed(cs::c_pi / 4.0f),
+	m_camFovChangeSpeed(cs::c_pi / 2.0f),
 	m_envParams({}),
-	m_reachedLowestStamina(false)
+	m_reachedLowestStamina(false),
+	m_coolDownCounter(m_timeAbilityCooldown)
 {}
 
 Game::~Game() {}
@@ -29,6 +30,8 @@ void Game::Update(float deltaTime, Renderer* renderer)
 {
 	// Always do the following:
 	Camera& cameraRef = renderer->GetCamera();
+
+	m_coolDownCounter += deltaTime;
 
 	if (m_isInFuture == false)
 	{
@@ -56,14 +59,27 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		}
 		
 	}
+	static float totalFovDelta = 0.0f;
 	static float initialCamFov;
 	if (isSeen == true)
 	{
 		m_timeUnseen = 0.0f;
 		if (IsDetected(deltaTime))
 		{
+			if (m_isSwitching)
+			{
+				m_switchVals.timeSinceSwitch = 2.0f;
+				m_isInFuture = true;
+				cameraRef.SetFov(initialCamFov);
+				ChangeTimeline(renderer);
+				m_switchVals.timeSinceSwitch = 0.0f;
+				m_isSwitching = false;
+				totalFovDelta = 0.0f;
+			}
+			
 			// D E A T H
 			m_maxStamina = 10.0f;
+			//m_coolDownCounter = m_timeAbilityCooldown;
 			m_player->ResetStaminaToMax(m_maxStamina);
 			UnLoadPrevious();
 			LoadHubby();
@@ -92,23 +108,16 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	// Time switch logic.
 	{
 		
-		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch() /*&& m_reachedLowestStamina == false*/)  
+		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch() && m_coolDownCounter > m_timeAbilityCooldown)
 		{
 			m_isSwitching = true;
 			m_finishedCharging = false;
 			initialCamFov = cameraRef.GetFov();
 		}
 
-		//if (m_reachedLowestStamina == true && m_forcedBackToPresent == false)
-		//{
-		//	m_isSwitching = true;
-		//	m_finishedCharging = false;
-		//	initialCamFov = cameraRef.GetFov();
-		//	m_forcedBackToPresent = true;
-		//}
 		
 
-		static float totalFovDelta = 0.0f;
+		
 		if (m_isSwitching )
 		{
 			if (!ChargeIsDone())
@@ -132,6 +141,11 @@ void Game::Update(float deltaTime, Renderer* renderer)
 					m_finishedCharging = true;
 					cameraRef.SetFov( initialCamFov );
 					totalFovDelta = 0.0f;
+
+					if (!m_isInFuture) // time to cooldown
+					{
+						m_coolDownCounter = 0.0f;
+					}
 				}
 			}
 
@@ -183,10 +197,17 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		ImGui::DragFloat( "Detection Level Global", &m_detectionLevelGlobal, 0.1f, 0.0f, 1.0f );
 		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
 		ImGui::Text("Time left until future death: %f", m_timeYouSurviveInFuture - m_dangerousTimeInFuture);
+		float cd = m_timeAbilityCooldown - m_coolDownCounter;
+		if (cd < 0)
+		{
+			cd = 0;
+		}
+		ImGui::Text("Time ability cooldown: %f",cd);
 		ImGui::Checkbox( "Future", &m_isInFuture );
+
 	}
 	ImGui::End();
-
+	
 	if (ImGui::Begin("Environment Parameters"))
 	{
 		ImGui::DragInt("Spawn Seed", &m_envParams.spawnSeed, 0.1f);
@@ -291,9 +312,9 @@ void Game::Init()
 	// In-world objects and entities
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
 	m_directionalLight = Renderer::GetDirectionalLight();
-	m_directionalLight->transform.position = { 0, 10, 0 };
+	m_directionalLight->transform.position = { 0, 10, -10 };
 	m_directionalLight->transform.SetRotationEuler({ -dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
-	m_directionalLight->diameter = 22.0f;
+	m_directionalLight->diameter = 50.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
 
@@ -323,6 +344,7 @@ void Game::LoadHubby()
 	Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = true;
+	m_player->transform.position = Vec3(0, 0, 0);
 }
 
 void Game::LoadTest()
@@ -467,6 +489,7 @@ void Game::ChangeTimeline(Renderer* renderer)
 			m_enemies[i]->ChangeTimelineState(m_isInFuture);
 		}
 	}
+	UpdateTimeSwitchBuffers(renderer);
 }
 
 void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
@@ -508,3 +531,5 @@ bool Game::SwitchIsDone()
 {
 	return m_switchVals.timeSinceSwitch >= (m_switchVals.chargeDuration + m_switchVals.falloffDuration);
 }
+
+

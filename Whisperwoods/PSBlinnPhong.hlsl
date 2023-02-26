@@ -219,7 +219,8 @@ PS_OUTPUT main(VSOutput input)
 	{
         float emissiveBrightness = length(colorEmissive);
 	
-        float3 detectionColor = normalize(float3(1.0f, 0.0f, 0.0f)) * emissiveBrightness * 1.0f;
+        float detectionColorStrength = 2.0f * emissiveBrightness;
+        float3 detectionColor = normalize(float3(2.0f, 0.2f, 0.0f)) * detectionColorStrength;
         detectionColor *= ceil(colorEmissive); // If the sample is 0, dont affect color. 
 		
         float detectionBaseInfluence = 1.0f - emissiveSample.a;
