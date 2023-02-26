@@ -144,10 +144,6 @@ void Game::Update(float deltaTime, Renderer* renderer)
 				m_switchVals.timeSinceSwitch = 0.0f;
 				m_isSwitching = false;
 			}
-
-
-			UpdateTimeSwitchBuffers( renderer );
-			
 		}
 
 		m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging;
@@ -239,7 +235,6 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		if (m_dangerousTimeInFuture >= m_timeYouSurviveInFuture) // how long you can survive in future with 0 stamina (seconds)
 		{
 			ChangeTimeline(renderer);
-			UpdateTimeSwitchBuffers(renderer);
 			m_maxStamina = 10.0f;
 			m_player->ResetStaminaToMax(m_maxStamina);
 			UnLoadPrevious();
@@ -254,6 +249,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 	// Final steps
 	{
+		UpdateTimeSwitchBuffers(renderer);
 		UpdateEnemyConeBuffers(renderer);
 }
 }
@@ -479,7 +475,8 @@ void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
 		m_switchVals.timeSinceSwitch,
 		m_switchVals.chargeDuration,
 		m_switchVals.falloffDuration,
-		m_isInFuture
+		m_isInFuture,
+		m_detectionLevelGlobal
 	);
 	
 }
