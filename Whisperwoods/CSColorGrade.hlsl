@@ -67,14 +67,16 @@ float3 AcesTonemap(float3 color)
     return saturate(sRGBSpace);
 }
 
+
 cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
 {
     float timeSinceSwitch;
     float timeSwitchStartDuration;
     float timeSwitchEndDuration;
-    bool isInFuture;
+    float isInFuture;
     
-    bool PADDING[3];
+    float detectionLevel;
+    float PADDING[3];
 }
 
 cbuffer COLORGRADE_INFO_BUFFER : REGISTER_CBV_COLORGRADE_INFO
@@ -119,7 +121,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
         float3 glowColor = float3(0.3f, 1.2f, 1.6f) * circleInfluence;
         color += lerp(0.0f, glowColor, glowAmount);
     }
-    
+     
     color = AcesTonemap(color);
     
     
@@ -134,7 +136,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
     }
     
     color = Vignette(color, texUV, vignette.x, vignette.y);
-    
+   
     //color = pow(color, (1.0f / 2.2f)); // Gamma correction.
     backBufferTexture[texPos.xy] = float4(color, 1.0f);
 }

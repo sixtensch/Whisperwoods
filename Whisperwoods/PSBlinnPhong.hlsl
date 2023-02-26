@@ -70,6 +70,18 @@ float2 texOffset( int u, int v, int lNo )
 	return float2(u * 1.0f / 2048, v * 1.0f /2048);
 }
 
+// Used here for getting detection rate.
+cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
+{
+    float timeSinceSwitch;
+    float timeSwitchStartDuration;
+    float timeSwitchEndDuration;
+    float isInFuture; // Bool is 4 bytes.
+    
+    float detectionLevelGlobal;
+    float PADDING[3];
+}
+
 
 SamplerState textureSampler : REGISTER_SAMPLER_STANDARD;
 SamplerComparisonState shadowSampler : REGISTER_SAMPLER_SHADOW;
@@ -201,8 +213,28 @@ PS_OUTPUT main(VSOutput input)
 		);
     }
 	
+	
+    float3 finalEmissiveColor = 0.0f;
+	// Detection scaled emission calculations.
+	{
+        float emissiveBrightness = length(colorEmissive);
+	
+        float detectionColorStrength = 2.0f * emissiveBrightness;
+        float3 detectionColor = normalize(float3(2.0f, 0.2f, 0.0f)) * detectionColorStrength;
+        detectionColor *= ceil(colorEmissive); // If the sample is 0, dont affect color. 
+		
+        float detectionBaseInfluence = 1.0f - emissiveSample.a;
+        float detectionLevelScaling = 1.5f; // Makes detection level reach max faster.
+        float detectionInfluence = smoothstep(0.0f, 1.0f, detectionLevelGlobal * detectionLevelScaling);
+        float totalInfluence = detectionBaseInfluence * detectionInfluence;
+		
+        finalEmissiveColor = lerp(colorEmissive, detectionColor, totalInfluence);
+    }
     
-    color += float4(colorEmissive.xyz, 0.0f) * 3.0f;
+	
+	// Used to scale ALL emissive for more dramatic glow.
+    float emissiveScalar = 2.0f;
+    color.rgb += finalEmissiveColor * emissiveScalar;
 	
     color.a = saturate(color.a);
 	

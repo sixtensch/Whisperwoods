@@ -59,14 +59,15 @@ namespace CB
 		Vec2 PADDING;
 	};
 
-	struct TimeSwitchInfo
+	struct GameLogicInfo
 	{
 		float timeSinceSwitch;
 		float chargeDuration;
 		float falloffDuration;
-		bool isInFuture;
+		float isInFuture; // Bool is 4 bytes on the GPU (hlsl) so no loss.
 
-		char PADDING[3];
+		float detectionLevel;
+		float PADDING[3];
 	};
 
 	struct EnemyConeInfo
@@ -92,7 +93,7 @@ struct ConstantBuffers
 	ComPtr<ID3D11Buffer> ppfxThresholdInfo;
 	ComPtr<ID3D11Buffer> ppfxColorGradeInfo;
 
-	ComPtr<ID3D11Buffer> timeSwitchInfo;
+	ComPtr<ID3D11Buffer> gameLogicInfo;
 
 	ComPtr<ID3D11Buffer> enemyConeInfo;
 };
