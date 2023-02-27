@@ -433,7 +433,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 	//direction vector from enemy position to player position
 	Vec2 playerDirection(playerPosition.x - transform.worldPosition.x, playerPosition.y - transform.worldPosition.z);
 
-	float distance = playerDirection.Length(); //distance from enemy to player
+	float distance = std::abs(playerDirection.Length()); //distance from enemy to player
 	//Vec2 vectorForLineOfSight = playerDirection;
 
 	playerDirection.Normalize();
@@ -443,7 +443,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 	
 	m_seesPlayer = false;
 	
-	if (angle < m_enemyViewAngle && distance < m_enemyViewDistance) // is the player within range and circle sector of the enemy?
+	if ((angle < m_enemyViewAngle && distance < m_enemyViewDistance) || distance <= m_proximityDetectionLength) // is the player within range and circle sector of the enemy?
 	{
 
 		//Now we check if the enemy has true line of sight to the player
@@ -458,6 +458,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 		//gives all bit map coordinates of line of sight, this is to save on performance by avoiding a million transformations
 		std::vector<cs::Point2> lineOfSight = RayCast(xPlayer, yPlayer, xEnemy, yEnemy);
 
+	
 
 		for (int i = 0; i < lineOfSight.size(); i++)
 		{
