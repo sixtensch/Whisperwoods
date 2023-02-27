@@ -393,7 +393,8 @@ void Game::LoadRoom(Level* level)
 
 	for ( LevelPickup& pickup : level->resource->pickups )
 	{
-		shared_ptr<Pickup> item = make_shared<EssenceBloom>(m_player.get(), pickup.position);
+		Vec3 worldpos = m_player->currentRoom->bitMapToWorldPos(static_cast<Point2>(pickup.position));
+		shared_ptr<Pickup> item = make_shared<EssenceBloom>(m_player.get(), Vec2(worldpos.x, worldpos.z));
 		m_pickups.Add(item);
 	}
 

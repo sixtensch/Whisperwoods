@@ -7,14 +7,14 @@ EssenceBloom::EssenceBloom(const Player* player, Vec2 mapCoordPos)
 	m_staminaRecovery(0)
 	
 {
-	std::string modelResource = "Grafitree.wwm";
+	std::string modelResource = "ShadiiTest.wwm";
 	m_renderable = Renderer::CreateMeshStatic(modelResource);
 	m_renderable->enabled = true;
 	transform.CalculateWorldMatrix();
 	m_renderable->worldMatrix = transform.worldMatrix;
 	m_renderable->pipelineType = PipelineTypeStandard;
 
-	m_pickupRadius = 4.0f;
+	m_pickupRadius = 0.5f;
 }
 
 EssenceBloom::~EssenceBloom()
