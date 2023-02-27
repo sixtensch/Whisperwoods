@@ -50,21 +50,33 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	float currentStamina = m_player->GetCurrentStamina();
 	Renderer::SetPlayerMatrix( m_player->transform.worldMatrix );
 
+
+	float closestDistance = 0.0f;
+	if (m_enemies.Size() > 0) // apperently we call update before creating enemies. Dont touch this
+	{
+		closestDistance = m_enemies[0]->GetMaxDistance();
+	}
+
+
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update(deltaTime);
 		if (m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource, m_isInFuture) == true)
 		{
 			isSeen = true;
+			if (m_enemies[i]->GetDistance() < closestDistance)
+			{
+				closestDistance = m_enemies[i]->GetDistance();
+			}
 		}
-		
 	}
 	static float totalFovDelta = 0.0f;
 	static float initialCamFov;
+
 	if (isSeen == true)
 	{
 		m_timeUnseen = 0.0f;
-		if (IsDetected(deltaTime))
+		if (IsDetected(deltaTime, closestDistance, m_enemies[0]->GetMaxDistance()))
 		{
 			if (m_isSwitching)
 			{
@@ -442,18 +454,21 @@ void Game::UnloadRoom()
 	m_enemies.Clear();
 }
 
-bool Game::IsDetected(float deltaTime)
+bool Game::IsDetected(float deltaTime, float enemyDistance, float maximalDistance)
 {
 	float rate = m_detectionRate;
 	if (Input::Get().IsKeybindDown(KeybindCrouch)) // is crouching 
 	{
-		rate = rate * 0.75f;
+		rate = rate * 0.6f;
 	}
 	else if (Input::Get().IsKeybindDown(KeybindSprint)) // is running
 	{
 		rate = rate * 1.3f;
 	}
+	float distanceRate = enemyDistance / maximalDistance; // this goes from 0-1  where 1 is very far away and 0 is right on top of the enemy
+	distanceRate = (1.0f - distanceRate) * 2;
 
+	rate = rate + distanceRate;
 	m_detectionLevelGlobal += rate * deltaTime;
 	m_detectionLevelFloor += (rate / 3) * deltaTime;
 
