@@ -108,7 +108,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	// Time switch logic.
 	{
 		
-		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch() && m_coolDownCounter > m_timeAbilityCooldown)
+		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch())
 		{
 			m_isSwitching = true;
 			m_finishedCharging = false;
@@ -518,6 +518,8 @@ bool Game::IsAllowedToSwitch()
 
 	// Allowed if NOT currently charging.
 	isAllowed &= !m_isSwitching;
+
+	isAllowed &= m_coolDownCounter > m_timeAbilityCooldown;
 
 	return isAllowed;
 }
