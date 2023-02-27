@@ -168,7 +168,7 @@ void Enemy::Update(float dTime)
 		
 	Vec2 newPosition = m_currentPosition;
 	// Time to walk
-	if(m_isMoving && m_seesPlayer == false && m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway)
+	if(m_isMoving && m_seesPlayer == false && m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway && !m_characterAnimator->IsPlaying(5))
 	{
 		newPosition = Vec2(m_currentPosition.x + m_walkingDirection.x * m_walkingSpeed * dTime, m_currentPosition.y + m_walkingDirection.y * m_walkingSpeed * dTime);
 	}
@@ -433,7 +433,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 	//direction vector from enemy position to player position
 	Vec2 playerDirection(playerPosition.x - transform.worldPosition.x, playerPosition.y - transform.worldPosition.z);
 
-	float distance = playerDirection.Length(); //distance from enemy to player
+	float distance = std::abs(playerDirection.Length()); //distance from enemy to player
 	//Vec2 vectorForLineOfSight = playerDirection;
 
 	playerDirection.Normalize();
@@ -443,7 +443,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 	
 	m_seesPlayer = false;
 	
-	if (angle < m_enemyViewAngle && distance < m_enemyViewDistance) // is the player within range and circle sector of the enemy?
+	if ((angle < m_enemyViewAngle && distance < m_enemyViewDistance) || distance <= m_proximityDetectionLength) // is the player within range and circle sector of the enemy?
 	{
 
 		//Now we check if the enemy has true line of sight to the player
@@ -458,6 +458,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 		//gives all bit map coordinates of line of sight, this is to save on performance by avoiding a million transformations
 		std::vector<cs::Point2> lineOfSight = RayCast(xPlayer, yPlayer, xEnemy, yEnemy);
 
+	
 
 		for (int i = 0; i < lineOfSight.size(); i++)
 		{
@@ -522,8 +523,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 			m_startingDetectionAnimation = false;
 			if (m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway && m_characterAnimator->AnimationsFinished()) // has the player been given the time to run away?
 			{
-				if (m_characterAnimator->IsPlaying(5))
-					m_characterAnimator->StopAnimation(5);
+				m_characterAnimator->StopAnimation(5);
 				if (m_lastPlayedAnimation == 0)
 				{
 					m_characterAnimator->playbackSpeed = 0.8f;
@@ -539,10 +539,6 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 					m_characterAnimator->playbackSpeed = 0.35f;
 					m_characterAnimator->PlayAnimation(m_lastPlayedAnimation, 0, 1, false, true);
 				}
-			}
-			else
-			{
-				m_isMoving = false;
 			}
 		}
 		else if (m_timeToGivePlayerAChanceToRunAway < m_amountOfTimeToRunAway && !m_characterAnimator->IsPlaying(5)) // keep playing the animation of detection 

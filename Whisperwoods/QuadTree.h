@@ -505,10 +505,10 @@ inline void QuadTree<T>::CalcQuadOrder(const dx::BoundingFrustum& frustum)
 	
 
 	QuadData arr[] = {
-		{xzVec.Dot({ -0.707,  0.707 }), 0 },
-		{xzVec.Dot({  0.707,  0.707 }), 1 },
-		{xzVec.Dot({ -0.707, -0.707 }), 2 },
-		{xzVec.Dot({  0.707, -0.707 }), 3 }
+		{xzVec.Dot({ -0.707f,  0.707f }), 0 },
+		{xzVec.Dot({  0.707f,  0.707f }), 1 },
+		{xzVec.Dot({ -0.707f, -0.707f }), 2 },
+		{xzVec.Dot({  0.707f, -0.707f }), 3 }
 	};
 	std::sort(arr, arr + 4);
 

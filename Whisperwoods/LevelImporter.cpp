@@ -138,6 +138,15 @@ bool LevelImporter::ImportImage(string textureName, const RenderCore* core, Leve
 				continue;
 			}
 
+			// EssenceBloom
+			if (c == Point3(255, 0, 255))
+			{
+				outLevel->bitmap[i] = { LevelPixelFlagPassable, 0.0f };
+				outLevel->pickups.Add({ static_cast<Vec2>(p) });
+				continue;
+			}
+
+
 			// Open patroll route
 			if (c.x == 255 && c.y < 63)
 			{
