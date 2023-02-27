@@ -33,6 +33,7 @@
     </ClCompile>
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="EssenceBloom.cpp" />
     <ClCompile Include="FBXImporter.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GUI.cpp" />
@@ -46,6 +47,7 @@
     <ClCompile Include="MaterialResource.cpp" />
     <ClCompile Include="MeshRenderable.cpp" />
     <ClCompile Include="ModelResource.cpp" />
+    <ClCompile Include="Pickup.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Renderable.cpp" />
     <ClCompile Include="RenderCore.cpp" />
@@ -82,6 +84,7 @@
     <ClInclude Include="DrawInfo.h" />
     <ClInclude Include="Empty.h" />
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="EssenceBloom.h" />
     <ClInclude Include="FBXImporter.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="Game.h" />
@@ -89,6 +92,7 @@
     <ClInclude Include="GUI.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="LevelHandler.h" />
+    <ClInclude Include="Pickup.h" />
     <ClInclude Include="StaticObject.h" />
     <ClInclude Include="LevelImporter.h" />
     <ClInclude Include="LevelResource.h" />

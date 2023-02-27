@@ -50,6 +50,12 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	float currentStamina = m_player->GetCurrentStamina();
 	Renderer::SetPlayerMatrix( m_player->transform.worldMatrix );
 
+	Vec2 playerPosition2D = { m_player->transform.worldPosition.x, m_player->transform.worldPosition.z };
+	for (int i = 0; i < m_pickups.Size(); ++i)
+	{
+		m_pickups[i]->Update(deltaTime);
+	}
+
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update(deltaTime);
@@ -311,6 +317,8 @@ void Game::Init()
 
 	// In-world objects and entities
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
+
+	// Lighting
 	m_directionalLight = Renderer::GetDirectionalLight();
 	m_directionalLight->transform.position = { 0, 10, -10 };
 	m_directionalLight->transform.SetRotationEuler({ -dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
@@ -399,6 +407,13 @@ void Game::LoadRoom(Level* level)
 
 	m_player->currentRoom = m_currentRoom.get();
 
+	for ( LevelPickup& pickup : level->resource->pickups )
+	{
+		Vec3 worldpos = m_player->currentRoom->bitMapToWorldPos(static_cast<Point2>(pickup.position));
+		shared_ptr<Pickup> item = make_shared<EssenceBloom>(m_player.get(), Vec2(worldpos.x, worldpos.z));
+		m_pickups.Add(item);
+	}
+
 	for (LevelPatrol& p : level->resource->patrolsClosed)
 	{
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
@@ -414,7 +429,7 @@ void Game::LoadRoom(Level* level)
 			Vec3 enemyPos = m_currentRoom->bitMapToWorldPos(bitPos);
 			m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
 		}
-	} 
+	}
 
 	for (LevelPatrol& p : level->resource->patrolsOpen)
 	{
