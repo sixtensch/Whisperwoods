@@ -79,11 +79,26 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 			m_testRenderables.Clear();
 
+			float distance = 0.5f;
+
 			for (int i = 0; i < f.rooms.Size(); i++)
 			{
 				Level& l = f.rooms[i];
-				m_testRenderables.Add(Renderer::CreateMeshStatic("ShadiiTest.wwm"));
-				m_testRenderables.Back()->worldMatrix = Mat::translation3(l.position.x * 0.5f, 3, l.position.y * 0.5f) * Mat::scale3(0.5f);
+				m_testRenderables.Add(Renderer::CreateMeshStatic("Debug_Sphere.wwm"));
+				m_testRenderables.Back()->worldMatrix = Mat::translation3(l.position.x * distance, 3, l.position.y * distance) * Mat::scale3(0.8f);
+			}
+
+			for (int i = 0; i < f.tunnels.Size(); i++)
+			{
+				LevelTunnel& t = f.tunnels[i];
+				Vec2 start = f.rooms[t.startRoom].position;
+				Vec2 end = f.rooms[t.endRoom].position;
+
+				m_testRenderables.Add(Renderer::CreateMeshStatic("Debug_Sphere.wwm"));
+				m_testRenderables.Back()->worldMatrix =
+					Mat::translation3((start.x + end.x) * 0.5f * distance, 3, (start.y + end.y) * 0.5f * distance) *
+					Quaternion::GetDirection((Vec3(end.x, 0, end.y) - Vec3(start.x, 0, start.y)).Normalized()).Matrix() *
+					Mat::scale3(0.3f, 0.3f, (end - start).Length() * 2.5f);
 			}
 		}
 	}

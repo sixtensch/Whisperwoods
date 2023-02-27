@@ -42,6 +42,17 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 		cs::List<uint> connections;
 		Vec2 position;
 		Vec2 push;
+
+		int networkIndex = -1;
+	};
+	struct TunnelPrimer
+	{
+		uint start;
+		uint end;
+	};
+	struct TunnelPrimerNetwork
+	{
+		cs::List<TunnelPrimer> tunnels;
 	};
 
 	cs::List<RoomPrimer> rooms;
@@ -83,6 +94,133 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 		}
 	}
 
+	// Link room primers
+	cs::List<TunnelPrimerNetwork> networks;
+	cs::List<uint> connectionCounts;
+	cs::List<uint> loose;
+	for (uint i = 0; i < (uint)rooms.Size(); i++)
+	{
+		loose.Add(i);
+		connectionCounts.Add(0);
+	}
+
+	auto pred = [&](uint a, uint b) { return rooms[a].position.x < rooms[b].position.x; };
+	auto clear = [&](uint start, uint end)
+	{
+		if (connectionCounts[start] > 2 || connectionCounts[end] > 2)
+		{
+			return false;
+		}
+
+		Vec2 ori = rooms[start].position;
+		Vec2 dir = rooms[end].position - ori;
+
+		for (const TunnelPrimerNetwork& network : networks)
+		{
+			for (const TunnelPrimer& tunnel : network.tunnels)
+			{
+				if (start == tunnel.start || start == tunnel.end || end == tunnel.start || end == tunnel.end)
+				{
+					continue;
+				}
+
+				Vec2 otherOri = rooms[tunnel.start].position;
+				Vec2 otherDir = rooms[tunnel.end].position - otherOri;
+
+				float t = (otherDir.y * (otherOri.x - ori.x) + ori.y - otherOri.y) / (dir.x * otherDir.y - dir.y);
+
+				if (t > 0.01f && t < 0.99f)
+				{
+					return false;
+				}
+			}
+		}
+
+		return true;
+	};
+
+	//std::sort(loose.Data(), loose.Data() + loose.Size(), pred);
+
+	while (loose.Size() > 0)
+	{
+		uint currentIndex = loose.Back();
+		Vec2 current = rooms[currentIndex].position;
+
+		if (currentIndex == 4)
+		{
+			int a = 0;
+		}
+
+		float previousClosest = 0.0f;
+
+		for (uint attempt = 0; attempt < 3; attempt++)
+		{
+			int closest = 0;
+			float closestDistance = INFINITY;
+
+			for (int i = rooms.Size() - 1; i >= 0; i--)
+			{
+				if ((uint)i == currentIndex)
+				{
+					continue;
+				}
+
+				Vec2 target = rooms[i].position;
+				float distance = (current - target).LengthSq();
+				if (distance < closestDistance && distance > previousClosest + 0.0001f)
+				{
+					closest = i;
+					closestDistance = distance;
+				}
+			}
+
+			if (clear(currentIndex, closest))
+			{
+				if (rooms[closest].networkIndex >= 0)
+				{
+					networks[rooms[closest].networkIndex].tunnels.Add({ (uint)closest, currentIndex });
+					rooms[currentIndex].networkIndex = rooms[closest].networkIndex;
+				}
+				else
+				{
+					networks.Add({ { { currentIndex, (uint)closest } } });
+					rooms[currentIndex].networkIndex = networks.Size() - 1;
+					rooms[closest].networkIndex = networks.Size() - 1;
+
+					for (int i = 0; i < loose.Size(); i++)
+					{
+						if (loose[i] == closest)
+						{
+							loose.Remove(i);
+							break;
+						}
+					}
+				}
+
+				connectionCounts[currentIndex]++;
+				connectionCounts[closest]++;
+
+				break;
+			}
+
+			previousClosest = closestDistance;
+		}
+
+		loose.Pop();
+	}
+
+	for (const TunnelPrimerNetwork& network : networks)
+	{
+		for (const TunnelPrimer& tunnel : network.tunnels)
+		{
+			rooms[tunnel.start].connections.Add(tunnel.end);
+			rooms[tunnel.end].connections.Add(tunnel.start);
+
+			f.tunnels.Add({ tunnel.start, tunnel.end });
+		}
+	}
+
+	// Create level objects
 	for (RoomPrimer p : rooms)
 	{
 		f.rooms.Add({});

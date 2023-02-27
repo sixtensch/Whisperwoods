@@ -497,7 +497,7 @@ namespace cs
     {
         if (m_size == 0)
         {
-            return;
+            throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, "Cannot pop member of empty list.");
         }
 
         m_size--;
