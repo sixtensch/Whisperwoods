@@ -435,6 +435,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 
 	float distance = std::abs(playerDirection.Length()); //distance from enemy to player
 	//Vec2 vectorForLineOfSight = playerDirection;
+	m_currentViewDistance = distance;
 
 	playerDirection.Normalize();
 	float angle = acos(m_forwardVector.Dot(playerDirection)); // angle in radians
@@ -613,6 +614,16 @@ float Enemy::GetViewDistance() const
 Vec2 Enemy::GetForwardVector() const
 {
 	return m_forwardVector;
+}
+
+float Enemy::GetDistance() const
+{
+	return m_currentViewDistance;
+}
+
+float Enemy::GetMaxDistance() const
+{
+	return m_enemyViewDistance;
 }
 
 void Enemy::PlayEnemyActiveNoise(AudioSource& quack)
