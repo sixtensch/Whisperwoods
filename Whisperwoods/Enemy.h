@@ -73,9 +73,9 @@ private:
 	int m_lastPlayedAnimation;
 	float m_timeToGivePlayerAChanceToRunAway;
 	const float m_amountOfTimeToRunAway = 1.0f; //how long enemies give player to run away in seconds
-	const float m_enemyViewDistance = 6.0f; //how far enemies can see
-	const float m_enemyViewAngle = 50.0f; // angle to each side of view vector
-	const float m_proximityDetectionLength = 1.5f;
+	const float m_enemyViewDistance = 5.5f; //how far enemies can see
+	const float m_enemyViewAngle = 65.0f; // angle to each side of view vector
+	const float m_proximityDetectionLength = 1.25f;
 	bool m_startingDetectionAnimation = false;
 	//****************************
 };
