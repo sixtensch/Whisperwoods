@@ -52,7 +52,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
         float tentFilterAdjustment = 0.5f;
         mipLevelColor *= (1.0f / 16.0f) * tentFilterAdjustment * mipLevelBias;
         
-        finalColor += mipLevelColor;
+        finalColor += mipLevelColor.rgb;
     }
     
     targetTexture[DTid.xy] = float4(finalColor, 1.0f);

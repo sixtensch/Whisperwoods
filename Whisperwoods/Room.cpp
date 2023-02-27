@@ -81,7 +81,10 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	
 	// Cylinder thing
 	m_wallsFloorOffset = modelOffset2;
-	ModelStaticResource* m_roomWallsAndFloor;
+
+	// TODO: Doesnt seem to do anything. Remove?
+	//ModelStaticResource* m_roomWallsAndFloor; 
+
 	m_wallsAndFloorRenderable = Renderer::CreateMeshStatic( modelResource2 );
 	m_wallsAndFloorRenderable->worldMatrix = modelOffset2;
 	m_wallsAndFloorRenderable->Materials().AddMaterial( (const MaterialResource*)Resources::Get().GetResource( ResourceTypeMaterial, "TestSceneBigTree.wwmt" ) );

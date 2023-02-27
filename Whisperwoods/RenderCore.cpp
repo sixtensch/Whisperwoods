@@ -1560,7 +1560,7 @@ void RenderCore::WriteEnemyConeInfo(const cs::List<shared_ptr<Enemy>>& enemies)
 		enemyConeInfo.coneAngle = combinedViewAngleRad;
 		enemyConeInfo.coneLength = enemies[0]->GetViewDistance();
 
-		for (int i = 0; i < enemyCount; i++)
+		for (uint i = 0; i < enemyCount; i++)
 		{
 			const Enemy& enemy = *enemies[i];
 			Vec4 worldPosAndDir = Vec4();
