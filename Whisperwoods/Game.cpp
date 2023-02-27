@@ -14,7 +14,7 @@ Game::Game() :
 	m_isInFuture(false),
 	m_isSwitching(false),
 	m_finishedCharging(false),
-	m_maxStamina(10.0f),
+	m_maxStamina(MAX_STAMINA_STARTING_VALUE),
 	m_switchVals({ 0.3f, 0.5f, 3.0f, 0.0f }),
 	m_detectionLevelGlobal(0.0f),
 	m_detectionLevelFloor(0.0f),
@@ -90,7 +90,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			}
 			
 			// D E A T H
-			m_maxStamina = 10.0f;
+			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
 			//m_coolDownCounter = m_timeAbilityCooldown;
 			m_player->ResetStaminaToMax(m_maxStamina);
 			UnLoadPrevious();
@@ -183,6 +183,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			UnLoadPrevious();
 			LoadHubby();
 			m_player->ReloadPlayer();
+
 		}
 	}
 	else // If in hubby
@@ -268,7 +269,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		if (m_dangerousTimeInFuture >= m_timeYouSurviveInFuture) // how long you can survive in future with 0 stamina (seconds)
 		{
 			ChangeTimeline(renderer);
-			m_maxStamina = 10.0f;
+			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
 			m_player->ResetStaminaToMax(m_maxStamina);
 			UnLoadPrevious();
 			LoadHubby();
