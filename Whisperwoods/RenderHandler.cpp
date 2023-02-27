@@ -9,7 +9,7 @@ RenderHandler::RenderHandler()
 {
 	m_renderableIDCounter = 0;
 	m_timelineState = TimelineStateCurrent;
-	m_envQuadTree.Init(2, -1, 50, 50); //TODO: actual startsize
+	m_envQuadTree.Init(2.0f, -1.0f, 50.0f, 50.0f); //TODO: actual startsize
 
 
 	const dx::BoundingBox BananaPlant = {
@@ -338,7 +338,7 @@ void RenderHandler::LoadEnvironment(const Level* level)
 	
 	uint instanceCount = 0;
 
-	m_envQuadTree.Reconstruct(level->resource->pixelHeight, level->resource->pixelWidth);
+	m_envQuadTree.Reconstruct((float)level->resource->pixelHeight, (float)level->resource->pixelWidth);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
