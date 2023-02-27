@@ -85,7 +85,8 @@ public:
 		float timeSinceSwitch,
 		float chargeDuration,
 		float falloffDuration,
-		bool isInFuture
+		bool isInFuture,
+		float globalDetectionLevel
 	);
 
 	void WriteEnemyConeInfo(const cs::List<shared_ptr<Enemy>>& enemies);

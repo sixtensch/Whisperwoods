@@ -21,7 +21,7 @@ public:
 	void AddCoordinateToPatrolPath(Vec2 coord, bool enclosed);
 	void EmptyPatrolPath(); // In order to re-use enemies, wipe the patrol path and add a new one when player reaches a new room rather than creating a new Enemy object.
 	void AddModel(std::string modelResource, std::string animationsPath, Mat4 modelOffset);
-	bool SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack);
+	bool SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool inFuture);
 	void ChangeTimelineState(bool isInFuture);
 
 	bool enemyAlive; // A bool to know if we render/update the enemy or not in the current room
@@ -75,6 +75,8 @@ private:
 	const float m_amountOfTimeToRunAway = 1.0f; //how long enemies give player to run away in seconds
 	const float m_enemyViewDistance = 6.0f; //how far enemies can see
 	const float m_enemyViewAngle = 50.0f; // angle to each side of view vector
+	const float m_proximityDetectionLength = 1.5f;
+	bool m_startingDetectionAnimation = false;
 	//****************************
 };
 

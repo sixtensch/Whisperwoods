@@ -1336,15 +1336,16 @@ void RenderCore::InitConstantBuffers()
 
 	// Time switch info
 
-	desc.ByteWidth = sizeof(CB::TimeSwitchInfo);
+	desc.ByteWidth = sizeof(CB::GameLogicInfo);
 
 	EXC_COMCHECK(m_device->CreateBuffer(
 		&desc,
 		nullptr,
-		m_constantBuffers.timeSwitchInfo.GetAddressOf()
+		m_constantBuffers.gameLogicInfo.GetAddressOf()
 	));
 
-	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVTimeSwitchInfo, 1, m_constantBuffers.timeSwitchInfo.GetAddressOf()));
+	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVTimeSwitchInfo, 1, m_constantBuffers.gameLogicInfo.GetAddressOf()));
+	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVTimeSwitchInfo, 1, m_constantBuffers.gameLogicInfo.GetAddressOf()));
 
 	desc.ByteWidth = sizeof(CB::EnemyConeInfo);
 
@@ -1531,19 +1532,20 @@ void RenderCore::WritePPFXColorgradeInfo(const Vec2 vignetteBorderAndStrength, c
 	EXC_COMINFO(m_context->Unmap(m_constantBuffers.ppfxColorGradeInfo.Get(), 0u));
 }
 
-void RenderCore::WriteTimeSwitchInfo(float timeSinceSwitch, float chargeDuration, float falloffDuration, bool isInFuture)
+void RenderCore::WriteTimeSwitchInfo(float timeSinceSwitch, float chargeDuration, float falloffDuration, bool isInFuture, float globalDetectionLevel)
 {
-	CB::TimeSwitchInfo timeSwitchInfo = {
+	CB::GameLogicInfo timeSwitchInfo = {
 		timeSinceSwitch,
 		chargeDuration,
 		falloffDuration,
-		isInFuture
+		(float)isInFuture, // Cast to float. Check struct def for why.
+		globalDetectionLevel
 	}; 
 
 	D3D11_MAPPED_SUBRESOURCE msr = {};
-	EXC_COMCHECK(m_context->Map(m_constantBuffers.timeSwitchInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
-	memcpy(msr.pData, &timeSwitchInfo, sizeof(CB::TimeSwitchInfo));
-	EXC_COMINFO(m_context->Unmap(m_constantBuffers.timeSwitchInfo.Get(), 0u));
+	EXC_COMCHECK(m_context->Map(m_constantBuffers.gameLogicInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+	memcpy(msr.pData, &timeSwitchInfo, sizeof(CB::GameLogicInfo));
+	EXC_COMINFO(m_context->Unmap(m_constantBuffers.gameLogicInfo.Get(), 0u));
 }
 
 void RenderCore::WriteEnemyConeInfo(const cs::List<shared_ptr<Enemy>>& enemies)
@@ -1558,7 +1560,7 @@ void RenderCore::WriteEnemyConeInfo(const cs::List<shared_ptr<Enemy>>& enemies)
 		enemyConeInfo.coneAngle = combinedViewAngleRad;
 		enemyConeInfo.coneLength = enemies[0]->GetViewDistance();
 
-		for (int i = 0; i < enemyCount; i++)
+		for (uint i = 0; i < enemyCount; i++)
 		{
 			const Enemy& enemy = *enemies[i];
 			Vec4 worldPosAndDir = Vec4();

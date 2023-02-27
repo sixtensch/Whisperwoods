@@ -69,8 +69,7 @@ void LevelHandler::GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParam
 	f.startPosition = Vec3(0, 0, 0);
 
 	// Add a level
-
-	AddLevelName(f, "testRoomOne");
+	AddLevelName(f, "seventhLevel");
 	Environmentalize(f.rooms.Back(), params);
 }
 
@@ -104,17 +103,17 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 			float diversityVal = simplexerDiversity.Gen2D(x * parameters.xMult, y * parameters.yMult);
 
 			Mat4 stoneMatrix =
-				Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2, y * BM_PIXEL_SIZE)) *
+				Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
 				Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
 				Mat::scale3(scaleVal * parameters.scaleMultiplierStones);
 
 			Mat4 treeMatrix =
-				Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2, y * BM_PIXEL_SIZE)) *
+				Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
 				Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
 				Mat::scale3(scaleVal * parameters.scaleMultiplierTrees);
 
 			Mat4 trunkMatrix =
-				Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2, y * BM_PIXEL_SIZE)) *
+				Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
 				Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
 				Mat::scale3(scaleVal * parameters.scaleMultiplierTrees*0.25f);
 
@@ -133,7 +132,7 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 
 
 				Mat4 foliageMatrix =
-					Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2, y * BM_PIXEL_SIZE)) *
+					Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
 					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
 					Mat::scale3(scaleVal * parameters.scaleMultiplierFoliage);
 
@@ -223,7 +222,7 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 			{
 				float density = 1.0f - l.resource->bitmap[x + l.resource->pixelWidth * y].density;
 				Mat4 foliageMatrix =
-					Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2, y * BM_PIXEL_SIZE)) *
+					Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
 					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
 					Mat::scale3(scaleVal * parameters.scaleMultiplierFoliage * (density * (1.0f - parameters.scaleEffectDensity)) );
 
