@@ -47,6 +47,7 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	m_level = level;
 	m_levelResource = level->resource;
 
+	Renderer::ClearShadowRenderables();
 
 	// Add ambiance sounds around the room
 	Resources& resources = Resources::Get();
@@ -86,10 +87,21 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	//ModelStaticResource* m_roomWallsAndFloor; 
 
 	m_wallsAndFloorRenderable = Renderer::CreateMeshStatic( modelResource2 );
+
+	// Registers the last added renderable as one to do shadows on
+	Renderer::RegisterShadowRenderable();
+
 	m_wallsAndFloorRenderable->worldMatrix = modelOffset2;
 	m_wallsAndFloorRenderable->Materials().AddMaterial( (const MaterialResource*)Resources::Get().GetResource( ResourceTypeMaterial, "TestSceneBigTree.wwmt" ) );
 	m_wallsAndFloorRenderable->Materials().AddMaterial( (const MaterialResource*)Resources::Get().GetResource( ResourceTypeMaterial, "TestSceneGround.wwmt" ) );
+	
+	
+	//GenerateRoomShadowMap();
+}
 
+void Room::GenerateRoomShadowMap()
+{
+	Renderer::ExecuteShadowRender();
 }
 
 
