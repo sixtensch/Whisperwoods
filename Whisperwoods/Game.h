@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "EssenceBloom.h"
 #include "StaticObject.h"
 #include "Light.h"
 #include "SoundResource.h"
@@ -56,6 +57,7 @@ private:
 	// Current room data
 	cs::List<shared_ptr<PointLight>> m_pointLights;
 	cs::List<shared_ptr<SpotLight>> m_spotLights;
+	cs::List<shared_ptr<Pickup>> m_pickups;
 	cs::List<shared_ptr<Enemy>> m_enemies;
 	cs::List<shared_ptr<StaticObject>> m_staticObjects;
 
