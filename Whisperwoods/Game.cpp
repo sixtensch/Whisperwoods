@@ -466,7 +466,8 @@ bool Game::IsDetected(float deltaTime, float enemyDistance, float maximalDistanc
 		rate = rate * 1.3f;
 	}
 	float distanceRate = enemyDistance / maximalDistance; // this goes from 0-1  where 1 is very far away and 0 is right on top of the enemy
-	distanceRate = (1.0f - distanceRate) * 2;
+	distanceRate = (1.0f - distanceRate) * 1.5f;
+	distanceRate = distanceRate * distanceRate * distanceRate;
 
 	rate = rate + distanceRate;
 	m_detectionLevelGlobal += rate * deltaTime;
