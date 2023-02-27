@@ -9,7 +9,7 @@
 #include "SoundResource.h"
 #include "LevelHandler.h"
 
-constexpr float STAMINA_DECAY_MULTIPLIER = 0.3f;
+constexpr float STAMINA_DECAY_MULTIPLIER = 0.2f;
 constexpr float MAX_STAMINA_STARTING_VALUE = 10.0f;
 
 class LevelHandler;
@@ -91,11 +91,11 @@ private:
 	float m_camFovChangeSpeed;
 
 	const float m_detectionRate = 0.4;
-	const float m_timeBeforeDetectionLowers = 5.0f; //in seconds
+	const float m_timeBeforeDetectionLowers = 4.0f; //in seconds
 	float m_timeUnseen = 0.0f; // for determining when to derease global detection
 	float m_dangerousTimeInFuture = 0.0f;// time in seconds
 	const float m_timeYouSurviveInFuture = 1.5f;// time in seconds
-	const float m_timeAbilityCooldown = 5.0f; // time in seconds
+	const float m_timeAbilityCooldown = 3.0f; // time in seconds
 	float m_coolDownCounter; 
 
 	TimeSwitchValues m_switchVals;
