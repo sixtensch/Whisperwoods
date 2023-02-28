@@ -10,6 +10,17 @@
 //temp include
 #include "AudioSource.h"
 
+enum EnemyState 
+{
+	Idle,
+	Patrolling,
+	Searching,
+	Detecting
+};
+
+
+
+
 
 class Enemy : public GameObject
 {
@@ -39,6 +50,13 @@ public:
 private:
 
 	void PlayEnemyActiveNoise(AudioSource& quack);
+
+	EnemyState state;
+
+	void UpdateState();
+
+	void EnemyMovement();
+	void EnemyAnimation();
 
 
 	// move/rotation variables
