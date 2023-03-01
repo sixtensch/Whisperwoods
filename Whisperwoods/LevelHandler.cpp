@@ -5,6 +5,37 @@
 
 #include <filesystem>
 
+bool Intersect(Vec2 p1a, Vec2 p1b, Vec2 p2a, Vec2 p2b)
+{
+	// Line AB represented as a1x + b1y = c1
+	float a1 = p1b.y - p1a.y;
+	float b1 = p1a.x - p1b.x;
+	float c1 = a1 * (p1a.x) + b1 * (p1a.y);
+
+	// Line CD represented as a2x + b2y = c2
+	float a2 = p2b.y - p2a.y;
+	float b2 = p2a.x - p2b.x;
+	float c2 = a2 * (p2a.x) + b2 * (p2a.y);
+
+	float determinant = a1 * b2 - a2 * b1;
+
+	if (determinant == 0)
+	{
+		return false;
+	}
+	else
+	{
+		float x = (b2 * c1 - b1 * c2) / determinant;
+		float y = (a1 * c2 - a2 * c1) / determinant;
+
+		return 
+			cs::fmin(p1a.x, p1b.x) < x &&
+			cs::fmin(p1a.y, p1b.y) < y &&
+			cs::fmax(p1a.x, p1b.x) > x &&
+			cs::fmax(p1a.y, p1b.y) > y;
+	}
+}
+
 LevelHandler* LevelHandler::s_handler = nullptr;
 
 LevelHandler::LevelHandler()
@@ -98,6 +129,7 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 	cs::List<TunnelPrimerNetwork> networks;
 	cs::List<uint> connectionCounts;
 	cs::List<uint> loose;
+	cs::List<uint> looseNext;
 	for (uint i = 0; i < (uint)rooms.Size(); i++)
 	{
 		loose.Add(i);
@@ -114,6 +146,7 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 
 		Vec2 ori = rooms[start].position;
 		Vec2 dir = rooms[end].position - ori;
+		dir.Normalize();
 
 		for (const TunnelPrimerNetwork& network : networks)
 		{
@@ -126,10 +159,12 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 
 				Vec2 otherOri = rooms[tunnel.start].position;
 				Vec2 otherDir = rooms[tunnel.end].position - otherOri;
+				float otherLen = otherDir.Length();
+				otherDir.Normalize();
 
 				float t = (otherDir.y * (otherOri.x - ori.x) + ori.y - otherOri.y) / (dir.x * otherDir.y - dir.y);
 
-				if (t > 0.01f && t < 0.99f)
+				if (t > 0.01f && t < otherLen - 0.01f)
 				{
 					return false;
 				}
@@ -141,73 +176,83 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 
 	//std::sort(loose.Data(), loose.Data() + loose.Size(), pred);
 
-	while (loose.Size() > 0)
+	int iterations = 0;
+
+	do
 	{
-		uint currentIndex = loose.Back();
-		Vec2 current = rooms[currentIndex].position;
-
-		if (currentIndex == 4)
+		while (loose.Size() > 0)
 		{
-			int a = 0;
-		}
+			uint currentIndex = loose.Back();
+			Vec2 current = rooms[currentIndex].position;
 
-		float previousClosest = 0.0f;
-
-		for (uint attempt = 0; attempt < 3; attempt++)
-		{
-			int closest = 0;
-			float closestDistance = INFINITY;
-
-			for (int i = rooms.Size() - 1; i >= 0; i--)
+			if (currentIndex == 4)
 			{
-				if ((uint)i == currentIndex)
-				{
-					continue;
-				}
-
-				Vec2 target = rooms[i].position;
-				float distance = (current - target).LengthSq();
-				if (distance < closestDistance && distance > previousClosest + 0.0001f)
-				{
-					closest = i;
-					closestDistance = distance;
-				}
+				int a = 0;
 			}
 
-			if (clear(currentIndex, closest))
-			{
-				if (rooms[closest].networkIndex >= 0)
-				{
-					networks[rooms[closest].networkIndex].tunnels.Add({ (uint)closest, currentIndex });
-					rooms[currentIndex].networkIndex = rooms[closest].networkIndex;
-				}
-				else
-				{
-					networks.Add({ { { currentIndex, (uint)closest } } });
-					rooms[currentIndex].networkIndex = networks.Size() - 1;
-					rooms[closest].networkIndex = networks.Size() - 1;
+			float previousClosest = 0.0f;
 
-					for (int i = 0; i < loose.Size(); i++)
+			for (uint attempt = 0; attempt < 3; attempt++)
+			{
+				int closest = 0;
+				float closestDistance = INFINITY;
+
+				for (int i = rooms.Size() - 1; i >= 0; i--)
+				{
+					if ((uint)i == currentIndex)
 					{
-						if (loose[i] == closest)
-						{
-							loose.Remove(i);
-							break;
-						}
+						continue;
+					}
+
+					Vec2 target = rooms[i].position;
+					float distance = (current - target).LengthSq();
+					if (distance < closestDistance && distance > previousClosest + 0.0001f)
+					{
+						closest = i;
+						closestDistance = distance;
 					}
 				}
 
-				connectionCounts[currentIndex]++;
-				connectionCounts[closest]++;
+				if (clear(currentIndex, closest))
+				{
+					if (rooms[closest].networkIndex >= 0)
+					{
+						networks[rooms[closest].networkIndex].tunnels.Add({ (uint)closest, currentIndex });
+						rooms[currentIndex].networkIndex = rooms[closest].networkIndex;
+					}
+					else
+					{
+						networks.Add({ { { currentIndex, (uint)closest } } });
+						rooms[currentIndex].networkIndex = networks.Size() - 1;
+						rooms[closest].networkIndex = networks.Size() - 1;
 
-				break;
+						for (int i = 0; i < loose.Size(); i++)
+						{
+							if (loose[i] == closest)
+							{
+								loose.Remove(i);
+								break;
+							}
+						}
+					}
+
+					connectionCounts[currentIndex]++;
+					connectionCounts[closest]++;
+
+					break;
+				}
+
+				previousClosest = closestDistance;
 			}
 
-			previousClosest = closestDistance;
+			looseNext.Add(loose.Pop());
 		}
 
-		loose.Pop();
-	}
+		loose.MassAdd(looseNext);
+		looseNext.Clear(false);
+		iterations++;
+	} 
+	while (loose.Size() > 0 && iterations < 5);
 
 	for (const TunnelPrimerNetwork& network : networks)
 	{
@@ -220,7 +265,10 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 		}
 	}
 
+
+
 	// Create level objects
+
 	for (RoomPrimer p : rooms)
 	{
 		f.rooms.Add({});
