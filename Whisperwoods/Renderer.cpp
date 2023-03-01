@@ -90,6 +90,21 @@ void Renderer::UnLoadEnvironment()
 	s_singleton->m_renderHandler->UnLoadEnvironment();
 }
 
+void Renderer::ClearShadowRenderables()
+{
+	s_singleton->m_renderHandler->ClearShadowRenderables();
+}
+
+void Renderer::RegisterShadowRenderable()
+{
+	s_singleton->m_renderHandler->RegisterLastRenderableAsShadow();
+}
+
+void Renderer::ExecuteShadowRender()
+{
+	s_singleton->m_renderHandler->ExecuteStaticShadowDraw();
+}
+
 shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpath)
 {
 	return s_singleton->m_renderHandler->CreateMeshStatic(subpath);

@@ -299,7 +299,6 @@ void Game::Init()
 	// Audio test startup
 	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
-
 	m_audioSource->Play();
 
 	// Environment parameters
@@ -312,7 +311,7 @@ void Game::Init()
 	m_envParams.yMult = 3.0f;
 	m_envParams.scaleBase = 0.1f;
 	m_envParams.scaleMult = 1.1f;
-	m_envParams.densityUnwalkableOuter = 0.130f;
+	m_envParams.densityUnwalkableOuter = 0.100f;
 	m_envParams.densityUnwalkableInner = 0.200f;
 	m_envParams.densityWalkable = 0.15f;
 	m_envParams.minDensity = 0.25f;
@@ -338,8 +337,6 @@ void Game::Init()
 	m_directionalLight->diameter = 50.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
-
-
 }
 
 void Game::DeInit()
@@ -366,6 +363,7 @@ void Game::LoadHubby()
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = true;
 	m_player->transform.position = Vec3(0, 0, 0);
+	Renderer::ExecuteShadowRender();
 }
 
 void Game::LoadTest()
@@ -377,6 +375,7 @@ void Game::LoadTest()
 	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = false;
+	Renderer::ExecuteShadowRender();
 }
 
 void Game::LoadGame(uint gameSeed)

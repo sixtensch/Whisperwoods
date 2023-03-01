@@ -33,6 +33,10 @@ public:
 
 	static void UnLoadEnvironment();
 
+	static void ClearShadowRenderables();
+	static void RegisterShadowRenderable();
+	static void ExecuteShadowRender();
+
 	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 	static shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
 

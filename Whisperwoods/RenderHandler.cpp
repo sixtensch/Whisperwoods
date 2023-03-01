@@ -79,7 +79,6 @@ void RenderHandler::Draw()
 
 
 	// ShadowPass
-
 	ExecuteDraw(m_lightDirectional->camera, m_timelineState, true);
 
 
@@ -112,8 +111,6 @@ void RenderHandler::Draw()
 	
 }
 
-
-
 void RenderHandler::Present()
 {
 	m_renderCore->EndFrame();
@@ -132,9 +129,19 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 		m_renderCore->TargetShadowMap();
 	}
 
-
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
+		if (shadows)
+		{
+			bool staticThing = false;
+			for (int j = 0; j < m_shadowRenderables.Size(); j++)
+			{
+				if (m_shadowRenderables[j] == i)
+					staticThing = true;
+			}
+			if (staticThing)
+				continue;
+		}
 		shared_ptr<WorldRenderable> data = {};
 		switch ( state )
 		{
@@ -152,7 +159,37 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 			m_renderCore->DrawObject(data.get(), shadows);
 		}
 	}
-	DrawInstances(state, shadows);
+	if (!shadows)
+	{
+		DrawInstances(state, false);
+	}
+}
+
+void RenderHandler::ExecuteStaticShadowDraw()
+{
+	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
+	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
+	m_renderCore->TargetStaticShadowMap();
+	for (int i = 0; i < m_shadowRenderables.Size(); i++)
+	{
+		shared_ptr<WorldRenderable> data = {};
+		switch (m_timelineState)
+		{
+		case TimelineStateCurrent:
+			data = m_worldRenderables[m_shadowRenderables[i]].first;
+			break;
+
+		case TimelineStateFuture:
+			data = m_worldRenderables[m_shadowRenderables[i]].second;
+			break;
+		}
+		if (data && data->enabled)
+		{
+			m_renderCore->UpdateObjectInfo(data.get());
+			m_renderCore->DrawObject(data.get(), true);
+		}
+	}
+	DrawInstances(m_timelineState, true);
 }
 
 RenderCore* RenderHandler::GetCore() const
@@ -475,6 +512,16 @@ bool RenderHandler::RegisterSpotLight(shared_ptr<SpotLight> spotLight)
 void RenderHandler::SetPlayerMatrix(const Mat4& matrix)
 {
 	m_playerMatrix = matrix;
+}
+
+void RenderHandler::ClearShadowRenderables()
+{
+	m_shadowRenderables.Clear();
+}
+
+void RenderHandler::RegisterLastRenderableAsShadow()
+{
+	m_shadowRenderables.Add(m_worldRenderables.Size() - 1);
 }
 
 void RenderHandler::DrawInstances(uint state, bool shadows)

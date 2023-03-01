@@ -366,6 +366,7 @@ inline void QuadTree<T>::CollectDataIndexed(const dx::BoundingFrustum& frustum, 
 
 	for ( auto& nodeData : currentNode->data )
 	{
+
 		out_indexedList[nodeData.id].hotInstances.Add(*(*nodeData.element));
 	}
 
