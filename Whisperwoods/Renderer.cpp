@@ -37,6 +37,10 @@ void Renderer::Init(uint width, uint height)
 	m_gui = make_unique<GUI>(m_renderHandler->GetCore(), true, true);
 //#endif
 
+	m_renderHandler->CreateTextRenderable(L"This is tutorial", dx::SimpleMath::Vector2(10, 10), FontDefault, cs::Color4f(0.2f, 0.0f, 0.0f, 1.0f), { 1.0f, 1.0f });
+
+
+
 	m_window->Show(true);
 }
 

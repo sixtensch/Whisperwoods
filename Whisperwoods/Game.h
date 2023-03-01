@@ -46,7 +46,6 @@ private:
 	void UnloadRoom();
 	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
-	void ChangeText(int posX, int posY, const wchar_t* inputText, cs::Color4f color);
 
 
 private:
@@ -55,7 +54,6 @@ private:
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
-	shared_ptr<TextRenderable> m_text;
 
 	// Current room data
 	cs::List<shared_ptr<PointLight>> m_pointLights;

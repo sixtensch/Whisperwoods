@@ -839,10 +839,10 @@ void RenderCore::DrawInstanced(uint indexCount, uint instanceCount, uint startIn
 
 void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 originScalar)
 {
-   
 	dx::XMVECTOR col = ((Vec4)color).GetXM3(); //converts from cs to xmvector, which Drawstring() needs
 
 	m_spriteBatch->Begin();
+	m_context->ClearDepthStencilView(m_dsDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
 	dx::SimpleMath::Vector2 origin = m_fonts[font]->MeasureString(m_text);
 	origin = dx::SimpleMath::Vector2(origin.x * originScalar.x, origin.y * originScalar.y);
 
