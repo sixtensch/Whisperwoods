@@ -8,6 +8,7 @@
 #include "Light.h"
 #include "SoundResource.h"
 #include "LevelHandler.h"
+#include "TextRenderable.h"
 
 constexpr float STAMINA_DECAY_MULTIPLIER = 0.15f;
 constexpr float MAX_STAMINA_STARTING_VALUE = 10.0f;
@@ -45,6 +46,7 @@ private:
 	void UnloadRoom();
 	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
+	void ChangeText(int posX, int posY, const wchar_t* inputText, cs::Color4f color);
 
 
 private:
@@ -53,6 +55,7 @@ private:
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
+	shared_ptr<TextRenderable> m_text;
 
 	// Current room data
 	cs::List<shared_ptr<PointLight>> m_pointLights;
@@ -97,6 +100,8 @@ private:
 	const float m_timeYouSurviveInFuture = 1.5f;// time in seconds
 	const float m_timeAbilityCooldown = 3.0f; // time in seconds
 	float m_coolDownCounter; 
+
+	 
 
 	TimeSwitchValues m_switchVals;
 };

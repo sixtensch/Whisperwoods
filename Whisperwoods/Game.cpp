@@ -22,7 +22,9 @@ Game::Game() :
 	m_envParams({}),
 	m_reachedLowestStamina(false),
 	m_coolDownCounter(m_timeAbilityCooldown)
-{}
+{
+	ChangeText(0, 0, L"This is tutorial", cs::Color4(200, 0, 0, 1.0f));
+}
 // const wchar_t* m_text, dx::SimpleMath::Vector2 m_fontPos, Font m_font, cs::Color4f color, Vec2 origin
 Game::~Game() {}
 
@@ -30,7 +32,6 @@ void Game::Update(float deltaTime, Renderer* renderer)
 {
 	// Always do the following:
 	Camera& cameraRef = renderer->GetCamera();
-
 	m_coolDownCounter += deltaTime;
 
 	if (m_isInFuture == false)
@@ -506,6 +507,14 @@ void Game::LowerToFloor(float deltaTime)
 	{
 		m_detectionLevelGlobal = m_detectionLevelFloor;
 	}
+}
+
+void Game::ChangeText(int posX, int posY, const wchar_t* inputText, cs::Color4f color)
+{
+	dx::SimpleMath::Vector2 posTest;
+	posTest.x = posX;
+	posTest.y = posY;
+	m_text = Renderer::CreateTextRenderable(inputText, posTest, FontDefault, color, { 1.0f, 1.0f });
 }
 
 void Game::ChangeTimeline(Renderer* renderer)
