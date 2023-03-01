@@ -52,6 +52,8 @@ public:
 
 	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);
 
+
+
 	RenderCore* GetCore() const;
 	Camera& GetCamera();
 
@@ -74,6 +76,11 @@ public:
 	bool RegisterSpotLight(shared_ptr<SpotLight> spotLight);
 
 	void SetPlayerMatrix(const Mat4& matrix);
+
+	void ClearShadowRenderables();
+	void RegisterLastRenderableAsShadow();
+	void ExecuteStaticShadowDraw();
+
 
 private:
 	void DrawInstances(uint state, bool shadows);
@@ -115,6 +122,9 @@ private:
 	Mat4 m_playerMatrix;
 
 	const Level* m_currentLevel;
+
+	// Indicies of the renderables to use when calculating the static shadowmap along the 
+	cs::List<int> m_shadowRenderables;
 
 	ComPtr<ID3D11Buffer> m_envIndices[2];
 	ComPtr<ID3D11Buffer> m_envVertices[2];

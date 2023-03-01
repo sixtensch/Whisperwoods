@@ -70,6 +70,8 @@ Enemy::~Enemy()
 {
 }
 
+
+
 void Enemy::Update(float dTime)
 {
 	m_timeToGivePlayerAChanceToRunAway += dTime;
@@ -84,7 +86,7 @@ void Enemy::Update(float dTime)
 		m_characterAnimator->playbackSpeed = 0.2f;
 	}
 
-
+	
 
 	m_characterAnimator->Update(dTime);
 	bool first = false;
