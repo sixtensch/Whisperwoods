@@ -255,7 +255,7 @@
     <ClCompile Include="Resources.cpp">
       <Filter>%2a Code\%2a Resources\Resources</Filter>
     </ClCompile>
-    <ClCompile Include="GUI.cpp">
+    <ClCompile Include="DebugGUI.cpp">
       <Filter>%2a Code\%2a Rendering\GUI</Filter>
     </ClCompile>
     <ClCompile Include="MeshRenderable.cpp">
@@ -304,6 +304,8 @@
       <Filter>%2a Code\%2a World\Room</Filter>
     </ClCompile>
     <ClCompile Include="LevelHandler.cpp" />
+    <ClCompile Include="EssenceBloom.cpp" />
+    <ClCompile Include="Pickup.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -400,7 +402,7 @@
     <ClInclude Include="Resources.h">
       <Filter>%2a Code\%2a Resources\Resources</Filter>
     </ClInclude>
-    <ClInclude Include="GUI.h">
+    <ClInclude Include="DebugGUI.h">
       <Filter>%2a Code\%2a Rendering\GUI</Filter>
     </ClInclude>
     <ClInclude Include="ConstantbufferData.h">
@@ -466,6 +468,8 @@
     </ClInclude>
     <ClInclude Include="Level.h" />
     <ClInclude Include="LevelHandler.h" />
+    <ClInclude Include="EssenceBloom.h" />
+    <ClInclude Include="Pickup.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VSMesh.hlsl">

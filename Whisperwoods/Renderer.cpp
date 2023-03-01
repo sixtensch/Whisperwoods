@@ -1,7 +1,7 @@
 #include "core.h"
 #include "Renderer.h"
 
-#include "GUI.h"
+#include "DebugGUI.h"
 
 Renderer* Renderer::s_singleton = nullptr;
 
@@ -34,7 +34,7 @@ void Renderer::Init(uint width, uint height)
 	m_renderHandler->InitCore(m_window);
 
 //#ifdef WW_DEBUG
-	m_gui = make_unique<GUI>(m_renderHandler->GetCore(), true, true);
+	m_gui = make_unique<DebugGUI>(m_renderHandler->GetCore(), true, true);
 //#endif
 
 	m_window->Show(true);

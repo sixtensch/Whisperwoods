@@ -36,7 +36,7 @@
     <ClCompile Include="EssenceBloom.cpp" />
     <ClCompile Include="FBXImporter.cpp" />
     <ClCompile Include="Game.cpp" />
-    <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="DebugGUI.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="LevelHandler.cpp" />
     <ClCompile Include="LevelImporter.cpp" />
@@ -89,7 +89,7 @@
     <ClInclude Include="Font.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
-    <ClInclude Include="GUI.h" />
+    <ClInclude Include="DebugGUI.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="LevelHandler.h" />
     <ClInclude Include="Pickup.h" />

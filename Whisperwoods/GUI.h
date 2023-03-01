@@ -1,16 +1,13 @@
 #pragma once
 
-class Window;
-class RenderCore;
-
-class GUI sealed
+class GUI
 {
+	
+
 public:
-	GUI() = delete;
-	GUI(const RenderCore* renderCore, bool docking = true, bool viewports = false);
+	GUI();
 	~GUI();
 
-	void BeginDraw();
-	void EndDraw();
-};
 
+
+};

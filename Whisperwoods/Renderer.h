@@ -7,7 +7,7 @@
 #include "TextRenderable.h"
 #include "LevelResource.h"
 #include "Level.h"
-class GUI;
+class DebugGUI;
 
 class Renderer sealed
 {
@@ -61,7 +61,7 @@ private:
 
 	shared_ptr<Window> m_window; 
 	unique_ptr<RenderHandler> m_renderHandler;
-	unique_ptr<GUI> m_gui;
+	unique_ptr<DebugGUI> m_gui;
 
 };
 
