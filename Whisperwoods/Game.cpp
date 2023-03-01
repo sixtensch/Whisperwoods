@@ -23,7 +23,7 @@ Game::Game() :
 	m_reachedLowestStamina(false),
 	m_coolDownCounter(m_timeAbilityCooldown)
 {}
-
+// const wchar_t* m_text, dx::SimpleMath::Vector2 m_fontPos, Font m_font, cs::Color4f color, Vec2 origin
 Game::~Game() {}
 
 void Game::Update(float deltaTime, Renderer* renderer)

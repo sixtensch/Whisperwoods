@@ -9,7 +9,7 @@
 #include "SoundResource.h"
 #include "LevelHandler.h"
 
-constexpr float STAMINA_DECAY_MULTIPLIER = 0.2f;
+constexpr float STAMINA_DECAY_MULTIPLIER = 0.15f;
 constexpr float MAX_STAMINA_STARTING_VALUE = 10.0f;
 
 class LevelHandler;
