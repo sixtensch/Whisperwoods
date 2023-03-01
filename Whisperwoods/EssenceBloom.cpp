@@ -7,7 +7,7 @@ EssenceBloom::EssenceBloom(const Player* player, Vec2 mapCoordPos)
 	m_staminaRecovery(0)
 	
 {
-	std::string modelResource = "ShadiiTest.wwm";
+	std::string modelResource = "EssenseBloom.wwm";
 	m_renderable = Renderer::CreateMeshStatic(modelResource);
 	m_renderable->enabled = true;
 	transform.CalculateWorldMatrix();

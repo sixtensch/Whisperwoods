@@ -115,9 +115,6 @@
     <Filter Include="%2a Code\%2a Resources\Resources">
       <UniqueIdentifier>{2242c8bc-6a37-4b5f-a78f-166296bf515f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="%2a Code\%2a Rendering\GUI">
-      <UniqueIdentifier>{c199de11-7adc-4e1a-bd34-7c3fd0652133}</UniqueIdentifier>
-    </Filter>
     <Filter Include="%2a Code\%2a Rendering\Constant Buffer Data">
       <UniqueIdentifier>{a9ab767a-3639-45f2-a00b-7e056fbec52f}</UniqueIdentifier>
     </Filter>
@@ -183,6 +180,12 @@
     </Filter>
     <Filter Include="%2a Code\%2a Rendering\%2a Renderable\TextRenderable">
       <UniqueIdentifier>{01597589-9265-4c96-8769-765a7e651d5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\DebugGUI">
+      <UniqueIdentifier>{c199de11-7adc-4e1a-bd34-7c3fd0652133}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\GUI">
+      <UniqueIdentifier>{c6f4c092-957f-4628-96fb-56ce22cac738}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -256,7 +259,7 @@
       <Filter>%2a Code\%2a Resources\Resources</Filter>
     </ClCompile>
     <ClCompile Include="DebugGUI.cpp">
-      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+      <Filter>%2a Code\%2a Rendering\DebugGUI</Filter>
     </ClCompile>
     <ClCompile Include="MeshRenderable.cpp">
       <Filter>%2a Code\%2a Rendering\%2a Renderable\MeshRenderable</Filter>
@@ -306,6 +309,9 @@
     <ClCompile Include="LevelHandler.cpp" />
     <ClCompile Include="EssenceBloom.cpp" />
     <ClCompile Include="Pickup.cpp" />
+    <ClCompile Include="GUI.cpp">
+      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -403,7 +409,7 @@
       <Filter>%2a Code\%2a Resources\Resources</Filter>
     </ClInclude>
     <ClInclude Include="DebugGUI.h">
-      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+      <Filter>%2a Code\%2a Rendering\DebugGUI</Filter>
     </ClInclude>
     <ClInclude Include="ConstantbufferData.h">
       <Filter>%2a Code\%2a Rendering\Constant Buffer Data</Filter>
@@ -470,6 +476,9 @@
     <ClInclude Include="LevelHandler.h" />
     <ClInclude Include="EssenceBloom.h" />
     <ClInclude Include="Pickup.h" />
+    <ClInclude Include="GUI.h">
+      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VSMesh.hlsl">

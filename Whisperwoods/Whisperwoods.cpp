@@ -44,6 +44,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", true );
 
 	//// Static Models
+	BuildWWM( "Assets/Models/FBX/Static/EssenseBloom.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false );
