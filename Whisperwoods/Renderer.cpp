@@ -37,8 +37,10 @@ void Renderer::Init(uint width, uint height)
 	m_gui = make_unique<GUI>(m_renderHandler->GetCore(), true, true);
 //#endif
 
-	m_renderHandler->CreateTextRenderable(L"This is tutorial", dx::SimpleMath::Vector2(0, 0), FontDefault, cs::Color4f(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 0.0f });
-
+	//m_renderHandler->CreateTextRenderable(L"Reach the exit!", dx::SimpleMath::Vector2(width/2 - 200,  height - 500), FontDefault, cs::Color4f(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 0.0f });
+	//m_renderHandler->CreateTextRenderable(L"Wait for the carcinian to \nmove away before you pass!", dx::SimpleMath::Vector2(width / 2 - 350,  height - 500), FontDefault, cs::Color4f(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 0.0f });
+	//m_renderHandler->CreateTextRenderable(L"Wait for the carcinian to move past you and \n  follow behind it to sneak by undetected!", dx::SimpleMath::Vector2(width / 2 - 560,  height - 500), FontDefault, cs::Color4f(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 0.0f });
+	//m_renderHandler->CreateTextRenderable(L"Some carcinians are idle! Wait for \nthem to turn around before passing!", dx::SimpleMath::Vector2(width / 2 - 470, height - 500), FontDefault, cs::Color4f(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 0.0f });
 
 
 	m_window->Show(true);
