@@ -611,23 +611,24 @@ void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Tex
 			m_context.Get(),
 			filePath.c_str(),
 			0,
-			D3D11_USAGE_IMMUTABLE,
-			D3D11_BIND_SHADER_RESOURCE,
+			D3D11_USAGE_DEFAULT,
+			D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
 			0,
-			0,
+			D3D11_RESOURCE_MISC_GENERATE_MIPS,
 			dx::WIC_LOADER_IGNORE_SRGB | dx::WIC_LOADER_FORCE_RGBA32 | dx::WIC_LOADER_DEFAULT,
 			&resource,
-			nullptr)
+			&srv)
 	);
 
 	EXC_COMCHECK(resource->QueryInterface(IID_ID3D11Texture2D, (void**)textureResource.GetAddressOf()));
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvd.Texture2D = { 0, 1 };
+	//D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
+	//srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	//srvd.Texture2D.MostDetailedMip = 0;
+	//srvd.Texture2D.MipLevels = 2;
 
-	EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &srvd, &srv));
+	//EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &srvd, &srv));
 }
 
 void RenderCore::DumpTexture(ID3D11Texture2D* texture, uint* outWidth, uint* outHeight, cs::Color4** newOutData) const
@@ -646,6 +647,7 @@ void RenderCore::DumpTexture(ID3D11Texture2D* texture, uint* outWidth, uint* out
 	desc.Usage = D3D11_USAGE_STAGING;
 	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 	desc.BindFlags = 0;
+	desc.MiscFlags = 0;
 	ComPtr<ID3D11Texture2D> stageTexture;
 
 	EXC_COMCHECK(m_device->CreateTexture2D(
