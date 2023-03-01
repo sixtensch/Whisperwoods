@@ -184,6 +184,7 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_defaultEmissiveSRV;
 	ComPtr<ID3D11ShaderResourceView> m_defaultNormalSRV;
 
+
 	ComPtr<ID3D11SamplerState> m_sampler;
 	ComPtr<ID3D11SamplerState> m_pointSampler;
 
