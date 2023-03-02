@@ -199,6 +199,7 @@ void RenderHandler::ZPrepass(TimelineState state)
 
 void RenderHandler::ExecuteStaticShadowDraw()
 {
+	QuadCull(m_mainCamera);
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
 	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 	m_renderCore->TargetStaticShadowMap();
