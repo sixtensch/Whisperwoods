@@ -14,7 +14,9 @@ Pickup::~Pickup()
 void Pickup::Update(float deltaTime)
 {
 	if ((this->transform.position - *m_playerPositionPtr).Length() <= m_pickupRadius)
+	{
 		OnPickup(deltaTime);
+	}
 
 	// Do animation or whatever
 	//...

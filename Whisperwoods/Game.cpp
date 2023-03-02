@@ -50,10 +50,21 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	Renderer::SetPlayerMatrix( m_player->transform.worldMatrix );
 
 	Vec2 playerPosition2D = { m_player->transform.worldPosition.x, m_player->transform.worldPosition.z };
+
 	for (int i = 0; i < m_pickups.Size(); ++i)
 	{
 		m_pickups[i]->Update(deltaTime);
+		//Did player pick up essence bloom?
+		if (m_pickups[i]->IsRemovable()) // if we add more types of pickups, add &&isEssenceBloom or whatever
+		{
+			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+			m_player->ResetStaminaToMax(m_maxStamina);
+			m_pickups.Remove(i);
+			i--;
+		}
 	}
+
+	
 
 
 	float closestDistance = 0.0f;

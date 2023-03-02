@@ -99,6 +99,7 @@ private:
 	const float m_timeAbilityCooldown = 3.0f; // time in seconds
 	float m_coolDownCounter; 
 
+
 	 
 
 	TimeSwitchValues m_switchVals;
