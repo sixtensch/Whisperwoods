@@ -442,10 +442,7 @@ void RenderCore::NewFrame()
 {
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_dsDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
 
-	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_renderTextureRTV.GetAddressOf(), m_dsDSV.Get()));
-
-	//EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
 
 	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get()));
 	EXC_COMINFO(m_context->OMSetBlendState(m_blendState.Get(), nullptr, 0xffffffff));
@@ -455,11 +452,7 @@ void RenderCore::NewFrame()
 void RenderCore::TargetShadowMap()
 {
 	ID3D11ShaderResourceView* nullSRV = nullptr;
-	//EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
-	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
-
-	// TODO: Set to static.
-	//EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
 
 	EXC_COMINFO(m_context->CopyResource(m_shadowTexture.Get(), m_shadowStaticTexture.Get()));
 
@@ -472,7 +465,6 @@ void RenderCore::TargetStaticShadowMap()
 {
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
-	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowStaticDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
 
@@ -483,9 +475,6 @@ void RenderCore::TargetStaticShadowMap()
 
 void RenderCore::TargetRenderTexture()
 {
-	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
-	//EXC_COMINFO(m_context->ClearRenderTargetView(m_positionTextureRTV.Get(), (float*)&m_bbClearColor));
-
 	ID3D11RenderTargetView* rtvs[RTV_COUNT] = {
 		m_renderTextureRTV.Get(), 
 		m_positionTextureRTV.Get() 
@@ -611,23 +600,24 @@ void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Tex
 			m_context.Get(),
 			filePath.c_str(),
 			0,
-			D3D11_USAGE_IMMUTABLE,
-			D3D11_BIND_SHADER_RESOURCE,
+			D3D11_USAGE_DEFAULT,
+			D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
 			0,
-			0,
+			D3D11_RESOURCE_MISC_GENERATE_MIPS,
 			dx::WIC_LOADER_IGNORE_SRGB | dx::WIC_LOADER_FORCE_RGBA32 | dx::WIC_LOADER_DEFAULT,
 			&resource,
-			nullptr)
+			&srv)
 	);
 
 	EXC_COMCHECK(resource->QueryInterface(IID_ID3D11Texture2D, (void**)textureResource.GetAddressOf()));
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvd.Texture2D = { 0, 1 };
+	//D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
+	//srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	//srvd.Texture2D.MostDetailedMip = 0;
+	//srvd.Texture2D.MipLevels = 2;
 
-	EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &srvd, &srv));
+	//EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &srvd, &srv));
 }
 
 void RenderCore::DumpTexture(ID3D11Texture2D* texture, uint* outWidth, uint* outHeight, cs::Color4** newOutData) const
@@ -646,6 +636,7 @@ void RenderCore::DumpTexture(ID3D11Texture2D* texture, uint* outWidth, uint* out
 	desc.Usage = D3D11_USAGE_STAGING;
 	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 	desc.BindFlags = 0;
+	desc.MiscFlags = 0;
 	ComPtr<ID3D11Texture2D> stageTexture;
 
 	EXC_COMCHECK(m_device->CreateTexture2D(

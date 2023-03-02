@@ -90,14 +90,6 @@ float3 DrawEnemyCone(float3 color, float3 enemyPos, float3 worldPos, float3 view
     return coneColor * totalInfluence;
 }
 
-float3 ApplyExpFog(float3 color, float density, float distance, float3 fogColor, float fogStrength)
-{
-    float fogFactor = 1.0f / exp(pow(distance * density, 2.0f));
-    fogFactor = 1.0f - fogFactor;
-    
-    return lerp(color, fogColor * fogStrength, fogFactor);
-}
-
 Texture2D<float4> positionalTexture : REGISTER_SRV_TEX_DEFAULT;
 Texture2D<float4> renderTextureCopy : REGISTER_SRV_COPY_SOURCE;
 RWTexture2D<float4> renderTexture : REGISTER_UAV_RENDER_TARGET;
@@ -110,8 +102,8 @@ void main( uint3 DTid : SV_DispatchThreadID )
     float4 color = renderTextureCopy.Load(texPos);
 
 	{
-        int posArrSize = 2;
-        float3 posArr[] = { float3(1.0f, 0.0f, 0.0f), float3(4.0f, 0.0f, 2.0f) };
+        const int posArrSize = 2;
+        float3 posArr[posArrSize] = { float3(1.0f, 0.0f, 0.0f), float3(4.0f, 0.0f, 2.0f) };
 	    
         // Will not loop if the state is in the future.
         for (uint i = 0; i < coneCount; i++)
@@ -132,13 +124,6 @@ void main( uint3 DTid : SV_DispatchThreadID )
             color.rgb += float3(2.0f, 0.0f, 0.0f) * distInfluence * isInFuture;
         }
     }
-    
-    float posToCamDist = distance(worldPos.xyz, cameraPosition);
-    float3 fogColor[2] = { float3(0.8f.rrr), float3(1.2f, 0.8f, 0.3f) };
-    float fogStrength[2] = { 1.0f, 1.7f };
-    float fogDensity[2] = { 0.06f, 0.1f };
-    uint stateIndex = uint(isInFuture);
-    color.rgb = ApplyExpFog(color.rgb, fogDensity[stateIndex], posToCamDist, fogColor[stateIndex], fogStrength[stateIndex]);
     
     renderTexture[texPos.xy] = color;
 }
