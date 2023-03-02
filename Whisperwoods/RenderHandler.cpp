@@ -110,6 +110,12 @@ void RenderHandler::Draw()
 		}
 	}
 	
+void RenderHandler::PresentGPUProfiles()
+{
+#if USE_GPU_PROFILER
+	static bool useImgui = true;
+	m_renderCore->ProfilerPostQueryData(useImgui);
+#endif
 }
 
 void RenderHandler::Present()

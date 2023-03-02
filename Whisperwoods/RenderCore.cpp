@@ -54,7 +54,10 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 		&m_context// adress of immidiatecontext
 	));
 
+	// Profiler
 
+	uint updateFrequency = 250u;
+	m_gpuProfiler = GPUProfiler(m_device, m_context, updateFrequency);
 
 	// Setup viewport
 
@@ -1005,6 +1008,21 @@ void RenderCore::InitFont(std::unique_ptr<dx::SpriteFont> font[FontCount], std::
   
 	// Create spriteBatch;
 	*batch = std::make_unique<dx::SpriteBatch>(m_context.Get());
+}
+
+void RenderCore::ProfileBegin(const std::string& profileName)
+{
+	m_gpuProfiler.TimestampBegin(profileName);
+}
+
+void RenderCore::ProfileEnd(const std::string& profileName)
+{
+	m_gpuProfiler.TimestampEnd(profileName);
+}
+
+void RenderCore::ProfilerPostQueryData(bool useImGui /*= false*/)
+{
+	m_gpuProfiler.PostEndFrameSummary(useImGui);
 }
 
 void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)

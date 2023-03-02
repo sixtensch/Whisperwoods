@@ -21,6 +21,7 @@ public:
 	void Draw();
 	void BeginGui();
 	void EndGui();
+	void PresentGPUProfiles();
 	void Present();
 
 	void SetupEnvironmentAssets();
