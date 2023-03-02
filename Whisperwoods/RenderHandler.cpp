@@ -85,8 +85,9 @@ void RenderHandler::Draw()
 
 
 	// Main scene rendering
-
 	m_renderCore->UpdateViewInfo(m_mainCamera);
+	QuadCull(m_mainCamera);
+
 	ZPrepass(m_timelineState);
 	ExecuteDraw(m_timelineState, false);
 	m_renderCore->UnbindRenderTexture();
@@ -555,23 +556,18 @@ void RenderHandler::RegisterLastRenderableAsShadow()
 	m_shadowRenderables.Add(m_worldRenderables.Size() - 1);
 }
 
-void RenderHandler::DrawInstances(uint state, bool shadows)
+void RenderHandler::QuadCull(const Camera& camPOV)
 {
-	m_renderCore->BindInstancedPipeline(shadows);
-
-	// Culling here
-	m_envInstances.Clear(false);
-
-	// Create the view frustum for the culling
+		// Create the view frustum for the culling
 	dx::BoundingFrustum viewFrustum = {};
-	viewFrustum.CreateFromMatrix(viewFrustum, m_mainCamera.GetProjectionMatrix().XMMatrix());
-	Vec3 position = m_mainCamera.GetPosition();
+	viewFrustum.CreateFromMatrix(viewFrustum, camPOV.GetProjectionMatrix().XMMatrix());
+	Vec3 position = camPOV.GetPosition();
 	viewFrustum.Origin = {
 		position.x,
 		position.y,
 		position.z
 	};
-	Quaternion rotation = m_mainCamera.GetRotation().Conjugate();
+	Quaternion rotation = camPOV.GetRotation().Conjugate();
 	viewFrustum.Orientation = {
 		rotation.x,
 		rotation.y,
@@ -579,10 +575,7 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 		rotation.w
 	};
 
-
-
-
-	for (uint i = 0; i < LevelAssetCount; i++)
+	for ( uint i = 0; i < LevelAssetCount; i++ )
 	{
 		m_envMeshes[i].hotInstances.Clear(false);
 	}
@@ -591,6 +584,13 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 	//	m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 
 	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 5);
+}
+
+void RenderHandler::DrawInstances(uint state, bool shadows)
+{
+	m_renderCore->BindInstancedPipeline(shadows);
+
+	m_envInstances.Clear(false);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
