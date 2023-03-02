@@ -7,7 +7,6 @@
 #include "FBXImporter.h"
 #include "Animator.h"
 #include <imgui.h>
-#include "TextRenderable.h"
 
 #include "Player.h"
 #include "Empty.h"
@@ -139,7 +138,6 @@ void Whisperwoods::Run()
 
 	m_game->Init();
 	m_game->LoadHubby();
-
 
 	int frames = 0;
 	cs::Timer deltaTimer;

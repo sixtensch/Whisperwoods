@@ -22,15 +22,14 @@ Game::Game() :
 	m_envParams({}),
 	m_reachedLowestStamina(false),
 	m_coolDownCounter(m_timeAbilityCooldown)
-{}
-
+{
+}
 Game::~Game() {}
 
 void Game::Update(float deltaTime, Renderer* renderer)
 {
 	// Always do the following:
 	Camera& cameraRef = renderer->GetCamera();
-
 	m_coolDownCounter += deltaTime;
 
 	if (m_isInFuture == false)
@@ -41,7 +40,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		m_player->playerInFuture = true;
 	}
-
+	
 	// Player update
 	m_player->Update(deltaTime);
 	m_currentRoom->Update(deltaTime);
@@ -507,6 +506,8 @@ void Game::LowerToFloor(float deltaTime)
 		m_detectionLevelGlobal = m_detectionLevelFloor;
 	}
 }
+
+
 
 void Game::ChangeTimeline(Renderer* renderer)
 {
