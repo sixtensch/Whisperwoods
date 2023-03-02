@@ -20,6 +20,7 @@ public:
 	void Resize( UINT newWidth, UINT newHeight );
 	void CursorDisplay(CURSOR showHide);
 	void Show(bool show);
+	void CloseProgram();
 
 	const HWND& Data() const;
 	const UINT GetHeight() const;

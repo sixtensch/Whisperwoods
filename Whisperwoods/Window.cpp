@@ -215,6 +215,11 @@ void Window::Show(bool show)
 	ShowWindow(m_window, show ? SW_SHOW : SW_HIDE);
 }
 
+void Window::CloseProgram()
+{
+	SendMessage(m_window, WM_CLOSE, 0, 0);
+}
+
 
 // Returns the HWND of the window
 const HWND& Window::Data() const
