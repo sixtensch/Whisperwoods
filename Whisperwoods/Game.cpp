@@ -78,14 +78,23 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			}
 
 			m_testRenderables.Clear();
+			m_testMaterials.Clear();
+			for (int i = 0; i < f.rooms.Size(); i++)
+			{
+				m_testMaterials.Add(MaterialResource());
+			}
 
 			float distance = 0.5f;
 
 			for (int i = 0; i < f.rooms.Size(); i++)
 			{
 				Level& l = f.rooms[i];
-				m_testRenderables.Add(Renderer::CreateMeshStatic("Debug_Sphere.wwm"));
-				m_testRenderables.Back()->worldMatrix = Mat::translation3(l.position.x * distance, 3, l.position.y * distance) * Mat::scale3(0.8f);
+				m_testRenderables.Add(Renderer::CreateMeshStatic("room_plane.wwm"));
+				m_testRenderables.Back()->worldMatrix = Mat::translation3(l.position.x * distance, 3.2f, l.position.y * distance) * l.rotation.Matrix() * Mat::scale3(0.8f);
+
+				m_testMaterials[i].specular = Vec3(0.5f, 0.5f, 0.5f);
+				m_testMaterials[i].textureDiffuse = l.resource->source;
+				m_testRenderables.Back()->Materials().AddMaterial(&m_testMaterials[i]);
 			}
 
 			for (int i = 0; i < f.tunnels.Size(); i++)

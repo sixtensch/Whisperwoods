@@ -29,10 +29,10 @@ bool Intersect(Vec2 p1a, Vec2 p1b, Vec2 p2a, Vec2 p2b)
 		float y = (a1 * c2 - a2 * c1) / determinant;
 
 		return 
-			cs::fmin(p1a.x, p1b.x) < x &&
-			cs::fmin(p1a.y, p1b.y) < y &&
-			cs::fmax(p1a.x, p1b.x) > x &&
-			cs::fmax(p1a.y, p1b.y) > y;
+			cs::fmin(p1a.x, p1b.x) < x - 0.01f &&
+			cs::fmin(p1a.y, p1b.y) < y - 0.01f &&
+			cs::fmax(p1a.x, p1b.x) > x + 0.01f &&
+			cs::fmax(p1a.y, p1b.y) > y + 0.01f;
 	}
 }
 
@@ -77,7 +77,7 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 
 	
 
-	// Bogoing
+	// Bogo-ing
 
 	bool success = false;
 	uint attempts = 0;
@@ -93,7 +93,7 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 			continue;
 		}
 
-		success = TryLeveling(primer);
+		success = TryLeveling(primer, true, 3);
 	} 
 	while (!success);
 
@@ -110,7 +110,13 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 
 		//l.resource =
 		l.position = p.position;
-		l.connections.MassAdd(p.connections);
+		l.rotation = Quaternion::GetEuler(0.0f, p.angleOffset, 0.0f);
+		l.resource = m_resources[p.levelIndex].get();
+
+		for (uint i = 0; i < (uint)p.connections.Size(); i++)
+		{
+			l.connections.Add(p.connections[(i - p.connectionOffset) % p.connections.Size()]);
+		}
 	}
 
 	for (const TunnelPrimerNetwork& network : primer.networks)
@@ -188,7 +194,7 @@ void LevelHandler::CreateNodes(FloorPrimer& f, uint roomCount, uint pushSteps)
 	}
 
 	// Push apart
-	for (int repetitions = 0; repetitions < pushSteps; repetitions++)
+	for (int repetitions = 0; repetitions < (int)pushSteps; repetitions++)
 	{
 		for (uint i = 0; i < roomCount; i++)
 		{
@@ -396,10 +402,209 @@ bool LevelHandler::TryConnecting(FloorPrimer& f)
 		}
 	}
 
+	for (uint i = 0; i < (uint)f.networks.Size(); i++)
+	{
+		if (!f.networks[i].merged)
+		{
+			for (const TunnelPrimer& t : f.networks[i].tunnels)
+			{
+				f.rooms[t.start].connections.Add(t.end);
+				f.rooms[t.end].connections.Add(t.start);
+			}
+		}
+	}
+
 	return true;
 }
 
-bool LevelHandler::TryLeveling(FloorPrimer& f)
+bool LevelHandler::TryLeveling(FloorPrimer& f, bool repeats, uint roomAttempts)
 {
-	return false;
+	unique_ptr<cs::List<uint>[]> levelRefs(new cs::List<uint>[m_resources.Size()]);
+
+	cs::List<uint> currentRoomIndices;
+	cs::List<shared_ptr<LevelResource>*> currentRooms;
+
+	AngleRooms(f);
+
+	for (uint i = 0; i < (uint)f.rooms.Size(); i++)
+	{
+		RoomPrimer& r = f.rooms[i];
+
+		currentRoomIndices.Clear(false);
+		currentRooms.Clear(false);
+
+		const cs::List<uint>& source = m_resourceIndices[r.connections.Size() - 1];
+
+		float bestDeviation = INFINITY;
+		int bestIndex = 0;
+
+		for (uint j = 0; j < roomAttempts; j++)
+		{
+			uint newIndex = source[f.r.Get(source.Size())];
+			bool dupe = false;
+
+			for (uint k = 0; k < (uint)currentRoomIndices.Size(); k++)
+			{
+				if (currentRoomIndices[k] == newIndex)
+				{
+					dupe = true;
+					break;
+				}
+			}
+
+			if (dupe)
+			{
+				j--;
+				continue;
+			}
+
+			if (r.connections.Size() == 1)
+			{
+				bestDeviation = 0.0f;
+				bestIndex = (int)newIndex;
+				break;
+			}
+
+			float deviation = EvaluateDeviation(r, m_resources[newIndex].get());
+			if (deviation < bestDeviation)
+			{
+				bestDeviation = deviation;
+				bestIndex = (int)newIndex;
+			}
+		}
+
+		r.levelIndex = bestIndex;
+		EvaluateRoom(r);
+	}
+
+	return true;
+}
+
+void LevelHandler::AngleRooms(FloorPrimer& f)
+{
+	for (RoomPrimer& r : f.rooms)
+	{
+		r.angles.Clear(false);
+		for (uint i = 0u; i < (uint)r.connections.Size(); i++)
+		{
+			Vec2 direction = f.rooms[r.connections[i]].position - r.position;
+			r.angles.Add(cs::fwrap(std::atan2f(direction.y, direction.x), 0.0f, 2 * cs::c_pi));
+		}
+
+		struct AngleSorter
+		{
+			float angle;
+			uint index;
+		};
+
+		cs::List<AngleSorter> sorter;
+		for (uint i = 0u; i < (uint)r.angles.Size(); i++)
+		{
+			sorter.Add({ r.angles[i], i });
+		}
+
+		std::sort(
+			&sorter.Front(),
+			&sorter.Back() + 1,
+			[](const AngleSorter& a, const AngleSorter& b) { return a.angle < b.angle; });
+
+		for (uint i = 0u; i < (uint)r.angles.Size(); i++)
+		{
+			r.connections.Add(r.connections[sorter[i].index]);
+		}
+
+		for (uint i = 0u; i < (uint)r.angles.Size(); i++)
+		{
+			r.connections.Remove(0);
+		}
+	}
+}
+
+void LevelHandler::EvaluateRoom(RoomPrimer& r)
+{
+	// Working values
+	static cs::List<float> angles;
+	static cs::List<float> offsetDeviations;
+
+	if (r.levelIndex >= 0)
+	{
+		const LevelResource* resource = m_resources[r.levelIndex].get();
+
+		r.angleDeviations.Clear(false);
+		r.angleDeviationScore = INFINITY;
+		r.angleOffset = 0.0f;
+		r.connectionOffset = 0u;
+
+		offsetDeviations.Clear(false);
+
+		// Try for every permutation of offsets between level exits and real connections
+		for (uint i = 0u; i < (uint)r.angles.Size(); i++)
+		{
+			angles.Clear(false);
+			float average = 0.0f;
+
+			for (uint j = 0u; j < (uint)r.angles.Size(); j++)
+			{
+				angles.Add(r.angles[j] - resource->exits[(j + i) % r.angles.Size()].angle);
+				average += angles.Back();
+			}
+
+			average /= r.angles.Size();
+
+			float deviationScore = 0.0f;
+			for (uint j = 0u; j < (uint)r.angles.Size(); j++)
+			{
+				offsetDeviations.Add(angles[j] - average);
+				deviationScore += std::fabs(offsetDeviations.Back());
+			}
+
+			if (deviationScore < r.angleDeviationScore)
+			{
+				r.angleDeviationScore = deviationScore;
+				r.angleOffset = average;
+				r.connectionOffset = i;
+
+				r.angleDeviations.Clear(false);
+				r.angleDeviations.MassAdd(offsetDeviations, true);
+			}
+		}
+	}
+}
+
+float LevelHandler::EvaluateDeviation(RoomPrimer& r, const LevelResource* level)
+{
+	// Working values
+	static cs::List<float> angles;
+
+	float result = 0.0f;
+
+	result = INFINITY;
+
+	// Try for every permutation of offsets between level exits and real connections
+	for (uint i = 0u; i < (uint)r.angles.Size(); i++)
+	{
+		angles.Clear(false);
+		float average = 0.0f;
+
+		for (uint j = 0u; j < (uint)r.angles.Size(); j++)
+		{
+			angles.Add(r.angles[j] - level->exits[(j + i) % r.angles.Size()].angle);
+			average += angles.Back();
+		}
+
+		average /= r.angles.Size();
+
+		float deviationScore = 0.0f;
+		for (uint j = 0u; j < (uint)r.angles.Size(); j++)
+		{
+			deviationScore += std::fabs(angles[j] - average);
+		}
+
+		if (deviationScore < result)
+		{
+			result = deviationScore;
+		}
+	}
+
+	return result;
 }

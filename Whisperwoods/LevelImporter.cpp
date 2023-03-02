@@ -226,17 +226,25 @@ bool LevelImporter::ImportImage(string textureName, const RenderCore* core, Leve
 				Vec2 edgeDir(edgeDiff.y, -edgeDiff.x);
 				edgeDir.Normalize();
 
+				Vec2 trueDirection = (edgeDir * nDirection > 0) ? edgeDir : -edgeDir;
+
 				outLevel->exits.Add(
 					{
 						(Vec2)edgeA + edgeDiff * 0.5f,
-						(edgeDir * nDirection > 0) ? edgeDir : -edgeDir,
-						cs::fclamp(std::sqrtf(edgeDistanceSq), 6.0f, 10.0f)
+						trueDirection,
+						cs::fclamp(std::sqrtf(edgeDistanceSq), 6.0f, 10.0f),
+						cs::fwrap(std::atan2f(trueDirection.y, trueDirection.x), 0.0f, 2 * cs::c_pi)
 					});
 
 				continue;
 			}
 		}
 	}
+
+	std::sort(
+		&outLevel->exits.Front(), 
+		&outLevel->exits.Back() + 1,
+		[](const LevelExit& a, const LevelExit& b) { return a.angle < b.angle; });
 	
 	if (openPrimers.Size() > 0)
 	{

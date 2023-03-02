@@ -41,6 +41,7 @@ private:
 	shared_ptr<DirectionalLight> m_directionalLight;
 
 	cs::List<shared_ptr<MeshRenderableStatic>> m_testRenderables;
+	cs::List<MaterialResource> m_testMaterials;
 	int m_testRep;
 	int m_testCount;
 	uint m_testSeed;

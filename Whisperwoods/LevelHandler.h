@@ -24,6 +24,13 @@ private:
 		Vec2 push;
 
 		int networkIndex = -1;
+
+		int levelIndex = -1;
+		cs::List<float> angles;
+		cs::List<float> angleDeviations;
+		float angleDeviationScore = 0.0f;
+		float angleOffset = 0.0f;
+		uint connectionOffset = 0;
 	};
 	struct TunnelPrimer
 	{
@@ -48,16 +55,15 @@ private:
 
 	void CreateNodes(FloorPrimer& f, uint roomCount, uint pushSteps);
 	bool TryConnecting(FloorPrimer& f);
-	bool TryLeveling(FloorPrimer& f);
-
+	bool TryLeveling(FloorPrimer& f, bool repeats, uint roomAttempts);
+	void AngleRooms(FloorPrimer& f);
+	void EvaluateRoom(RoomPrimer& r);
+	float EvaluateDeviation(RoomPrimer& r, const LevelResource* level);
 private:
 	static LevelHandler* s_handler;
 
 	// One list per number of entrances
 	cs::List<uint> m_resourceIndices[3];
 	cs::List<shared_ptr<LevelResource>> m_resources;
-
-	// One list per number of entrances
-	cs::List<Level> m_levels[3];
 };
 
