@@ -5,11 +5,17 @@
 
 #include "LevelImporter.h"
 
+#if USE_GPU_PROFILER
+	#define PROFILE_JOB(profileName, call) { m_renderCore->ProfileBegin(profileName); call; m_renderCore->ProfileEnd(profileName); }
+#else
+	#define PROFILE_JOB(profileName, call) { call; }
+#endif
+
 RenderHandler::RenderHandler()
 {
 	m_renderableIDCounter = 0;
 	m_timelineState = TimelineStateCurrent;
-	m_envQuadTree.Init(2.0f, -1.0f, 50.0f, 50.0f); //TODO: actual startsize
+	m_envQuadTree.Init(2.0f, -1.0f, 50.0f, 50.0f); //TODO: actual start size
 
 
 	const dx::BoundingBox BananaPlant = {
@@ -80,23 +86,26 @@ void RenderHandler::Draw()
 
 
 	// ShadowPass
-	ExecuteDraw(m_lightDirectional->camera, m_timelineState, true);
-
+	static std::string shadowPassProfileName = "Shadow Pass";
+	PROFILE_JOB(shadowPassProfileName, ExecuteDraw(m_lightDirectional->camera, m_timelineState, true));
 
 	// Main scene rendering
 
-	ExecuteDraw(m_mainCamera, m_timelineState, false);
+	static std::string mainSceneProfileName = "Main Scene";
+	PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_mainCamera, m_timelineState, false));
 	m_renderCore->UnbindRenderTexture();
 
 	// PPFX / FX
-	{
-		m_renderCore->DrawPositionalEffects();
-		m_renderCore->DrawPPFX();
-	}
+	static std::string ppfxPositionalProfileName = "PPFX Positional";
+	PROFILE_JOB(ppfxPositionalProfileName, m_renderCore->DrawPositionalEffects());
+	
+	static std::string ppfxBloomProfileName = "PPFX Bloom";
+	PROFILE_JOB(ppfxBloomProfileName, m_renderCore->DrawPPFX());
 	
 	// Draw final image to back buffer with tone mapping.
 	{
-		m_renderCore->DrawToBackBuffer();
+		static std::string backBufferDrawProfileName = "Back Buffer Draw";
+		PROFILE_JOB(backBufferDrawProfileName, m_renderCore->DrawToBackBuffer());
 	}
 	
 	// Render text
@@ -110,6 +119,8 @@ void RenderHandler::Draw()
 		}
 	}
 	
+}
+
 void RenderHandler::PresentGPUProfiles()
 {
 #if USE_GPU_PROFILER
@@ -166,9 +177,11 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 			m_renderCore->DrawObject(data.get(), shadows);
 		}
 	}
+
 	if (!shadows)
 	{
-		DrawInstances(state, false);
+		static std::string instancesDrawProfileName = "Draw Instances";
+		PROFILE_JOB(instancesDrawProfileName, DrawInstances(state, false));
 	}
 }
 

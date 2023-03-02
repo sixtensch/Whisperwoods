@@ -36,6 +36,7 @@
     <ClCompile Include="EssenceBloom.cpp" />
     <ClCompile Include="FBXImporter.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GPUProfiler.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="LevelHandler.cpp" />
@@ -89,6 +90,7 @@
     <ClInclude Include="Font.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GPUProfiler.h" />
     <ClInclude Include="GUI.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="LevelHandler.h" />
