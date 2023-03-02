@@ -23,9 +23,10 @@ RenderHandler::RenderHandler()
 
 	// Add to the list
 
-	boundingVolumes[0] = BananaPlant;
-	boundingVolumes[1] = BananaPlant2TEMP;
-
+	for (int i = 0; i < 9; i++)
+	{
+		boundingVolumes[i] = BananaPlant;
+	}
 }
 
 RenderHandler::~RenderHandler()
@@ -559,7 +560,7 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 	//for (uint i = 0; i < LevelAssetCount; i++)
 	//	m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 
-	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 5);
+	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 2);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
