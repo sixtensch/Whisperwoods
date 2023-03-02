@@ -8,11 +8,13 @@
 #include "Animator.h"
 #include <imgui.h>
 #include "TextRenderable.h"
+#include "GUI.h"
 
 #include "Player.h"
 #include "Empty.h"
 #include "StaticObject.h"
 #include "Room.h"
+
 
 #include "LevelImporter.h"
 #include "WWMBuilder.h"
@@ -81,6 +83,18 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//cs::List<int> planeIndicies = { 0,1,3,0,3,2 };
 	//BuildWWM(planeVerts, planeIndicies, "room_plane");
 
+
+	cs::List<VertexTextured> rectVerts = { 
+		VertexTextured({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }), 
+		VertexTextured({ 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f }),
+		VertexTextured({ 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 0.0f }),
+		VertexTextured({ 1.0f, 1.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f, 0.0f })
+	};
+
+	cs::List<int> rectIndicies = { 0,1,2,3,2,1 };
+	BuildWWM(rectVerts, rectIndicies, "ui_rect");
+
+
 	//BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
 
 
@@ -140,6 +154,10 @@ void Whisperwoods::Run()
 
 	m_game->Init();
 	m_game->LoadHubby();
+
+
+	GUI testGui;
+	testGui.AddGUIElement({ 0,0 }, { 1,1 }, nullptr);
 
 
 	int frames = 0;

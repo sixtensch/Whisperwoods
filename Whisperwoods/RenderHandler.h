@@ -7,6 +7,7 @@
 #include "ModelResource.h"
 #include "MeshRenderable.h"
 #include "TextRenderable.h"
+#include "GUIRenderable.h"
 #include "Light.h"
 #include "Font.h"
 #include "LevelResource.h"
@@ -53,7 +54,6 @@ public:
 	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);
 
 
-
 	RenderCore* GetCore() const;
 	Camera& GetCamera();
 
@@ -67,6 +67,8 @@ public:
 								   const string& subpathFuture);
 	shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
 	shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin);
+
+	shared_ptr<GUIRenderable> CreateGUIRenderable(const string& subpath);
 
 	void SetTimelineStateCurrent();
 	void SetTimelineStateFuture();

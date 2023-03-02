@@ -38,6 +38,8 @@
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="DebugGUI.cpp" />
     <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="GUIElement.cpp" />
+    <ClCompile Include="GUIRenderable.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="LevelHandler.cpp" />
     <ClCompile Include="LevelImporter.cpp" />
@@ -92,6 +94,8 @@
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="DebugGUI.h" />
     <ClInclude Include="GUI.h" />
+    <ClInclude Include="GUIElement.h" />
+    <ClInclude Include="GUIRenderable.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="LevelHandler.h" />
     <ClInclude Include="Pickup.h" />
@@ -165,6 +169,18 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="PSGUI.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="VSGUI.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="PSBlinnPhong.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>

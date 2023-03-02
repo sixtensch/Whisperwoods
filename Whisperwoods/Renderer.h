@@ -5,6 +5,7 @@
 #include "Window.h"
 #include "MeshRenderable.h"
 #include "TextRenderable.h"
+#include "GUIRenderable.h"
 #include "LevelResource.h"
 #include "Level.h"
 class DebugGUI;
@@ -39,6 +40,7 @@ public:
 
 	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 	static shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
+	static shared_ptr<GUIRenderable> CreateGUIRenderable(const string& subpath);
 
 	static shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin);
 

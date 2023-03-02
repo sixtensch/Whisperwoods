@@ -83,7 +83,6 @@ void RenderHandler::Draw()
 
 
 	// Main scene rendering
-
 	ExecuteDraw(m_mainCamera, m_timelineState, false);
 	m_renderCore->UnbindRenderTexture();
 
@@ -469,6 +468,24 @@ shared_ptr<TextRenderable> RenderHandler::CreateTextRenderable(const wchar_t* te
 {
 	shared_ptr<TextRenderable> newRenderable = make_shared<TextRenderable>(text, fontPos, font, color, origin);
 	m_texts.Add((shared_ptr<TextRenderable>)newRenderable);
+	return newRenderable;
+}
+
+
+// Same as static, just different :P, useful for adding things later.
+shared_ptr<GUIRenderable> RenderHandler::CreateGUIRenderable(const string& subpath)
+{
+	Resources& resources = Resources::Get();
+
+	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpath));
+
+	const shared_ptr<GUIRenderable> newRenderable = make_shared<GUIRenderable>(
+		m_renderableIDCounter++,
+		model,
+		cs::Mat4()
+		);
+	m_worldRenderables.Add({ (shared_ptr<WorldRenderable>)newRenderable, (shared_ptr<WorldRenderable>)newRenderable });
+
 	return newRenderable;
 }
 

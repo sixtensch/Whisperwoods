@@ -116,6 +116,11 @@ shared_ptr<MeshRenderableRigged> Renderer::CreateMeshRigged(const string& subpat
 	return s_singleton->m_renderHandler->CreateMeshRigged(subpath);
 }
 
+shared_ptr<GUIRenderable> Renderer::CreateGUIRenderable(const string& subpath)
+{
+	return s_singleton->m_renderHandler->CreateGUIRenderable(subpath);
+}
+
 
 
 /// </summary>

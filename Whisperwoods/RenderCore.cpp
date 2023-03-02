@@ -456,7 +456,7 @@ void RenderCore::TargetShadowMap()
 {
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
+	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 
 	// TODO: Set to static.
 	//EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
@@ -472,7 +472,7 @@ void RenderCore::TargetStaticShadowMap()
 {
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
+	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowStaticDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
 
@@ -483,8 +483,8 @@ void RenderCore::TargetStaticShadowMap()
 
 void RenderCore::TargetRenderTexture()
 {
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_positionTextureRTV.Get(), (float*)&m_bbClearColor));
+	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
+	//EXC_COMINFO(m_context->ClearRenderTargetView(m_positionTextureRTV.Get(), (float*)&m_bbClearColor));
 
 	ID3D11RenderTargetView* rtvs[RTV_COUNT] = {
 		m_renderTextureRTV.Get(), 
@@ -765,6 +765,7 @@ void RenderCore::UpdateMaterialInfo(const MaterialResource* material) const
 	EXC_COMCHECK(m_context->Map(m_constantBuffers.materialInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
 	memcpy(msr.pData, mi, sizeof(CB::MaterialInfo));
 	EXC_COMINFO(m_context->Unmap(m_constantBuffers.materialInfo.Get(), 0u));
+
 
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexDiffuse,	1,	(material->textureDiffuse	? material->textureDiffuse->shaderResourceView	: m_defaultDiffuseSRV)	.GetAddressOf()));
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexSpecular,	1,	(material->textureSpecular	? material->textureSpecular->shaderResourceView	: m_defaultSpecularSRV)	.GetAddressOf()));
@@ -1114,11 +1115,11 @@ void RenderCore::InitPipelines()
 
 	D3D11_INPUT_ELEMENT_DESC inputLayoutStandard[] = 
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, 
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }  
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	}; 
 
 	EXC_COMCHECK(m_device->CreateInputLayout(
@@ -1180,7 +1181,7 @@ void RenderCore::InitPipelines()
 
 	D3D11_INPUT_ELEMENT_DESC inputLayoutShadow[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "POSITION", 0, DXGI_FORMAT_R11G11B10_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	EXC_COMCHECK(m_device->CreateInputLayout(
@@ -1228,6 +1229,43 @@ void RenderCore::InitPipelines()
 		blob->GetBufferPointer(),
 		blob->GetBufferSize(),
 		m_pipelines[PipelineTypeEnvironment].inputLayout.GetAddressOf()
+	));
+
+
+
+	// GUI pipeline (Unshaded)
+
+	m_pipelines[PipelineTypeGUI].primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"PSGUI.cso", &blob));
+	EXC_COMCHECK(m_device->CreatePixelShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypeGUI].pixelShader
+	));
+
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"VSGUI.cso", &blob));
+	EXC_COMCHECK(m_device->CreateVertexShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypeGUI].vertexShader
+	));
+
+	D3D11_INPUT_ELEMENT_DESC inputLayoutGUI[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+
+	EXC_COMCHECK(m_device->CreateInputLayout(
+		inputLayoutGUI,
+		(uint)(sizeof(inputLayoutGUI) / sizeof(*inputLayoutGUI)),
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		m_pipelines[PipelineTypeGUI].inputLayout.GetAddressOf()
 	));
 
 	blob->Release();
