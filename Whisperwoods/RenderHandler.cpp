@@ -89,7 +89,7 @@ void RenderHandler::Draw()
 
 	// PPFX / FX
 	{
-		m_renderCore->DrawPositionalEffects();
+		//m_renderCore->DrawPositionalEffects();
 		m_renderCore->DrawPPFX();
 	}
 	

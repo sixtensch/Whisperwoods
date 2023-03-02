@@ -1,6 +1,7 @@
 
 #include "Constants.hlsli"
 #include "PhongAlg.hlsli"
+#include "FogFuncs.hlsli"
 
 static float smoothing = 2.0f;
 
@@ -231,10 +232,19 @@ PS_OUTPUT main(VSOutput input)
         finalEmissiveColor = lerp(colorEmissive, detectionColor, totalInfluence);
     }
     
-	
 	// Used to scale ALL emissive for more dramatic glow.
     float emissiveScalar = 2.0f;
     color.rgb += finalEmissiveColor * emissiveScalar;
+	
+	// Fog calulations
+	{
+        float posToCamDist = distance(input.wPosition.xyz, cameraPosition);
+        float3 fogColor[2] = { float3(0.8f.rrr), float3(1.2f, 0.8f, 0.3f) };
+        float fogStrength[2] = { 1.0f, 1.7f };
+        float fogDensity[2] = { 0.06f, 0.1f };
+        uint stateIndex = uint(isInFuture);
+        color.rgb = ApplyExpFog(color.rgb, fogDensity[stateIndex], posToCamDist, fogColor[stateIndex], fogStrength[stateIndex]);
+    }
 	
     color.a = saturate(color.a);
 	
