@@ -560,7 +560,7 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 	//for (uint i = 0; i < LevelAssetCount; i++)
 	//	m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 
-	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 2);
+	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 5);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
