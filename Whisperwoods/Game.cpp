@@ -50,163 +50,163 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	float currentStamina = m_player->GetCurrentStamina();
 	Renderer::SetPlayerMatrix( m_player->transform.worldMatrix );
 
-	//Vec2 playerPosition2D = { m_player->transform.worldPosition.x, m_player->transform.worldPosition.z };
-	//for (int i = 0; i < m_pickups.Size(); ++i)
-	//{
-	//	m_pickups[i]->Update(deltaTime);
-	//}
+	Vec2 playerPosition2D = { m_player->transform.worldPosition.x, m_player->transform.worldPosition.z };
+	for (int i = 0; i < m_pickups.Size(); ++i)
+	{
+		m_pickups[i]->Update(deltaTime);
+	}
 
 
-	//float closestDistance = 0.0f;
-	//if (m_enemies.Size() > 0) // apperently we call update before creating enemies. Dont touch this
-	//{
-	//	closestDistance = m_enemies[0]->GetMaxDistance();
-	//}
+	float closestDistance = 0.0f;
+	if (m_enemies.Size() > 0) // apperently we call update before creating enemies. Dont touch this
+	{
+		closestDistance = m_enemies[0]->GetMaxDistance();
+	}
 
 
-	//for (int i = 0; i < m_enemies.Size(); i++)
-	//{
-	//	m_enemies[i]->Update(deltaTime);
-	//	if (m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource, m_isInFuture) == true)
-	//	{
-	//		isSeen = true;
-	//		if (m_enemies[i]->GetDistance() < closestDistance)
-	//		{
-	//			closestDistance = m_enemies[i]->GetDistance();
-	//		}
-	//	}
-	//}
-	//static float totalFovDelta = 0.0f;
-	//static float initialCamFov;
+	for (int i = 0; i < m_enemies.Size(); i++)
+	{
+		m_enemies[i]->Update(deltaTime);
+		if (m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource, m_isInFuture) == true)
+		{
+			isSeen = true;
+			if (m_enemies[i]->GetDistance() < closestDistance)
+			{
+				closestDistance = m_enemies[i]->GetDistance();
+			}
+		}
+	}
+	static float totalFovDelta = 0.0f;
+	static float initialCamFov;
 
-	//if (isSeen == true)
-	//{
-	//	m_timeUnseen = 0.0f;
-	//	if (IsDetected(deltaTime, closestDistance, m_enemies[0]->GetMaxDistance()))
-	//	{
-	//		if (m_isSwitching)
-	//		{
-	//			m_switchVals.timeSinceSwitch = 2.0f;
-	//			m_isInFuture = true;
-	//			cameraRef.SetFov(initialCamFov);
-	//			ChangeTimeline(renderer);
-	//			m_switchVals.timeSinceSwitch = 0.0f;
-	//			m_isSwitching = false;
-	//			totalFovDelta = 0.0f;
-	//		}
-	//		
-	//		// D E A T H
-	//		m_maxStamina = MAX_STAMINA_STARTING_VALUE;
-	//		//m_coolDownCounter = m_timeAbilityCooldown;
-	//		m_player->ResetStaminaToMax(m_maxStamina);
-	//		UnLoadPrevious();
-	//		LoadHubby();
-	//		m_player->ReloadPlayer();
-	//		isSeen = false;
-	//		m_detectionLevelGlobal = 0.0f;
-	//		m_detectionLevelFloor = 0.0f;
-	//	}
-	//}
-	//else
-	//{
-	//	m_timeUnseen += deltaTime;
-	//	if (m_timeUnseen > m_timeBeforeDetectionLowers)
-	//	{
-	//		LowerToFloor(deltaTime);
-	//	}
-	//}
+	if (isSeen == true)
+	{
+		m_timeUnseen = 0.0f;
+		if (IsDetected(deltaTime, closestDistance, m_enemies[0]->GetMaxDistance()))
+		{
+			if (m_isSwitching)
+			{
+				m_switchVals.timeSinceSwitch = 2.0f;
+				m_isInFuture = true;
+				cameraRef.SetFov(initialCamFov);
+				ChangeTimeline(renderer);
+				m_switchVals.timeSinceSwitch = 0.0f;
+				m_isSwitching = false;
+				totalFovDelta = 0.0f;
+			}
+			
+			// D E A T H
+			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+			//m_coolDownCounter = m_timeAbilityCooldown;
+			m_player->ResetStaminaToMax(m_maxStamina);
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
+			isSeen = false;
+			m_detectionLevelGlobal = 0.0f;
+			m_detectionLevelFloor = 0.0f;
+		}
+	}
+	else
+	{
+		m_timeUnseen += deltaTime;
+		if (m_timeUnseen > m_timeBeforeDetectionLowers)
+		{
+			LowerToFloor(deltaTime);
+		}
+	}
 
-	//for (int i = 0; i < m_staticObjects.Size(); i++)
-	//{
-	//	m_staticObjects[i]->Update(deltaTime);
-	//}
-	//
-	//Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
-	//if (!m_isHubby) // if not in hubby
-	//// Time switch logic.
-	//{
-	//	
-	//	if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch())
-	//	{
-	//		m_isSwitching = true;
-	//		m_finishedCharging = false;
-	//		initialCamFov = cameraRef.GetFov();
-	//	}
+	for (int i = 0; i < m_staticObjects.Size(); i++)
+	{
+		m_staticObjects[i]->Update(deltaTime);
+	}
+	
+	Renderer::SetPlayerMatrix(m_player->transform.worldMatrix);
+	if (!m_isHubby) // if not in hubby
+	// Time switch logic.
+	{
+		
+		if (Input::Get().IsKeyPressed(KeybindPower) && IsAllowedToSwitch())
+		{
+			m_isSwitching = true;
+			m_finishedCharging = false;
+			initialCamFov = cameraRef.GetFov();
+		}
 
-	//	
+		
 
-	//	
-	//	if (m_isSwitching )
-	//	{
-	//		if (!ChargeIsDone())
-	//		{
-	//			totalFovDelta += m_camFovChangeSpeed * deltaTime;
-	//			float newFov = initialCamFov + totalFovDelta;
+		
+		if (m_isSwitching )
+		{
+			if (!ChargeIsDone())
+			{
+				totalFovDelta += m_camFovChangeSpeed * deltaTime;
+				float newFov = initialCamFov + totalFovDelta;
 
-	//				// Max total fov cant exceed half circle.
-	//				if (newFov > cs::c_pi)
-	//				{
-	//					newFov = cs::c_pi;
-	//				}
+					// Max total fov cant exceed half circle.
+					if (newFov > cs::c_pi)
+					{
+						newFov = cs::c_pi;
+					}
 
-	//				cameraRef.SetFov( newFov );
-	//		}
-	//		else
-	//		{
-	//			if (!m_finishedCharging)
-	//			{
-	//				ChangeTimeline( renderer );
-	//				m_finishedCharging = true;
-	//				cameraRef.SetFov( initialCamFov );
-	//				totalFovDelta = 0.0f;
+					cameraRef.SetFov( newFov );
+			}
+			else
+			{
+				if (!m_finishedCharging)
+				{
+					ChangeTimeline( renderer );
+					m_finishedCharging = true;
+					cameraRef.SetFov( initialCamFov );
+					totalFovDelta = 0.0f;
 
-	//				if (!m_isInFuture) // time to cooldown
-	//				{
-	//					m_coolDownCounter = 0.0f;
-	//				}
-	//			}
-	//		}
+					if (!m_isInFuture) // time to cooldown
+					{
+						m_coolDownCounter = 0.0f;
+					}
+				}
+			}
 
-	//		if (!SwitchIsDone())
-	//		{
-	//			m_switchVals.timeSinceSwitch += deltaTime;
-	//		}
-	//		else
-	//		{
-	//			m_switchVals.timeSinceSwitch = 0.0f;
-	//			m_isSwitching = false;
-	//		}
-	//	}
+			if (!SwitchIsDone())
+			{
+				m_switchVals.timeSinceSwitch += deltaTime;
+			}
+			else
+			{
+				m_switchVals.timeSinceSwitch = 0.0f;
+				m_isSwitching = false;
+			}
+		}
 
-	//	m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging;
-	//	if (m_maxStamina < 1.0f)
-	//	{
-	//		m_maxStamina = 1.0f;
-	//	}
+		m_maxStamina -= deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging;
+		if (m_maxStamina < 1.0f)
+		{
+			m_maxStamina = 1.0f;
+		}
 
-	//	if (Input::Get().IsDXKeyPressed( DXKey::H ) && !m_isInFuture)
-	//	{
-	//		UnLoadPrevious();
-	//		LoadHubby();
-	//		m_player->ReloadPlayer();
+		if (Input::Get().IsDXKeyPressed( DXKey::H ) && !m_isInFuture)
+		{
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
 
-	//	}
-	//}
-	//else // If in hubby
-	//{
-	//	if (Input::Get().IsDXKeyPressed( DXKey::L ))
-	//	{
-	//		UnLoadPrevious();
-	//		LoadTest();
-	//		m_player->ReloadPlayer();
-	//	}
-	//	if (Input::Get().IsDXKeyPressed(DXKey::H))
-	//	{
-	//		UnLoadPrevious();
-	//		LoadHubby();
-	//		m_player->ReloadPlayer();
-	//	}
-	//}
+		}
+	}
+	else // If in hubby
+	{
+		if (Input::Get().IsDXKeyPressed( DXKey::L ))
+		{
+			UnLoadPrevious();
+			LoadTest();
+			m_player->ReloadPlayer();
+		}
+		if (Input::Get().IsDXKeyPressed(DXKey::H))
+		{
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
+		}
+	}
 
 #if WW_DEBUG
 	if (ImGui::Begin("Gameplay Vars"))
@@ -525,7 +525,7 @@ void Game::ChangeTimeline(Renderer* renderer)
 
 void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
 {
-	LOG("State: %i", m_isInFuture);
+	//LOG("State: %i", m_isInFuture);
 	renderer->GetRenderCore()->WriteTimeSwitchInfo(
 		m_switchVals.timeSinceSwitch,
 		m_switchVals.chargeDuration,

@@ -98,12 +98,12 @@ void main( uint3 DTid : SV_DispatchThreadID )
     const uint3 texPos = uint3(DTid.xy, 0u);
     const float2 texUV = float2(texPos.xy) / BACK_BUFFER_RESOLUTION;
     
-    //const float totalTimeSwitchInfluence =
-    //    TotalTimeSwitchInfluence(
-    //    timeSinceSwitch,
-    //    timeSwitchStartDuration,
-    //    timeSwitchEndDuration
-    //);
+    const float totalTimeSwitchInfluence =
+        TotalTimeSwitchInfluence(
+        timeSinceSwitch,
+        timeSwitchStartDuration,
+        timeSwitchEndDuration
+    );
     
     float3 color = renderTexture.Load(texPos).rgb; //+ lumSumTexture.Load(texPos).rgb;
     
@@ -123,20 +123,20 @@ void main( uint3 DTid : SV_DispatchThreadID )
     //    color += lerp(0.0f, glowColor, glowAmount);
     //}
     // 
-    //color = AcesTonemap(color);
-    //
-    //
-    //// Color stuff.
-    //if (true)
-    //{
-    //    //color = Tint(color, lerp(1.0f.rrr, float3(0.0f, 0.0f, 2.0f), totalInflunce));
-    //    //color = Brightness(color, lerp(brightness, 1.0f, totalInflunce));
-    //    color = Saturation(color, smoothstep(saturation, 0.0f, totalTimeSwitchInfluence));
-    //    //color = Saturation(color, saturation);
-    //    color = Contrast(color, contrast.x, contrast.y);
-    //}
-    //
-    //color = Vignette(color, texUV, vignette.x, vignette.y);
+    color = AcesTonemap(color);
+    
+    
+    // Color stuff.
+    if (true)
+    {
+        //color = Tint(color, lerp(1.0f.rrr, float3(0.0f, 0.0f, 2.0f), totalInflunce));
+        //color = Brightness(color, lerp(brightness, 1.0f, totalInflunce));
+        color = Saturation(color, smoothstep(saturation, 0.0f, totalTimeSwitchInfluence));
+        //color = Saturation(color, saturation);
+        color = Contrast(color, contrast.x, contrast.y);
+    }
+    
+    color = Vignette(color, texUV, vignette.x, vignette.y);
    
     //color = pow(color, (1.0f / 2.2f)); // Gamma correction.
     backBufferTexture[texPos.xy] = float4(color, 1.0f);

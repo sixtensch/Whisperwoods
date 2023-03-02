@@ -93,16 +93,16 @@ Texture2D textureEmissive : REGISTER_SRV_TEX_EMISSIVE;
 Texture2D textureNormal : REGISTER_SRV_TEX_NORMAL;
 Texture2D shadowTexture : REGISTER_SRV_SHADOW_DEPTH;
 
-struct PS_OUTPUT
-{
-    float4 MainTarget : SV_TARGET0;
-    float4 PositionTarget : SV_TARGET1;
-};
+//struct PS_OUTPUT
+//{
+//    float4 MainTarget : SV_TARGET0;
+//    float4 PositionTarget : SV_TARGET1;
+//};
 
-PS_OUTPUT main(VSOutput input)
+float4 main(VSOutput input) : SV_TARGET
 {
 	// Output struct for both main texture target and positional target.
-    PS_OUTPUT output;
+    //PS_OUTPUT output;
 	
     float2 uv = input.outUV * tiling;
 	
@@ -249,8 +249,8 @@ PS_OUTPUT main(VSOutput input)
     color.a = saturate(color.a);
 	
 	
-    output.MainTarget = color;
+    //output.MainTarget = color;
     //output.PositionTarget = input.wPosition;
 	
-    return output;
+    return color;
 }

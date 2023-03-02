@@ -105,16 +105,16 @@ float4 main(PS_INPUT input) : SV_TARGET
     
     uint3 texPos = uint3(input.uv.x * WINDOW_WIDTH, input.uv.y * WINDOW_HEIGHT, 0u);
     
-    float3 color = renderTexture.Load(texPos).rgb + lumSumTexture.Load(texPos).rgb;
-    color = AcesTonemap(color);
+    float3 color = renderTexture.Load(texPos).rgb; //+ lumSumTexture.Load(texPos).rgb;
+    //color = AcesTonemap(color);
     
     //color = Tint(color, lerp(1.0f.rrr, float3(0.0f, 0.0f, 2.0f), totalInflunce));
     //color = Brightness(color, lerp(brightness, 1.0f, totalInflunce));
     color = Saturation(color, smoothstep(saturation, 0.0f, totalTimeSwitchInfluence));
     //color = Saturation(color, saturation);
-    color = Contrast(color, contrast.x, contrast.y);
+    //color = Contrast(color, contrast.x, contrast.y);
     
-    color = Vignette(color, input.uv, lerp(vignette.x, vignette.x * 3.0f, detectionLevel), vignette.y);
+    color = Vignette(color, input.uv, vignette.x, vignette.y);
     
     //color = pow(color, (1.0f / 2.2f)); // Gamma correction.
     return float4(color, 1.0f);
