@@ -23,9 +23,10 @@ RenderHandler::RenderHandler()
 
 	// Add to the list
 
-	boundingVolumes[0] = BananaPlant;
-	boundingVolumes[1] = BananaPlant2TEMP;
-
+	for (int i = 0; i < 9; i++)
+	{
+		boundingVolumes[i] = BananaPlant;
+	}
 }
 
 RenderHandler::~RenderHandler()
