@@ -97,6 +97,7 @@ public:
 	void DrawPPFX();
 	void DrawPositionalEffects();
 	void DrawToBackBuffer();
+	void DrawFullScreenQuad();
 
 	void InitImGui() const;
 

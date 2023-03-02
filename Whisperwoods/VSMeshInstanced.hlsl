@@ -1,4 +1,3 @@
-
 #include "Constants.hlsli"
 
 struct VSInput

@@ -79,6 +79,7 @@ cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
     float PADDING[3];
 }
 
+
 cbuffer COLORGRADE_INFO_BUFFER : REGISTER_CBV_COLORGRADE_INFO
 {
     float2 vignette; // x: Inner border radius, y: Vignette strength

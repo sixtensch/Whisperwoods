@@ -291,7 +291,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		UpdateTimeSwitchBuffers(renderer);
 		UpdateEnemyConeBuffers(renderer);
-}
+	}
 }
 
 void Game::Init()
@@ -525,6 +525,7 @@ void Game::ChangeTimeline(Renderer* renderer)
 
 void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
 {
+	LOG("State: %i", m_isInFuture);
 	renderer->GetRenderCore()->WriteTimeSwitchInfo(
 		m_switchVals.timeSinceSwitch,
 		m_switchVals.chargeDuration,

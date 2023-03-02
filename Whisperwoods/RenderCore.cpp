@@ -974,6 +974,42 @@ void RenderCore::DrawToBackBuffer()
 	EXC_COMINFO(m_context->ClearUnorderedAccessViewFloat(m_ppfxLumSumUAV.Get(), (float*)&m_bbClearColor));
 }
 
+void RenderCore::DrawFullScreenQuad()
+{
+	static Vec2 vignette = Vec2(0.5f, 1.0f);
+	static Vec2 contrast = Vec2(1.0f, 0.4f);
+	static float brightness = 0.0f;
+	static float saturation = 1.1f;
+
+	if (ImGui::Begin("Color Settings"))
+	{
+		float speed = 0.01f;
+		ImGui::DragFloat2("Vignette Radius & Strength", (float*)&vignette, speed, 0.0f, FLT_MAX);
+		ImGui::DragFloat2("Contrast Amount & Midpoint", (float*)&contrast, speed, 0.0f);
+		ImGui::DragFloat("Brightness", &brightness, speed, 0.0f, FLT_MAX);
+		ImGui::DragFloat("Saturation", &saturation, speed, 0.0f, FLT_MAX);
+	}
+	ImGui::End();
+
+	WritePPFXColorgradeInfo(vignette, contrast, brightness, saturation);
+
+	// Copies picture of render texture into other resource to use as SRV.
+	m_context->CopyResource(m_renderTextureCopy.Get(), m_renderTexture.Get());
+
+	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVCopySource, 1u, m_renderTextureSRV.GetAddressOf()));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVUser4, 1u, m_ppfxLumSumSRV.GetAddressOf()));
+	BindPipeline(PipelineTypeFullScreenQuad, false);
+
+	m_context->Draw(4u, 0u);
+
+	ID3D11RenderTargetView* nullrtv = nullptr;
+	ID3D11ShaderResourceView* nullsrv = nullptr;
+	//EXC_COMINFO(m_context->OMSetRenderTargets(1u, &nullrtv, nullptr));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVCopySource, 1u, &nullsrv));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVUser4, 1u, &nullsrv));
+}
+
 //void RenderCore::SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer)
 //{
 //    EXC_COMINFO(m_context->DrawIndexed(indexCount, start, base));
@@ -1221,7 +1257,30 @@ void RenderCore::InitPipelines()
 		m_pipelines[PipelineTypeEnvironment].inputLayout.GetAddressOf()
 	));
 
+	// Full screen quad pipeline
+
+	// Has to be triangle strip.
+	m_pipelines[PipelineTypeFullScreenQuad].primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"PSFullScreen.cso", &blob));
+	EXC_COMCHECK(m_device->CreatePixelShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypeFullScreenQuad].pixelShader
+	));
+
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"VSFullScreen.cso", &blob));
+	EXC_COMCHECK(m_device->CreateVertexShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypeFullScreenQuad].vertexShader
+	));
+
 	blob->Release();
+
+
 }
 
 void RenderCore::InitComputeShaders()
@@ -1363,6 +1422,7 @@ void RenderCore::InitConstantBuffers()
 	));
 
 	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVColorgradeInfo, 1, m_constantBuffers.ppfxColorGradeInfo.GetAddressOf()));
+	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVColorgradeInfo, 1, m_constantBuffers.ppfxColorGradeInfo.GetAddressOf()));
 
 	// Time switch info
 
