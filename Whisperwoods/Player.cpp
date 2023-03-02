@@ -61,6 +61,7 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	cameraFollowTilt = cs::c_pi / 4;
 	cameraIsLocked = true;
 	playerInFuture = false;
+	hasPickedUpEssenceBloom = false;
 }
 
 void Player::ReloadPlayer()
