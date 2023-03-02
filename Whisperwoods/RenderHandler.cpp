@@ -90,7 +90,7 @@ void RenderHandler::Draw()
 	// PPFX / FX
 	{
 		//m_renderCore->DrawPositionalEffects();
-		m_renderCore->DrawPPFX();
+		//m_renderCore->DrawPPFX();
 	}
 	
 	// Draw final image to back buffer with tone mapping.

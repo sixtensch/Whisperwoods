@@ -96,7 +96,7 @@ Texture2D shadowTexture : REGISTER_SRV_SHADOW_DEPTH;
 struct PS_OUTPUT
 {
     float4 MainTarget : SV_TARGET0;
-    //float4 PositionTarget : SV_TARGET1;
+    float4 PositionTarget : SV_TARGET1;
 };
 
 PS_OUTPUT main(VSOutput input)

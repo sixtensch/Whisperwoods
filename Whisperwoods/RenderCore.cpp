@@ -480,7 +480,7 @@ void RenderCore::TargetRenderTexture()
 		m_positionTextureRTV.Get() 
 	};
 
-	EXC_COMINFO(m_context->OMSetRenderTargets(1u, rtvs, m_dsDSV.Get()));
+	EXC_COMINFO(m_context->OMSetRenderTargets(RTV_COUNT, rtvs, m_dsDSV.Get()));
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, m_shadowSRV.GetAddressOf()));
 	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get())); // Backface culling
 	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
