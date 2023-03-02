@@ -301,7 +301,12 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		UpdateTimeSwitchBuffers(renderer);
 		UpdateEnemyConeBuffers(renderer);
-}
+	}
+
+	if (Input::Get().IsKeybindDown(KeybindEscMenu))
+	{
+		Renderer::GetWindow().CloseProgram();
+	}
 }
 
 void Game::Init()
