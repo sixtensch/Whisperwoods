@@ -202,7 +202,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	D3D11_DEPTH_STENCIL_DESC dssDesc = {};
 	dssDesc.DepthEnable = true;
 	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	dssDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	dssDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 
 	EXC_COMCHECK(m_device->CreateDepthStencilState(&dssDesc, &m_dsDSS));
 
@@ -452,6 +452,13 @@ void RenderCore::NewFrame()
 	EXC_COMINFO(m_context->OMSetDepthStencilState(m_dsDSS.Get(), 1));
 }
 
+void RenderCore::TargetPrepass()
+{
+	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, m_dsDSV.Get()));
+	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get())); // Backface culling
+	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
+}
+
 void RenderCore::TargetShadowMap()
 {
 	ID3D11ShaderResourceView* nullSRV = nullptr;
@@ -493,8 +500,6 @@ void RenderCore::TargetRenderTexture()
 
 	EXC_COMINFO(m_context->OMSetRenderTargets(RTV_COUNT, rtvs, m_dsDSV.Get()));
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, m_shadowSRV.GetAddressOf()));
-	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get())); // Backface culling
-	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
 }
 
 void RenderCore::UnbindRenderTexture()

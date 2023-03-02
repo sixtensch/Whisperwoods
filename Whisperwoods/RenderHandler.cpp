@@ -57,6 +57,7 @@ void RenderHandler::LoadLevel(LevelResource* level, string image)
 void RenderHandler::Draw()
 {
 	m_renderCore->NewFrame();
+	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_renderCore->UpdateViewInfo(m_mainCamera);
@@ -79,12 +80,15 @@ void RenderHandler::Draw()
 
 
 	// ShadowPass
-	ExecuteDraw(m_lightDirectional->camera, m_timelineState, true);
+	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
+	ExecuteDraw(m_timelineState, true);
 
 
 	// Main scene rendering
 
-	ExecuteDraw(m_mainCamera, m_timelineState, false);
+	m_renderCore->UpdateViewInfo(m_mainCamera);
+	ZPrepass(m_timelineState);
+	ExecuteDraw(m_timelineState, false);
 	m_renderCore->UnbindRenderTexture();
 
 	// PPFX / FX
@@ -116,10 +120,8 @@ void RenderHandler::Present()
 	m_renderCore->EndFrame();
 }
 
-void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows)
+void RenderHandler::ExecuteDraw(TimelineState state, bool shadows)
 {
-	m_renderCore->UpdateViewInfo(povCamera);
-	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 	if ( !shadows )
 	{
 		m_renderCore->TargetRenderTexture();
@@ -127,6 +129,11 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 	else
 	{
 		m_renderCore->TargetShadowMap();
+	}
+
+	if ( !shadows )
+	{
+		DrawInstances(state, false);
 	}
 
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
@@ -159,9 +166,33 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 			m_renderCore->DrawObject(data.get(), shadows);
 		}
 	}
-	if (!shadows)
+}
+
+void RenderHandler::ZPrepass(TimelineState state)
+{
+	// Setup
+	m_renderCore->TargetPrepass();
+
+	// Draw to the prepass
+	DrawInstances(state, true);
+	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
-		DrawInstances(state, false);
+		shared_ptr<WorldRenderable> data = {};
+		switch ( state )
+		{
+			case TimelineStateCurrent:
+				data = m_worldRenderables[i].first;
+				break;
+
+			case TimelineStateFuture:
+				data = m_worldRenderables[i].second;
+				break;
+		}
+		if ( data && data->enabled )
+		{
+			m_renderCore->UpdateObjectInfo(data.get());
+			m_renderCore->DrawObject(data.get(), true);
+		}
 	}
 }
 

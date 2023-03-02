@@ -23,6 +23,7 @@ public:
 	~RenderCore();
 
 	void NewFrame();
+	void TargetPrepass();
 	void TargetRenderTexture();
 	void UnbindRenderTexture();
 	void TargetShadowMap();

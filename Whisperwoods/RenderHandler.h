@@ -50,8 +50,8 @@ public:
 	void Draw();
 	void Present();
 
-	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);
-
+	void ExecuteDraw(TimelineState state, bool shadows);
+	void ZPrepass(TimelineState state);
 
 
 	RenderCore* GetCore() const;
