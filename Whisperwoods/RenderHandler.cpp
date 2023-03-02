@@ -5,6 +5,8 @@
 
 #include "LevelImporter.h"
 
+#define PROFILE_JOB(call) { m_renderCore->PunchTimestamp(); call; m_renderCore->PunchTimestamp(); }
+
 RenderHandler::RenderHandler()
 {
 	m_renderableIDCounter = 0;
@@ -56,6 +58,8 @@ void RenderHandler::LoadLevel(LevelResource* level, string image)
 
 void RenderHandler::Draw()
 {
+	m_renderCore->BeginTimestampQuery();
+
 	m_renderCore->NewFrame();
 	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 
@@ -80,21 +84,26 @@ void RenderHandler::Draw()
 
 
 	// ShadowPass
+	
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
-	ExecuteDraw(m_timelineState, true);
 
+	//PROFILE_JOB(ExecuteDraw(m_timelineState, true));
+
+	m_renderCore->PunchTimestamp();
+	ExecuteDraw(m_timelineState, true);
+	m_renderCore->PunchTimestamp();
 
 	// Main scene rendering
 
 	m_renderCore->UpdateViewInfo(m_mainCamera);
 	ZPrepass(m_timelineState);
 	ExecuteDraw(m_timelineState, false);
-	m_renderCore->UnbindRenderTexture();
+	//m_renderCore->UnbindRenderTexture();
 
 	// PPFX / FX
 	{
-		//m_renderCore->DrawPositionalEffects();
-		//m_renderCore->DrawPPFX();
+		m_renderCore->DrawPositionalEffects();
+		m_renderCore->DrawPPFX();
 	}
 	
 	// Draw final image to back buffer with tone mapping.
@@ -102,7 +111,7 @@ void RenderHandler::Draw()
 		//m_renderCore->DrawToBackBuffer();
 	}
 
-	m_renderCore->DrawFullScreenQuad();
+	//m_renderCore->DrawFullScreenQuad();
 	
 	// Render text
 	{
@@ -114,7 +123,8 @@ void RenderHandler::Draw()
 			m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont(), m_texts[i].get()->GetColor(), m_texts[i].get()->GetOrigin());
 		}
 	}
-	
+
+	m_renderCore->EndTimestampQuery();
 }
 
 void RenderHandler::Present()

@@ -6,6 +6,9 @@
 #include <d3dcompiler.h>
 #include <WICTextureLoader.h>
 
+// Used for printing UINT for query handling.
+#include <inttypes.h>
+
 
 #define RTV_COUNT 2u // TODO: Maybe make this a const member variable for more official use? 
 
@@ -54,6 +57,18 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 		&m_context// adress of immidiatecontext
 	));
 
+	// Query setup
+	D3D11_QUERY_DESC qdesc;
+	qdesc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
+	qdesc.MiscFlags = {};
+	
+	EXC_COMCHECK(m_device->CreateQuery(&qdesc, m_queryTimestampDisjoint.GetAddressOf()));
+
+	qdesc = {};
+	qdesc.Query = D3D11_QUERY_TIMESTAMP;
+	qdesc.MiscFlags = {};
+		
+	EXC_COMCHECK(m_device->CreateQuery(&qdesc, m_queryTimestamp.GetAddressOf()));
 
 
 	// Setup viewport
@@ -65,8 +80,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	m_viewport.Width = static_cast<float>(window->GetWidth());
 	m_viewport.Height = static_cast<float>(window->GetHeight());
 
-	UINT shadowMapHeight = 2048;
-	UINT shadowMapWidth = 2048;
+	UINT shadowMapHeight = 512;
+	UINT shadowMapWidth = 512;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.MinDepth = 0;
@@ -358,7 +373,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	D3D11_SAMPLER_DESC sd = {};
 
-	sd.Filter = D3D11_FILTER_ANISOTROPIC;
+	sd.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	sd.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -442,7 +457,7 @@ void RenderCore::NewFrame()
 {
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_dsDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
 
-	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_renderTextureRTV.GetAddressOf(), m_dsDSV.Get()));
+	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
 
 	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get()));
 	EXC_COMINFO(m_context->OMSetBlendState(m_blendState.Get(), nullptr, 0xffffffff));
@@ -483,8 +498,9 @@ void RenderCore::TargetStaticShadowMap()
 void RenderCore::TargetRenderTexture()
 {
 	ID3D11RenderTargetView* rtvs[RTV_COUNT] = {
-		m_renderTextureRTV.Get(), 
-		m_positionTextureRTV.Get() 
+		m_bbRTV.Get(),
+		//m_renderTextureRTV.Get(), 
+		//m_positionTextureRTV.Get() 
 	};
 
 	EXC_COMINFO(m_context->OMSetRenderTargets(1u, rtvs, m_dsDSV.Get()));
@@ -1046,6 +1062,43 @@ void RenderCore::InitFont(std::unique_ptr<dx::SpriteFont> font[FontCount], std::
   
 	// Create spriteBatch;
 	*batch = std::make_unique<dx::SpriteBatch>(m_context.Get());
+}
+
+void RenderCore::BeginTimestampQuery()
+{
+	EXC_COMINFO(m_context->Begin(m_queryTimestampDisjoint.Get()));
+}
+
+void RenderCore::EndTimestampQuery()
+{
+	EXC_COMINFO(m_context->End(m_queryTimestampDisjoint.Get()));
+
+	D3D11_QUERY_DATA_TIMESTAMP_DISJOINT disjointData = {};
+	EXC_COMINFO(m_context->GetData(m_queryTimestampDisjoint.Get(), (void*)&disjointData, sizeof(disjointData), 0u));
+
+	LOG("GPU Frequency: %d" PRIu64 "", disjointData.Frequency)
+
+	if (disjointData.Disjoint == true)
+	{
+		LOG_WARN("Timestamp queries are disjoint and there wont give accurate results!");
+	}
+}
+
+void RenderCore::PunchTimestamp()
+{
+	// Every even punch gets data.
+	static uint punchCounter = 0u;
+
+	if (++punchCounter % 2u == 0)
+	{
+		UINT64 data = 0u;
+		while (S_OK != m_context->GetData(m_queryTimestamp.Get(), (void*)&data, sizeof(UINT64), 0u)) {};
+		LOG("Timestamp: %d" PRIu64 "", data);
+
+		// Only uses end as begin is deactivated for this type of query. 
+		m_context->End(m_queryTimestamp.Get());
+	}
+
 }
 
 void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)

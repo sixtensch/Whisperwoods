@@ -12,7 +12,7 @@ float4 phong(
     float materialSpecularity)
 {
     float incidence = dot(voxelNormal, lightDirection);
-    float3 reflection = 2 * voxelNormal * incidence - lightDirection;
+    float3 reflection = reflect(voxelNormal, -lightDirection);
     
     float3 diffuse = materialAlbedo * lightIntensity * max(incidence, 0.0f);
 

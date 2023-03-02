@@ -11,6 +11,8 @@ SamplerState bloomSampler                           : REGISTER_SAMPLER_SYSTEM_0;
 [numthreads(NUM_THREADS.x, NUM_THREADS.y, 1)]
 void main( uint3 DTid : SV_DispatchThreadID )
 {
+    return;
+    
     uint2 backBufferDims;
     targetTexture.GetDimensions(backBufferDims.x, backBufferDims.y);
     

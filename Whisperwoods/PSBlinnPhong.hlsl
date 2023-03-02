@@ -3,7 +3,7 @@
 #include "PhongAlg.hlsli"
 #include "FogFuncs.hlsli"
 
-static float smoothing = 2.0f;
+#define SMOOTHING 2.0f
 
 struct VSOutput
 {
@@ -134,22 +134,22 @@ float4 main(VSOutput input) : SV_TARGET
     float2 lsUV = float2(lsNDC.x * 0.5f + 0.5f, lsNDC.y * -0.5f + 0.5f);
 	
     float dirNDotL = dot(normal, directionalLight.direction);
-    float epsilon = 0.00005 / acos(saturate(dirNDotL));
-    //bool shadowAff = shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x;
+    float epsilon = 0.0002 / acos(saturate(dirNDotL));
+    //bool shadowAff = shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z - epsilon).x;
 	
 	float sum = 0;
 	float x, y;
 
 	// PCF filtering (Smooth shadows)
-	[unroll] for (y = -smoothing; y <= smoothing; y += 1.0f)
+	[unroll] for (y = -SMOOTHING; y <= SMOOTHING; y += 1.0f)
 	{
-		[unroll] for (x = -smoothing; x <= smoothing; x += 1.0f)
+		[unroll] for (x = -SMOOTHING; x <= SMOOTHING; x += 1.0f)
 		{
 			sum += shadowTexture.SampleCmpLevelZero( shadowSampler,
 				lsUV.xy + texOffset( x, y, 0 ), lsNDC.z - epsilon);
 		}
 	}
-	float shadowAff = sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f));
+    float shadowAff = sum / ((SMOOTHING + SMOOTHING + 1.0f) * (SMOOTHING + SMOOTHING + 1.0f));
 
 
 

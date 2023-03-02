@@ -140,11 +140,17 @@ void Whisperwoods::Run()
 	m_game->Init();
 	m_game->LoadHubby();
 
+	float gameDiff = 0.0f;
+	float renderingDiff = 0.0f;
+	float presentDiff = 0.0f;
 
 	int frames = 0;
 	cs::Timer deltaTimer;
+	cs::Timer sectionTimer;
 	for (bool running = true; running; frames++)
 	{
+		sectionTimer.Lap();
+
 		m_renderer->BeginGui();
 
 		m_debug->ClearFrameTrace();
@@ -181,9 +187,11 @@ void Whisperwoods::Run()
 		FMOD_VECTOR listenerUp = { up.x, up.y, up.z };
 		m_sound->Update( listenerPos, listenerVelocity, listenerForward, listenerUp );
 		
+		renderingDiff = sectionTimer.Lap();
+		
 		// Draw step
 		m_renderer->Draw();
-
+		
 		//#ifdef WW_DEBUG
 		//m_renderer->BeginGui();
 		Move(dTime, m_game->GetPlayer());
@@ -191,8 +199,11 @@ void Whisperwoods::Run()
 		m_debug->DrawConsole();
 		m_renderer->EndGui();
 		//#endif
-
+		gameDiff = sectionTimer.Lap();
 		m_renderer->Present();
+		presentDiff = sectionTimer.Lap();
+		
+		LOG("--Frame #%d--\n Logical Diff (ms): %f\n Render Diff (ms): %f\n Present Diff (ms): %f\n------------", frames, renderingDiff * 1000.0f, gameDiff * 1000.0f, presentDiff * 1000.0f);
 	}
 
 	m_game->DeInit();

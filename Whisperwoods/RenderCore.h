@@ -104,6 +104,11 @@ public:
 
 	void InitFont(std::unique_ptr<dx::SpriteFont> fonts[FontCount], std::unique_ptr<dx::SpriteBatch>* batch) const;
 
+	void BeginTimestampQuery();
+	void EndTimestampQuery();
+
+	void PunchTimestamp();
+
 private:
 	void BindPipeline(PipelineType pipeline, bool shadowing);
 
@@ -218,4 +223,7 @@ private:
 
 	std::unique_ptr<dx::SpriteFont> m_fonts[FontCount];
 	std::unique_ptr<dx::SpriteBatch> m_spriteBatch;
+
+	ComPtr<ID3D11Query> m_queryTimestampDisjoint;
+	ComPtr<ID3D11Query> m_queryTimestamp;
 };
