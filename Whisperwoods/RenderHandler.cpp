@@ -89,8 +89,8 @@ void RenderHandler::Draw()
 
 	// PPFX / FX
 	{
-		m_renderCore->DrawPositionalEffects();
-		m_renderCore->DrawPPFX();
+		//->DrawPositionalEffects();
+		//->DrawPPFX();
 	}
 	
 	// Draw final image to back buffer with tone mapping.
@@ -129,6 +129,11 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 		m_renderCore->TargetShadowMap();
 	}
 
+	if (!shadows)
+	{
+		DrawInstances(state, false);
+	}
+
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
 		if (shadows)
@@ -159,10 +164,8 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 			m_renderCore->DrawObject(data.get(), shadows);
 		}
 	}
-	if (!shadows)
-	{
-		DrawInstances(state, false);
-	}
+
+
 }
 
 void RenderHandler::ExecuteStaticShadowDraw()
@@ -531,7 +534,7 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 	// Culling here
 	m_envInstances.Clear(false);
 
-	// Create the view frustum for the culling
+	//Create the view frustum for the culling
 	dx::BoundingFrustum viewFrustum = {};
 	viewFrustum.CreateFromMatrix(viewFrustum, m_mainCamera.GetProjectionMatrix().XMMatrix());
 	Vec3 position = m_mainCamera.GetPosition();
@@ -540,6 +543,7 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 		position.y,
 		position.z
 	};
+	
 	Quaternion rotation = m_mainCamera.GetRotation().Conjugate();
 	viewFrustum.Orientation = {
 		rotation.x,
@@ -559,7 +563,7 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 	//for (uint i = 0; i < LevelAssetCount; i++)
 	//	m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 
-	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 5);
+	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 2);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{

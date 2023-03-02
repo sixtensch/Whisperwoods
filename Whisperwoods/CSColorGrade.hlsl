@@ -97,45 +97,45 @@ void main( uint3 DTid : SV_DispatchThreadID )
     const uint3 texPos = uint3(DTid.xy, 0u);
     const float2 texUV = float2(texPos.xy) / BACK_BUFFER_RESOLUTION;
     
-    const float totalTimeSwitchInfluence =
-        TotalTimeSwitchInfluence(
-        timeSinceSwitch,
-        timeSwitchStartDuration,
-        timeSwitchEndDuration
-    );
+    //const float totalTimeSwitchInfluence =
+    //    TotalTimeSwitchInfluence(
+    //    timeSinceSwitch,
+    //    timeSwitchStartDuration,
+    //    timeSwitchEndDuration
+    //);
     
-    float3 color = renderTexture.Load(texPos).rgb + lumSumTexture.Load(texPos).rgb;
+    float3 color = renderTexture.Load(texPos).rgb; //+ lumSumTexture.Load(texPos).rgb;
     
     // Circle creation
-    if (false)
-    {
-        float circleInfluence = sin(totalTimeSwitchInfluence * 2.0f);
-        float2 pixelCoords = float2(texPos.xy);
-        float2 circleCenter = BACK_BUFFER_RESOLUTION * 0.5f;
-        float circleRadius = BACK_BUFFER_RESOLUTION.x  * circleInfluence;
-        float circleThickness = 60.0f;
-        float signedDistance = length(pixelCoords - circleCenter) - circleRadius;
-        float glowAmount = smoothstep(0.0f, circleThickness, abs(signedDistance));
-        glowAmount = (1.0f - pow(glowAmount, 0.125f)) ;
-    
-        float3 glowColor = float3(0.3f, 1.2f, 1.6f) * circleInfluence;
-        color += lerp(0.0f, glowColor, glowAmount);
-    }
-     
-    color = AcesTonemap(color);
-    
-    
-    // Color stuff.
-    if (true)
-    {
-        //color = Tint(color, lerp(1.0f.rrr, float3(0.0f, 0.0f, 2.0f), totalInflunce));
-        //color = Brightness(color, lerp(brightness, 1.0f, totalInflunce));
-        color = Saturation(color, smoothstep(saturation, 0.0f, totalTimeSwitchInfluence));
-        //color = Saturation(color, saturation);
-        color = Contrast(color, contrast.x, contrast.y);
-    }
-    
-    color = Vignette(color, texUV, vignette.x, vignette.y);
+    //if (false)
+    //{
+    //    float circleInfluence = sin(totalTimeSwitchInfluence * 2.0f);
+    //    float2 pixelCoords = float2(texPos.xy);
+    //    float2 circleCenter = BACK_BUFFER_RESOLUTION * 0.5f;
+    //    float circleRadius = BACK_BUFFER_RESOLUTION.x  * circleInfluence;
+    //    float circleThickness = 60.0f;
+    //    float signedDistance = length(pixelCoords - circleCenter) - circleRadius;
+    //    float glowAmount = smoothstep(0.0f, circleThickness, abs(signedDistance));
+    //    glowAmount = (1.0f - pow(glowAmount, 0.125f)) ;
+    //
+    //    float3 glowColor = float3(0.3f, 1.2f, 1.6f) * circleInfluence;
+    //    color += lerp(0.0f, glowColor, glowAmount);
+    //}
+    // 
+    //color = AcesTonemap(color);
+    //
+    //
+    //// Color stuff.
+    //if (true)
+    //{
+    //    //color = Tint(color, lerp(1.0f.rrr, float3(0.0f, 0.0f, 2.0f), totalInflunce));
+    //    //color = Brightness(color, lerp(brightness, 1.0f, totalInflunce));
+    //    color = Saturation(color, smoothstep(saturation, 0.0f, totalTimeSwitchInfluence));
+    //    //color = Saturation(color, saturation);
+    //    color = Contrast(color, contrast.x, contrast.y);
+    //}
+    //
+    //color = Vignette(color, texUV, vignette.x, vignette.y);
    
     //color = pow(color, (1.0f / 2.2f)); // Gamma correction.
     backBufferTexture[texPos.xy] = float4(color, 1.0f);
