@@ -20,6 +20,7 @@ class Player : public GameObject
 	float m_runSpeed;
 	float m_animationSpeed;
 	bool m_isCrouch;
+	bool m_ranOutOfSprint;
 
 	Vec3 Lerp( Vec3 a, Vec3 b, float t )
 	{
@@ -38,6 +39,7 @@ public:
 	Vec3 sampleVector;
 	bool playerInFuture;
 	bool hasPickedUpEssenceBloom;
+	
 
 	shared_ptr<MeshRenderableRigged> characterModel;
 	AnimationResource* animationSet;

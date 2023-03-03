@@ -63,7 +63,7 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	cameraIsLocked = true;
 	playerInFuture = false;
 	hasPickedUpEssenceBloom = false;
-
+	m_ranOutOfSprint = false;
 
 	FMOD::Sound* undergrowthSoundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "foliage.mp3"))->currentSound;
 	m_vegetationSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.5f, 1.1f, 0.0f, 10.0f, undergrowthSoundPtr);
@@ -113,7 +113,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		if (Input::Get().IsKeybindDown( KeybindBackward ))	inputVector -= forward;
 		if (Input::Get().IsKeybindDown( KeybindRight ))		inputVector += right;
 		if (Input::Get().IsKeybindDown( KeybindLeft ))		inputVector -= right;
-		float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !Input::Get().IsKeybindDown(KeybindCrouch) && m_stamina > 0.1f && !playerInFuture) ? m_runSpeed : m_walkSpeed);
+		float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !Input::Get().IsKeybindDown(KeybindCrouch) && m_stamina > 0.0f && !m_ranOutOfSprint && !playerInFuture) ? m_runSpeed : m_walkSpeed);
 		
 		m_targetVelocity = Vec3( inputVector.x * walkRunMultiplier, inputVector.y * walkRunMultiplier, inputVector.z * walkRunMultiplier );
 
@@ -132,11 +132,17 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			}
 		}
 
-		
+		if (m_ranOutOfSprint == true)
+		{
+			if (Input::Get().IsKeybindDown(KeybindSprint) == false)
+			{
+				m_ranOutOfSprint = false;
+			}
+		}
 		
 		
 
-		if (m_stamina < 0.1f && m_targetVelocity.Length() > 0.0f)
+		if (m_stamina <= 0.0f && m_targetVelocity.Length() > 0.0f)
 		{
 			m_targetVelocity = m_targetVelocity.Normalize();
 			m_targetVelocity *= m_walkSpeed;
@@ -146,10 +152,15 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		{
 			m_stamina = m_stamina - ((cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * delta_time) * RUNNING_STAMINA_DECAY);
 		}
+
 		
-		if (m_stamina < 0.0f)
+		if (m_stamina <= 0.0f)
 		{
 			m_stamina = 0.0f;
+			if (Input::Get().IsKeybindDown(KeybindSprint))
+			{
+				m_ranOutOfSprint = true;
+			}
 		}
 
 		//Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
@@ -242,7 +253,7 @@ void Player::Update(float delta_time)
 
 
 	//regain stamina
-	if (!Input::Get().IsKeybindDown(KeybindSprint))
+	if (!Input::Get().IsKeybindDown(KeybindSprint) || m_ranOutOfSprint == true || m_velocity.Length() <= 0.2f)
 	{
 		m_stamina = cs::fclamp(m_stamina + (2.5f * delta_time), 0.0f, m_maxStamina); //or 0.0f rather than 0
 	}
