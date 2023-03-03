@@ -112,6 +112,8 @@ bool LevelImporter::ImportImage(string textureName, const RenderCore* core, Leve
 	cs::List<PatrolPrimer> openPrimers;
 	cs::List<PatrolPrimer> closedPrimers;
 
+	Vec2 center(outLevel->pixelWidth * 0.5f, outLevel->pixelHeight * 0.5f);
+
 	for (uint x = 0; x < outLevel->pixelWidth; x++)
 	{
 		for (uint y = 0; y < outLevel->pixelHeight; y++)
@@ -235,17 +237,30 @@ bool LevelImporter::ImportImage(string textureName, const RenderCore* core, Leve
 				Vec2 edgeDir(edgeDiff.y, -edgeDiff.x);
 				edgeDir.Normalize();
 
+				Vec2 centerOut = ((Vec2)p - center).Normalized();
+				Vec2 trueDirection = (edgeDir * nDirection > 0) ? edgeDir : -edgeDir;
+
+				Vec2 compensatedDirection = (centerOut + trueDirection).Normalized();
+
+				compensatedDirection.y *= -1;
+
 				outLevel->exits.Add(
 					{
 						(Vec2)edgeA + edgeDiff * 0.5f,
-						(edgeDir * nDirection > 0) ? edgeDir : -edgeDir,
-						cs::fclamp(std::sqrtf(edgeDistanceSq), 6.0f, 10.0f)
+						compensatedDirection,
+						cs::fclamp(std::sqrtf(edgeDistanceSq), 6.0f, 10.0f),
+						cs::fwrap(std::atan2f(-compensatedDirection.y, compensatedDirection.x), 0.0f, 2 * cs::c_pi)
 					});
 
 				continue;
 			}
 		}
 	}
+
+	std::sort(
+		&outLevel->exits.Front(), 
+		&outLevel->exits.Back() + 1,
+		[](const LevelExit& a, const LevelExit& b) { return a.angle < b.angle; });
 	
 	if (openPrimers.Size() > 0)
 	{

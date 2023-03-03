@@ -528,6 +528,18 @@ shared_ptr<TextRenderable> RenderHandler::CreateTextRenderable(const wchar_t* te
 	return newRenderable;
 }
 
+void RenderHandler::DestroyMeshStatic(shared_ptr<MeshRenderableStatic> renderable)
+{
+	for (int i = 0; i < m_worldRenderables.Size(); i++)
+	{
+		if (m_worldRenderables[i].first == renderable)
+		{
+			m_worldRenderables.Remove(i);
+			return;
+		}
+	}
+}
+
 void RenderHandler::SetTimelineStateCurrent()
 {
 	m_timelineState = TimelineStateCurrent;
