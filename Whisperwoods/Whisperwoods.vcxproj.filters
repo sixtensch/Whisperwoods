@@ -115,9 +115,6 @@
     <Filter Include="%2a Code\%2a Resources\Resources">
       <UniqueIdentifier>{2242c8bc-6a37-4b5f-a78f-166296bf515f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="%2a Code\%2a Rendering\GUI">
-      <UniqueIdentifier>{c199de11-7adc-4e1a-bd34-7c3fd0652133}</UniqueIdentifier>
-    </Filter>
     <Filter Include="%2a Code\%2a Rendering\Constant Buffer Data">
       <UniqueIdentifier>{a9ab767a-3639-45f2-a00b-7e056fbec52f}</UniqueIdentifier>
     </Filter>
@@ -183,6 +180,15 @@
     </Filter>
     <Filter Include="%2a Code\%2a Rendering\%2a Renderable\TextRenderable">
       <UniqueIdentifier>{01597589-9265-4c96-8769-765a7e651d5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\DebugGUI">
+      <UniqueIdentifier>{c199de11-7adc-4e1a-bd34-7c3fd0652133}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\GUI">
+      <UniqueIdentifier>{c6f4c092-957f-4628-96fb-56ce22cac738}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\%2a Renderable\GUIRenderable">
+      <UniqueIdentifier>{28b5bf79-e6e2-4755-8a03-bd804f07f62d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -255,8 +261,8 @@
     <ClCompile Include="Resources.cpp">
       <Filter>%2a Code\%2a Resources\Resources</Filter>
     </ClCompile>
-    <ClCompile Include="GUI.cpp">
-      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    <ClCompile Include="DebugGUI.cpp">
+      <Filter>%2a Code\%2a Rendering\DebugGUI</Filter>
     </ClCompile>
     <ClCompile Include="MeshRenderable.cpp">
       <Filter>%2a Code\%2a Rendering\%2a Renderable\MeshRenderable</Filter>
@@ -304,6 +310,18 @@
       <Filter>%2a Code\%2a World\Room</Filter>
     </ClCompile>
     <ClCompile Include="LevelHandler.cpp" />
+    <ClCompile Include="EssenceBloom.cpp" />
+    <ClCompile Include="Pickup.cpp" />
+    <ClCompile Include="GUI.cpp">
+      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIRenderable.cpp">
+      <Filter>%2a Code\%2a Rendering\%2a Renderable\GUIRenderable</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIElement.cpp">
+      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GPUProfiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -400,8 +418,8 @@
     <ClInclude Include="Resources.h">
       <Filter>%2a Code\%2a Resources\Resources</Filter>
     </ClInclude>
-    <ClInclude Include="GUI.h">
-      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    <ClInclude Include="DebugGUI.h">
+      <Filter>%2a Code\%2a Rendering\DebugGUI</Filter>
     </ClInclude>
     <ClInclude Include="ConstantbufferData.h">
       <Filter>%2a Code\%2a Rendering\Constant Buffer Data</Filter>
@@ -466,6 +484,18 @@
     </ClInclude>
     <ClInclude Include="Level.h" />
     <ClInclude Include="LevelHandler.h" />
+    <ClInclude Include="EssenceBloom.h" />
+    <ClInclude Include="Pickup.h" />
+    <ClInclude Include="GUI.h">
+      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIRenderable.h">
+      <Filter>%2a Code\%2a Rendering\%2a Renderable\GUIRenderable</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIElement.h">
+      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GPUProfiler.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VSMesh.hlsl">
@@ -493,6 +523,12 @@
       <Filter>%2a Code\%2a Shaders</Filter>
     </FxCompile>
     <FxCompile Include="CSPositionalEffectPass.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PSGUI.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VSGUI.hlsl">
       <Filter>%2a Code\%2a Shaders</Filter>
     </FxCompile>
   </ItemGroup>

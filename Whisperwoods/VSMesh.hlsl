@@ -31,7 +31,7 @@ cbuffer ObjectInfo : REGISTER_CBV_OBJECT_INFO
     matrix WorldMatrix;
 };
 
-cbuffer PlayerInfo : REGISTER_CBV_TESSELATION_INFO
+cbuffer PlayerInfo : REGISTER_CBV_PLAYER_INFO
 {
     matrix playerMatrix;
 };

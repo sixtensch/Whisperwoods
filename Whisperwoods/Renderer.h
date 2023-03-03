@@ -5,9 +5,10 @@
 #include "Window.h"
 #include "MeshRenderable.h"
 #include "TextRenderable.h"
+#include "GUIRenderable.h"
 #include "LevelResource.h"
 #include "Level.h"
-class GUI;
+class DebugGUI;
 
 class Renderer sealed
 {
@@ -41,6 +42,7 @@ public:
 	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 	static shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
 	static void DestroyMeshStatic(shared_ptr<MeshRenderableStatic> renderable);
+	static shared_ptr<GUIRenderable> CreateGUIRenderable(const string& subpath);
 
 	static shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin);
 
@@ -63,7 +65,7 @@ private:
 
 	shared_ptr<Window> m_window; 
 	unique_ptr<RenderHandler> m_renderHandler;
-	unique_ptr<GUI> m_gui;
+	unique_ptr<DebugGUI> m_gui;
 
 };
 

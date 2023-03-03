@@ -113,7 +113,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			m_targetVelocity *= m_runSpeed;
 		}
 
-		m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * delta_time);
+		m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * 2.0f * delta_time);
 
 		if (m_stamina < 0.1f && m_targetVelocity.Length() > 0.0f)
 		{

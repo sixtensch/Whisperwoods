@@ -6,6 +6,7 @@
 #include "Constants.h"
 
 // Sampler states
+#define REGISTER_SAMPLER_NO_WRAP        register(s5)
 
 #define REGISTER_SAMPLER_SYSTEM_0       register(s6)
 #define REGISTER_SAMPLER_SYSTEM_1       register(s7)
@@ -23,11 +24,11 @@
 #define REGISTER_CBV_SWITCH_INFO        register(b3) // Used by all shaders that need info about time switch.
 #define REGISTER_CBV_ENEMY_CONE_INFO    register(b4) // Used by positional effect pass.
 
-#define REGISTER_CBV_SYSTEM_0           register(b5)
+#define REGISTER_CBV_GUI_INFO           register(b5)
 #define REGISTER_CBV_SYSTEM_1           register(b6)
 #define REGISTER_CBV_SYSTEM_2           register(b7)
 
-#define REGISTER_CBV_TESSELATION_INFO   register(b8)
+#define REGISTER_CBV_PLAYER_INFO        register(b8)
 #define REGISTER_CBV_VIEW_INFO          register(b9)
 #define REGISTER_CBV_OBJECT_INFO        register(b10)
 #define REGISTER_CBV_MATERIAL_INFO      register(b11)

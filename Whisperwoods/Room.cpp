@@ -49,6 +49,14 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 
 	Renderer::ClearShadowRenderables();
 
+	// Stop previous sounds and clear
+	for (int i = 0; i < m_ambianceSources.Size(); i++)
+	{
+		m_ambianceSources[i]->Stop();
+	}
+	if (m_ambianceSources.Size())
+		m_ambianceSources.Clear();
+
 	// Add ambiance sounds around the room
 	Resources& resources = Resources::Get();
 	int numSounds = 3;

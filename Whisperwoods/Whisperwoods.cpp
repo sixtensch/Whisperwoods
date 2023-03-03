@@ -7,11 +7,15 @@
 #include "FBXImporter.h"
 #include "Animator.h"
 #include <imgui.h>
+#include "TextRenderable.h"
+#include "GUI.h"
+#include "TextureResource.h"
 
 #include "Player.h"
 #include "Empty.h"
 #include "StaticObject.h"
 #include "Room.h"
+
 
 #include "LevelImporter.h"
 #include "WWMBuilder.h"
@@ -43,6 +47,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", true );
 
 	//// Static Models
+	BuildWWM( "Assets/Models/FBX/Static/EssenseBloom.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false );
@@ -78,6 +83,18 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//};
 	//cs::List<int> planeIndicies = { 0,1,3,0,3,2 };
 	//BuildWWM(planeVerts, planeIndicies, "room_plane");
+
+
+	cs::List<VertexTextured> rectVerts = { 
+		VertexTextured({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }), 
+		VertexTextured({ 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f }),
+		VertexTextured({ 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 0.0f }),
+		VertexTextured({ 1.0f, 1.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f, 0.0f })
+	};
+
+	cs::List<int> rectIndicies = { 0,1,2,3,2,1 };
+	BuildWWM(rectVerts, rectIndicies, "ui_rect");
+
 
 	//BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
 
@@ -139,6 +156,25 @@ void Whisperwoods::Run()
 	m_game->Init();
 	m_game->LoadHubby();
 
+
+	GUI testGui;
+	testGui.AddGUIElement({ 0,-0.95 }, { 1.0f,0.1f }, nullptr, nullptr);
+	testGui.GetElement( 0 )->colorTint = Vec3(0.2f, 0.8f, 0.2f);
+	testGui.GetElement( 0 )->alpha = 0.6f;
+	testGui.GetElement( 0 )->vectorData = Vec3( 1, 1, 1 );
+	testGui.GetElement( 0 )->floatData = 0.5f;
+	testGui.GetElement( 0 )->intData = Point4( 0, 1, 0, 0 ); // Makes it follow the float value.
+	//testGui.GetElement( 0 )->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "Test+Pattern+t.png");
+	testGui.GetElement( 0 )->secondTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "StaminaBarMask01.png");
+
+	testGui.AddGUIElement({ -1,0.2f }, { 0.5f*0.9f,0.5f*1.6f }, nullptr, nullptr);
+	testGui.GetElement( 1 )->colorTint = Vec3(1, 1, 1);
+	testGui.GetElement( 1 )->alpha = 0.6f;
+	testGui.GetElement( 1 )->intData = Point4( 1, 0, 0, 0 ); // makes it transform with the playermatrix
+	testGui.GetElement( 1 )->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "Hubby.png");
+	testGui.GetElement( 1 )->secondTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "HudMask.png");
+
+
 	int frames = 0;
 	cs::Timer deltaTimer;
 	for (bool running = true; running; frames++)
@@ -156,6 +192,9 @@ void Whisperwoods::Run()
 		dTimeAcc += dTime;
 		
 		//patrolEnemy.Update(dTime);
+
+		// Update the test gui with the stamina.
+		testGui.GetElement( 0 )->floatData = m_game->GetPlayer()->GetCurrentStamina()/10.0f;
 
 		m_game->Update(dTime, m_renderer.get());
 
