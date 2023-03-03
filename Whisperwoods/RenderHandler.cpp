@@ -96,8 +96,9 @@ void RenderHandler::Draw()
 	m_renderCore->UpdateViewInfo(m_mainCamera);
 	QuadCull(m_mainCamera);
 
-	static std::string mainSceneProfileName = "Main Scene";
-	PROFILE_JOB(mainSceneProfileName, ZPrepass(m_timelineState));
+	static std::string zPrepassProfileName = "Z Prepass Draw";
+	static std::string mainSceneProfileName = "Main Scene Draw";
+	PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
 	PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_timelineState, false));
 	m_renderCore->UnbindRenderTexture();
 
@@ -148,11 +149,6 @@ void RenderHandler::ExecuteDraw(TimelineState state, bool shadows)
 		m_renderCore->TargetShadowMap();
 	}
 
-	if ( !shadows )
-	{
-		DrawInstances(state, false);
-	}
-
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
 		if (shadows)
@@ -186,8 +182,7 @@ void RenderHandler::ExecuteDraw(TimelineState state, bool shadows)
 
 	if (!shadows)
 	{
-		static std::string instancesDrawProfileName = "Draw Instances";
-		PROFILE_JOB(instancesDrawProfileName, DrawInstances(state, false));
+		DrawInstances(state, false);
 	}
 }
 

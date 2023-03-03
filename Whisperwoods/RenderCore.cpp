@@ -56,8 +56,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	// Profiler
 
-	uint updateFrequency = 500u;
-	m_gpuProfiler = GPUProfiler(m_device, m_context, updateFrequency);
+	m_gpuProfiler = GPUProfiler(m_device, m_context);
 
 	// Setup viewport
 
