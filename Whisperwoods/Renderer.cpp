@@ -70,6 +70,11 @@ void Renderer::EndGui()
 	m_gui->EndDraw();
 }
 
+void Renderer::UpdateGPUProfiler()
+{
+	m_renderHandler->UpdateGPUProfiler();
+}
+
 void Renderer::Present()
 {
 	m_renderHandler->Present();

@@ -154,9 +154,6 @@ void Whisperwoods::Run()
 
 		static float dTimeAcc = 0.0f;
 		dTimeAcc += dTime;
-			
-		Input::Get().Update();
-		
 		
 		//patrolEnemy.Update(dTime);
 
@@ -182,15 +179,13 @@ void Whisperwoods::Run()
 		// Draw step
 		m_renderer->Draw();
 
-		//#ifdef WW_DEBUG
-		//m_renderer->BeginGui();
 		Move(dTime, m_game->GetPlayer());
-
 		m_debug->DrawConsole();
-		m_renderer->EndGui();
-		//#endif
+		m_renderer->UpdateGPUProfiler();
 
+		m_renderer->EndGui();
 		m_renderer->Present();
+		
 	}
 
 	m_game->DeInit();
