@@ -6,6 +6,9 @@
 #include "AnimationResource.h"
 #include "Room.h"
 
+constexpr float RUNNING_STAMINA_DECAY = 5.0f;
+
+
 class Player : public GameObject
 {
 	std::string m_modelResource;
@@ -46,6 +49,7 @@ public:
 
 
 	shared_ptr<AudioSource> m_vegetationSound;
+	shared_ptr<AudioSource> m_stepsSound;
 
 
 

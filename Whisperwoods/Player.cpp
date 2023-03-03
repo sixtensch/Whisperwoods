@@ -65,9 +65,13 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	hasPickedUpEssenceBloom = false;
 
 
-	FMOD::Sound* undergrowthSoundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "vegetation.mp3"))->currentSound;
-	m_vegetationSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.8f, 1.1f, 0.0f, 10.0f, undergrowthSoundPtr);
+	FMOD::Sound* undergrowthSoundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "foliage.mp3"))->currentSound;
+	m_vegetationSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.5f, 1.1f, 0.0f, 10.0f, undergrowthSoundPtr);
 	this->AddChild((GameObject *) m_vegetationSound.get());
+	
+	FMOD::Sound* stepsSoundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "footstep.mp3"))->currentSound;
+	m_stepsSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 2.0f, 1.1f, 0.0f, 10.0f, stepsSoundPtr);
+	this->AddChild((GameObject*)m_stepsSound.get());
 }
 
 void Player::ReloadPlayer()
@@ -119,7 +123,12 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			m_targetVelocity *= m_runSpeed;
 		}
 
-		m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * delta_time);
+		m_stamina = m_stamina - ((cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * delta_time)*RUNNING_STAMINA_DECAY);
+
+		if (m_stamina < 0.0f)
+		{
+			m_stamina = 0.0f;
+		}
 
 		if (m_stamina < 0.1f && m_targetVelocity.Length() > 0.0f)
 		{
@@ -129,7 +138,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 
 		
 
-		Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
+		//Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
 		if (m_velocity.Length() > m_runSpeed)
 		{
 			m_velocity = m_velocity.Normalize() * m_runSpeed;
@@ -218,7 +227,8 @@ void Player::Update(float delta_time)
 	}
 
 
-	m_stamina = cs::fclamp(m_stamina + (1.0f * delta_time), 0, m_maxStamina); //or 0.0f rather than 0
+	//regain stamina
+	m_stamina = cs::fclamp(m_stamina + (1.5f * delta_time), 0, m_maxStamina); //or 0.0f rather than 0
 
 
 	characterAnimator->playbackSpeed = m_animationSpeed;
@@ -227,10 +237,55 @@ void Player::Update(float delta_time)
 	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
 
 	m_vegetationSound->Update(delta_time);
+	m_stepsSound->Update(delta_time);
 
 	// Sound management!
-	if (!m_vegetationSound->IsPlaying())
+
+	Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
+	LevelPixel bitMapPixel = currentRoom->m_levelResource->bitmap[mapPoint.x + mapPoint.y * currentRoom->m_levelResource->pixelWidth];
+	float realNotWhackDensityWhichActuallyIsAccurate = 1.0f - bitMapPixel.density;
+	if (realNotWhackDensityWhichActuallyIsAccurate > 0.2f && m_velocity.Length() > 0.05f && realNotWhackDensityWhichActuallyIsAccurate < 1.0f) // density
 	{
-		m_vegetationSound->Play();
+		//change volume
+		float volPercent = m_velocity.Length() / m_runSpeed;
+		volPercent = pow(volPercent, 2.0f);
+		if (volPercent < 0.01f)
+		{
+			volPercent = 0.1f;
+		}
+		if (volPercent > 0.8f)
+		{
+			volPercent = 0.8f;
+		}
+		realNotWhackDensityWhichActuallyIsAccurate = pow(realNotWhackDensityWhichActuallyIsAccurate, 0.6);
+		m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate;
+
+		if (!m_vegetationSound->IsPlaying()) //repeat sound? (looping kind of)
+		{
+			m_vegetationSound->Play();
+		}
 	}
+	else if (m_vegetationSound->IsPlaying()) // execute order 66
+	{
+		m_vegetationSound->Stop();
+	}
+
+	if (m_velocity.Length() > 0.05f)
+	{
+		//change volume
+		float volPercent = m_velocity.Length() / m_runSpeed;
+		volPercent = pow(volPercent, 0.7f);
+		//volPercent *= volPercent;
+		m_stepsSound->volume = 0.25f * volPercent;
+		//trigger when character sets foot on ground
+		if(((characterAnimator->globalTime > 0.2f && characterAnimator->globalTime < 0.3f) || (characterAnimator->globalTime > 0.66f && characterAnimator->globalTime < 0.76f)) /*&& !m_stepsSound->IsPlaying()*/)
+		{
+			m_stepsSound->Stop();
+			m_stepsSound->Play();
+		}
+	}
+	//else if(m_stepsSound->IsPlaying())  // execute order 66
+	//{
+	//	m_stepsSound->Stop();
+	//}
 }
