@@ -2,7 +2,6 @@
 
 #include <unordered_map>
 
-
 class GPUProfiler {
 
 	struct TimeBuffer {
@@ -52,7 +51,7 @@ public:
 
 private:
 
-	void PostEndFrameSummary();
+	void SynthesizeSummary();
 	void DrawImGui();
 
 	bool inline IsAllowedToUpdate();
@@ -60,6 +59,7 @@ private:
 	
 private:
 	std::unordered_map<std::string, ProfileData> m_profiles;
+	cs::List<std::string> m_insertionOrder;
 
 	// References to render core's device and context.
 	ComPtr<ID3D11Device> m_device;
