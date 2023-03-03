@@ -65,6 +65,7 @@ cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
     float tiling;
 };
 
+// TODO: Remember to change this if resolution on shadow map changes.
 float2 texOffset( int u, int v, int lNo )
 {
 	return float2(u * 1.0f / 2048, v * 1.0f /2048);

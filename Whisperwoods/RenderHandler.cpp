@@ -102,6 +102,9 @@ void RenderHandler::Draw()
 	
 	static std::string ppfxBloomProfileName = "PPFX Bloom";
 	PROFILE_JOB(ppfxBloomProfileName, m_renderCore->DrawPPFX());
+
+	static std::string ppfxSimplifiedProfileName = "Simplified PPFX";
+	PROFILE_JOB(ppfxSimplifiedProfileName, m_renderCore->DrawSimplifiedPPFX());
 	
 	// Draw final image to back buffer with tone mapping.
 	{

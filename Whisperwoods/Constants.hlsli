@@ -10,8 +10,8 @@
 #define REGISTER_SAMPLER_SYSTEM_0       register(s6)
 #define REGISTER_SAMPLER_SYSTEM_1       register(s7)
 #define REGISTER_SAMPLER_SYSTEM_2       register(s8)
-#define REGISTER_SAMPLER_SYSTEM_3       register(s9)
 
+#define REGISTER_SAMPLER_BORDER_LINEAR  register(s9)
 #define REGISTER_SAMPLER_STANDARD       register(s10)
 #define REGISTER_SAMPLER_POINT          register(s11)
 #define REGISTER_SAMPLER_SHADOW         register(s12)

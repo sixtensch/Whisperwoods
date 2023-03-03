@@ -4,8 +4,7 @@
 Texture2D<float4> luminanceTexture                  : REGISTER_SRV_TEX_USER_0;
 RWTexture2D<float4> targetTexture                   : REGISTER_UAV_SYSTEM_0;
 
-SamplerState bloomSampler                           : REGISTER_SAMPLER_SYSTEM_0;
-
+SamplerState bloomSampler                           : REGISTER_SAMPLER_BORDER_LINEAR;
 
 
 [numthreads(NUM_THREADS.x, NUM_THREADS.y, 1)]

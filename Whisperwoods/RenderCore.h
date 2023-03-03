@@ -94,6 +94,7 @@ public:
 	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 origin);
 
 	void DrawPPFX();
+	void DrawSimplifiedPPFX();
 	void DrawPositionalEffects();
 	void DrawToBackBuffer();
 
@@ -138,6 +139,9 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_renderTextureSRV;
 	ComPtr<ID3D11UnorderedAccessView> m_renderTextureUAV;
 
+	ComPtr<ID3D11ShaderResourceView> m_renderTextureMipSliceSRV;
+	ComPtr<ID3D11UnorderedAccessView> m_renderTextureMipSliceUAV;
+
 	// Render texture copy
 	ComPtr<ID3D11Texture2D> m_renderTextureCopy;
 	ComPtr<ID3D11ShaderResourceView> m_renderTextureCopySRV;
@@ -165,7 +169,9 @@ private:
 	ComPtr<ID3D11ComputeShader> m_colorGradeCompute;
 	ComPtr<ID3D11ComputeShader> m_positionalEffectCompute;
 
-	ComPtr<ID3D11SamplerState> m_bloomUpscaleSampler;
+	ComPtr<ID3D11ComputeShader> m_downScaleAndLumFilterCompute;
+
+	ComPtr<ID3D11SamplerState> m_blackBorderLinearSampler;
 
 	// Depth stencil
 	ComPtr<ID3D11Texture2D> m_dsTexture;

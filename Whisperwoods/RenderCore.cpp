@@ -56,7 +56,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	// Profiler
 
-	uint updateFrequency = 500u;
+	uint updateFrequency = 100u;
 	m_gpuProfiler = GPUProfiler(m_device, m_context, updateFrequency);
 
 	// Setup viewport
@@ -109,14 +109,14 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	D3D11_TEXTURE2D_DESC rttd;
 	rttd.Width = window->GetWidth();
 	rttd.Height = window->GetHeight();
-	rttd.MipLevels = 1u;
+	rttd.MipLevels = 2u;
 	rttd.ArraySize = 1u;
 	rttd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	rttd.SampleDesc = { 1u, 0u };
 	rttd.Usage = D3D11_USAGE_DEFAULT;
 	rttd.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	rttd.CPUAccessFlags = 0u;
-	rttd.MiscFlags = 0u;
+	rttd.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
 	EXC_COMCHECK(m_device->CreateTexture2D(&rttd, nullptr, m_renderTexture.GetAddressOf()));
 	EXC_COMCHECK(m_device->CreateTexture2D(&rttd, nullptr, m_renderTextureCopy.GetAddressOf()));
@@ -131,17 +131,24 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	uavd = {};
 	uavd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	uavd.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-	uavd.Texture2D = { 0 };
+	uavd.Texture2D = { 0u };
 
 	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_renderTexture.Get(), &uavd, m_renderTextureUAV.GetAddressOf()));
+
+	uint mipSlice = 1u;
+	uavd.Texture2D = { mipSlice };
+	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_renderTexture.Get(), &uavd, m_renderTextureMipSliceUAV.GetAddressOf()));
 	
 	srvd = {};
 	srvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvd.Texture2D = { 0, 1 };
+	srvd.Texture2D = { 0u, 1u };
 
 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_renderTexture.Get(), &srvd, m_renderTextureSRV.GetAddressOf()));
 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_renderTextureCopy.Get(), &srvd, m_renderTextureCopySRV.GetAddressOf()));
+
+	srvd.Texture2D = { mipSlice, 1u };
+	EXC_COMCHECK(m_device->CreateShaderResourceView(m_renderTexture.Get(), &srvd, m_renderTextureMipSliceSRV.GetAddressOf()));
 
 	// PPFX Textures and views
 
@@ -434,7 +441,9 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	sd.MinLOD = 0.0f;
 	sd.MaxLOD = D3D11_FLOAT32_MAX;
 
-	EXC_COMCHECK(m_device->CreateSamplerState(&sd, m_bloomUpscaleSampler.GetAddressOf()));
+	EXC_COMCHECK(m_device->CreateSamplerState(&sd, m_blackBorderLinearSampler.GetAddressOf()));
+	EXC_COMINFO(m_context->CSSetSamplers(RegSamplerBlackBorderLinear, 1, m_blackBorderLinearSampler.GetAddressOf()));
+	
 }
 
 RenderCore::~RenderCore()
@@ -886,25 +895,78 @@ void RenderCore::DrawPPFX()
 		
 		// Generate all mips for lumen texture for artificial blur used in bloom pass.
 		EXC_COMINFO(m_context->GenerateMips(m_ppfxLumSRV.Get()));
-		EXC_COMINFO(m_context->CSSetSamplers(RegSamplerSystem0, 1u, m_bloomUpscaleSampler.GetAddressOf()));
 		EXC_COMINFO(m_context->CSSetShaderResources(renderTexSRVReg, 1u, &nullSRV));
 		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, &nullUAV, nullptr));
 	}
 	
 	// Bloom pass
 	{
-		EXC_COMINFO(m_context->CSSetShader(m_bloomCompute.Get(), nullptr, 0u));
-		
-		EXC_COMINFO(m_context->CSSetShaderResources(lumTexSRVReg, 1u, m_ppfxLumSRV.GetAddressOf()));
-		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, m_ppfxLumSumUAV.GetAddressOf(), nullptr));
-		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
-	
-		EXC_COMINFO(m_context->CSSetShaderResources(lumTexSRVReg, 1u, &nullSRV)); // Unbind lum SRV.
-		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, &nullUAV, nullptr)); // Unbind render tex UAV from compute.
+		//EXC_COMINFO(m_context->CSSetShader(m_bloomCompute.Get(), nullptr, 0u));
+		//
+		//EXC_COMINFO(m_context->CSSetShaderResources(lumTexSRVReg, 1u, m_ppfxLumSRV.GetAddressOf()));
+		//EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, m_ppfxLumSumUAV.GetAddressOf(), nullptr));
+		//EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+		//
+		//EXC_COMINFO(m_context->CSSetShaderResources(lumTexSRVReg, 1u, &nullSRV)); // Unbind lum SRV.
+		//EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, &nullUAV, nullptr)); // Unbind render tex UAV from compute.
 	}
 	
 	
 }
+
+void RenderCore::DrawSimplifiedPPFX()
+{
+	ID3D11UnorderedAccessView* nullUAV = nullptr;
+	ID3D11ShaderResourceView* nullSRV = nullptr;
+	ID3D11RenderTargetView* nullRTV = nullptr;
+
+	const RegSRV renderTexSRVReg = RegSRVCopySource;
+	const RegUAV lumTexUAVReg = RegUAVSystem0;
+	const RegUAV lumTexCopySRVReg = RegUAVSystem1;
+
+	D3D11_TEXTURE2D_DESC renderTexDesc = {};
+	m_renderTexture->GetDesc(&renderTexDesc);
+	D3D11_UNORDERED_ACCESS_VIEW_DESC renderMipUAVDesc = {};
+	m_renderTextureMipSliceUAV->GetDesc(&renderMipUAVDesc);
+
+	// Divide by 2 for each level of mip.
+	float mipFactor = (float)(1 << renderMipUAVDesc.Texture2D.MipSlice);
+	float mipWidth = renderTexDesc.Width / mipFactor;
+	float mipHeight = renderTexDesc.Height / mipFactor;
+
+	ComPtr<ID3D11Texture2D> tempTex2D;
+	renderTexDesc.MipLevels = 1u;
+	renderTexDesc.Width = mipWidth;
+	renderTexDesc.Height = mipHeight;
+	m_device->CreateTexture2D(&renderTexDesc, nullptr, tempTex2D.GetAddressOf());
+	ComPtr<ID3D11UnorderedAccessView> tempUAV;
+	m_device->CreateUnorderedAccessView(tempTex2D.Get(), nullptr, tempUAV.GetAddressOf());
+
+	uint groupsX = mipWidth / 8u;
+	uint groupsY = mipHeight / 8u;
+
+	// Downsample and luminance filter.
+	{
+		EXC_COMINFO(m_context->CSSetShader(m_downScaleAndLumFilterCompute.Get(), nullptr, 0u));
+
+		EXC_COMINFO(m_context->CSSetShaderResources(renderTexSRVReg, 1u, m_renderTextureSRV.GetAddressOf()));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, m_renderTextureMipSliceUAV.GetAddressOf(), nullptr));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexCopySRVReg, 1u, tempUAV.GetAddressOf(), nullptr));
+		EXC_COMINFO(m_context->Dispatch(groupsX, groupsY, 1u));
+
+		EXC_COMINFO(m_context->CSSetShaderResources(renderTexSRVReg, 1u, &nullSRV));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, &nullUAV, nullptr));
+		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexCopySRVReg, 1u, &nullUAV, nullptr));
+	}
+
+	// Blur pass
+	{
+
+	}
+	
+}
+
+
 
 void RenderCore::DrawPositionalEffects()
 {
@@ -1276,6 +1338,14 @@ void RenderCore::InitComputeShaders()
 		blob->GetBufferSize(),
 		nullptr,
 		m_positionalEffectCompute.GetAddressOf()
+	));
+
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"CSDownsampleAndFilterBrightness.cso", &blob));
+	EXC_COMCHECK(m_device->CreateComputeShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		m_downScaleAndLumFilterCompute.GetAddressOf()
 	));
 }
 
