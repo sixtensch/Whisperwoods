@@ -43,8 +43,9 @@ private:
 	ComPtr<ID3D11DeviceContext> m_context;
 
 	uint m_waitFramesPerUpdate;
-	uint m_presentCounter;
+	uint m_frameCounter;
 	bool m_isOn;
+	bool m_writeSummaryToConsole;
 	std::string m_lastSummary;
 
 	// TODO: Maybe add struct that contains info gained after a frame summary. Can be used for posting in ImGui.

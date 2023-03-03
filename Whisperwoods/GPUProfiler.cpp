@@ -9,8 +9,9 @@ GPUProfiler::GPUProfiler(ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext
 	m_device(device),
 	m_context(context), 
 	m_waitFramesPerUpdate(waitFramesPerUpdate), 
-	m_presentCounter(0u), 
+	m_frameCounter(0u), 
 	m_isOn(true),
+	m_writeSummaryToConsole(false),
 	m_lastSummary("") {}
 
 GPUProfiler::GPUProfiler(ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context)
@@ -67,6 +68,7 @@ void GPUProfiler::FinilizeAndPresent()
 	if (m_isOn) 
 	{
 		PostEndFrameSummary();
+		m_frameCounter++;
 	}
 }
 
@@ -88,8 +90,6 @@ void GPUProfiler::InitProfileData(const std::string profileName)
 
 void GPUProfiler::PostEndFrameSummary()
 {
-	m_presentCounter++;
-
 	if (!IsAllowedToUpdate())
 		return;
 
@@ -127,6 +127,11 @@ void GPUProfiler::PostEndFrameSummary()
 
 	frameSummary += "\n-------- SUMMARY END --------\n";
 
+	if (m_writeSummaryToConsole)
+	{
+		LOG(frameSummary.c_str());
+	}
+	
 	m_lastSummary = std::move(frameSummary);
 }
 
@@ -135,6 +140,7 @@ void GPUProfiler::DrawImGui()
 	if (ImGui::Begin("GPU Profiler"))
 	{
 		ImGui::Checkbox("Profiler toggle", &m_isOn);
+		ImGui::Checkbox("Write duplicate summary to console", &m_writeSummaryToConsole);
 
 		ImGui::Text("Frames per update (Lower values will tank FPS)");
 		ImGui::InputInt(" ", (int*)&m_waitFramesPerUpdate, 1, 10);
@@ -150,5 +156,5 @@ void GPUProfiler::DrawImGui()
 
 bool GPUProfiler::IsAllowedToUpdate()
 {
-	return ((m_presentCounter % m_waitFramesPerUpdate) == 0) && m_isOn;
+	return ((m_frameCounter % m_waitFramesPerUpdate) == 0) && m_isOn;
 }
