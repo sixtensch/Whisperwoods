@@ -33,6 +33,12 @@ public:
 	/// Overload with some finer control :3
 	FMOD::Channel* PlaySound(FMOD::Sound* sound, FMOD::Channel* channel, FMOD_VECTOR pos, FMOD_VECTOR vel, float maxRange);
 
+	/// Overload with some finer control :3
+	FMOD::Channel* PlaySound( FMOD::Sound* sound, FMOD_VECTOR pos, FMOD_VECTOR vel, float minRange, float maxRange, float mix2d3d );
+
+	/// Overload with some finer control :3
+	FMOD::Channel* PlaySound( FMOD::Sound* sound, FMOD::Channel* channel, FMOD_VECTOR pos, FMOD_VECTOR vel, float minRange, float maxRange, float mix2d3d );
+
 	/// Plays the sound matching the name provided if it exists
 	//FMOD::Channel* PlaySound( std::string sound );
 
@@ -44,6 +50,9 @@ public:
 
 	/// Updates the FMOD system with given listener 3d params.
 	void Update(FMOD_VECTOR listenerPos, FMOD_VECTOR listenerVel);
+
+	/// Updates the FMOD system with more listener 3d params :3
+	void Update( FMOD_VECTOR lPos, FMOD_VECTOR listenerVel, FMOD_VECTOR lForward, FMOD_VECTOR lUp );
 
 	/// stops all potential channels playing sounds.
 	void StopAllSounds();

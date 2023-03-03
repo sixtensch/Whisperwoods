@@ -12,6 +12,7 @@ public:
 	AudioSource(Vec3 pos, float vol, float pch, float minr, float maxr, FMOD::Sound* snd);
 	AudioSource(Vec3 pos, float vol, float pch, float minr, float maxr, FMOD::Sound* snd, FMOD::Channel* ch);
 
+	float mix2d3d;
 	float volume;
 	float pitch;
 	float minRange;

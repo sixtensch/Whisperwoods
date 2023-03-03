@@ -32,6 +32,9 @@ public:
 	const Mat4 GetViewMatrix() const;
 	const Mat4 GetProjectionMatrix() const;
 
+	float GetFov() const;
+	void SetFov(float fov);
+
 private:
 	float m_fov, m_ratio, m_near, m_far;
 	float m_cameraSpeed = 10; //how fast the camera is moving, change value after need! 

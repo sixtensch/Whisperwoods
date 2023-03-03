@@ -21,6 +21,7 @@ public:
 	void Draw();
 	void BeginGui();
 	void EndGui();
+	void UpdateGPUProfiler();
 	void Present();
 
 	void SetupEnvironmentAssets();
@@ -30,6 +31,12 @@ public:
 	static void LoadLevel(LevelResource* level, string image);
 
 	static void LoadEnvironment(const Level* level);
+
+	static void UnLoadEnvironment();
+
+	static void ClearShadowRenderables();
+	static void RegisterShadowRenderable();
+	static void ExecuteShadowRender();
 
 	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 	static shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);

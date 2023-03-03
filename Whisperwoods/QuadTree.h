@@ -1,8 +1,14 @@
 #pragma once
 #include <DirectXCollision.h>
+//#include "RenderHandler.h"
 #include "Core.h"
 #include <vector>
 #include <map>
+
+constexpr UINT MAX_LEAF_ELEMENTS = 30;
+constexpr UINT MAX_DEPTH = 8;
+
+struct EnvMesh;
 
 template <typename T>
 class QuadTree
@@ -20,6 +26,18 @@ private: // Misc
 
 		dx::BoundingBox rootPartition;
 		shared_ptr<Node> child[4];
+	};
+
+	struct QuadData
+	{
+		float dotValue;
+		int index;
+
+		// Reverse sorting
+		bool operator<(const QuadData& other)
+		{
+			return dotValue < other.dotValue;
+		}
 	};
 public: // Methods
 	/// <summary>The tree works like a binary tree with a constant of 4 children per node. 
@@ -45,14 +63,17 @@ public: // Core functionality
 	void AddElementIndexed(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, int index);
 
 	std::vector<const T*> CullTree(const dx::BoundingFrustum& frustum);
-	void CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects);
+	void CullTreeIndexedPrecise(const dx::BoundingFrustum& frustum, EnvMesh out_culledObjects[LevelAssetCount]);
+	void CullTreeIndexedQuadrant(const dx::BoundingFrustum& frustum, EnvMesh out_culledObjects[LevelAssetCount], uint precision);
 
 private: // Recursive callers
 	void AddToNode(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox, const shared_ptr<Node>& currentNode, int depth, int index = -1);
 
 	void CullNode(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, std::vector<const T*>& out_validElements) const;
-	void CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, cs::List<cs::List<const T*>>& out_indexedList) const;
-	
+	void CullNodeIndexedPrecise(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, EnvMesh out_indexedList[LevelAssetCount]) const;
+	void CullNodeIndexedQuadrant(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, EnvMesh out_indexedList[LevelAssetCount], uint presicion, uint depth) const;
+	void CollectDataIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, EnvMesh out_indexedList[LevelAssetCount]) const;
+
 	void FreeNode(shared_ptr<Node>& currentNode);
 
 #if WW_DEBUG
@@ -73,10 +94,6 @@ private:
 	float m_minHeight;
 
 	int m_quadSearch[4];
-
-private: // Settings
-	static const UINT s_maxLeafElements = 10;
-	static const UINT s_maxDepth = 8;
 };
 
 template<typename T>
@@ -124,7 +141,7 @@ inline void QuadTree<T>::Init(float maxHeight, float minHeight, float top, float
 		m_root->child[i] = nullptr;
 	}
 
-	m_root->data.reserve(s_maxLeafElements);
+	m_root->data.reserve(MAX_LEAF_ELEMENTS);
 	m_root->rootPartition = rootBox;
 }
 template<typename T>
@@ -173,11 +190,18 @@ inline std::vector<const T*> QuadTree<T>::CullTree(const dx::BoundingFrustum& fr
 /// <para>It is assumed that the indexes are valid and are not out of bounds</para>
 /// </summary>
 template<typename T>
-inline void QuadTree<T>::CullTreeIndexed(const dx::BoundingFrustum& frustum, cs::List<cs::List<const T*>>& out_culledObjects)
+inline void QuadTree<T>::CullTreeIndexedPrecise(const dx::BoundingFrustum& frustum, EnvMesh out_culledObjects[LevelAssetCount])
 {
 	CalcQuadOrder(frustum);
-	CullNodeIndexed(frustum, m_root, out_culledObjects);
+	CullNodeIndexedPrecise(frustum, m_root, out_culledObjects);
 }
+template<typename T>
+inline void QuadTree<T>::CullTreeIndexedQuadrant(const dx::BoundingFrustum& frustum, EnvMesh out_culledObjects[LevelAssetCount], uint precision)
+{
+	CalcQuadOrder(frustum);
+	CullNodeIndexedQuadrant(frustum, m_root, out_culledObjects, precision, 0);
+}
+
 
 template<typename T>
 inline void QuadTree<T>::AddElement(shared_ptr<const T*> elementAddress, const dx::BoundingBox& boundingBox)
@@ -204,7 +228,7 @@ inline void QuadTree<T>::AddToNode(shared_ptr<const T*> elementAddress, const dx
 		return;
 
 	// Max depth is reached
-	if ((depth >= s_maxDepth))
+	if ((depth >= MAX_DEPTH))
 	{
 		currentNode->data.push_back({ elementAddress, boundingBox, index });
 		return;
@@ -282,27 +306,78 @@ inline void QuadTree<T>::CullNode(const dx::BoundingFrustum& frustum, const shar
 }
 
 template<typename T>
-inline void QuadTree<T>::CullNodeIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& node, cs::List<cs::List<const T*>>& out_indexedList) const
+inline void QuadTree<T>::CullNodeIndexedPrecise(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, EnvMesh out_indexedList[LevelAssetCount]) const
 {
-	bool collision = frustum.Contains(node->rootPartition);
+	bool collision = frustum.Contains(currentNode->rootPartition);
 	if (!collision)
 		return;
 
-	for (auto& nodeData : node->data)
+	for (auto& nodeData : currentNode->data)
 	{
 		collision = frustum.Contains(nodeData.boundedVolume);
 		if (collision)
-			out_indexedList[nodeData.id].Add(*nodeData.element);
+			out_indexedList[nodeData.id].hotInstances.Add(*(*nodeData.element));
 	}
-	if (!IsLeaf(node))
+	if (!IsLeaf(currentNode))
 	{
 		for (int i = 0; i < 4; ++i)
 		{
-			CullNodeIndexed(frustum, node->child[m_quadSearch[i]], out_indexedList);
+			CullNodeIndexedPrecise(frustum, currentNode->child[m_quadSearch[i]], out_indexedList);
 		}
 	}
 }
 
+template<typename T>
+inline void QuadTree<T>::CullNodeIndexedQuadrant(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, EnvMesh out_indexedList[LevelAssetCount], uint precision, uint depth) const
+{
+	// Check if our precision depth has been reached, if so just collect
+	if ( precision <= depth )
+	{
+		CollectDataIndexed(frustum, currentNode, out_indexedList);
+		return;
+	}
+
+	// Check if this quadrant is usefull
+	bool collision = frustum.Contains(currentNode->rootPartition);
+	if ( !collision )
+		return;
+
+	// Collect elements
+	for ( auto& nodeData : currentNode->data )
+	{
+		// Potential collision check for edge cases
+
+		out_indexedList[nodeData.id].hotInstances.Add(*(*nodeData.element));
+	}
+	if ( !IsLeaf(currentNode) )
+	{
+		depth++;
+		// Search child nodes
+		for ( int i = 0; i < 4; ++i )
+		{
+			CullNodeIndexedQuadrant(frustum, currentNode->child[m_quadSearch[i]], out_indexedList, precision, depth);
+		}
+	}
+}
+template<typename T>
+inline void QuadTree<T>::CollectDataIndexed(const dx::BoundingFrustum& frustum, const shared_ptr<Node>& currentNode, EnvMesh out_indexedList[LevelAssetCount]) const
+{
+	// Collect all data from node and all children, no collision checks
+
+	for ( auto& nodeData : currentNode->data )
+	{
+
+		out_indexedList[nodeData.id].hotInstances.Add(*(*nodeData.element));
+	}
+
+	if ( !IsLeaf(currentNode) )
+	{
+		for ( int i = 0; i < 4; ++i )
+		{
+			CollectDataIndexed(frustum, currentNode->child[m_quadSearch[i]], out_indexedList);
+		}
+	}
+}
 
 template<typename T>
 inline void QuadTree<T>::FreeNode(shared_ptr<Node>& node)
@@ -335,7 +410,7 @@ inline bool QuadTree<T>::IsLeaf(const shared_ptr<Node>& currentNode) const
 template<typename T>
 inline bool QuadTree<T>::IsFull(const shared_ptr<Node>& currentNode) const
 {
-	return currentNode->data.size() >= s_maxLeafElements;
+	return currentNode->data.size() >= MAX_LEAF_ELEMENTS;
 }
 
 template<typename T>
@@ -410,9 +485,9 @@ inline void QuadTree<T>::SplitNode(const shared_ptr<Node>& currentNode)
 		currentNode->child[i]->child[2] = nullptr;
 		currentNode->child[i]->child[3] = nullptr;
 		
-		for (int j = 0; j < s_maxLeafElements; ++j)
+		for (int j = 0; j < MAX_LEAF_ELEMENTS; ++j)
 		{
-			currentNode->child[i]->data.reserve(s_maxLeafElements);
+			currentNode->child[i]->data.reserve(MAX_LEAF_ELEMENTS);
 		}
 	}
 }
@@ -424,18 +499,22 @@ inline void QuadTree<T>::CalcQuadOrder(const dx::BoundingFrustum& frustum)
 		frustum.Orientation.x,
 		frustum.Orientation.y,
 		frustum.Orientation.z,
-		frustum.Orientation.w
-	) * cs::Vec3(0,0,1.0f);
+		frustum.Orientation.w)
+		* cs::Vec3(0,0,1.0f);
 	cs::Vec2 xzVec = {directionalVec.x, directionalVec.z};
 	
-	std::map<float, int> rbTree;
-	rbTree.emplace(xzVec.Dot({ -1,  1 }), 0); // topleft
-	rbTree.emplace(xzVec.Dot({  1,  1 }), 1); // topright
-	rbTree.emplace(xzVec.Dot({ -1, -1 }), 2); // bottomleft
-	rbTree.emplace(xzVec.Dot({  1, -1 }), 3); // bottomright
+
+	QuadData arr[] = {
+		{xzVec.Dot({ -0.707f,  0.707f }), 0 },
+		{xzVec.Dot({  0.707f,  0.707f }), 1 },
+		{xzVec.Dot({ -0.707f, -0.707f }), 2 },
+		{xzVec.Dot({  0.707f, -0.707f }), 3 }
+	};
+	std::sort(arr, arr + 4);
+
 
 	for ( int i = 0; i < 4; ++i )
 	{
-		m_quadSearch[i] = rbTree[i];
+		m_quadSearch[i] = arr[i].index;
 	}
 }

@@ -13,6 +13,24 @@
 #include "Level.h"
 #include "QuadTree.h"
 
+struct EnvMesh
+{
+	uint indexStarts[2];
+	uint vertexStarts[2];
+
+	cs::List<uint> submeshes[2];
+	const ModelStaticResource* models[2];
+
+	dx::BoundingBox boundedVolume;
+
+	cs::List<Mat4> instances;
+
+	// Hot-data
+	cs::List<Mat4> hotInstances;
+	uint instanceOffset;
+	uint instanceCount;
+};
+
 class RenderHandler sealed
 {
 private:
@@ -30,15 +48,20 @@ public:
 	void LoadLevel(LevelResource* level, string image);
 
 	void Draw();
+	void UpdateGPUProfiler();
 	void Present();
 
 	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);
+
+
 
 	RenderCore* GetCore() const;
 	Camera& GetCamera();
 
 	void SetupEnvironmentAssets();
 	void LoadEnvironment(const Level* level);
+	void UnLoadEnvironment();
+
 
 	shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 	std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> CreateMeshStaticSwappable(const string& subpathCurrent,
@@ -56,6 +79,11 @@ public:
 	bool RegisterSpotLight(shared_ptr<SpotLight> spotLight);
 
 	void SetPlayerMatrix(const Mat4& matrix);
+
+	void ClearShadowRenderables();
+	void RegisterLastRenderableAsShadow();
+	void ExecuteStaticShadowDraw();
+
 
 private:
 	void DrawInstances(uint state, bool shadows);
@@ -80,25 +108,7 @@ private:
 		uint model;
 		uint localSubmesh;
 	};
-
-	struct EnvMesh
-	{
-		uint indexStarts[2];
-		uint vertexStarts[2];
-
-		cs::List<uint> submeshes[2];
-		const ModelStaticResource* models[2];
-
-		//cs::Box2
-
-		cs::List<Mat4> instances;
-
-		// Hot-data
-		cs::List<Mat4> hotInstances;
-		uint instanceOffset;
-		uint instanceCount;
-	};
-
+	
 	unique_ptr<RenderCore> m_renderCore;
 
 	TimelineState m_timelineState;
@@ -116,6 +126,9 @@ private:
 
 	const Level* m_currentLevel;
 
+	// Indicies of the renderables to use when calculating the static shadowmap along the 
+	cs::List<int> m_shadowRenderables;
+
 	ComPtr<ID3D11Buffer> m_envIndices[2];
 	ComPtr<ID3D11Buffer> m_envVertices[2];
 
@@ -123,7 +136,8 @@ private:
 	cs::List<EnvSubmesh> m_envSubmeshes[2];
 	EnvMesh m_envMeshes[LevelAssetCount];
 
-	//QuadTree<Mat4> m_envQuadTree;
+	QuadTree<Mat4> m_envQuadTree;
+	dx::BoundingBox boundingVolumes[LevelAssetCount];
 
 	// Hot-data
 	cs::List<Mat4> m_envInstances;

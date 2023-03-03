@@ -18,10 +18,10 @@
 
 // Constant buffer views
 
-#define REGISTER_CBV_USER_0             register(b1) // Used by ppfx threshold.
-#define REGISTER_CBV_USER_1             register(b2) // Used by ppfx colorgrading.
-#define REGISTER_CBV_USER_2             register(b3)
-#define REGISTER_CBV_USER_3             register(b4)
+#define REGISTER_CBV_THRESHOLD_INFO     register(b1) // Used by ppfx threshold.
+#define REGISTER_CBV_COLORGRADE_INFO    register(b2) // Used by ppfx colorgrading.
+#define REGISTER_CBV_SWITCH_INFO        register(b3) // Used by all shaders that need info about time switch.
+#define REGISTER_CBV_ENEMY_CONE_INFO    register(b4) // Used by positional effect pass.
 
 #define REGISTER_CBV_SYSTEM_0           register(b5)
 #define REGISTER_CBV_SYSTEM_1           register(b6)

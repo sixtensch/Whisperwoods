@@ -5,6 +5,30 @@
 
 #include <unordered_map>
 
+struct EnvironmentalizeParameters
+{
+	int spawnSeed;
+	int scaleSeed;
+	int rotationSeed;
+	int diversitySeed;
+	float rotateMult;
+	float xMult;
+	float yMult;
+	float scaleBase;
+	float scaleMult;
+	float densityUnwalkableOuter;
+	float densityUnwalkableInner;
+	float densityWalkable;
+	float minDensity;
+	float scaleMultiplierStones;
+	float scaleMultiplierTrees;
+	float scaleMultiplierFoliage;
+	float scaleEffectDensity;
+	int edgeSampleDistanceTrunks;
+	int edgeSampleDistanceTrees;
+	int edgeSampleDistanceStones;
+};
+
 struct LevelParams
 {
 	uint seed;
@@ -23,7 +47,10 @@ public:
 
 	void LoadFloors();
 	void GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount, uint pushSteps);
+	void GenerateFloor(LevelFloor* outFloor, EnvironmentalizeParameters params);
 	void GenerateTestFloor(LevelFloor* outFloor);
+	void GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParameters params);
+	void GenerateHubby( LevelFloor* outFloor, EnvironmentalizeParameters params);
 
 private:
 	struct RoomPrimer
@@ -78,4 +105,3 @@ private:
 	cs::List<uint> m_resourceIndices[3];
 	cs::List<shared_ptr<LevelResource>> m_resources;
 };
-

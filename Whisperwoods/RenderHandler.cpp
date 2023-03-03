@@ -3,15 +3,37 @@
 #include "Vertex.h"
 #include "Resources.h"
 
-// TODO: Testing include for PPFX include
-#include "Input.h"
-
 #include "LevelImporter.h"
+
+#define USE_GPU_PROFILER true
+#if USE_GPU_PROFILER
+	#define PROFILE_JOB(profileName, call) { m_renderCore->ProfileBegin(profileName); call; m_renderCore->ProfileEnd(profileName); }
+#else
+	#define PROFILE_JOB(profileName, call) { call; }
+#endif
 
 RenderHandler::RenderHandler()
 {
 	m_renderableIDCounter = 0;
 	m_timelineState = TimelineStateCurrent;
+	m_envQuadTree.Init(2.0f, -1.0f, 50.0f, 50.0f); //TODO: actual start size
+
+
+	const dx::BoundingBox BananaPlant = {
+		dx::XMFLOAT3(0,0,0),
+		dx::XMFLOAT3(1,1,1)
+	};
+	const dx::BoundingBox BananaPlant2TEMP = {
+		dx::XMFLOAT3(0,0,0),
+		dx::XMFLOAT3(1,1,1)
+	};
+
+	// Add to the list
+
+	for (int i = 0; i < 9; i++)
+	{
+		boundingVolumes[i] = BananaPlant;
+	}
 }
 
 RenderHandler::~RenderHandler()
@@ -44,9 +66,10 @@ void RenderHandler::Draw()
 {
 	m_renderCore->NewFrame();
 
+	m_mainCamera.CalculatePerspectiveProjection();
 	m_renderCore->UpdateViewInfo(m_mainCamera);
 	
-	
+
 	// Main scene rendering
 
 	for (int i = 0; i < m_lightsPoint.Size(); i++)
@@ -60,35 +83,30 @@ void RenderHandler::Draw()
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	m_renderCore->TargetRenderTexture();
+	//m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
 
 
 	// ShadowPass
-
-	ExecuteDraw(m_lightDirectional->camera, m_timelineState, true);
-
+	static std::string shadowPassProfileName = "Shadow Pass";
+	PROFILE_JOB(shadowPassProfileName, ExecuteDraw(m_lightDirectional->camera, m_timelineState, true));
 
 	// Main scene rendering
 
-	ExecuteDraw(m_mainCamera, m_timelineState, false);
-
+	static std::string mainSceneProfileName = "Main Scene";
+	PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_mainCamera, m_timelineState, false));
 	m_renderCore->UnbindRenderTexture();
 
-	// Render PPFX
-	{
-		static bool ppfxOn = false;
-		if (Input::Get().IsDXKeyPressed(DXKey::E))
-			ppfxOn = !ppfxOn;
-
-		if (ppfxOn)
-		{
-			m_renderCore->DrawPPFX();
-		}
-	}
+	// PPFX / FX
+	static std::string ppfxPositionalProfileName = "PPFX Positional";
+	PROFILE_JOB(ppfxPositionalProfileName, m_renderCore->DrawPositionalEffects());
+	
+	static std::string ppfxBloomProfileName = "PPFX Bloom";
+	PROFILE_JOB(ppfxBloomProfileName, m_renderCore->DrawPPFX());
 	
 	// Draw final image to back buffer with tone mapping.
 	{
-		m_renderCore->DrawToBackBuffer();
+		static std::string backBufferDrawProfileName = "Back Buffer Draw";
+		PROFILE_JOB(backBufferDrawProfileName, m_renderCore->DrawToBackBuffer());
 	}
 	
 	// Render text
@@ -104,7 +122,10 @@ void RenderHandler::Draw()
 	
 }
 
-
+void RenderHandler::UpdateGPUProfiler()
+{
+	m_renderCore->UpdateGPUProfiler();
+}
 
 void RenderHandler::Present()
 {
@@ -124,10 +145,19 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 		m_renderCore->TargetShadowMap();
 	}
 
-	DrawInstances(state, shadows);
-
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
+		if (shadows)
+		{
+			bool staticThing = false;
+			for (int j = 0; j < m_shadowRenderables.Size(); j++)
+			{
+				if (m_shadowRenderables[j] == i)
+					staticThing = true;
+			}
+			if (staticThing)
+				continue;
+		}
 		shared_ptr<WorldRenderable> data = {};
 		switch ( state )
 		{
@@ -145,6 +175,39 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 			m_renderCore->DrawObject(data.get(), shadows);
 		}
 	}
+
+	if (!shadows)
+	{
+		static std::string instancesDrawProfileName = "Draw Instances";
+		PROFILE_JOB(instancesDrawProfileName, DrawInstances(state, false));
+	}
+}
+
+void RenderHandler::ExecuteStaticShadowDraw()
+{
+	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
+	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
+	m_renderCore->TargetStaticShadowMap();
+	for (int i = 0; i < m_shadowRenderables.Size(); i++)
+	{
+		shared_ptr<WorldRenderable> data = {};
+		switch (m_timelineState)
+		{
+		case TimelineStateCurrent:
+			data = m_worldRenderables[m_shadowRenderables[i]].first;
+			break;
+
+		case TimelineStateFuture:
+			data = m_worldRenderables[m_shadowRenderables[i]].second;
+			break;
+		}
+		if (data && data->enabled)
+		{
+			m_renderCore->UpdateObjectInfo(data.get());
+			m_renderCore->DrawObject(data.get(), true);
+		}
+	}
+	DrawInstances(m_timelineState, true);
 }
 
 RenderCore* RenderHandler::GetCore() const
@@ -186,16 +249,39 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	load(LevelAssetBush1, 
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
-		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
-
+		"BananaPlant.wwm", { "Tree_Charred_Tiled.wwmt" });
 
 	load(LevelAssetBush2, 
 		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" });
 
-	//load(LevelAssetBush1,
-	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
-	//	"ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" });
+	load(LevelAssetTree1,
+		"Medium_Tree_1_Present.wwm", {"Brown_Bark_Tiled.wwmt", "Trees_Foliage.wwmt" },
+		"Medium_Tree_1_Future.wwm", {"Tree_Charred_Tiled.wwmt"});
+
+	load(LevelAssetTree2,
+		"Medium_Tree_2_Present.wwm", { "Pink_Palm_Tiled.wwmt", "Trees_Foliage.wwmt" },
+		"Medium_Tree_2_Future.wwm", { "Tree_Charred_Tiled.wwmt" });
+
+	load(LevelAssetTree3,
+		"Medium_Tree_3_Present.wwm", { "Trees_Foliage.wwmt", "Willow_Tree_Tiled.wwmt" },
+		"Medium_Tree_3_Future.wwm", { "Tree_Charred_Tiled.wwmt" });
+
+	load(LevelAssetBigTrunk1,
+		"Big_Trunk_1.wwm", { "Brown_Bark_Tiled.wwmt" },
+		"Big_Trunk_1.wwm", { "Tree_Charred_Tiled.wwmt" });
+
+	load(LevelAssetBigTrunk2,
+		"Big_Trunk_2.wwm", { "Brown_Bark_Tiled.wwmt" },
+		"Big_Trunk_2.wwm", { "Tree_Charred_Tiled.wwmt" });
+
+	load(LevelAssetStone1,
+		"Stone_1_Present.wwm", { "Stone_1_Present.wwmt" },
+		"Stone_1_Future.wwm", { "Stone_1_Future.wwmt" });
+
+	load(LevelAssetStone2,
+		"Stone_2_Present.wwm", { "Stone_2_Present.wwmt" },
+		"Stone_2_Future.wwm", { "Stone_2_Future.wwmt" });
 
 
 
@@ -307,17 +393,41 @@ void RenderHandler::LoadEnvironment(const Level* level)
 	
 	uint instanceCount = 0;
 
-	//m_envQuadTree.
+	m_envQuadTree.Reconstruct((float)level->resource->pixelHeight, (float)level->resource->pixelWidth);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
 		m_envMeshes[i].instances.Clear(false);
-		m_envMeshes[i].instances.MassAdd(level->instances[i].Data(), level->instances[i].Size(), true);
+		//m_envMeshes[i].instances.MassAdd(level->instances[i].Data(), level->instances[i].Size(), true);
+		
+		for ( auto& matrix : level->instances[i] )
+		{
+			m_envMeshes[i].instances.Add(matrix);
+
+			dx::BoundingBox bBox = {};
+			// Improvements can be made here, do math for Mat4 transform on boundingVolume instead
+			dx::XMMATRIX dxMatrix = dx::XMMatrixTranspose(matrix.XMMatrix());
+			boundingVolumes[i].Transform(bBox, dxMatrix);
+			shared_ptr<const Mat4*> sptr = make_shared<const Mat4*>(&matrix);
+
+			m_envQuadTree.AddElementIndexed(sptr, bBox, i);
+		}
 
 		instanceCount += (uint)level->instances[i].Size();
 	}
+	
 
 	m_renderCore->CreateInstanceBuffer(nullptr, instanceCount * sizeof(Mat4), &m_envInstanceBuffer);
+}
+
+void RenderHandler::UnLoadEnvironment()
+{
+	m_envInstances.Clear( false );
+	for (uint i = 0; i < LevelAssetCount; i++)
+	{
+		m_envMeshes[i].hotInstances.Clear( false );
+	}
+	m_worldRenderables.Clear();
 }
 
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
@@ -434,15 +544,41 @@ void RenderHandler::SetPlayerMatrix(const Mat4& matrix)
 	m_playerMatrix = matrix;
 }
 
+void RenderHandler::ClearShadowRenderables()
+{
+	m_shadowRenderables.Clear();
+}
+
+void RenderHandler::RegisterLastRenderableAsShadow()
+{
+	m_shadowRenderables.Add(m_worldRenderables.Size() - 1);
+}
+
 void RenderHandler::DrawInstances(uint state, bool shadows)
 {
 	m_renderCore->BindInstancedPipeline(shadows);
 
-
-
 	// Culling here
-
 	m_envInstances.Clear(false);
+
+	// Create the view frustum for the culling
+	dx::BoundingFrustum viewFrustum = {};
+	viewFrustum.CreateFromMatrix(viewFrustum, m_mainCamera.GetProjectionMatrix().XMMatrix());
+	Vec3 position = m_mainCamera.GetPosition();
+	viewFrustum.Origin = {
+		position.x,
+		position.y,
+		position.z
+	};
+	Quaternion rotation = m_mainCamera.GetRotation().Conjugate();
+	viewFrustum.Orientation = {
+		rotation.x,
+		rotation.y,
+		rotation.z,
+		rotation.w
+	};
+
+
 
 
 	for (uint i = 0; i < LevelAssetCount; i++)
@@ -450,8 +586,10 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 		m_envMeshes[i].hotInstances.Clear(false);
 	}
 
-	for (uint i = 0; i < LevelAssetCount; i++)
-		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
+	//for (uint i = 0; i < LevelAssetCount; i++)
+	//	m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
+
+	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 5);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{
@@ -466,8 +604,8 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 	m_renderCore->SetInstanceBuffers(
 		m_envVertices[state],
 		m_envInstanceBuffer,
-		sizeof(VertexTextured), 
-		sizeof(Mat4), 
+		sizeof(VertexTextured),
+		sizeof(Mat4),
 		0, 0);
 
 	m_renderCore->SetIndexBuffer(m_envIndices[state].Get(), 0);

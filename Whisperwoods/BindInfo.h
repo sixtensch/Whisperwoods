@@ -28,10 +28,10 @@ enum RegCBV : char
 {
 	RegCBVDefault = 0,
 
-	RegCBVUser0 = 1,
-	RegCBVUser1 = 2,
-	RegCBVUser2 = 3,
-	RegCBVUser3 = 4,
+	RegCBVThresholdInfo = 1, // Lum threshold, strength, min lum
+	RegCBVColorgradeInfo = 2, // Vignette, contrast, britghness, saturation
+	RegCBVTimeSwitchInfo = 3, // Time since switch, start dur, end dur
+	RegCBVEnemyConeInfo = 4, // 
 
 	RegCBVSystem0 = 5,
 	RegCBVSystem1 = 6,
