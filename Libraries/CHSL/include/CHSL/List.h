@@ -308,7 +308,7 @@ namespace cs
             {
                 high = mid - 1;
             }
-        }
+        } 
 
         return -1;
     }
@@ -352,7 +352,7 @@ namespace cs
             {
                 high = mid - 1;
             }
-        }
+        } 
 
         return nullptr;
     }
@@ -454,7 +454,7 @@ namespace cs
             memcpy(MassAdd(valueCount), values, valueCount * sizeof(T));
             return;
         }
-
+        
         GrowToFit(valueCount + m_size);
 
         for (int i = 0; i < valueCount; i++)
@@ -553,10 +553,10 @@ namespace cs
             return;
         }
 
-        //if (m_size < m_capacity / 2 && m_capacity > c_dCapacity)
-        //{
-        //    ShrinkArray();
-        //}
+        if (m_size < m_capacity / 2 && m_capacity > c_dCapacity)
+        {
+            ShrinkArray();
+        }
     }
 
     template<typename T>
@@ -599,7 +599,8 @@ namespace cs
         do
         {
             actual *= 2;
-        } while (actual < newCapacity);
+        } 
+        while (actual < newCapacity);
 
         GrowArray(actual);
     }
