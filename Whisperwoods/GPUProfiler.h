@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 
-#define USE_GPU_PROFILER false
+
 
 class GPUProfiler {
 
@@ -25,9 +25,12 @@ public:
 	void TimestampBegin(const std::string profileName);
 	void TimestampEnd(const std::string profileName);
 
-	void PostEndFrameSummary(bool useImGui = false);
+	void FinilizeAndPresent();
 
 private:
+
+	void PostEndFrameSummary();
+	void DrawImGui();
 
 	bool inline IsAllowedToUpdate();
 	void InitProfileData(const std::string profileName);
@@ -39,6 +42,10 @@ private:
 	ComPtr<ID3D11Device> m_device;
 	ComPtr<ID3D11DeviceContext> m_context;
 
-	uint m_presentFrequency;
+	uint m_waitFramesPerUpdate;
 	uint m_presentCounter;
+	bool m_isOn;
+	std::string m_lastSummary;
+
+	// TODO: Maybe add struct that contains info gained after a frame summary. Can be used for posting in ImGui.
 };

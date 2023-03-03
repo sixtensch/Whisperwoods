@@ -48,7 +48,7 @@ public:
 	void LoadLevel(LevelResource* level, string image);
 
 	void Draw();
-	void PresentGPUProfiles();
+	void UpdateGPUProfiler();
 	void Present();
 
 	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);

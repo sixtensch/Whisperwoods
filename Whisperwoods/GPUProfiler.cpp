@@ -4,8 +4,14 @@
 
 constexpr uint DEFAULT_PRESENT_FREQ = 50u;
 
-GPUProfiler::GPUProfiler(ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context, uint updateFrequency)
-	: m_profiles({}), m_device(device), m_context(context), m_presentFrequency(updateFrequency), m_presentCounter(0u) {}
+GPUProfiler::GPUProfiler(ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context, uint waitFramesPerUpdate) : 
+	m_profiles({}), 
+	m_device(device),
+	m_context(context), 
+	m_waitFramesPerUpdate(waitFramesPerUpdate), 
+	m_presentCounter(0u), 
+	m_isOn(true),
+	m_lastSummary("") {}
 
 GPUProfiler::GPUProfiler(ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context)
 	: GPUProfiler(device, context, DEFAULT_PRESENT_FREQ) {}
@@ -54,6 +60,16 @@ void GPUProfiler::TimestampEnd(const std::string profileName)
 	}
 }
 
+void GPUProfiler::FinilizeAndPresent()
+{
+	DrawImGui();
+
+	if (m_isOn) 
+	{
+		PostEndFrameSummary();
+	}
+}
+
 void GPUProfiler::InitProfileData(const std::string profileName)
 {
 	ProfileData profile = {};
@@ -70,24 +86,15 @@ void GPUProfiler::InitProfileData(const std::string profileName)
 	m_profiles.try_emplace(profileName, std::move(profile));
 }
 
-void GPUProfiler::PostEndFrameSummary(bool useImGui /*= false*/)
+void GPUProfiler::PostEndFrameSummary()
 {
 	m_presentCounter++;
-
-	if (useImGui)
-	{
-		//TODO: Add proper imgui support.
-
-		if (ImGui::Begin("GPU Profiler"))
-		{
-			ImGui::Text("No idea what to put here :)");
-		}
-		ImGui::End();
-	}
 
 	if (!IsAllowedToUpdate())
 		return;
 
+	// Reset time sum.
+	float summedTime = 0.0f;
 	std::string frameSummary = "\n\n-- GPU PROFILE SUMMARY --\n\n";
 	for (const auto& [profileName, profile] : m_profiles)
 	{
@@ -106,6 +113,7 @@ void GPUProfiler::PostEndFrameSummary(bool useImGui /*= false*/)
 			UINT64 stampDiff = endStamp - startStamp;
 			// Time in milliseconds.
 			float timeDiff = (stampDiff / (float)queryData.Frequency) * 1000.0f;
+			summedTime += timeDiff;
 
 			frameSummary.append(profileName).append(": ").append(std::to_string(timeDiff)).append(" ms\n");
 		}
@@ -115,12 +123,32 @@ void GPUProfiler::PostEndFrameSummary(bool useImGui /*= false*/)
 		}
 	}
 
+	frameSummary.append("\nTotal time sum (ms): ").append(std::to_string(summedTime));
+
 	frameSummary += "\n-------- SUMMARY END --------\n";
 
-	LOG(frameSummary.c_str());
+	m_lastSummary = std::move(frameSummary);
+}
+
+void GPUProfiler::DrawImGui()
+{
+	if (ImGui::Begin("GPU Profiler"))
+	{
+		ImGui::Checkbox("Profiler toggle", &m_isOn);
+
+		ImGui::Text("Frames per update (Lower values will tank FPS)");
+		ImGui::InputInt(" ", (int*)&m_waitFramesPerUpdate, 1, 10);
+
+		ImGui::Text(m_lastSummary.c_str());
+	}
+	ImGui::End();
+
+	// TODO: Simple fix for avoiding user setting negative value of update frequency. Find a better ImGui solution for this?
+	static uint s_maxFrameWait = 10000u;
+	m_waitFramesPerUpdate = m_waitFramesPerUpdate > s_maxFrameWait ? s_maxFrameWait : m_waitFramesPerUpdate;
 }
 
 bool GPUProfiler::IsAllowedToUpdate()
 {
-	return (m_presentCounter % m_presentFrequency) == 0;
+	return ((m_presentCounter % m_waitFramesPerUpdate) == 0) && m_isOn;
 }

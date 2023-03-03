@@ -56,7 +56,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	// Profiler
 
-	uint updateFrequency = 250u;
+	uint updateFrequency = 500u;
 	m_gpuProfiler = GPUProfiler(m_device, m_context, updateFrequency);
 
 	// Setup viewport
@@ -1020,9 +1020,9 @@ void RenderCore::ProfileEnd(const std::string& profileName)
 	m_gpuProfiler.TimestampEnd(profileName);
 }
 
-void RenderCore::ProfilerPostQueryData(bool useImGui /*= false*/)
+void RenderCore::UpdateGPUProfiler()
 {
-	m_gpuProfiler.PostEndFrameSummary(useImGui);
+	m_gpuProfiler.FinilizeAndPresent();
 }
 
 void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)

@@ -103,7 +103,7 @@ public:
 
 	void ProfileBegin(const std::string& profileName);
 	void ProfileEnd(const std::string& profileName);
-	void ProfilerPostQueryData(bool useImGui = false);
+	void UpdateGPUProfiler();
 
 private:
 	void BindPipeline(PipelineType pipeline, bool shadowing);

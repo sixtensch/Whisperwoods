@@ -5,6 +5,7 @@
 
 #include "LevelImporter.h"
 
+#define USE_GPU_PROFILER true
 #if USE_GPU_PROFILER
 	#define PROFILE_JOB(profileName, call) { m_renderCore->ProfileBegin(profileName); call; m_renderCore->ProfileEnd(profileName); }
 #else
@@ -121,12 +122,9 @@ void RenderHandler::Draw()
 	
 }
 
-void RenderHandler::PresentGPUProfiles()
+void RenderHandler::UpdateGPUProfiler()
 {
-#if USE_GPU_PROFILER
-	static bool useImgui = true;
-	m_renderCore->ProfilerPostQueryData(useImgui);
-#endif
+	m_renderCore->UpdateGPUProfiler();
 }
 
 void RenderHandler::Present()

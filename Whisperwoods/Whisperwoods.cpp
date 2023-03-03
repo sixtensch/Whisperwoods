@@ -178,10 +178,10 @@ void Whisperwoods::Run()
 		
 		// Draw step
 		m_renderer->Draw();
-		m_renderer->PresentGPUProfiles();
 
 		Move(dTime, m_game->GetPlayer());
 		m_debug->DrawConsole();
+		m_renderer->UpdateGPUProfiler();
 
 		m_renderer->EndGui();
 		m_renderer->Present();
