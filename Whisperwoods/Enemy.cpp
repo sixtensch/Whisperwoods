@@ -4,6 +4,8 @@
 #include "RenderCore.h"
 #include "FBXImporter.h"
 #include "Resources.h"
+#include "SoundResource.h"
+#include "AudioSource.h"
 
 Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOffset)
 {
@@ -64,6 +66,26 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_characterAnimator->PlayAnimation(0, 0, 1, true, true);
 
 	m_carcinian->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "Carcinian.wwmt"));
+
+	m_crabClick = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "CrabClick.mp3"))->currentSound;
+	m_softerIdle = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "SofterIdle.mp3"))->currentSound;
+	m_chirpsLow = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "ChirpsLow.mp3"))->currentSound;
+	m_chirps = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Chirps.mp3"))->currentSound;
+	m_smallScreetch = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "SmallScreetch.mp3"))->currentSound;
+	m_megatron = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Megatron.mp3"))->currentSound;
+	m_theHorror = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "TheHorror.mp3"))->currentSound;
+
+	m_walkingSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.0f, 0.0f, 10.0f, nullptr);
+	this->AddChild((GameObject*) m_walkingSource.get());
+	
+	m_ambientCloseSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.0f, 6.0f, m_megatron);
+	this->AddChild((GameObject*) m_ambientCloseSource.get());
+	
+	m_ambientFarSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.5f, 1.0f, 0.0f, 15.0f, m_chirps);
+	this->AddChild((GameObject*)m_ambientFarSource.get());
+
+	m_actionSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.0f, 0.0f, 10.0f, nullptr);
+	this->AddChild((GameObject*) m_actionSource.get());
 }
 
 Enemy::~Enemy()
@@ -331,7 +353,6 @@ void Enemy::Update(float dTime)
 	transform.CalculateWorldMatrix();
 	test = transform.GetWorldRotation() * Vec3(0, 0, 1);
 	m_carcinian->worldMatrix = transform.worldMatrix * m_modelOffset;
-
 }
 
 void Enemy::AddCoordinateToPatrolPath(Vec2 coord, bool enclosed) // Make sure the Coordinates are sent in the correct order of the path
@@ -423,7 +444,7 @@ std::vector<cs::Point2> RayCast(int playerX, int playerY, int enemyX, int enemyY
 	return returnVector;
 }
 
-bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool inFuture)
+bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, bool inFuture)
 {
 	// Let's start with if the enemy can see the player at all without TRUE line of sight
 
@@ -555,8 +576,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 		}
 
 	}
-	if(m_seesPlayer == true)
-		PlayEnemyActiveNoise(quack);
+	if (m_seesPlayer == true)
 	
 	return m_seesPlayer; 
 }
@@ -628,33 +648,40 @@ float Enemy::GetMaxDistance() const
 	return m_enemyViewDistance;
 }
 
-void Enemy::PlayEnemyActiveNoise(AudioSource& quack)
+void Enemy::EnemySoundUpdate(float dTime)
 {
-	//if (m_characterAnimator->IsPlaying(0)) //run/walk animation
-	//{
-	//	quack.Stop();
-	//	//if(sound is not playing for this animation
-	//		//play sound
-	//}
-	//else if (m_characterAnimator->IsPlaying(1)) //alert animation
-	//{
-	//	
-	//	if (quack.IsPlaying() == false) // audio cue
-	//	{
-	//		quack.Play();
-	//	}
-	//}
-	//else if (m_characterAnimator->IsPlaying(2))  //idle animation
-	//{
-	//	quack.Stop();
-	//	//if(sound is not playing for this animation
-	//		//play sound
-	//}
-	//else if (m_characterAnimator->IsPlaying(3)) //180 degree turn animation
-	//{
-	//	quack.Stop();
-	//	//if(sound is not playing for this animation
-	//		//play sound
-	//}
-}
+	//Ambient sounds
+	if (m_playAmbientSounds)
+	{
+		if (!m_ambientCloseSource->IsPlaying())
+		{
 
+		}
+	}
+
+
+	if (m_characterAnimator->IsPlaying(0)) //run/walk animation
+	{
+		
+	}
+	else if (m_characterAnimator->IsPlaying(1)) //detectStart animation
+	{
+
+	}
+	else if (m_characterAnimator->IsPlaying(4)) //detectCycle animation
+	{
+
+	}
+	else if (m_characterAnimator->IsPlaying(5)) //detectEnd animation
+	{
+
+	}
+	else if (m_characterAnimator->IsPlaying(2))  //idle animation
+	{
+		
+	}
+	else if (m_characterAnimator->IsPlaying(3)) //180 degree turn animation
+	{
+		
+	}
+}

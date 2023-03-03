@@ -77,7 +77,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update(deltaTime);
-		if (m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, *m_audioSource, m_isInFuture) == true)
+		if (m_enemies[i]->SeesPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), *m_currentRoom, m_isInFuture) == true)
 		{
 			isSeen = true;
 			if (m_enemies[i]->GetDistance() < closestDistance)
@@ -85,6 +85,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 				closestDistance = m_enemies[i]->GetDistance();
 			}
 		}
+		m_enemies[i]->EnemySoundUpdate(deltaTime);
 	}
 	static float totalFovDelta = 0.0f;
 	static float initialCamFov;

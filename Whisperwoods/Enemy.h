@@ -5,11 +5,7 @@
 #include "AnimationResource.h"
 #include "Animator.h"
 #include "Room.h"
-
-
-//temp include
 #include "AudioSource.h"
-
 
 class Enemy : public GameObject
 {
@@ -21,8 +17,9 @@ public:
 	void AddCoordinateToPatrolPath(Vec2 coord, bool enclosed);
 	void EmptyPatrolPath(); // In order to re-use enemies, wipe the patrol path and add a new one when player reaches a new room rather than creating a new Enemy object.
 	void AddModel(std::string modelResource, std::string animationsPath, Mat4 modelOffset);
-	bool SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool inFuture);
+	bool SeesPlayer(Vec2 playerPosition, Room &room, bool inFuture);
 	void ChangeTimelineState(bool isInFuture);
+	void EnemySoundUpdate(float dTime);
 
 	bool enemyAlive; // A bool to know if we render/update the enemy or not in the current room
 
@@ -37,10 +34,6 @@ public:
 	float GetMaxDistance() const;
 
 private:
-
-	void PlayEnemyActiveNoise(AudioSource& quack);
-
-
 	// move/rotation variables
 	//*****************************
 	std::vector<Vec2> m_patrolPath; // To save the coordinates mapped in bitmap for patrol path.
@@ -80,6 +73,26 @@ private:
 	const float m_enemyViewAngle = 50.0f; // angle to each side of view vector
 	const float m_proximityDetectionLength = 1.25f;
 	bool m_startingDetectionAnimation = false;
+	//****************************
+
+	//Audio
+	//****************************
+	bool m_playAmbientSounds = true;
+	bool m_ambientWait = false;
+	float m_ambientWaitTime = 0.0f;
+
+	shared_ptr<AudioSource> m_walkingSource; //use for walking sounds
+	shared_ptr<AudioSource> m_ambientCloseSource; //use for ambient and idle noises
+	shared_ptr<AudioSource> m_ambientFarSource; //use for ambient and idle noises
+	shared_ptr<AudioSource> m_actionSource; //use for more specific reactions and actions. turn, detect, loss.
+
+	FMOD::Sound* m_crabClick;
+	FMOD::Sound* m_softerIdle;
+	FMOD::Sound* m_chirpsLow;
+	FMOD::Sound* m_chirps;
+	FMOD::Sound* m_smallScreetch;
+	FMOD::Sound* m_megatron;
+	FMOD::Sound* m_theHorror;
 	//****************************
 };
 
