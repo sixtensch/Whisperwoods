@@ -378,6 +378,27 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateSamplerState(&sd, &m_sampler));
 	EXC_COMINFO(m_context->PSSetSamplers(RegSamplerStandard, 1, m_sampler.GetAddressOf()));
 
+	// No wrap sampler
+	D3D11_SAMPLER_DESC sd2 = {};
+
+	sd2.Filter = D3D11_FILTER_ANISOTROPIC;
+	sd2.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd2.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd2.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd2.MipLODBias = 0.0f;
+	sd2.MaxAnisotropy = 1u;
+	sd2.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	sd2.BorderColor[0] = 0.0f;
+	sd2.BorderColor[1] = 0.0f;
+	sd2.BorderColor[2] = 0.0f;
+	sd2.BorderColor[3] = 0.0f;
+	sd2.MinLOD = 0.0f;
+	sd2.MaxLOD = D3D11_FLOAT32_MAX;
+
+	EXC_COMCHECK( m_device->CreateSamplerState( &sd2, &m_samplerNoWrap ) );
+	EXC_COMINFO( m_context->PSSetSamplers( RegSamplerStandardNoWrap, 1, m_samplerNoWrap.GetAddressOf() ) );
+
+
 	D3D11_SAMPLER_DESC shadowSDesc = {};
 	shadowSDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
 	shadowSDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -768,6 +789,7 @@ void RenderCore::UpdateGUIInfo(const GUIElement* guiElement) const
 	newInfo.alpha = guiElement->alpha;
 	newInfo.vectorData = guiElement->vectorData;
 	newInfo.floatData = guiElement->floatData;
+	newInfo.intData = guiElement->intData;
 
 	D3D11_MAPPED_SUBRESOURCE msr = {};
 	EXC_COMCHECK(m_context->Map(m_constantBuffers.guiInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));

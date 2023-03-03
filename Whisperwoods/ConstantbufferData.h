@@ -48,6 +48,7 @@ namespace CB
 		float alpha;
 		Vec3 vectorData;
 		float floatData;
+		Point4 intData;
 	};
 
 	struct PPFXThresholdInfo 

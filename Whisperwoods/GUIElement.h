@@ -16,6 +16,7 @@ struct GUIElement
 	float alpha;
 	Vec3 vectorData;
 	float floatData;
+	Point4 intData;
 	TextureResource* firstTexture;
 	TextureResource* secondTexture;
 	GUIElement(Vec2 position, Vec2 size, TextureResource* spriteOne, TextureResource* spriteTwo) : position(position), size(size), firstTexture(spriteOne), secondTexture(spriteTwo)

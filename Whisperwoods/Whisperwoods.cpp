@@ -158,15 +158,22 @@ void Whisperwoods::Run()
 
 
 	GUI testGui;
-	testGui.AddGUIElement({ -1,-1 }, { 2.0f,0.5f }, nullptr, nullptr);
-	testGui.GetElement(0)->colorTint = Vec3(1, 0, 0);
-	testGui.GetElement(0)->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "HudMask.png");
-	testGui.GetElement(0)->secondTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "HudMask.png");
+	testGui.AddGUIElement({ 0,-0.95 }, { 1.0f,0.1f }, nullptr, nullptr);
+	testGui.GetElement( 0 )->colorTint = Vec3(0.2f, 0.8f, 0.2f);
+	testGui.GetElement( 0 )->alpha = 0.6f;
+	testGui.GetElement( 0 )->vectorData = Vec3( 1, 1, 1 );
+	testGui.GetElement( 0 )->floatData = 0.5f;
+	testGui.GetElement( 0 )->intData = Point4( 0, 1, 0, 0 ); // Makes it follow the float value.
+	//testGui.GetElement( 0 )->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "Test+Pattern+t.png");
+	testGui.GetElement( 0 )->secondTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "StaminaBarMask01.png");
 
-	testGui.AddGUIElement({ -1,0.5f }, { 0.5f,0.5f }, nullptr, nullptr);
-	testGui.GetElement(1)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(1)->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "Hubby.png");
-	testGui.GetElement(1)->secondTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "HudMask.png");
+	testGui.AddGUIElement({ -1,0.2f }, { 0.5f*0.9f,0.5f*1.6f }, nullptr, nullptr);
+	testGui.GetElement( 1 )->colorTint = Vec3(1, 1, 1);
+	testGui.GetElement( 1 )->alpha = 0.6f;
+	testGui.GetElement( 1 )->intData = Point4( 1, 0, 0, 0 ); // makes it transform with the playermatrix
+	testGui.GetElement( 1 )->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "Hubby.png");
+	testGui.GetElement( 1 )->secondTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "HudMask.png");
+
 
 	int frames = 0;
 	cs::Timer deltaTimer;
@@ -185,6 +192,9 @@ void Whisperwoods::Run()
 		dTimeAcc += dTime;
 		
 		//patrolEnemy.Update(dTime);
+
+		// Update the test gui with the stamina.
+		testGui.GetElement( 0 )->floatData = m_game->GetPlayer()->GetCurrentStamina()/10.0f;
 
 		m_game->Update(dTime, m_renderer.get());
 

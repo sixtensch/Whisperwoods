@@ -192,6 +192,7 @@ private:
 
 
 	ComPtr<ID3D11SamplerState> m_sampler;
+	ComPtr<ID3D11SamplerState> m_samplerNoWrap;
 	ComPtr<ID3D11SamplerState> m_pointSampler;
 
 	// Pipelines

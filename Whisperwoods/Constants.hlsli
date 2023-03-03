@@ -6,6 +6,7 @@
 #include "Constants.h"
 
 // Sampler states
+#define REGISTER_SAMPLER_NO_WRAP        register(s5)
 
 #define REGISTER_SAMPLER_SYSTEM_0       register(s6)
 #define REGISTER_SAMPLER_SYSTEM_1       register(s7)

@@ -9,7 +9,7 @@ enum RegSampler : char
 	RegSamplerUser1 = 2,
 	RegSamplerUser2 = 3,
 	RegSamplerUser3 = 4,
-	RegSamplerUser4 = 5,
+	RegSamplerStandardNoWrap = 5,
 
 	RegSamplerSystem0 = 6,
 	RegSamplerSystem1 = 7,
