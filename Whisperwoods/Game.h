@@ -55,6 +55,12 @@ private:
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
 
+	cs::List<shared_ptr<MeshRenderableStatic>> m_testRenderables;
+	cs::List<MaterialResource> m_testMaterials;
+	int m_testRep;
+	int m_testCount;
+	uint m_testSeed;
+
 	// Current room data
 	cs::List<shared_ptr<PointLight>> m_pointLights;
 	cs::List<shared_ptr<SpotLight>> m_spotLights;
@@ -91,7 +97,7 @@ private:
 	bool m_reachedLowestStamina;
 	float m_camFovChangeSpeed;
 
-	const float m_detectionRate = 0.4;
+	const float m_detectionRate = 0.4f;
 	const float m_timeBeforeDetectionLowers = 4.0f; //in seconds
 	float m_timeUnseen = 0.0f; // for determining when to derease global detection
 	float m_dangerousTimeInFuture = 0.0f;// time in seconds

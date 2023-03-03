@@ -30,7 +30,7 @@ struct Level
 	cs::List<Mat4> instances[LevelAssetCount];
 
 	// Indices into LevelFloor::tunnels
-	cs::List<const LevelTunnel*> connections;
+	cs::List<uint> connections;
 
 	const LevelResource* resource;
 };
