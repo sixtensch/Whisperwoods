@@ -46,6 +46,11 @@ LevelHandler::LevelHandler()
 
 void LevelHandler::LoadFloors()
 {
+	cs::List<string> blacklist =
+	{
+		"Hubby"
+	};
+
 	for (const auto& item : std::filesystem::directory_iterator(DIR_LEVELS))
 	{
 		if (item.path().extension() == ".png")
@@ -56,7 +61,19 @@ void LevelHandler::LoadFloors()
 			string s = item.path().filename().string();
 			Renderer::LoadLevel(r.get(), s);
 
-			m_resourceIndices[r->exits.Size() - 1].Add(m_resources.Size() - 1);
+			bool blacklisted = false;
+			for (const string& b : blacklist)
+			{
+				if (r->name == b)
+				{
+					blacklisted = true;
+				}
+			}
+
+			if (!blacklisted)
+			{
+				m_resourceIndices[r->exits.Size() - 1].Add(m_resources.Size() - 1);
+			}
 		}
 	}
 }
@@ -705,7 +722,7 @@ bool LevelHandler::TryConnecting(FloorPrimer& f, float dotThreshold)
 
 bool LevelHandler::TryLeveling(FloorPrimer& f, bool repeats, uint roomAttempts)
 {
-	unique_ptr<cs::List<uint>[]> levelRefs(new cs::List<uint>[m_resources.Size()]);
+	//unique_ptr<cs::List<uint>[]> levelRefs(new cs::List<uint>[m_resources.Size()]);
 
 	cs::List<uint> currentRoomIndices;
 	cs::List<shared_ptr<LevelResource>*> currentRooms;

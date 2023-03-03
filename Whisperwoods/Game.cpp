@@ -546,7 +546,7 @@ void Game::UnloadRoom()
 {
 	Renderer::UnLoadEnvironment();
 	m_player->currentRoom = nullptr;
-	m_currentRoom = nullptr;
+	m_currentRoom.reset();
 	m_enemies.Clear();
 }
 
