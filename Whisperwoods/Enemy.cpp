@@ -284,14 +284,14 @@ void Enemy::Update(float dTime)
 	}
 	if (m_PatrolEnemy == true) // behavior for idle enemy
 	{
-		if (m_idleCounter < 4 && m_characterAnimator->AnimationsFinished() && m_triggerTurn == false && !m_characterAnimator->IsPlaying(1)) // run idle animation
+		if (m_idleCounter < 3 && m_characterAnimator->AnimationsFinished() && m_triggerTurn == false && !m_characterAnimator->IsPlaying(1)) // run idle animation
 		{
 			m_characterAnimator->playbackSpeed = 0.2f;
 			m_characterAnimator->PlayAnimation(2, 0, 1, false, true);
 			m_lastPlayedAnimation = 2;
 			m_idleCounter++;
 		}
-		else if (m_idleCounter == 4 && m_characterAnimator->AnimationsFinished() && !m_characterAnimator->IsPlaying(1)) // has been idle long enough, run rotation animation
+		else if (m_idleCounter == 3 && m_characterAnimator->AnimationsFinished() && !m_characterAnimator->IsPlaying(1)) // has been idle long enough, run rotation animation
 		{
 			if(m_characterAnimator->IsPlaying(2))
 				m_characterAnimator->StopAnimation(2);

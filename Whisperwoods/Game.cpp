@@ -22,15 +22,14 @@ Game::Game() :
 	m_envParams({}),
 	m_reachedLowestStamina(false),
 	m_coolDownCounter(m_timeAbilityCooldown)
-{}
-
+{
+}
 Game::~Game() {}
 
 void Game::Update(float deltaTime, Renderer* renderer)
 {
 	// Always do the following:
 	Camera& cameraRef = renderer->GetCamera();
-
 	m_coolDownCounter += deltaTime;
 
 	if (m_isInFuture == false)
@@ -41,7 +40,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		m_player->playerInFuture = true;
 	}
-
+	
 	// Player update
 	m_player->Update(deltaTime);
 	m_currentRoom->Update(deltaTime);
@@ -51,10 +50,21 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	Renderer::SetPlayerMatrix( m_player->transform.worldMatrix );
 
 	Vec2 playerPosition2D = { m_player->transform.worldPosition.x, m_player->transform.worldPosition.z };
+
 	for (int i = 0; i < m_pickups.Size(); ++i)
 	{
 		m_pickups[i]->Update(deltaTime);
+		//Did player pick up essence bloom?
+		if (m_pickups[i]->IsRemovable()) // if we add more types of pickups, add &&isEssenceBloom or whatever
+		{
+			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+			m_player->ResetStaminaToMax(m_maxStamina);
+			m_pickups.Remove(i);
+			i--;
+		}
 	}
+
+	
 
 
 	float closestDistance = 0.0f;
@@ -291,7 +301,12 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		UpdateTimeSwitchBuffers(renderer);
 		UpdateEnemyConeBuffers(renderer);
-}
+	}
+
+	if (Input::Get().IsKeybindDown(KeybindEscMenu))
+	{
+		Renderer::GetWindow().CloseProgram();
+	}
 }
 
 void Game::Init()
@@ -507,6 +522,8 @@ void Game::LowerToFloor(float deltaTime)
 		m_detectionLevelGlobal = m_detectionLevelFloor;
 	}
 }
+
+
 
 void Game::ChangeTimeline(Renderer* renderer)
 {

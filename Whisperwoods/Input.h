@@ -22,6 +22,7 @@ enum Keybind
 	KeybindSprint,
 	KeybindCrouch,
 	KeybindPower,
+	KeybindEscMenu,
 
 	KeybindCount	// <-- Keep last
 };

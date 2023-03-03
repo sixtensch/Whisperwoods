@@ -48,6 +48,7 @@ public:
 	void LoadLevel(LevelResource* level, string image);
 
 	void Draw();
+	void UpdateGPUProfiler();
 	void Present();
 
 	void ExecuteDraw(TimelineState state, bool shadows);

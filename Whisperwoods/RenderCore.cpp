@@ -54,7 +54,10 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 		&m_context// adress of immidiatecontext
 	));
 
+	// Profiler
 
+	uint updateFrequency = 500u;
+	m_gpuProfiler = GPUProfiler(m_device, m_context, updateFrequency);
 
 	// Setup viewport
 
@@ -447,10 +450,7 @@ void RenderCore::NewFrame()
 {
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_dsDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
 
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_renderTextureRTV.GetAddressOf(), m_dsDSV.Get()));
-
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_bbRTV.Get(), (float*)&m_bbClearColor));
 
 	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get()));
 	EXC_COMINFO(m_context->OMSetBlendState(m_blendState.Get(), nullptr, 0xffffffff));
@@ -471,10 +471,6 @@ void RenderCore::TargetShadowMap()
 
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
-
-	// TODO: Set to static.
-	//EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
 
 	EXC_COMINFO(m_context->CopyResource(m_shadowTexture.Get(), m_shadowStaticTexture.Get()));
 
@@ -489,7 +485,6 @@ void RenderCore::TargetStaticShadowMap()
 
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowStaticDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
 
@@ -502,8 +497,7 @@ void RenderCore::TargetRenderTexture()
 {
 	EXC_COMINFO(m_context->OMSetDepthStencilState(m_dsDSS.Get(), 1));
 
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
-	EXC_COMINFO(m_context->ClearRenderTargetView(m_positionTextureRTV.Get(), (float*)&m_bbClearColor));
+
 
 	ID3D11RenderTargetView* rtvs[RTV_COUNT] = {
 		m_renderTextureRTV.Get(), 
@@ -858,10 +852,10 @@ void RenderCore::DrawInstanced(uint indexCount, uint instanceCount, uint startIn
 
 void RenderCore::DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 originScalar)
 {
-   
 	dx::XMVECTOR col = ((Vec4)color).GetXM3(); //converts from cs to xmvector, which Drawstring() needs
 
 	m_spriteBatch->Begin();
+	m_context->ClearDepthStencilView(m_dsDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 0.0f, 0u);
 	dx::SimpleMath::Vector2 origin = m_fonts[font]->MeasureString(m_text);
 	origin = dx::SimpleMath::Vector2(origin.x * originScalar.x, origin.y * originScalar.y);
 
@@ -1033,6 +1027,21 @@ void RenderCore::InitFont(std::unique_ptr<dx::SpriteFont> font[FontCount], std::
   
 	// Create spriteBatch;
 	*batch = std::make_unique<dx::SpriteBatch>(m_context.Get());
+}
+
+void RenderCore::ProfileBegin(const std::string& profileName)
+{
+	m_gpuProfiler.TimestampBegin(profileName);
+}
+
+void RenderCore::ProfileEnd(const std::string& profileName)
+{
+	m_gpuProfiler.TimestampEnd(profileName);
+}
+
+void RenderCore::UpdateGPUProfiler()
+{
+	m_gpuProfiler.FinilizeAndPresent();
 }
 
 void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)

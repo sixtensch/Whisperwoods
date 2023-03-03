@@ -5,8 +5,8 @@
 #include <vector>
 #include <map>
 
-constexpr UINT MAX_LEAF_ELEMENTS = 65;
-constexpr UINT MAX_DEPTH = 10;
+constexpr UINT MAX_LEAF_ELEMENTS = 30;
+constexpr UINT MAX_DEPTH = 8;
 
 struct EnvMesh;
 
