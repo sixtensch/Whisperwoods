@@ -40,13 +40,13 @@ LevelHandler* LevelHandler::s_handler = nullptr;
 
 LevelHandler::LevelHandler()
 {
-
 }
 
 
 void LevelHandler::LoadFloors()
 {
-	cs::List<string> blacklist =
+	const uint blacklistCount = 1;
+	string blacklist[blacklistCount] =
 	{
 		"Hubby"
 	};
@@ -62,9 +62,9 @@ void LevelHandler::LoadFloors()
 			Renderer::LoadLevel(r.get(), s);
 
 			bool blacklisted = false;
-			for (const string& b : blacklist)
+			for (uint i = 0; i < blacklistCount; i++)
 			{
-				if (r->name == b)
+				if (r->name == blacklist[i])
 				{
 					blacklisted = true;
 				}
