@@ -120,6 +120,9 @@ void RenderHandler::Draw()
 		}
 	}
 	
+	// Draw all gui shit.
+	static std::string guiDrawProfileName = "GUI Draw calls";
+	PROFILE_JOB(guiDrawProfileName, RenderGUI());
 }
 
 void RenderHandler::UpdateGPUProfiler()
@@ -178,8 +181,34 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 
 	if (!shadows)
 	{
+		// Draw all gui shit.
+		/*for (int i = 0; i < m_guiRenderables.Size(); i++)
+		{
+			auto data = m_guiRenderables[i];
+			if (data && data->enabled)
+			{
+				m_renderCore->UpdateGUIInfo(data.get()->m_elementRef);
+				m_renderCore->UpdateObjectInfo(data.get());
+				m_renderCore->DrawObject(data.get(), shadows);
+			}
+		}*/
+
 		static std::string instancesDrawProfileName = "Draw Instances";
 		PROFILE_JOB(instancesDrawProfileName, DrawInstances(state, false));
+	}
+}
+
+void RenderHandler::RenderGUI()
+{
+	for (int i = 0; i < m_guiRenderables.Size(); i++)
+	{
+		auto data = m_guiRenderables[i];
+		if (data && data->enabled)
+		{
+			m_renderCore->UpdateGUIInfo(data.get()->m_elementRef);
+			m_renderCore->UpdateObjectInfo(data.get());
+			m_renderCore->DrawObject(data.get(), false);
+		}
 	}
 }
 
@@ -503,7 +532,7 @@ shared_ptr<GUIRenderable> RenderHandler::CreateGUIRenderable(const string& subpa
 		model,
 		cs::Mat4()
 		);
-	m_worldRenderables.Add({ (shared_ptr<WorldRenderable>)newRenderable, (shared_ptr<WorldRenderable>)newRenderable });
+	m_guiRenderables.Add(newRenderable);
 
 	return newRenderable;
 }

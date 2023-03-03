@@ -23,7 +23,7 @@
 #define REGISTER_CBV_SWITCH_INFO        register(b3) // Used by all shaders that need info about time switch.
 #define REGISTER_CBV_ENEMY_CONE_INFO    register(b4) // Used by positional effect pass.
 
-#define REGISTER_CBV_SYSTEM_0           register(b5)
+#define REGISTER_CBV_GUI_INFO           register(b5)
 #define REGISTER_CBV_SYSTEM_1           register(b6)
 #define REGISTER_CBV_SYSTEM_2           register(b7)
 

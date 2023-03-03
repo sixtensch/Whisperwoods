@@ -5,7 +5,7 @@
 #include "imgui_impl_win32.h"
 #include <d3dcompiler.h>
 #include <WICTextureLoader.h>
-
+#include "GUIElement.h"
 
 #define RTV_COUNT 2u // TODO: Maybe make this a const member variable for more official use? 
 
@@ -749,6 +749,34 @@ void RenderCore::UpdatePlayerInfo( Mat4 matrix )
 	EXC_COMINFO( m_context->Unmap( m_constantBuffers.playerInfo.Get(), 0u ) );
 }
 
+void RenderCore::UpdateGUIInfo(const GUIElement* guiElement) const
+{
+	if (guiElement == nullptr)
+	{
+		UpdateMaterialInfo(&m_defaultMaterial);
+		return;
+	}
+	
+	//      ("`-''-/").___..--''"`-._
+	//       `6_ 6  )   `-.  (     ).`-.__.`)
+	//       (_Y_.)'  ._   )  `._ `. ``-..-'
+	//     _..`--'_..-_/  /--'_.' ,'
+	//    (il),-''  (li),'  ((!.-'   Hmmm
+	CB::GUIInfo newInfo;
+
+	newInfo.color = guiElement->colorTint;
+	newInfo.alpha = guiElement->alpha;
+	newInfo.vectorData = guiElement->vectorData;
+	newInfo.floatData = guiElement->floatData;
+
+	D3D11_MAPPED_SUBRESOURCE msr = {};
+	EXC_COMCHECK(m_context->Map(m_constantBuffers.guiInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+	memcpy(msr.pData, &newInfo, sizeof(CB::GUIInfo));
+	EXC_COMINFO(m_context->Unmap(m_constantBuffers.guiInfo.Get(), 0u));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexDiffuse, 1, (guiElement->firstTexture ? guiElement->firstTexture->shaderResourceView : m_defaultDiffuseSRV).GetAddressOf()));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexSpecular, 1, (guiElement->secondTexture ? guiElement->secondTexture->shaderResourceView : m_defaultSpecularSRV).GetAddressOf()));
+}
+
 void RenderCore::UpdateMaterialInfo(const MaterialResource* material) const
 {
 	if (material == nullptr)
@@ -1271,6 +1299,8 @@ void RenderCore::InitPipelines()
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
@@ -1398,6 +1428,21 @@ void RenderCore::InitConstantBuffers()
 	));
 
 	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVMaterialInfo, 1, m_constantBuffers.materialInfo.GetAddressOf()));
+
+
+
+	// GUI info
+
+	desc.ByteWidth = sizeof(CB::GUIInfo);
+
+	EXC_COMCHECK(m_device->CreateBuffer(
+		&desc,
+		nullptr,
+		m_constantBuffers.guiInfo.GetAddressOf()
+	));
+
+	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVGUIInfo, 1, m_constantBuffers.guiInfo.GetAddressOf()));
+
 
 
 	// Threshold info for bloom

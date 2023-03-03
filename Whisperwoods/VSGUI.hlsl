@@ -1,4 +1,4 @@
-
+#include "Constants.hlsli"
 
 struct VSInput
 {
@@ -33,7 +33,8 @@ VSOutput main( VSInput input )
     output.wPosition = mul(float4(input.position, 1.0f), WorldMatrix);
     //output.wPosition = float4(input.position, 1.0f);
 
-    output.outPosition = mul(float4(input.position, 1.0f), WorldMatrix);
+    //output.outPosition = mul(float4(input.position, 1.0f), WorldMatrix);
+    output.outPosition = output.wPosition;
 
     output.outNormal = mul(input.normal, (float3x3)WorldMatrix);
 

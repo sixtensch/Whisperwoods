@@ -235,7 +235,6 @@ PS_OUTPUT main(VSOutput input)
 	// Used to scale ALL emissive for more dramatic glow.
     float emissiveScalar = 2.0f;
     color.rgb += finalEmissiveColor * emissiveScalar;
-	
     color.a = saturate(color.a);
 	
 	

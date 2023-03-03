@@ -1,3 +1,5 @@
+#include "Constants.hlsli"
+
 struct VSOutput
 {
 	float4 outPosition	: SV_POSITION;
@@ -6,7 +8,24 @@ struct VSOutput
 	float2 outUV		: TEXCOORD0;
 };
 
-float4 main() : SV_TARGET0
+cbuffer GUIInfo : REGISTER_CBV_GUI_INFO
 {
-	return float4(1.0f, 1.0f, 1.0f, 1.0f);
+    float3 colorTint;
+    float alpha;
+    float3 playerPos;
+    float stamina;
+};
+
+Texture2D firstTexture : REGISTER_SRV_TEX_DIFFUSE;
+Texture2D secondTexture : REGISTER_SRV_TEX_SPECULAR;
+
+SamplerState textureSampler : REGISTER_SAMPLER_STANDARD;
+
+float4 main(VSOutput input) : SV_TARGET0
+{
+    float3 texSample = firstTexture.Sample(textureSampler, input.outUV);
+    float maskSample = secondTexture.Sample(textureSampler, input.outUV);
+    if (maskSample < 0.01f)
+        discard;
+    return float4(texSample * colorTint, 1.0f);
 }

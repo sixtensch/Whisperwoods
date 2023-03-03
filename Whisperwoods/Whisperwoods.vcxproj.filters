@@ -321,6 +321,7 @@
     <ClCompile Include="GUIElement.cpp">
       <Filter>%2a Code\%2a Rendering\GUI</Filter>
     </ClCompile>
+    <ClCompile Include="GPUProfiler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -494,6 +495,7 @@
     <ClInclude Include="GUIElement.h">
       <Filter>%2a Code\%2a Rendering\GUI</Filter>
     </ClInclude>
+    <ClInclude Include="GPUProfiler.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VSMesh.hlsl">

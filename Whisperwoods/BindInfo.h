@@ -33,7 +33,7 @@ enum RegCBV : char
 	RegCBVTimeSwitchInfo = 3, // Time since switch, start dur, end dur
 	RegCBVEnemyConeInfo = 4, // 
 
-	RegCBVSystem0 = 5,
+	RegCBVGUIInfo = 5,
 	RegCBVSystem1 = 6,
 	RegCBVSystem2 = 7,
 

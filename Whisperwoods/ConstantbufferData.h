@@ -40,6 +40,16 @@ namespace CB
 		float tiling;
 	};
 
+
+	struct GUIInfo
+	{
+		// Do not reorder
+		Vec3 color;
+		float alpha;
+		Vec3 vectorData;
+		float floatData;
+	};
+
 	struct PPFXThresholdInfo 
 	{
 		float luminanceThreshold;
@@ -89,6 +99,7 @@ struct ConstantBuffers
 	
 	ComPtr<ID3D11Buffer> shadingInfo;
 	ComPtr<ID3D11Buffer> materialInfo;
+	ComPtr<ID3D11Buffer> guiInfo;
 
 	ComPtr<ID3D11Buffer> ppfxThresholdInfo;
 	ComPtr<ID3D11Buffer> ppfxColorGradeInfo;

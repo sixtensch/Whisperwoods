@@ -54,6 +54,7 @@ public:
 
 	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);
 
+	void RenderGUI();
 
 	RenderCore* GetCore() const;
 	Camera& GetCamera();
@@ -114,6 +115,7 @@ private:
 	TimelineState m_timelineState;
 	uint m_renderableIDCounter;
 	cs::List<std::pair<shared_ptr<WorldRenderable>, shared_ptr<WorldRenderable>>> m_worldRenderables;
+	cs::List<shared_ptr<GUIRenderable>> m_guiRenderables;
 	cs::List<shared_ptr<TextRenderable>> m_texts;
 
 	cs::Color3f m_lightAmbient;

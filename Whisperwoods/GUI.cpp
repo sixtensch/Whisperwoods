@@ -1,4 +1,4 @@
-#include "Core.h"
+﻿#include "Core.h"
 #include "GUI.h"
 
 GUI::GUI()
@@ -9,9 +9,14 @@ GUI::~GUI()
 {
 }
 
-void GUI::AddGUIElement(Vec2 position, Vec2 size, TextureResource* sprite)
+shared_ptr<GUIElement> GUI::GetElement(int index)
 {
-	m_guiElements.Add(shared_ptr<GUIElement>(new GUIElement(position, size, sprite)));
+	return m_guiElements[index];
+}
+
+void GUI::AddGUIElement(Vec2 position, Vec2 size, TextureResource* spriteOne, TextureResource* spriteTwo)
+{
+	m_guiElements.Add(shared_ptr<GUIElement>(new GUIElement(position, size, spriteOne, spriteTwo)));
 }
 
 void GUI::DrawGUI()

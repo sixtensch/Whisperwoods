@@ -12,7 +12,9 @@ public:
 	GUI();
 	~GUI();
 
-	void AddGUIElement(Vec2 position, Vec2 size, TextureResource* sprite);
+	shared_ptr<GUIElement> GetElement(int index);
+
+	void AddGUIElement(Vec2 position, Vec2 size, TextureResource* spriteOne, TextureResource* spriteTwo);
 
 	void DrawGUI();
 };

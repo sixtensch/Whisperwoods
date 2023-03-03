@@ -9,6 +9,7 @@
 #include <imgui.h>
 #include "TextRenderable.h"
 #include "GUI.h"
+#include "TextureResource.h"
 
 #include "Player.h"
 #include "Empty.h"
@@ -157,8 +158,15 @@ void Whisperwoods::Run()
 
 
 	GUI testGui;
-	testGui.AddGUIElement({ 0,0 }, { 1,1 }, nullptr);
+	testGui.AddGUIElement({ -1,-1 }, { 2.0f,0.5f }, nullptr, nullptr);
+	testGui.GetElement(0)->colorTint = Vec3(1, 0, 0);
+	testGui.GetElement(0)->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "HudMask.png");
+	testGui.GetElement(0)->secondTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "HudMask.png");
 
+	testGui.AddGUIElement({ -1,0.5f }, { 0.5f,0.5f }, nullptr, nullptr);
+	testGui.GetElement(1)->colorTint = Vec3(1, 1, 1);
+	testGui.GetElement(1)->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "fithLevel.png");
+	testGui.GetElement(1)->secondTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "HudMask.png");
 
 	int frames = 0;
 	cs::Timer deltaTimer;

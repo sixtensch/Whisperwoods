@@ -9,6 +9,7 @@ GUIRenderable::GUIRenderable(uint id, const ModelStaticResource* modelStatic, Ma
 	this->pipelineType = PipelineTypeGUI;
 	this->enabled = true;
 	m_model = modelStatic;
+	//m_elementRef = elementRef;
 }
 
 void GUIRenderable::Draw(const DrawInfo& drawInfo) const
