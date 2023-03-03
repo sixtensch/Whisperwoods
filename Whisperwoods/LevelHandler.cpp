@@ -632,10 +632,10 @@ void LevelHandler::EvaluateRoom(FloorPrimer& f, uint index)
 
 		offsetDeviations.Clear(false);
 
-		/*if (r.levelIndex == GetLevelByName("Test3-1"))
+		if (r.levelIndex == GetLevelByName("Test3-2"))
 		{
 			int a = 0;
-		}*/
+		}
 
 		// Try for every permutation of offsets between level exits and real connections
 		for (uint i = 0u; i < (uint)r.angles.Size(); i++)
@@ -671,7 +671,7 @@ void LevelHandler::EvaluateRoom(FloorPrimer& f, uint index)
 			for (uint j = 0u; j < (uint)r.angles.Size(); j++)
 			{
 				offsetDeviations.Add(angles[j] - average);
-				deviationScore += std::fabs(offsetDeviations.Back());
+				deviationScore += std::fabs(cs::fwrap(offsetDeviations.Back(), -cs::c_pi, cs::c_pi));
 			}
 
 			if (deviationScore < r.angleDeviationScore)
@@ -729,7 +729,7 @@ float LevelHandler::EvaluateDeviation(RoomPrimer& r, const LevelResource* level)
 		float deviationScore = 0.0f;
 		for (uint j = 0u; j < (uint)r.angles.Size(); j++)
 		{
-			deviationScore += std::fabs(angles[j] - average);
+			deviationScore += std::fabs(cs::fwrap(angles[j] - average, -cs::c_pi, cs::c_pi));
 		}
 
 		if (deviationScore < result)

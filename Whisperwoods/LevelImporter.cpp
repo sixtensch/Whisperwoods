@@ -233,11 +233,6 @@ bool LevelImporter::ImportImage(string textureName, const RenderCore* core, Leve
 
 				Vec2 compensatedDirection = (centerOut + trueDirection).Normalized();
 
-				if (textureName == "Test2-3.png")
-				{
-					int a = 0;
-				}
-
 				compensatedDirection.y *= -1;
 
 				outLevel->exits.Add(
