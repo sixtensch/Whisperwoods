@@ -6,7 +6,7 @@
 #include "AnimationResource.h"
 #include "Room.h"
 
-constexpr float RUNNING_STAMINA_DECAY = 5.0f;
+constexpr float RUNNING_STAMINA_DECAY = 2.0f;
 
 
 class Player : public GameObject
