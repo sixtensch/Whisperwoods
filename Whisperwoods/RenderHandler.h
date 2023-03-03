@@ -51,8 +51,8 @@ public:
 	void UpdateGPUProfiler();
 	void Present();
 
-	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);
-
+	void ExecuteDraw(TimelineState state, bool shadows);
+	void ZPrepass(TimelineState state);
 
 
 	RenderCore* GetCore() const;
@@ -86,8 +86,8 @@ public:
 
 
 private:
+	void QuadCull(const Camera& camPOV);
 	void DrawInstances(uint state, bool shadows);
-
 
 
 private:

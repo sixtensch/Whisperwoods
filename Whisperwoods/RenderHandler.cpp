@@ -65,6 +65,7 @@ void RenderHandler::LoadLevel(LevelResource* level, string image)
 void RenderHandler::Draw()
 {
 	m_renderCore->NewFrame();
+	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_renderCore->UpdateViewInfo(m_mainCamera);
@@ -87,13 +88,18 @@ void RenderHandler::Draw()
 
 
 	// ShadowPass
+	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
 	static std::string shadowPassProfileName = "Shadow Pass";
-	PROFILE_JOB(shadowPassProfileName, ExecuteDraw(m_lightDirectional->camera, m_timelineState, true));
+	PROFILE_JOB(shadowPassProfileName, ExecuteDraw(m_timelineState, true));
 
 	// Main scene rendering
+	m_renderCore->UpdateViewInfo(m_mainCamera);
+	QuadCull(m_mainCamera);
 
-	static std::string mainSceneProfileName = "Main Scene";
-	PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_mainCamera, m_timelineState, false));
+	static std::string zPrepassProfileName = "Z Prepass Draw";
+	static std::string mainSceneProfileName = "Main Scene Draw";
+	PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
+	PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_timelineState, false));
 	m_renderCore->UnbindRenderTexture();
 
 	// PPFX / FX
@@ -132,10 +138,8 @@ void RenderHandler::Present()
 	m_renderCore->EndFrame();
 }
 
-void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows)
+void RenderHandler::ExecuteDraw(TimelineState state, bool shadows)
 {
-	m_renderCore->UpdateViewInfo(povCamera);
-	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 	if ( !shadows )
 	{
 		m_renderCore->TargetRenderTexture();
@@ -178,13 +182,42 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 
 	if (!shadows)
 	{
-		static std::string instancesDrawProfileName = "Draw Instances";
-		PROFILE_JOB(instancesDrawProfileName, DrawInstances(state, false));
+		DrawInstances(state, false);
+	}
+}
+
+
+void RenderHandler::ZPrepass(TimelineState state)
+{
+	// Setup
+	m_renderCore->TargetPrepass();
+
+	// Draw to the prepass
+	DrawInstances(state, true);
+	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
+	{
+		shared_ptr<WorldRenderable> data = {};
+		switch ( state )
+		{
+			case TimelineStateCurrent:
+				data = m_worldRenderables[i].first;
+				break;
+
+			case TimelineStateFuture:
+				data = m_worldRenderables[i].second;
+				break;
+		}
+		if ( data && data->enabled )
+		{
+			m_renderCore->UpdateObjectInfo(data.get());
+			m_renderCore->DrawObject(data.get(), true);
+		}
 	}
 }
 
 void RenderHandler::ExecuteStaticShadowDraw()
 {
+	QuadCull(m_mainCamera);
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
 	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 	m_renderCore->TargetStaticShadowMap();
@@ -554,23 +587,18 @@ void RenderHandler::RegisterLastRenderableAsShadow()
 	m_shadowRenderables.Add(m_worldRenderables.Size() - 1);
 }
 
-void RenderHandler::DrawInstances(uint state, bool shadows)
+void RenderHandler::QuadCull(const Camera& camPOV)
 {
-	m_renderCore->BindInstancedPipeline(shadows);
-
-	// Culling here
-	m_envInstances.Clear(false);
-
-	// Create the view frustum for the culling
+		// Create the view frustum for the culling
 	dx::BoundingFrustum viewFrustum = {};
-	viewFrustum.CreateFromMatrix(viewFrustum, m_mainCamera.GetProjectionMatrix().XMMatrix());
-	Vec3 position = m_mainCamera.GetPosition();
+	viewFrustum.CreateFromMatrix(viewFrustum, camPOV.GetProjectionMatrix().XMMatrix());
+	Vec3 position = camPOV.GetPosition();
 	viewFrustum.Origin = {
 		position.x,
 		position.y,
 		position.z
 	};
-	Quaternion rotation = m_mainCamera.GetRotation().Conjugate();
+	Quaternion rotation = camPOV.GetRotation().Conjugate();
 	viewFrustum.Orientation = {
 		rotation.x,
 		rotation.y,
@@ -578,10 +606,7 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 		rotation.w
 	};
 
-
-
-
-	for (uint i = 0; i < LevelAssetCount; i++)
+	for ( uint i = 0; i < LevelAssetCount; i++ )
 	{
 		m_envMeshes[i].hotInstances.Clear(false);
 	}
@@ -590,6 +615,13 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 	//	m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 
 	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 5);
+}
+
+void RenderHandler::DrawInstances(uint state, bool shadows)
+{
+	m_renderCore->BindInstancedPipeline(shadows);
+
+	m_envInstances.Clear(false);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{

@@ -56,8 +56,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	// Profiler
 
-	uint updateFrequency = 500u;
-	m_gpuProfiler = GPUProfiler(m_device, m_context, updateFrequency);
+	m_gpuProfiler = GPUProfiler(m_device, m_context);
 
 	// Setup viewport
 
@@ -204,10 +203,15 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	D3D11_DEPTH_STENCIL_DESC dssDesc = {};
 	dssDesc.DepthEnable = true;
-	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	dssDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	dssDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	EXC_COMCHECK(m_device->CreateDepthStencilState(&dssDesc, m_dsDSS.GetAddressOf()));
 
-	EXC_COMCHECK(m_device->CreateDepthStencilState(&dssDesc, &m_dsDSS));
+	D3D11_DEPTH_STENCIL_DESC prepassDSDESC = {};
+	prepassDSDESC.DepthEnable = true;
+	prepassDSDESC.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	prepassDSDESC.DepthFunc = D3D11_COMPARISON_LESS;
+	EXC_COMCHECK(m_device->CreateDepthStencilState(&prepassDSDESC, m_ppDSS.GetAddressOf()));
 
 	D3D11_TEXTURE2D_DESC dstDesc;
 	dstDesc.Width = window->GetWidth();
@@ -449,11 +453,21 @@ void RenderCore::NewFrame()
 
 	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get()));
 	EXC_COMINFO(m_context->OMSetBlendState(m_blendState.Get(), nullptr, 0xffffffff));
-	EXC_COMINFO(m_context->OMSetDepthStencilState(m_dsDSS.Get(), 1));
+}
+
+void RenderCore::TargetPrepass()
+{
+	EXC_COMINFO(m_context->OMSetDepthStencilState(m_ppDSS.Get(), 1));
+
+	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, m_dsDSV.Get()));
+	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get())); // Backface culling
+	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
 }
 
 void RenderCore::TargetShadowMap()
 {
+	EXC_COMINFO(m_context->OMSetDepthStencilState(m_ppDSS.Get(), 1));
+
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
 
@@ -466,6 +480,8 @@ void RenderCore::TargetShadowMap()
 
 void RenderCore::TargetStaticShadowMap()
 {
+	EXC_COMINFO(m_context->OMSetDepthStencilState(m_ppDSS.Get(), 1));
+
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
 
@@ -478,6 +494,10 @@ void RenderCore::TargetStaticShadowMap()
 
 void RenderCore::TargetRenderTexture()
 {
+	EXC_COMINFO(m_context->OMSetDepthStencilState(m_dsDSS.Get(), 1));
+
+
+
 	ID3D11RenderTargetView* rtvs[RTV_COUNT] = {
 		m_renderTextureRTV.Get(), 
 		m_positionTextureRTV.Get() 
@@ -485,8 +505,6 @@ void RenderCore::TargetRenderTexture()
 
 	EXC_COMINFO(m_context->OMSetRenderTargets(RTV_COUNT, rtvs, m_dsDSV.Get()));
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, m_shadowSRV.GetAddressOf()));
-	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get())); // Backface culling
-	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
 }
 
 void RenderCore::UnbindRenderTexture()
