@@ -1397,7 +1397,8 @@ void RenderCore::InitConstantBuffers()
 		m_constantBuffers.playerInfo.GetAddressOf()
 	) );
 
-	EXC_COMINFO( m_context->VSSetConstantBuffers( RegCBVTesselationInfo, 1, m_constantBuffers.playerInfo.GetAddressOf()));
+	EXC_COMINFO( m_context->VSSetConstantBuffers( RegCBVPlayerInfo, 1, m_constantBuffers.playerInfo.GetAddressOf()));
+	EXC_COMINFO( m_context->PSSetConstantBuffers( RegCBVPlayerInfo, 1, m_constantBuffers.playerInfo.GetAddressOf() ) );
 
 
 	// Shading info

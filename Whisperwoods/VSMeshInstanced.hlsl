@@ -28,7 +28,7 @@ cbuffer ViewInfo : REGISTER_CBV_VIEW_INFO
     matrix ProjectionMatrix;
 };
 
-cbuffer PlayerInfo : REGISTER_CBV_TESSELATION_INFO
+cbuffer PlayerInfo : REGISTER_CBV_PLAYER_INFO
 {
     matrix playerMatrix;
 };

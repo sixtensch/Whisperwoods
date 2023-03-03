@@ -110,17 +110,15 @@ void RenderHandler::Draw()
 	}
 	
 	// Render text
-	{
-		
+	{	
 		// TODO: Move binding back buffer to OM here instead of it being at the end of DrawToBackBuffer().
-
 		for (int i = 0; i < m_texts.Size(); i++)
 		{
 			m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont(), m_texts[i].get()->GetColor(), m_texts[i].get()->GetOrigin());
 		}
 	}
 	
-	// Draw all gui shit.
+	// Draw GUI
 	static std::string guiDrawProfileName = "GUI Draw calls";
 	PROFILE_JOB(guiDrawProfileName, RenderGUI());
 }
@@ -181,23 +179,16 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 
 	if (!shadows)
 	{
-		// Draw all gui shit.
-		/*for (int i = 0; i < m_guiRenderables.Size(); i++)
-		{
-			auto data = m_guiRenderables[i];
-			if (data && data->enabled)
-			{
-				m_renderCore->UpdateGUIInfo(data.get()->m_elementRef);
-				m_renderCore->UpdateObjectInfo(data.get());
-				m_renderCore->DrawObject(data.get(), shadows);
-			}
-		}*/
-
 		static std::string instancesDrawProfileName = "Draw Instances";
 		PROFILE_JOB(instancesDrawProfileName, DrawInstances(state, false));
 	}
 }
 
+/*    ("`-''-/").___..--''"`-._
+       `6_ 6  )   `-.  (     ).`-.__.`)
+       (_Y_.)'  ._   )  `._ `. ``-..-'
+     _..`--'_..-_/  /--'_.' ,'
+    (il),-''  (li),'  ((!.-'   <(~Draw all the GUI renderables~)*/
 void RenderHandler::RenderGUI()
 {
 	for (int i = 0; i < m_guiRenderables.Size(); i++)

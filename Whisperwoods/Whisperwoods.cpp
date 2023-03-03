@@ -165,7 +165,7 @@ void Whisperwoods::Run()
 
 	testGui.AddGUIElement({ -1,0.5f }, { 0.5f,0.5f }, nullptr, nullptr);
 	testGui.GetElement(1)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(1)->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "fithLevel.png");
+	testGui.GetElement(1)->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "Hubby.png");
 	testGui.GetElement(1)->secondTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "HudMask.png");
 
 	int frames = 0;

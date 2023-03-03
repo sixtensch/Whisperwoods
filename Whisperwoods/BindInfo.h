@@ -37,7 +37,7 @@ enum RegCBV : char
 	RegCBVSystem1 = 6,
 	RegCBVSystem2 = 7,
 
-	RegCBVTesselationInfo = 8,
+	RegCBVPlayerInfo = 8,
 	RegCBVViewInfo = 9,			// View matrix, projection matrix, etc
 	RegCBVObjectInfo = 10,		// World matrix, etc
 	RegCBVMaterialInfo = 11,
