@@ -5,6 +5,7 @@
 #include "Input.h"
 #include "Resources.h"
 #include "LevelImporter.h"
+#include "SoundResource.h"
 
 Player::Player(std::string modelResource, std::string animationsPath, Mat4 modelOffset)
 {
@@ -62,6 +63,11 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	cameraIsLocked = true;
 	playerInFuture = false;
 	hasPickedUpEssenceBloom = false;
+
+
+	FMOD::Sound* undergrowthSoundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "vegetation.mp3"))->currentSound;
+	m_vegetationSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.8f, 1.1f, 0.0f, 10.0f, undergrowthSoundPtr);
+	this->AddChild((GameObject *) m_vegetationSound.get());
 }
 
 void Player::ReloadPlayer()
@@ -219,4 +225,12 @@ void Player::Update(float delta_time)
 	characterAnimator->Update( delta_time );
 	transform.CalculateWorldMatrix();
 	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
+
+	m_vegetationSound->Update(delta_time);
+
+	// Sound management!
+	if (!m_vegetationSound->IsPlaying())
+	{
+		m_vegetationSound->Play();
+	}
 }

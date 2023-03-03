@@ -316,6 +316,9 @@ void Game::Init()
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
 	m_audioSource->Play();
 
+
+	
+
 	// Environment parameters
 	m_envParams.spawnSeed = 652;
 	m_envParams.scaleSeed = 635;
@@ -352,6 +355,9 @@ void Game::Init()
 	m_directionalLight->diameter = 50.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
+
+	
+	
 }
 
 void Game::DeInit()

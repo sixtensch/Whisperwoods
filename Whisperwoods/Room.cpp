@@ -62,7 +62,7 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 		pos.y = 8.0f;
 		std::string soundName = "Jungle_AmbianceLoop0" + std::to_string( (i + 1) % 6 ) + ".wav";
 		FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource( ResourceTypeSound, soundName ))->currentSound;
-		shared_ptr<AudioSource> audioSource = make_shared<AudioSource>( pos, 0.5f, 1.0f, 0.0f, radius * 3.0f, soundPtr );
+		shared_ptr<AudioSource> audioSource = make_shared<AudioSource>( pos, 0.3f, 1.0f, 0.0f, radius * 3.0f, soundPtr );
 		audioSource->mix2d3d = 0.75f;
 		audioSource->loop = true;
 		audioSource->Play();

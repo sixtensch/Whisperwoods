@@ -81,3 +81,13 @@ void AudioSource::SetSound(FMOD::Sound* sound)
 	m_channel->stop();
 	m_currentSound = sound;
 }
+
+void AudioSource::Update(float delta_time)
+{
+	transform.CalculateWorldMatrix();
+	Vec3 worldPos = transform.GetWorldPosition();
+
+	FMOD_VECTOR pos = { worldPos.x, worldPos.y,  worldPos.z };
+	FMOD_VECTOR vel = { 0, 0, 0 };
+	m_channel->set3DAttributes(&pos, &vel);
+}

@@ -23,5 +23,5 @@ public:
 	bool IsPlaying();
 	void SetSound(FMOD::Sound* sound);
 	
-	void Update(float delta_time) override {};
+	void Update(float delta_time) override;
 };

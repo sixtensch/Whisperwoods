@@ -44,6 +44,11 @@ public:
 	Vec3 cameraLookAtTarget;
 	Quaternion cameraLookRotationTarget;
 
+
+	shared_ptr<AudioSource> m_vegetationSound;
+
+
+
 	Player() = default;
 	Player(std::string modelResource, std::string animationsPath, Mat4 modelOffset);
 	void ReloadPlayer();
@@ -54,4 +59,6 @@ public:
 
 	void PlayerMovement(float delta_time, float movementMultiplier);
 	void Update(float delta_time) override;
+
+
 };
