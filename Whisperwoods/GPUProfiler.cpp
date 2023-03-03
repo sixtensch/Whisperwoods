@@ -93,10 +93,11 @@ void GPUProfiler::PostEndFrameSummary()
 	if (!IsAllowedToUpdate())
 		return;
 
-	// Reset time sum.
+	static const char profileFormat[] = "[%s]\nDiff %.5f | Avg %.5f | Max %.5f | Min %.5f\n\n";
 	float summedTime = 0.0f;
-	std::string frameSummary = "\n\n-- GPU PROFILE SUMMARY --\n\n";
-	for (const auto& [profileName, profile] : m_profiles)
+
+	std::string frameSummary = "\n\n-- GPU PROFILE SUMMARY (in ms) --\n\n";
+	for (auto& [profileName, profile] : m_profiles)
 	{
 		UINT64 startStamp = 0u;
 		while (m_context->GetData(profile.queryTimeStart.Get(), (void*)&startStamp, sizeof(startStamp), 0u) != S_OK);
@@ -110,16 +111,34 @@ void GPUProfiler::PostEndFrameSummary()
 
 		if (!queryData.Disjoint)
 		{
+			const size_t maxBufSize = 256;
+			char profileTextBuff[maxBufSize] = {0};
+
 			UINT64 stampDiff = endStamp - startStamp;
 			// Time in milliseconds.
 			float timeDiff = (stampDiff / (float)queryData.Frequency) * 1000.0f;
 			summedTime += timeDiff;
 
-			frameSummary.append(profileName).append(": ").append(std::to_string(timeDiff)).append(" ms\n");
+			profile.lastDiffs.UpdateBuffer(timeDiff);
+
+			float currentMax = profile.maxDelta;
+			float currentMin = profile.minDelta;
+			profile.maxDelta = currentMax < timeDiff ? timeDiff : currentMax;
+			profile.minDelta = currentMin > timeDiff ? timeDiff : currentMin;
+
+			std::snprintf(profileTextBuff, maxBufSize - 1, profileFormat, 
+				profileName.c_str(), 
+				timeDiff, 
+				profile.lastDiffs.lastAverage,
+				profile.maxDelta, 
+				profile.minDelta
+			);
+
+			frameSummary += std::string(profileTextBuff);
 		}
 		else
 		{
-			LOG_WARN("Query data for '%s' is disjoint. Timing is invalid.", profileName.c_str());
+			LOG_WARN("Query data for [%s] is disjoint. Timing is invalid.", profileName.c_str());
 		}
 	}
 
