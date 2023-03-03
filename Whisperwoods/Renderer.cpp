@@ -131,6 +131,11 @@ shared_ptr<MeshRenderableRigged> Renderer::CreateMeshRigged(const string& subpat
 	return s_singleton->m_renderHandler->CreateMeshRigged(subpath);
 }
 
+void Renderer::DestroyMeshStatic(shared_ptr<MeshRenderableStatic> renderable)
+{
+	s_singleton->m_renderHandler->DestroyMeshStatic(renderable);
+}
+
 shared_ptr<GUIRenderable> Renderer::CreateGUIRenderable(const string& subpath)
 {
 	return s_singleton->m_renderHandler->CreateGUIRenderable(subpath);

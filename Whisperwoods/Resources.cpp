@@ -74,6 +74,36 @@ void Resources::LoadAssetDirectory(const RenderCore* const renderCore)
 	LoadCompositeResources(renderCore);
 }
 
+TextureResource* Resources::GetTexture(std::string filename)
+{
+	return (TextureResource*)GetResource(ResourceTypeTexture, filename);
+}
+
+SoundResource* Resources::GetSound(std::string filename)
+{
+	return (SoundResource*)GetResource(ResourceTypeSound, filename);
+}
+
+MaterialResource* Resources::GetMaterial(std::string filename)
+{
+	return (MaterialResource*)GetResource(ResourceTypeMaterial, filename);
+}
+
+ModelStaticResource* Resources::GetModelStatic(std::string filename)
+{
+	return (ModelStaticResource*)GetResource(ResourceTypeModelStatic, filename);
+}
+
+ModelRiggedResource* Resources::GetModelRigged(std::string filename)
+{
+	return (ModelRiggedResource*)GetResource(ResourceTypeModelRigged, filename);
+}
+
+AnimationResource* Resources::GetAnimation(std::string filename)
+{
+	return (AnimationResource*)GetResource(ResourceTypeAnimations, filename);
+}
+
 const BasicResource* Resources::GetResource(const ResourceType resourceType, std::string filename) const
 {
 	return (const BasicResource*)GetWritableResource(resourceType, filename);

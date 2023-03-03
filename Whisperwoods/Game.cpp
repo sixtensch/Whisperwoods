@@ -307,12 +307,78 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		Renderer::GetWindow().CloseProgram();
 	}
+
+
+	if (ImGui::Begin("Map Debugger"))
+	{
+		ImGui::InputInt("Room Count", &m_testCount);
+		ImGui::InputInt("Separation Steps", &m_testRep);
+		bool gen = false;
+		if (ImGui::Button("Generate"))
+		{
+			gen = true;
+		}
+
+		ImGui::SameLine();
+		if (ImGui::Button("Generate New"))
+		{
+			gen = true;
+			m_testSeed++;
+		}
+
+		if (gen)
+		{
+			LevelFloor f;
+			m_levelHandler->GenerateFloor(&f, { m_testSeed, (uint)m_testCount, (uint)m_testRep, 0 }, m_envParams);
+
+			for (int i = 0; i < m_testRenderables.Size(); i++)
+			{
+				Renderer::DestroyMeshStatic(m_testRenderables[i]);
+			}
+
+			m_testRenderables.Clear();
+			m_testMaterials.Clear();
+			for (int i = 0; i < f.rooms.Size(); i++)
+			{
+				m_testMaterials.Add(MaterialResource());
+			}
+
+			float distance = 0.5f;
+
+			Mat4 halfturn = Quaternion::GetEuler(0, cs::c_pi, 0).Matrix();
+
+			for (int i = 0; i < f.rooms.Size(); i++)
+			{
+				Level& l = f.rooms[i];
+				m_testRenderables.Add(Renderer::CreateMeshStatic("room_plane.wwm"));
+				m_testRenderables.Back()->worldMatrix = Mat::translation3(l.position.x * distance, 3.2f, l.position.y * distance) * halfturn * l.rotation.Matrix() * Mat::scale3(0.8f);
+
+				m_testMaterials[i].specular = Vec3(0.5f, 0.5f, 0.5f);
+				m_testMaterials[i].textureDiffuse = l.resource->source;
+				m_testRenderables.Back()->Materials().AddMaterial(&m_testMaterials[i]);
+			}
+
+			for (int i = 0; i < f.tunnels.Size(); i++)
+			{
+				LevelTunnel& t = f.tunnels[i];
+				Vec2 start = f.rooms[t.startRoom].position;
+				Vec2 end = f.rooms[t.endRoom].position;
+
+				m_testRenderables.Add(Renderer::CreateMeshStatic("Debug_Sphere.wwm"));
+				m_testRenderables.Back()->worldMatrix =
+					Mat::translation3((start.x + end.x) * 0.5f * distance, 3, (start.y + end.y) * 0.5f * distance) *
+					Quaternion::GetDirection((Vec3(end.x, 0, end.y) - Vec3(start.x, 0, start.y)).Normalized()).Matrix() *
+					Mat::scale3(0.3f, 0.3f, (end - start).Length() * 2.5f);
+			}
+		}
+	}
+	ImGui::End();
 }
 
 void Game::Init()
 {
 	// Audio test startup
-	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
+	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
 	m_audioSource->Play();
 
@@ -480,7 +546,7 @@ void Game::UnloadRoom()
 {
 	Renderer::UnLoadEnvironment();
 	m_player->currentRoom = nullptr;
-	m_currentRoom = nullptr;
+	m_currentRoom.reset();
 	m_enemies.Clear();
 }
 
@@ -581,5 +647,3 @@ bool Game::SwitchIsDone()
 {
 	return m_switchVals.timeSinceSwitch >= (m_switchVals.chargeDuration + m_switchVals.falloffDuration);
 }
-
-

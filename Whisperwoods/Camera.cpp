@@ -93,7 +93,7 @@ const Vec3 Camera::GetRight()
 }
 
 
-const Quaternion Camera::GetRotation()
+const Quaternion Camera::GetRotation() const
 {
 	return m_transform.rotation;
 }

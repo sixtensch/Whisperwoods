@@ -23,6 +23,7 @@ public:
 	~RenderCore();
 
 	void NewFrame();
+	void TargetPrepass();
 	void TargetRenderTexture();
 	void UnbindRenderTexture();
 	void TargetShadowMap();
@@ -173,6 +174,7 @@ private:
 	// Depth stencil
 	ComPtr<ID3D11Texture2D> m_dsTexture;
 	ComPtr<ID3D11DepthStencilState> m_dsDSS;
+	ComPtr<ID3D11DepthStencilState> m_ppDSS;
 	ComPtr<ID3D11DepthStencilView> m_dsDSV;
 	ComPtr<ID3D11ShaderResourceView> m_dsSRV;
 

@@ -2,12 +2,34 @@
 
 #include <unordered_map>
 
-
-
 class GPUProfiler {
+
+	struct TimeBuffer {
+		const uint buffSize = 256;
+		cs::Queue<float> values = {};
+
+		float timeSum = 0.0f;
+		float lastAverage = 0.0f;
+
+		void UpdateBuffer(float value) {
+			timeSum += value;
+			values.Push(value);
+			if (values.Size() == buffSize)
+			{
+				timeSum -= values.Pop();
+			}
+
+			lastAverage = timeSum / values.Size();
+		}
+	};
 
 	struct ProfileData {
 		bool isQuerying = false;
+
+		float minDelta = FLT_MAX;
+		float maxDelta = 0.0f;
+
+		TimeBuffer lastDiffs;
 
 		ComPtr<ID3D11Query> queryDisjoint = nullptr;
 		ComPtr<ID3D11Query> queryTimeStart = nullptr;
@@ -29,7 +51,7 @@ public:
 
 private:
 
-	void PostEndFrameSummary();
+	void SynthesizeSummary();
 	void DrawImGui();
 
 	bool inline IsAllowedToUpdate();
@@ -37,6 +59,7 @@ private:
 	
 private:
 	std::unordered_map<std::string, ProfileData> m_profiles;
+	cs::List<std::string> m_insertionOrder;
 
 	// References to render core's device and context.
 	ComPtr<ID3D11Device> m_device;

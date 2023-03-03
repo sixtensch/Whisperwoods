@@ -52,6 +52,9 @@ public:
 	void UpdateGPUProfiler();
 	void Present();
 
+	void ExecuteDraw(TimelineState state, bool shadows);
+	void ZPrepass(TimelineState state);
+
 	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);
 
 	void RenderGUI();
@@ -72,6 +75,8 @@ public:
 
 	shared_ptr<GUIRenderable> CreateGUIRenderable(const string& subpath);
 
+	void DestroyMeshStatic(shared_ptr<MeshRenderableStatic> renderable);
+
 	void SetTimelineStateCurrent();
 	void SetTimelineStateFuture();
 
@@ -87,8 +92,8 @@ public:
 
 
 private:
+	void QuadCull(const Camera& camPOV);
 	void DrawInstances(uint state, bool shadows);
-
 
 
 private:

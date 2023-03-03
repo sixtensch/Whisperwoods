@@ -75,7 +75,9 @@ namespace cs
         void Remove(int index);
         void MassRemove(const int indices[], int indexCount);
         void Add(const T& value);
-        void MassAdd(const T values[], int valueCount, bool copy = false);  // Sequentially add, or bulk copy, large volume of data into the array
+        void MassAdd(const T values[], int valueCount, bool copy = true);  // Sequentially add, or bulk copy, large volume of data into the array
+        void MassAdd(const cs::List<T>& list, bool copy = true);
+        void MassAdd(const cs::List<T>& list, int start, int end, bool copy = true);
         T* MassAdd(int valueCount);                                         // Brace for impact, growing array and returning pointer to where data can be placed.
         void Clear(bool shrink = true);
         T Pop();
@@ -306,7 +308,7 @@ namespace cs
             {
                 high = mid - 1;
             }
-        }
+        } 
 
         return -1;
     }
@@ -350,7 +352,7 @@ namespace cs
             {
                 high = mid - 1;
             }
-        }
+        } 
 
         return nullptr;
     }
@@ -452,7 +454,7 @@ namespace cs
             memcpy(MassAdd(valueCount), values, valueCount * sizeof(T));
             return;
         }
-
+        
         GrowToFit(valueCount + m_size);
 
         for (int i = 0; i < valueCount; i++)
@@ -461,6 +463,23 @@ namespace cs
         }
 
         m_size += valueCount;
+    }
+
+    template<typename T>
+    inline void List<T>::MassAdd(const cs::List<T>& list, bool copy)
+    {
+        MassAdd(list.Data(), list.Size(), copy);
+    }
+
+    template<typename T>
+    inline void List<T>::MassAdd(const cs::List<T>& list, int start, int end, bool copy)
+    {
+        if (start > end)
+        {
+            return;
+        }
+
+        MassAdd(list.Data() + start, end - start, copy);
     }
 
     template<typename T>
@@ -478,7 +497,7 @@ namespace cs
     {
         if (m_size == 0)
         {
-            return;
+            throw cs::ExceptionGeneral(__FILE__, __FUNCTION__, __LINE__, "Cannot pop member of empty list.");
         }
 
         m_size--;
@@ -534,11 +553,10 @@ namespace cs
             return;
         }
 
-        // Temporary fix for reducing large amount of reallocations.
-        //if (m_size < m_capacity / 2 && m_capacity > c_dCapacity)
-        //{
-        //    ShrinkArray();
-        //}
+        if (m_size < m_capacity / 2 && m_capacity > c_dCapacity)
+        {
+            ShrinkArray();
+        }
     }
 
     template<typename T>
@@ -581,7 +599,8 @@ namespace cs
         do
         {
             actual *= 2;
-        } while (actual < newCapacity);
+        } 
+        while (actual < newCapacity);
 
         GrowArray(actual);
     }
