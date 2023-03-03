@@ -34,6 +34,7 @@ public:
 	float collectiveForwardValue;
 	Vec3 sampleVector;
 	bool playerInFuture;
+	bool hasPickedUpEssenceBloom;
 
 	shared_ptr<MeshRenderableRigged> characterModel;
 	AnimationResource* animationSet;

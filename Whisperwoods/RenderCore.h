@@ -12,8 +12,7 @@
 #include "MaterialResource.h"
 #include "Bone.h"
 #include "Enemy.h"
-
-
+#include "GPUProfiler.h"
 
 
 class RenderCore
@@ -101,6 +100,10 @@ public:
 	void InitImGui() const;
 
 	void InitFont(std::unique_ptr<dx::SpriteFont> fonts[FontCount], std::unique_ptr<dx::SpriteBatch>* batch) const;
+
+	void ProfileBegin(const std::string& profileName);
+	void ProfileEnd(const std::string& profileName);
+	void UpdateGPUProfiler();
 
 private:
 	void BindPipeline(PipelineType pipeline, bool shadowing);
@@ -216,4 +219,6 @@ private:
 
 	std::unique_ptr<dx::SpriteFont> m_fonts[FontCount];
 	std::unique_ptr<dx::SpriteBatch> m_spriteBatch;
+
+	GPUProfiler m_gpuProfiler;
 };
