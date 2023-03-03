@@ -82,11 +82,51 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 	bool success = false;
 	uint attempts = 0;
 
+	//primer.rooms.Add(
+	//	{
+	//		{ 1, 2 },
+	//		{ 0.0f, 0.0f },
+	//		{},
+	//		0,
+	//		GetLevelByName("Test2-3")
+	//	}
+	//);
+
+	//primer.rooms.Add(
+	//	{
+	//		{ 0 },
+	//		{ 10.0f, 0.0f },
+	//		{},
+	//		0,
+	//		GetLevelByName("Test1-1")
+	//	}
+	//);
+
+	//primer.rooms.Add(
+	//	{
+	//		{ 0 },
+	//		{ 0.0f, 10.0f },
+	//		{},
+	//		0,
+	//		GetLevelByName("Test1-2")
+	//	}
+	//);
+
+	//AngleRooms(primer);
+	//EvaluateRoom(primer.rooms[0]);
+	//EvaluateRoom(primer.rooms[1]);
+	//EvaluateRoom(primer.rooms[2]);
+
+
+
+	float degToRad = cs::c_pi / 180.0f;
+	float dotThreshold = std::cosf(5.0f * degToRad);
+	
 	do
 	{
 		attempts++;
 		CreateNodes(primer, roomCount, pushSteps);
-		success = TryConnecting(primer);
+		success = TryConnecting(primer, dotThreshold);
 
 		if (!success)
 		{
@@ -121,11 +161,13 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount
 
 	for (const TunnelPrimerNetwork& network : primer.networks)
 	{
+		if (network.merged)
+		{
+			continue;
+		}
+
 		for (const TunnelPrimer& tunnel : network.tunnels)
 		{
-			f.rooms[tunnel.start].connections.Add(tunnel.end);
-			f.rooms[tunnel.end].connections.Add(tunnel.start);
-
 			f.tunnels.Add({ tunnel.start, tunnel.end });
 		}
 	}
@@ -183,6 +225,19 @@ void LevelHandler::AddLevelName(LevelFloor& f, string name)
 	}
 }
 
+int LevelHandler::GetLevelByName(string name)
+{
+	for (int i = 0; i < m_resources.Size(); i++)
+	{
+		if (m_resources[i]->name == name)
+		{
+			return i;
+		}
+	}
+
+	return -1;
+}
+
 void LevelHandler::CreateNodes(FloorPrimer& f, uint roomCount, uint pushSteps)
 {
 	f.rooms.Clear(false);
@@ -219,7 +274,7 @@ void LevelHandler::CreateNodes(FloorPrimer& f, uint roomCount, uint pushSteps)
 	}
 }
 
-bool LevelHandler::TryConnecting(FloorPrimer& f)
+bool LevelHandler::TryConnecting(FloorPrimer& f, float dotThreshold)
 {
 	f.networks.Clear();
 
@@ -246,7 +301,53 @@ bool LevelHandler::TryConnecting(FloorPrimer& f)
 
 		Vec2 ori = f.rooms[start].position;
 		Vec2 dir = f.rooms[end].position - ori;
-		//dir.Normalize();
+		Vec2 ndir = dir.Normalized();
+
+		if (f.rooms[start].networkIndex >= 0)
+		{
+			TunnelPrimerNetwork& startNetwork = f.networks[f.rooms[start].networkIndex];
+			for (int i = 0; i < startNetwork.tunnels.Size(); i++)
+			{
+				if (startNetwork.tunnels[i].start != start && startNetwork.tunnels[i].end != start)
+				{
+					continue;
+				}
+
+				uint other = startNetwork.tunnels[i].start == start ?
+					startNetwork.tunnels[i].end :
+					startNetwork.tunnels[i].start;
+
+				Vec2 relativeDir = (f.rooms[other].position - ori).Normalized();
+
+				if (relativeDir * ndir > dotThreshold)
+				{
+					return false;
+				}
+			}
+		}
+
+		if (f.rooms[end].networkIndex >= 0)
+		{
+			TunnelPrimerNetwork& endNetwork = f.networks[f.rooms[end].networkIndex];
+			for (int i = 0; i < endNetwork.tunnels.Size(); i++)
+			{
+				if (endNetwork.tunnels[i].start != end && endNetwork.tunnels[i].end != end)
+				{
+					continue;
+				}
+
+				uint other = endNetwork.tunnels[i].start == end ?
+					endNetwork.tunnels[i].end :
+					endNetwork.tunnels[i].start;
+
+				Vec2 relativeDir = (f.rooms[end].position - f.rooms[other].position).Normalized();
+
+				if (relativeDir * ndir > dotThreshold)
+				{
+					return false;
+				}
+			}
+		}
 
 		for (const TunnelPrimerNetwork& network : f.networks)
 		{
@@ -264,15 +365,6 @@ bool LevelHandler::TryConnecting(FloorPrimer& f)
 
 				Vec2 otherOri = f.rooms[tunnel.start].position;
 				Vec2 otherDir = f.rooms[tunnel.end].position - otherOri;
-				//float otherLen = otherDir.Length();
-				//otherDir.Normalize();
-
-				/*float t = (otherDir.y * (otherOri.x - ori.x) + ori.y - otherOri.y) / (dir.x * otherDir.y - dir.y);
-
-				if (t > 0.01f && t < otherLen - 0.01f)
-				{
-					return false;
-				}*/
 
 				if (Intersect(ori, ori + dir, otherOri, otherOri + otherDir))
 				{
@@ -474,7 +566,7 @@ bool LevelHandler::TryLeveling(FloorPrimer& f, bool repeats, uint roomAttempts)
 		}
 
 		r.levelIndex = bestIndex;
-		EvaluateRoom(r);
+		EvaluateRoom(f, i);
 	}
 
 	return true;
@@ -488,7 +580,7 @@ void LevelHandler::AngleRooms(FloorPrimer& f)
 		for (uint i = 0u; i < (uint)r.connections.Size(); i++)
 		{
 			Vec2 direction = f.rooms[r.connections[i]].position - r.position;
-			r.angles.Add(cs::fwrap(std::atan2f(direction.y, direction.x), 0.0f, 2 * cs::c_pi));
+			r.angles.Add(cs::fwrap(std::atan2f(-direction.y, direction.x), 0.0f, 2 * cs::c_pi));
 		}
 
 		struct AngleSorter
@@ -511,6 +603,7 @@ void LevelHandler::AngleRooms(FloorPrimer& f)
 		for (uint i = 0u; i < (uint)r.angles.Size(); i++)
 		{
 			r.connections.Add(r.connections[sorter[i].index]);
+			r.angles[i] = sorter[i].angle;
 		}
 
 		for (uint i = 0u; i < (uint)r.angles.Size(); i++)
@@ -520,8 +613,10 @@ void LevelHandler::AngleRooms(FloorPrimer& f)
 	}
 }
 
-void LevelHandler::EvaluateRoom(RoomPrimer& r)
+void LevelHandler::EvaluateRoom(FloorPrimer& f, uint index)
 {
+	RoomPrimer& r = f.rooms[index];
+
 	// Working values
 	static cs::List<float> angles;
 	static cs::List<float> offsetDeviations;
@@ -537,6 +632,11 @@ void LevelHandler::EvaluateRoom(RoomPrimer& r)
 
 		offsetDeviations.Clear(false);
 
+		/*if (r.levelIndex == GetLevelByName("Test3-1"))
+		{
+			int a = 0;
+		}*/
+
 		// Try for every permutation of offsets between level exits and real connections
 		for (uint i = 0u; i < (uint)r.angles.Size(); i++)
 		{
@@ -545,11 +645,27 @@ void LevelHandler::EvaluateRoom(RoomPrimer& r)
 
 			for (uint j = 0u; j < (uint)r.angles.Size(); j++)
 			{
-				angles.Add(r.angles[j] - resource->exits[(j + i) % r.angles.Size()].angle);
-				average += angles.Back();
+				const LevelExit& exit = resource->exits[(j + i) % r.angles.Size()];
+
+				float myAngle = r.angles[j];
+				float exitAngle = exit.angle;
+
+				angles.Add(myAngle - exitAngle);
+
+				float modifier = 0.0f;
+				if (angles.Back() - average < -cs::c_pi)
+				{
+					modifier += cs::c_pi * 2;
+				}
+				else if (angles.Back() - average > cs::c_pi)
+				{
+					modifier -= cs::c_pi * 2;
+				}
+
+				average += angles.Back() + modifier;
 			}
 
-			average /= r.angles.Size();
+			average = cs::fwrap(average / r.angles.Size(), 0.0f, 2 * cs::c_pi);
 
 			float deviationScore = 0.0f;
 			for (uint j = 0u; j < (uint)r.angles.Size(); j++)
@@ -588,11 +704,27 @@ float LevelHandler::EvaluateDeviation(RoomPrimer& r, const LevelResource* level)
 
 		for (uint j = 0u; j < (uint)r.angles.Size(); j++)
 		{
-			angles.Add(r.angles[j] - level->exits[(j + i) % r.angles.Size()].angle);
-			average += angles.Back();
+			const LevelExit& exit = level->exits[(j + i) % r.angles.Size()];
+
+			float myAngle = r.angles[j];
+			float exitAngle = exit.angle;
+
+			angles.Add(myAngle - exitAngle);
+
+			float modifier = 0.0f;
+			if (angles.Back() - average < -cs::c_pi)
+			{
+				modifier += cs::c_pi * 2;
+			}
+			else if (angles.Back() - average > cs::c_pi)
+			{
+				modifier -= cs::c_pi * 2;
+			}
+
+			average += angles.Back() + modifier;
 		}
 
-		average /= r.angles.Size();
+		average = cs::fwrap(average / r.angles.Size(), 0.0f, 2 * cs::c_pi);
 
 		float deviationScore = 0.0f;
 		for (uint j = 0u; j < (uint)r.angles.Size(); j++)

@@ -5,6 +5,15 @@
 
 #include <unordered_map>
 
+struct LevelParams
+{
+	uint seed;
+	uint roomCount;
+
+	uint pushSteps = 3; // Steps to pad rooms to create even spacing
+	uint angleSteps = 1; // Steps to move rooms around to 
+};
+
 class LevelHandler
 {
 public:
@@ -53,12 +62,15 @@ private:
 	void Environmentalize(Level& l, cs::Random& r);
 	void AddLevelName(LevelFloor& f, string name);
 
+	int GetLevelByName(string name);
+
 	void CreateNodes(FloorPrimer& f, uint roomCount, uint pushSteps);
-	bool TryConnecting(FloorPrimer& f);
+	bool TryConnecting(FloorPrimer& f, float dotThreshold);
 	bool TryLeveling(FloorPrimer& f, bool repeats, uint roomAttempts);
 	void AngleRooms(FloorPrimer& f);
-	void EvaluateRoom(RoomPrimer& r);
+	void EvaluateRoom(FloorPrimer& f, uint index);
 	float EvaluateDeviation(RoomPrimer& r, const LevelResource* level);
+
 private:
 	static LevelHandler* s_handler;
 
