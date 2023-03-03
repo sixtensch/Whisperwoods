@@ -11,6 +11,9 @@
 #include "Light.h"
 #include "MaterialResource.h"
 #include "Bone.h"
+#include "Enemy.h"
+#include "GPUProfiler.h"
+
 
 class RenderCore
 {
@@ -22,6 +25,7 @@ public:
 	void TargetRenderTexture();
 	void UnbindRenderTexture();
 	void TargetShadowMap();
+	void TargetStaticShadowMap();
 	//void TargetBackBuffer(); // Use target render texture if you want to render anything to the scene.
 	void EndFrame();
 
@@ -77,14 +81,29 @@ public:
 		const float saturation
 	);
 
+	void WriteTimeSwitchInfo(
+		float timeSinceSwitch,
+		float chargeDuration,
+		float falloffDuration,
+		bool isInFuture,
+		float globalDetectionLevel
+	);
+
+	void WriteEnemyConeInfo(const cs::List<shared_ptr<Enemy>>& enemies);
+
 	void DrawText(dx::SimpleMath::Vector2 fontPos, const wchar_t* m_text, Font font, cs::Color4f color, Vec2 origin);
 
 	void DrawPPFX();
+	void DrawPositionalEffects();
 	void DrawToBackBuffer();
 
 	void InitImGui() const;
 
 	void InitFont(std::unique_ptr<dx::SpriteFont> fonts[FontCount], std::unique_ptr<dx::SpriteBatch>* batch) const;
+
+	void ProfileBegin(const std::string& profileName);
+	void ProfileEnd(const std::string& profileName);
+	void UpdateGPUProfiler();
 
 private:
 	void BindPipeline(PipelineType pipeline, bool shadowing);
@@ -119,11 +138,22 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_renderTextureSRV;
 	ComPtr<ID3D11UnorderedAccessView> m_renderTextureUAV;
 
+	// Render texture copy
+	ComPtr<ID3D11Texture2D> m_renderTextureCopy;
+	ComPtr<ID3D11ShaderResourceView> m_renderTextureCopySRV;
+
+	// Position texture
+	ComPtr<ID3D11Texture2D> m_positionTexture;
+	ComPtr<ID3D11RenderTargetView> m_positionTextureRTV;
+	ComPtr<ID3D11ShaderResourceView> m_positionTextureSRV;
+
+	
+
 	// PPFX
 	ComPtr<ID3D11Texture2D> m_ppfxLumTexture;
 	
 	ComPtr<ID3D11UnorderedAccessView> m_ppfxLumUAV;
-	ComPtr<ID3D11RenderTargetView> m_ppfxLumRTV;
+	ComPtr<ID3D11RenderTargetView> m_ppfxLumRTV; // This is only created for being able to call CreateBitmaps() function. No other function.
 	ComPtr<ID3D11ShaderResourceView> m_ppfxLumSRV;
 	
 	ComPtr<ID3D11Texture2D> m_ppfxLumSumTexture;
@@ -133,6 +163,7 @@ private:
 	ComPtr<ID3D11ComputeShader> m_thresholdCompute;
 	ComPtr<ID3D11ComputeShader> m_bloomCompute;
 	ComPtr<ID3D11ComputeShader> m_colorGradeCompute;
+	ComPtr<ID3D11ComputeShader> m_positionalEffectCompute;
 
 	ComPtr<ID3D11SamplerState> m_bloomUpscaleSampler;
 
@@ -156,6 +187,7 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_defaultEmissiveSRV;
 	ComPtr<ID3D11ShaderResourceView> m_defaultNormalSRV;
 
+
 	ComPtr<ID3D11SamplerState> m_sampler;
 	ComPtr<ID3D11SamplerState> m_pointSampler;
 
@@ -174,6 +206,10 @@ private:
 	ComPtr<ID3D11Buffer> m_lightBufferStaging;
 
 	// Shadow resources
+	ComPtr<ID3D11Texture2D> m_shadowStaticTexture;
+	ComPtr<ID3D11DepthStencilView> m_shadowStaticDSV;
+	ComPtr<ID3D11ShaderResourceView> m_shadowStaticSRV;
+
 	ComPtr<ID3D11Texture2D> m_shadowTexture;
 	ComPtr<ID3D11DepthStencilView> m_shadowDSV;
 	ComPtr<ID3D11ShaderResourceView> m_shadowSRV;
@@ -183,4 +219,6 @@ private:
 
 	std::unique_ptr<dx::SpriteFont> m_fonts[FontCount];
 	std::unique_ptr<dx::SpriteBatch> m_spriteBatch;
+
+	GPUProfiler m_gpuProfiler;
 };

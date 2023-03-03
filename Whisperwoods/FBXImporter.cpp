@@ -696,7 +696,6 @@ bool FBXImporter::ImportFBXStatic( std::string filePath, ModelStaticResource* co
 	return true;
 }
 
-
 void RecursiveNodeFetch(aiNode* node, std::vector<aiNode*>& outputVector)
 {
 	for (unsigned int i = 0; i < node->mNumChildren; i++)

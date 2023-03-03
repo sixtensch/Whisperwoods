@@ -31,7 +31,7 @@ void Camera::Update()
 	viewMat = m_transform.rotation.Matrix()*viewMat; //TODO: is this correct?
 	m_viewMatrix = viewMat;
 	m_transform.CalculateWorldMatrix();
-	//m_worldMatrix = cs::Mat::translation3(m_transform.position.x, m_transform.position.y, m_transform.position.z);
+	m_worldMatrix = m_transform.worldMatrix;
 	// write view to vertexBuffer
 }
 
@@ -116,4 +116,14 @@ const Mat4 Camera::GetViewMatrix() const
 const Mat4 Camera::GetProjectionMatrix() const
 {
 	return m_projection;
+}
+
+float Camera::GetFov() const
+{
+	return m_fov;
+}
+
+void Camera::SetFov(float fov)
+{
+	m_fov = fov;
 }

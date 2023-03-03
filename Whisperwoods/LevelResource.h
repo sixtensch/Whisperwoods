@@ -37,6 +37,11 @@ struct LevelExit
 	float angle;
 };
 
+struct LevelPickup
+{
+	Vec2 position;
+};
+
 struct LevelResource : public BasicResource
 {
 	uint pixelWidth;
@@ -44,6 +49,8 @@ struct LevelResource : public BasicResource
 	float worldWidth;
 	float worldHeight;
 	
+	cs::List<LevelPickup> pickups;
+
 	cs::List<LevelPatrol> patrolsOpen;
 	cs::List<LevelPatrol> patrolsClosed;
 

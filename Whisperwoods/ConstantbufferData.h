@@ -58,6 +58,27 @@ namespace CB
 
 		Vec2 PADDING;
 	};
+
+	struct GameLogicInfo
+	{
+		float timeSinceSwitch;
+		float chargeDuration;
+		float falloffDuration;
+		float isInFuture; // Bool is 4 bytes on the GPU (hlsl) so no loss.
+
+		float detectionLevel;
+		float PADDING[3];
+	};
+
+	struct EnemyConeInfo
+	{
+		Vec4 worldPosAndDir[ENEMY_CONE_INFO_CAPACITY]; // XY is world pos in XZ plane and ZW is world direction in XZ plane.
+		float coneLength; // Length of the vision cone for all enemies.
+		float coneAngle; // Angle of the cone (whole cone) in radians for all enemies.
+		uint coneCount;
+
+		float PADDING;
+	};
 }
 
 struct ConstantBuffers
@@ -71,5 +92,8 @@ struct ConstantBuffers
 
 	ComPtr<ID3D11Buffer> ppfxThresholdInfo;
 	ComPtr<ID3D11Buffer> ppfxColorGradeInfo;
-	
+
+	ComPtr<ID3D11Buffer> gameLogicInfo;
+
+	ComPtr<ID3D11Buffer> enemyConeInfo;
 };

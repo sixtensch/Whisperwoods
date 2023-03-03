@@ -5,7 +5,31 @@
 
 #include <unordered_map>
 
-struct LevelParams
+struct EnvironmentalizeParameters
+{
+	int spawnSeed;
+	int scaleSeed;
+	int rotationSeed;
+	int diversitySeed;
+	float rotateMult;
+	float xMult;
+	float yMult;
+	float scaleBase;
+	float scaleMult;
+	float densityUnwalkableOuter;
+	float densityUnwalkableInner;
+	float densityWalkable;
+	float minDensity;
+	float scaleMultiplierStones;
+	float scaleMultiplierTrees;
+	float scaleMultiplierFoliage;
+	float scaleEffectDensity;
+	int edgeSampleDistanceTrunks;
+	int edgeSampleDistanceTrees;
+	int edgeSampleDistanceStones;
+};
+
+struct FloorParameters
 {
 	uint seed;
 	uint roomCount;
@@ -22,8 +46,9 @@ public:
 	LevelHandler(LevelHandler&&) = delete;
 
 	void LoadFloors();
-	void GenerateFloor(LevelFloor* outFloor, uint seed, uint roomCount, uint pushSteps);
-	void GenerateTestFloor(LevelFloor* outFloor);
+	void GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, EnvironmentalizeParameters eParams);
+	void GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParameters params);
+	void GenerateHubby( LevelFloor* outFloor, EnvironmentalizeParameters params);
 
 private:
 	struct RoomPrimer
@@ -59,7 +84,7 @@ private:
 		cs::List<RoomPrimer> rooms;
 	};
 
-	void Environmentalize(Level& l, cs::Random& r);
+	void Environmentalize(Level& l, EnvironmentalizeParameters parameters);
 	void AddLevelName(LevelFloor& f, string name);
 
 	int GetLevelByName(string name);
@@ -78,4 +103,3 @@ private:
 	cs::List<uint> m_resourceIndices[3];
 	cs::List<shared_ptr<LevelResource>> m_resources;
 };
-

@@ -70,6 +70,18 @@ float2 texOffset( int u, int v, int lNo )
 	return float2(u * 1.0f / 2048, v * 1.0f /2048);
 }
 
+// Used here for getting detection rate.
+cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
+{
+    float timeSinceSwitch;
+    float timeSwitchStartDuration;
+    float timeSwitchEndDuration;
+    float isInFuture; // Bool is 4 bytes.
+    
+    float detectionLevelGlobal;
+    float PADDING[3];
+}
+
 
 SamplerState textureSampler : REGISTER_SAMPLER_STANDARD;
 SamplerComparisonState shadowSampler : REGISTER_SAMPLER_SHADOW;
@@ -80,14 +92,23 @@ Texture2D textureEmissive : REGISTER_SRV_TEX_EMISSIVE;
 Texture2D textureNormal : REGISTER_SRV_TEX_NORMAL;
 Texture2D shadowTexture : REGISTER_SRV_SHADOW_DEPTH;
 
-float4 main(VSOutput input) : SV_TARGET
+struct PS_OUTPUT
 {
+    float4 MainTarget : SV_TARGET0;
+    float4 PositionTarget : SV_TARGET1;
+};
+
+PS_OUTPUT main(VSOutput input)
+{
+	// Output struct for both main texture target and positional target.
+    PS_OUTPUT output;
+	
     float2 uv = input.outUV * tiling;
 	
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
 	
-    //if (diffuseSample.a < 0.1f)
-    //    discard;
+    if (diffuseSample.a < 0.1f)
+        discard;
 	
     float4 specularSample = textureSpecular.Sample(textureSampler, uv);
     float4 emissiveSample = textureEmissive.Sample(textureSampler, uv);
@@ -192,8 +213,34 @@ float4 main(VSOutput input) : SV_TARGET
 		);
     }
 	
-    color += float4(colorEmissive.xyz, 0.0f) * 3.0f;
+	
+    float3 finalEmissiveColor = 0.0f;
+	// Detection scaled emission calculations.
+	{
+        float emissiveBrightness = length(colorEmissive);
+	
+        float detectionColorStrength = 2.0f * emissiveBrightness;
+        float3 detectionColor = normalize(float3(2.0f, 0.2f, 0.0f)) * detectionColorStrength;
+        detectionColor *= ceil(colorEmissive); // If the sample is 0, dont affect color. 
+		
+        float detectionBaseInfluence = 1.0f - emissiveSample.a;
+        float detectionLevelScaling = 1.5f; // Makes detection level reach max faster.
+        float detectionInfluence = smoothstep(0.0f, 1.0f, detectionLevelGlobal * detectionLevelScaling);
+        float totalInfluence = detectionBaseInfluence * detectionInfluence;
+		
+        finalEmissiveColor = lerp(colorEmissive, detectionColor, totalInfluence);
+    }
+    
+	
+	// Used to scale ALL emissive for more dramatic glow.
+    float emissiveScalar = 2.0f;
+    color.rgb += finalEmissiveColor * emissiveScalar;
 	
     color.a = saturate(color.a);
-    return color;
+	
+	
+    output.MainTarget = color;
+    output.PositionTarget = input.wPosition;
+	
+    return output;
 }

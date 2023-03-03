@@ -33,8 +33,8 @@ bool VertexRigged::operator==(const VertexRigged& other)
         (this->tan == other.tan) &&
         (this->bitan == other.bitan) &&
         (this->uv == other.uv) &&
-        (this->bones == other.bones) &&
-        (this->weights == other.weights))
+        (&this->bones[0] == &other.bones[0]) && // Comparison in accordance with: https://learn.microsoft.com/en-us/cpp/error-messages/compiler-warnings/c5056?view=msvc-170
+        (&this->weights[0] == &other.weights[0])) 
     {
         return true;
     }

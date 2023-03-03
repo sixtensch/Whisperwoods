@@ -48,7 +48,7 @@ void Floodfill(Point2 position, cs::List<Point2>& edges, cs::List<Point2>& direc
 			cs::Color4 c4 = data[p.x + p.y * w];
 			Point3 c(c4.r, c4.g, c4.b);
 
-			if (c == Point3(255, 255, 255) || c.y > 200)
+			if (c == Point3(255, 255, 255) || c.y >= 200)
 			{
 				found = true;
 				direction -= offsets[i];
@@ -139,6 +139,15 @@ bool LevelImporter::ImportImage(string textureName, const RenderCore* core, Leve
 				outLevel->bitmap[i] = { LevelPixelFlagTerrainInner, 1.0f };
 				continue;
 			}
+
+			// EssenceBloom
+			if (c == Point3(255, 0, 255))
+			{
+				outLevel->bitmap[i] = { LevelPixelFlagPassable, 0.0f };
+				outLevel->pickups.Add({ static_cast<Vec2>(p) });
+				continue;
+			}
+
 
 			// Open patroll route
 			if (c.x == 255 && c.y < 63)

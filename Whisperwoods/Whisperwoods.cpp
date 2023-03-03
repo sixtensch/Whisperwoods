@@ -7,7 +7,6 @@
 #include "FBXImporter.h"
 #include "Animator.h"
 #include <imgui.h>
-#include "TextRenderable.h"
 
 #include "Player.h"
 #include "Empty.h"
@@ -54,7 +53,17 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
 	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_1.fbx", false);
 	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
-	//BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false, 1.0f );
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Stone_2_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Stone_2_Present.fbx", false);
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
@@ -69,6 +78,10 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//};
 	//cs::List<int> planeIndicies = { 0,1,3,0,3,2 };
 	//BuildWWM(planeVerts, planeIndicies, "room_plane");
+
+	//BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
+
+
 
 	m_sound = std::make_unique<Sound>();
 	m_debug->CaptureSound(m_sound.get());
@@ -124,8 +137,7 @@ void Whisperwoods::Run()
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
 	m_game->Init();
-	m_game->LoadTest();
-
+	m_game->LoadHubby();
 
 	int frames = 0;
 	cs::Timer deltaTimer;
@@ -142,28 +154,41 @@ void Whisperwoods::Run()
 
 		static float dTimeAcc = 0.0f;
 		dTimeAcc += dTime;
-			
-		Input::Get().Update();
-		
 		
 		//patrolEnemy.Update(dTime);
 
 		m_game->Update(dTime, m_renderer.get());
-		m_sound->Update();
+
+		Camera& camera = Renderer::GetCamera();
+		Quaternion rotation = camera.GetRotation();
+		rotation = rotation.Conjugate();
+		Vec3 forward( 0, 0, 1 );
+		forward = rotation * forward;
+		forward.Normalize();
+		Vec3 up( 0, 1, 0 );
+		up = rotation * up;
+		up.Normalize();
+
+		Vec3 cPos = camera.GetPosition();
+		FMOD_VECTOR listenerPos = { cPos.x, cPos.y, cPos.z };
+		FMOD_VECTOR listenerForward = { forward.x,  forward.y,  forward.z };
+		FMOD_VECTOR listenerVelocity = {0,0,0};
+		FMOD_VECTOR listenerUp = { up.x, up.y, up.z };
+		m_sound->Update( listenerPos, listenerVelocity, listenerForward, listenerUp );
 		
 		// Draw step
 		m_renderer->Draw();
 
-		//#ifdef WW_DEBUG
-		//m_renderer->BeginGui();
 		Move(dTime, m_game->GetPlayer());
-
 		m_debug->DrawConsole();
-		m_renderer->EndGui();
-		//#endif
+		m_renderer->UpdateGPUProfiler();
 
+		m_renderer->EndGui();
 		m_renderer->Present();
+		
 	}
+
+	m_game->DeInit();
 }
 
 Vec3 Lerp(Vec3 a, Vec3 b, float t)
