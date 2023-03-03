@@ -372,10 +372,10 @@ void Game::LoadHubby()
 {
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
 	LoadRoom( &m_floor.rooms[0] );
-	Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
+	/*Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
 	Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
 	Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
-	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	Mat4 worldCombined = worldScale * worldPos * worldRot;*/
 	m_isHubby = true;
 	m_player->transform.position = Vec3(0, 0, 0);
 	Renderer::ExecuteShadowRender();
@@ -423,7 +423,7 @@ void Game::LoadRoom(Level* level)
 		level->rotation.Matrix();
 
 	Mat4 roomCylinderMatrix =
-		Mat::scale3( level->resource->worldWidth*1.2f, 1.0f, level->resource->worldHeight * 1.2f ) *
+		Mat::scale3( level->resource->worldWidth*0.01f, 0.01f, level->resource->worldHeight * 0.01f ) *
 		Mat::translation3( level->position.x, level->position.x, level->position.x ) *
 		level->rotation.Matrix();
 

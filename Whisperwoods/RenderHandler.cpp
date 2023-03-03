@@ -96,8 +96,9 @@ void RenderHandler::Draw()
 	m_renderCore->UpdateViewInfo(m_mainCamera);
 	QuadCull(m_mainCamera);
 
+	static std::string ZPrepassProfile = "Z-prepass";
 	static std::string mainSceneProfileName = "Main Scene";
-	PROFILE_JOB(mainSceneProfileName, ZPrepass(m_timelineState));
+	PROFILE_JOB(ZPrepassProfile, ZPrepass(m_timelineState));
 	PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_timelineState, false));
 	m_renderCore->UnbindRenderTexture();
 
@@ -106,7 +107,7 @@ void RenderHandler::Draw()
 	PROFILE_JOB(ppfxPositionalProfileName, m_renderCore->DrawPositionalEffects());
 	
 	static std::string ppfxBloomProfileName = "PPFX Bloom";
-	PROFILE_JOB(ppfxBloomProfileName, m_renderCore->DrawPPFX());
+	//PROFILE_JOB(ppfxBloomProfileName, m_renderCore->DrawPPFX());
 	
 	// Draw final image to back buffer with tone mapping.
 	{
@@ -148,11 +149,6 @@ void RenderHandler::ExecuteDraw(TimelineState state, bool shadows)
 		m_renderCore->TargetShadowMap();
 	}
 
-	if ( !shadows )
-	{
-		DrawInstances(state, false);
-	}
-
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
 		if (shadows)
@@ -187,7 +183,7 @@ void RenderHandler::ExecuteDraw(TimelineState state, bool shadows)
 	if (!shadows)
 	{
 		static std::string instancesDrawProfileName = "Draw Instances";
-		PROFILE_JOB(instancesDrawProfileName, DrawInstances(state, false));
+		DrawInstances(state, false);
 	}
 }
 
