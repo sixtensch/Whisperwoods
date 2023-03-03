@@ -378,7 +378,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 void Game::Init()
 {
 	// Audio test startup
-	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
+	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
 	m_audioSource->Play();
 

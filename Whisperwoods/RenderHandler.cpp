@@ -273,8 +273,9 @@ void RenderHandler::SetupEnvironmentAssets()
 	{
 		models[asset].asset = asset;
 
-		models[asset].models[0] = (const ModelStaticResource*)Resources::Get().GetResource(ResourceTypeModelStatic, normal);
-		models[asset].models[1] = (const ModelStaticResource*)Resources::Get().GetResource(ResourceTypeModelStatic, future);
+		Resources& resources = Resources::Get();
+		models[asset].models[0] = resources.GetModelStatic(normal);
+		models[asset].models[1] = resources.GetModelStatic(future);
 
 		for (int i = 0; i < normalMaterials.Size(); i++)	models[asset].materials[0].Add(normalMaterials[i]);
 		for (int i = 0; i < futureMaterials.Size(); i++)	models[asset].materials[1].Add(futureMaterials[i]);
@@ -394,7 +395,7 @@ void RenderHandler::SetupEnvironmentAssets()
 					envMaterials.Add(
 						{
 							materialName,
-							(const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, materialName),
+							Resources::Get().GetMaterial(materialName),
 							{}
 						});
 
@@ -467,7 +468,7 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 {
 	Resources& resources = Resources::Get();
 
-	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpath));
+	const ModelStaticResource* model = resources.GetModelStatic(subpath);
 
 	const shared_ptr<MeshRenderableStatic> newRenderable = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter++,
@@ -488,7 +489,7 @@ std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> Re
 		model,
 		cs::Mat4()
 	);
-	model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpathFuture));
+	model = resources.GetModelStatic(subpathFuture);
 	shared_ptr<MeshRenderableStatic> renderableFuture = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter++,
 		model,
@@ -505,7 +506,7 @@ shared_ptr<MeshRenderableRigged> RenderHandler::CreateMeshRigged(const string& s
 {
 	Resources& resources = Resources::Get();
 
-	const ModelRiggedResource* model = static_cast<const ModelRiggedResource*>(resources.GetResource(ResourceTypeModelRigged, subpath));
+	const ModelRiggedResource* model = resources.GetModelRigged(subpath);
 
 	shared_ptr<MeshRenderableRigged> newRenderable = make_shared<MeshRenderableRigged>(
 		m_renderableIDCounter++,
