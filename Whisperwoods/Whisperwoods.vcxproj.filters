@@ -190,6 +190,18 @@
     <Filter Include="%2a Code\%2a Rendering\%2a Renderable\GUIRenderable">
       <UniqueIdentifier>{28b5bf79-e6e2-4755-8a03-bd804f07f62d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Cinematics">
+      <UniqueIdentifier>{0b50201d-1baf-48da-add6-86bc7382f14a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Cinematics\Cutscene">
+      <UniqueIdentifier>{eb2cc325-7358-4d35-822a-a1733d704a9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Cinematics\CutsceneController">
+      <UniqueIdentifier>{fc6b0a53-aab0-42c9-b9b2-ab9bf30d76f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Cinematics\CutsceneKey">
+      <UniqueIdentifier>{1416c2fb-b78f-4250-8047-f60e18008e4a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -322,6 +334,15 @@
       <Filter>%2a Code\%2a Rendering\GUI</Filter>
     </ClCompile>
     <ClCompile Include="GPUProfiler.cpp" />
+    <ClCompile Include="Cutscene.cpp">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\Cutscene</Filter>
+    </ClCompile>
+    <ClCompile Include="CutsceneController.cpp">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneController</Filter>
+    </ClCompile>
+    <ClCompile Include="CutsceneKey.cpp">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneKey</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -496,6 +517,15 @@
       <Filter>%2a Code\%2a Rendering\GUI</Filter>
     </ClInclude>
     <ClInclude Include="GPUProfiler.h" />
+    <ClInclude Include="Cutscene.h">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\Cutscene</Filter>
+    </ClInclude>
+    <ClInclude Include="CutsceneController.h">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneController</Filter>
+    </ClInclude>
+    <ClInclude Include="CutsceneKey.h">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneKey</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VSMesh.hlsl">
