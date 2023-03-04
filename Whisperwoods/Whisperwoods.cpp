@@ -165,14 +165,14 @@ void Whisperwoods::Run()
 	testGui.GetElement( 0 )->floatData = 0.5f;
 	testGui.GetElement( 0 )->intData = Point4( 0, 1, 0, 0 ); // Makes it follow the float value.
 	//testGui.GetElement( 0 )->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "Test+Pattern+t.png");
-	testGui.GetElement( 0 )->secondTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "StaminaBarMask01.png");
+	testGui.GetElement( 0 )->secondTexture = Resources::Get().GetTexture("StaminaBarMask01.png");
 
 	testGui.AddGUIElement({ -1,0.2f }, { 0.5f*0.9f,0.5f*1.6f }, nullptr, nullptr);
 	testGui.GetElement( 1 )->colorTint = Vec3(1, 1, 1);
 	testGui.GetElement( 1 )->alpha = 0.6f;
 	testGui.GetElement( 1 )->intData = Point4( 1, 0, 0, 0 ); // makes it transform with the playermatrix
-	testGui.GetElement( 1 )->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "Hubby.png");
-	testGui.GetElement( 1 )->secondTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "HudMask.png");
+	testGui.GetElement( 1 )->firstTexture = Resources::Get().GetTexture("Hubby.png");
+	testGui.GetElement( 1 )->secondTexture = Resources::Get().GetTexture("HudMask.png");
 
 
 	int frames = 0;

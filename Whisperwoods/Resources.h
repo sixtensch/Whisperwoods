@@ -45,9 +45,7 @@ public:
 	static Resources& Get();
 
 	// This should be how resources are acquired. Writable pointers are used when allocating or when having to write for a special reason.
-	const BasicResource* GetResource(const ResourceType resourceType, std::string filename) const;
-	// Available if acquisition of a resource needs to be writable.
-	BasicResource* GetWritableResource(const ResourceType resourceType, std::string filename) const;
+	BasicResource* GetResource(const ResourceType resourceType, std::string filename) const;
 
 	// This is supposed to be called after all singletons are initialized.
 	void LoadAssetDirectory(const RenderCore* const renderCore);
