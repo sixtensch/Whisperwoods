@@ -18,10 +18,11 @@ public:
 	std::vector<int> keys;
 	bool doDelete = false;
 
+	cs::List<bool> channelTabs;
 
 	float m_time;
 	cs::List<shared_ptr<Cutscene>> m_cutscenes;
-	Cutscene activeCutscene;
+	Cutscene* activeCutscene;
 
 	void AddCutscene( shared_ptr<Cutscene> cutscene );
 

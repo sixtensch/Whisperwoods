@@ -179,8 +179,15 @@ void Whisperwoods::Run()
 
 	CutsceneController testController;
 
-	Cutscene testCutScene;
-	testCutScene.AddKey( std::shared_ptr< CutsceneTransformKey >(new CutsceneTransformKey( 0.5f, m_game->GetPlayer(), {0,0,0}, Quaternion::GetEuler({0,0,0}), {1,1,1})));
+	shared_ptr<Cutscene> testCutScene(new Cutscene("Test scene"));
+	testCutScene->AddChannel( std::shared_ptr<CutsceneCameraChannel>( new CutsceneCameraChannel( "Main camera", &Renderer::GetCamera())));
+	testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Player Animator", m_game->GetPlayer()->characterAnimator.get())));
+	testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Player Transform", &m_game->GetPlayer()->transform )));
+
+	testController.m_cutscenes.Add( testCutScene );
+	testController.ActivateCutscene( 0 );
+
+	//testCutScene.AddKey( std::shared_ptr< CutsceneTransformKey >(new CutsceneTransformKey( 0.5f, m_game->GetPlayer(), {0,0,0}, Quaternion::GetEuler({0,0,0}), {1,1,1})));
 
 
 	int frames = 0;

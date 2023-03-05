@@ -31,6 +31,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="CutsceneChannel.cpp" />
     <ClCompile Include="CutsceneController.cpp" />
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="DebugGUI.cpp" />
@@ -89,6 +90,7 @@
     <ClInclude Include="ConstantbufferData.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Core.h" />
+    <ClInclude Include="CutsceneChannel.h" />
     <ClInclude Include="CutsceneController.h" />
     <ClInclude Include="CutsceneKey.h" />
     <ClInclude Include="Debug.h" />

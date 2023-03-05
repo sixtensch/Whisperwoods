@@ -5,6 +5,9 @@
 
 CutsceneController::CutsceneController()
 {
+    activeCutscene = nullptr;
+    transformOpen = true;
+    m_time = 0;
 }
 
 void CutsceneController::AddCutscene( shared_ptr<Cutscene> cutscene )
@@ -18,6 +21,12 @@ bool CutsceneController::CutsceneActive()
 
 void CutsceneController::ActivateCutscene( int index )
 {
+    activeCutscene = m_cutscenes[index].get();
+    channelTabs.Clear();
+    for (int i = 0; i < activeCutscene->channels.Size(); i++)
+    {
+        channelTabs.Add( true );
+    }
 }
 
 void CutsceneController::Update()
@@ -48,13 +57,43 @@ void CutsceneController::Update()
         if (ImGui::BeginNeoSequencer( "Sequencer", &currentFrame, &startFrame, &endFrame, {0,0}, ImGuiNeoSequencerFlags_EnableSelection | ImGuiNeoSequencerFlags_Selection_EnableDragging ))
         {
 
+            if (activeCutscene != nullptr)
+            {
+                if (ImGui::BeginNeoGroup( activeCutscene->name.c_str(), &transformOpen ))
+                {
+
+                    for (int i = 0; i < activeCutscene->channels.Size(); i++)
+                    {
+                        if (ImGui::BeginNeoTimelineEx( activeCutscene->channels[i]->name.c_str(), &channelTabs[i]))
+                        {
+                            for (auto&& v : keys)
+                            {
+                                ImGui::NeoKeyframe( &v );
+
+                                if (ImGui::IsNeoKeyframeSelected())
+                                {
+                                    selected = v;
+                                }
+                                // Per keyframe code here
+                            }
+
+                            ImGui::EndNeoTimeLine();
+                        }
+                    }
+
+                ImGui::EndNeoGroup();
+                }
+            }
+
+
+
             
-            if (ImGui::BeginNeoGroup( "Transform", &transformOpen )) 
+            if (ImGui::BeginNeoGroup( "Test group", &transformOpen )) 
             {
                 //std::vector<ImGui::FrameIndexType> keys = { 0, 10, 24 };
-                if (ImGui::BeginNeoTimelineEx( "Position" )) 
+                if (ImGui::BeginNeoTimelineEx( "Test track" )) 
                 {
-                    ImGui::Text( "Test" );
+
                     for (auto&& v : keys)
                     {
                         ImGui::NeoKeyframe( &v );

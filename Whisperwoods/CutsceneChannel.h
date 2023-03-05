@@ -7,45 +7,58 @@
 struct CutsceneChannel
 {
 	std::string name;
-	virtual void AddKey( shared_ptr<CutsceneKey> key ) = 0;
+	cs::List< shared_ptr<CutsceneKey>> keys;
 };
 
 struct CutsceneAnimatorChannel : CutsceneChannel
 {
 	Animator* targetAnimator;
-	cs::List< shared_ptr<CutsceneAnimationTriggerKey>> keys;
+	//cs::List< shared_ptr<CutsceneAnimationTriggerKey>> keys;
+
+	CutsceneAnimatorChannel( std::string name, Animator* targetAnimator ) : targetAnimator( targetAnimator ) { this->name = name; }
+
 	void AddKey( shared_ptr<CutsceneAnimationTriggerKey> key )
 	{
-		keys.Add( key );
+		this->keys.Add( key );
+		//keys.Add( key );
 	}
 };
 
 struct CutsceneTransformChannel : CutsceneChannel
 {
 	Transform* targetTransform;
-	cs::List< shared_ptr<CutsceneTransformKey>> keys;
+	//cs::List< shared_ptr<CutsceneTransformKey>> keys;
+
+	CutsceneTransformChannel( std::string name, Transform* targetTransform ) : targetTransform( targetTransform ) { this->name = name; }
+
 	void AddKey( shared_ptr<CutsceneTransformKey> key )
 	{
-		keys.Add( key );
+		this->keys.Add( key );
 	}
 };
 
 struct CutsceneCameraChannel : CutsceneChannel
 {
 	Camera* targetCamera;
-	cs::List< shared_ptr<CutsceneCameraKey>> keys;
+	//cs::List< shared_ptr<CutsceneCameraKey>> keys;
+
+	CutsceneCameraChannel( std::string name, Camera* targetCamera ) : targetCamera( targetCamera ) { this->name = name; }
+
 	void AddKey( shared_ptr<CutsceneCameraKey> key )
 	{
-		keys.Add( key );
+		this->keys.Add( key );
 	}
 };
 
 struct CutsceneTextChannel : CutsceneChannel
 {
 	// target textbox
-	cs::List< shared_ptr<CutsceneTextTriggerKey>> keys;
+	//cs::List< shared_ptr<CutsceneTextTriggerKey>> keys;
+
+	CutsceneTextChannel() = default;
+
 	void AddKey( shared_ptr<CutsceneTextTriggerKey> key )
 	{
-		keys.Add( key );
+		this->keys.Add( key );
 	}
 };

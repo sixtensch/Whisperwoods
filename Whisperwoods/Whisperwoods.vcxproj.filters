@@ -202,6 +202,9 @@
     <Filter Include="%2a Code\%2a Game\Game\Generator">
       <UniqueIdentifier>{c9e90a6d-543e-40b0-aed3-fd1c7412adc1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Cinematics\CutsceneChannel">
+      <UniqueIdentifier>{c00771fa-194b-436d-8291-50a9b9b1863f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -343,8 +346,15 @@
     <ClCompile Include="CutsceneKey.cpp">
       <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneKey</Filter>
     </ClCompile>
-    <ClCompile Include="imgui_neo_internal.cpp" />
-    <ClCompile Include="imgui_neo_sequencer.cpp" />
+    <ClCompile Include="imgui_neo_sequencer.cpp">
+      <Filter>%2a Code\%2a Core\%2a Cinematics</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_neo_internal.cpp">
+      <Filter>%2a Code\%2a Core\%2a Cinematics</Filter>
+    </ClCompile>
+    <ClCompile Include="CutsceneChannel.cpp">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneChannel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -527,6 +537,9 @@
     </ClInclude>
     <ClInclude Include="CutsceneKey.h">
       <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneKey</Filter>
+    </ClInclude>
+    <ClInclude Include="CutsceneChannel.h">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneChannel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
