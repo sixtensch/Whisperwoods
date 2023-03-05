@@ -120,6 +120,10 @@ private:
 	float m_camFovChangeSpeed;
 
 	const float m_detectionRate = 0.4f;
+	const float m_detCrouchMultiplier = 0.6f;
+	const float m_detSprintMultiplier = 1.3f;
+	const float m_detDistMultiplier = 1.5f;
+
 	const float m_timeBeforeDetectionLowers = 4.0f; //in seconds
 	float m_timeUnseen = 0.0f; // for determining when to derease global detection
 	float m_dangerousTimeInFuture = 0.0f;// time in seconds

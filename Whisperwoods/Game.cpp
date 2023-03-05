@@ -59,8 +59,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	{
 		m_maxStamina = 1.0f; // DO NOT CHANGE THIS
 
-
-		if (m_reachedLowestStamina == false)
+		if (!m_reachedLowestStamina)
 		{
 			m_reachedLowestStamina = true;
 		}
@@ -583,16 +582,27 @@ void Game::UnloadRoom()
 bool Game::IsDetected(float deltaTime, float enemyDistance, float maximalDistance)
 {
 	float rate = m_detectionRate;
-	if (Input::Get().IsKeybindDown(KeybindCrouch)) // is crouching 
+	//if (Input::Get().IsKeybindDown(KeybindCrouch)) // is crouching
+	//{
+	//	rate = rate * m_detCrouchMultiplier;
+	//}
+	//else if (Input::Get().IsKeybindDown(KeybindSprint)) // is running
+	//{
+	//	rate = rate * m_detSprintMultiplier;
+	//}
+
+	// Alternate version that checks the player state instead of input state, should be the same result.
+	if (m_player->IsCrouching()) // is crouching (player:m_crouch = true, used for animation etc)
 	{
-		rate = rate * 0.6f;
+		rate = rate * m_detCrouchMultiplier;
 	}
-	else if (Input::Get().IsKeybindDown(KeybindSprint)) // is running
+	else if (m_player->IsRunning()) // is running = (player speed (velocity.length) is more than m_walkingSpeed), could also use the speed as multiplier on the detection rate
 	{
-		rate = rate * 1.3f;
+		rate = rate * m_detSprintMultiplier;
 	}
+
 	float distanceRate = enemyDistance / maximalDistance; // this goes from 0-1  where 1 is very far away and 0 is right on top of the enemy
-	distanceRate = (1.0f - distanceRate) * 1.5f;
+	distanceRate = (1.0f - distanceRate) * m_detDistMultiplier;
 	distanceRate = distanceRate * distanceRate * distanceRate;
 
 	rate = rate + distanceRate;

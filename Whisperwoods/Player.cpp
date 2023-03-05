@@ -6,6 +6,7 @@
 #include "Resources.h"
 #include "LevelImporter.h"
 
+
 Player::Player(std::string modelResource, std::string animationsPath, Mat4 modelOffset)
 {
 	// Initialize the model
@@ -86,6 +87,16 @@ void Player::ResetStaminaToMax(float staminaMax)
 float Player::GetCurrentStamina()
 {
 	return m_stamina;
+}
+
+bool Player::IsCrouching()
+{
+	return m_isCrouch;
+}
+
+bool Player::IsRunning()
+{
+	return (m_velocity.Length() > m_walkSpeed);
 }
 
 void Player::PlayerMovement(float delta_time, float movementMultiplier)
