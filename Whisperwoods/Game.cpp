@@ -124,7 +124,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	}
 }
 
-// Transform updates.
+// Transform updates (Except enemies, which are updated in UpdateEnemies())
 void Game::UpdateGameObjects()
 {
 	m_player->Update( m_deltaTime );
@@ -150,11 +150,11 @@ void Game::UpdateEnemies( Renderer* renderer )
 	//}	*/
 
 	m_isSeen = false;
-	m_closestDistance = 100000.0f; // large value to fix the above thing instead of if-branching.
+	m_closestDistance = 100000.0f; // large start value to fix the above thing instead of branching.
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update( m_deltaTime ); // Would ideally want to put this in UpdateGameObjects(), but this makes one less loop
-		if (m_enemies[i]->SeesPlayer( Vec2( m_player->transform.worldPosition.x, m_player->transform.worldPosition.z ), *m_currentRoom, *m_audioSource, m_isInFuture ) == true)
+		if (m_enemies[i]->SeesPlayer( Vec2( m_player->transform.worldPosition.x, m_player->transform.worldPosition.z ), *m_currentRoom, *m_audioSource, m_isInFuture ))
 		{
 			m_isSeen = true;
 			if (m_enemies[i]->GetDistance() < m_closestDistance)
