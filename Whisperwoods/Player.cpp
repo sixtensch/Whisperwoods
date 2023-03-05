@@ -231,3 +231,12 @@ void Player::Update(float delta_time)
 	transform.CalculateWorldMatrix();
 	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
 }
+
+// Only the essentials.
+void Player::CinematicUpdate( float delta_time )
+{
+	characterAnimator->playbackSpeed = m_animationSpeed;
+	characterAnimator->Update( delta_time );
+	transform.CalculateWorldMatrix();
+	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
+}

@@ -57,4 +57,8 @@ public:
 
 	void PlayerMovement(float delta_time, float movementMultiplier);
 	void Update(float delta_time) override;
+
+	void CinematicUpdate( float delta_time );
+
+
 };

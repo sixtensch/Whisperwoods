@@ -22,7 +22,8 @@ Game::Game() :
 	m_camFovChangeSpeed(cs::c_pi / 2.0f),
 	m_envParams({}),
 	m_reachedLowestStamina(false),
-	m_coolDownCounter(m_timeAbilityCooldown)
+	m_coolDownCounter(m_timeAbilityCooldown),
+	m_isCutscene(false)
 {
 }
 
@@ -374,24 +375,43 @@ void Game::DrawIMGUIWindows()
 	#endif
 	}
 
+
+void Game::CinematicUpdate()
+{
+	// More later
+	m_player->CinematicUpdate( m_deltaTime ); // Only updates the matrix, allowing for cutscenecontroller control.
+	m_currentRoom->Update( m_deltaTime );
+	for (int i = 0; i < m_staticObjects.Size(); i++)
+	{
+		m_staticObjects[i]->Update( m_deltaTime );
+	}
+}
+
 // Main update function.
 void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_deltaTime = deltaTime;
 
-	UpdateGameObjects();
+	if (!m_isCutScene)
+	{
+		UpdateGameObjects();
 
-	UpdateGameplayVars( renderer );
+		UpdateGameplayVars( renderer );
 
-	UpdateEnemies( renderer );
+		UpdateEnemies( renderer );
 
-	UpdateRoomAndTimeSwappingLogic( renderer );
+		UpdateRoomAndTimeSwappingLogic( renderer );
+
+		// Final steps
+		UpdateTimeSwitchBuffers( renderer );
+		UpdateEnemyConeBuffers( renderer );
+	}
+	else
+	{
+		CinematicUpdate();
+	}
 
 	DrawIMGUIWindows();
-
-	// Final steps
-	UpdateTimeSwitchBuffers(renderer);
-	UpdateEnemyConeBuffers(renderer);
 
 	if (Input::Get().IsKeybindDown(KeybindEscMenu))
 	{
