@@ -49,7 +49,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", true );
 
 	//// Static Models
-	BuildWWM( "Assets/Models/FBX/Static/EssenseBloom.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/EssenseBloom.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false );
 	//BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false );
@@ -87,7 +87,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM(planeVerts, planeIndicies, "room_plane");
 
 
-	cs::List<VertexTextured> rectVerts = { 
+	/*cs::List<VertexTextured> rectVerts = { 
 		VertexTextured({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }), 
 		VertexTextured({ 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f }),
 		VertexTextured({ 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 0.0f }),
@@ -95,11 +95,9 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	};
 
 	cs::List<int> rectIndicies = { 0,1,2,3,2,1 };
-	BuildWWM(rectVerts, rectIndicies, "ui_rect");
-
+	BuildWWM(rectVerts, rectIndicies, "ui_rect");*/
 
 	//BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
-
 
 
 	m_sound = std::make_unique<Sound>();
@@ -125,34 +123,8 @@ Whisperwoods::~Whisperwoods()
 {
 }
 
-
-//Mat4 ConvertToMat4(DirectX::XMFLOAT4X4* mat)
-//{
-//	Mat4 returnMat;
-//	returnMat(0, 0) = mat->_11;
-//	returnMat(0, 1) = mat->_12;
-//	returnMat(0, 2) = mat->_13;
-//	returnMat(0, 3) = mat->_14;
-//	returnMat(1, 0) = mat->_21;
-//	returnMat(1, 1) = mat->_22;
-//	returnMat(1, 2) = mat->_23;
-//	returnMat(1, 3) = mat->_24;
-//	returnMat(2, 0) = mat->_31;
-//	returnMat(2, 1) = mat->_32;
-//	returnMat(2, 2) = mat->_33;
-//	returnMat(2, 3) = mat->_34;
-//	returnMat(3, 0) = mat->_41;
-//	returnMat(3, 1) = mat->_42;
-//	returnMat(3, 2) = mat->_43;
-//	returnMat(3, 3) = mat->_44;
-//	return returnMat;
-//}
-
-
 void Whisperwoods::Run()
 {
-	// Main frame loop
-
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 
 	m_game->Init();
@@ -178,42 +150,43 @@ void Whisperwoods::Run()
 
 
 	CutsceneController testController;
-
 	shared_ptr<Cutscene> testCutScene(new Cutscene("Test scene"));
 	testCutScene->AddChannel( std::shared_ptr<CutsceneCameraChannel>( new CutsceneCameraChannel( "Main camera", &Renderer::GetCamera())));
 	testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Player Animator", m_game->GetPlayer()->characterAnimator.get())));
 	testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Player Transform", &m_game->GetPlayer()->transform )));
-
 	testController.m_cutscenes.Add( testCutScene );
 	testController.ActivateCutscene( 0 );
-
 	//testCutScene.AddKey( std::shared_ptr< CutsceneTransformKey >(new CutsceneTransformKey( 0.5f, m_game->GetPlayer(), {0,0,0}, Quaternion::GetEuler({0,0,0}), {1,1,1})));
 
 
+	// Main frame loop
 	int frames = 0;
 	cs::Timer deltaTimer;
 	for (bool running = true; running; frames++)
 	{
+		// Init frame
 		m_renderer->BeginGui();
-
 		m_debug->ClearFrameTrace();
+
+		// Update inputs
 		m_input->Update();
 		running = !m_renderer->UpdateWindow();
 
+		// FPS calculation
 		float dTime = deltaTimer.Lap();
 		m_debug->CalculateFps(dTime);
-
 		static float dTimeAcc = 0.0f;
 		dTimeAcc += dTime;
 		
-		//patrolEnemy.Update(dTime);
+		// Test of cinematics
 		testController.Update();
-
 		// Update the test gui with the stamina.
 		testGui.GetElement( 0 )->floatData = m_game->GetPlayer()->GetCurrentStamina()/10.0f;
 
+		// Main game update
 		m_game->Update(dTime, m_renderer.get());
 
+		// Audio listener calculation (maybe move this somewhere more appropriate)
 		Camera& camera = Renderer::GetCamera();
 		Quaternion rotation = camera.GetRotation();
 		rotation = rotation.Conjugate();
@@ -223,24 +196,29 @@ void Whisperwoods::Run()
 		Vec3 up( 0, 1, 0 );
 		up = rotation * up;
 		up.Normalize();
-
 		Vec3 cPos = camera.GetPosition();
 		FMOD_VECTOR listenerPos = { cPos.x, cPos.y, cPos.z };
 		FMOD_VECTOR listenerForward = { forward.x,  forward.y,  forward.z };
 		FMOD_VECTOR listenerVelocity = {0,0,0};
 		FMOD_VECTOR listenerUp = { up.x, up.y, up.z };
+		// Update the audio system
 		m_sound->Update( listenerPos, listenerVelocity, listenerForward, listenerUp );
 		
 		// Draw step
 		m_renderer->Draw();
 
+		// Camera update
 		Move(dTime, m_game->GetPlayer());
+
+		// Draw console
 		m_debug->DrawConsole();
+
+		// Profiling update
 		m_renderer->UpdateGPUProfiler();
 
+		// Wrap up and present
 		m_renderer->EndGui();
-		m_renderer->Present();
-		
+		m_renderer->Present();	
 	}
 
 	m_game->DeInit();
@@ -250,7 +228,6 @@ Vec3 Lerp(Vec3 a, Vec3 b, float t)
 {
 	return a * (1.0f - t) + b * t;
 }
-
 
 Quaternion QuaternionLookRotation(Vec3 forward, Vec3 up)
 {
@@ -320,8 +297,6 @@ Quaternion Lerp(Quaternion q0, Quaternion q1, float t)
 	DirectX::XMStoreFloat4(&FL4, OUTPUT);
 	return Quaternion(FL4.x, FL4.y, FL4.z, FL4.w);
 }
-
-
 
 void Whisperwoods::Move(float dTime, Player* player)
 {
