@@ -481,6 +481,11 @@ Player* Game::GetPlayer()
 	return m_player.get();
 }
 
+void Game::SetCutSceneMode( bool value )
+{
+	m_isCutScene = value;
+}
+
 void Game::LoadRoom(Level* level)
 {
 	Mat4 roomMatrix =

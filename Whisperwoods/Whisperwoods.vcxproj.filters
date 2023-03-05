@@ -43,9 +43,6 @@
     <Filter Include="%2a Code\%2a Game\Map">
       <UniqueIdentifier>{74fa2f17-66c4-4b9a-9248-5da00a47cdc7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="%2a Code\%2a Game\Generator">
-      <UniqueIdentifier>{c9e90a6d-543e-40b0-aed3-fd1c7412adc1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="%2a Code\%2a World\Room">
       <UniqueIdentifier>{dcd16cdc-8669-4a70-8190-545dd54ef225}</UniqueIdentifier>
     </Filter>
@@ -202,6 +199,9 @@
     <Filter Include="%2a Code\%2a Core\%2a Cinematics\CutsceneKey">
       <UniqueIdentifier>{1416c2fb-b78f-4250-8047-f60e18008e4a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="%2a Code\%2a Game\Game\Generator">
+      <UniqueIdentifier>{c9e90a6d-543e-40b0-aed3-fd1c7412adc1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -343,6 +343,8 @@
     <ClCompile Include="CutsceneKey.cpp">
       <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneKey</Filter>
     </ClCompile>
+    <ClCompile Include="imgui_neo_internal.cpp" />
+    <ClCompile Include="imgui_neo_sequencer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">

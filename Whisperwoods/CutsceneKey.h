@@ -14,27 +14,33 @@ struct CutsceneCameraKey : CutsceneKey
 	float fov;
 	float lerpTime; // how fast the camera should assume the key
 	// TODO: Add more camera things.
-	CutsceneCameraKey( Vec3 pos, Quaternion rot, float fov, float lerpTime ) : pos( pos ), rot( rot ), fov( fov ), lerpTime( lerpTime ) {};
+	CutsceneCameraKey( float time, Vec3 pos, Quaternion rot, float fov, float lerpTime ) : pos( pos ), rot( rot ), fov( fov ), lerpTime( lerpTime ) {
+		this->time = time;
+	};
 };
 
 struct CutsceneAnimationTriggerKey : CutsceneKey
 {
-	Animator* targetAnimator;
+	//Animator* targetAnimator;
 	int targetAnimation;
 	float animationTime;
 	float animationSpeed;
 	bool loopAnimation;
-	CutsceneAnimationTriggerKey( Animator* targetAnimator, int targetAnimation, float animationTime, float animationSpeed, bool loopAnimation ) :
-		targetAnimator( targetAnimator ), targetAnimation( targetAnimation ), animationTime( animationTime ), animationSpeed( animationSpeed ), loopAnimation( loopAnimation ) {};
+	CutsceneAnimationTriggerKey( float time, Animator* targetAnimator, int targetAnimation, float animationTime, float animationSpeed, bool loopAnimation ) :
+		/*targetAnimator( targetAnimator ),*/ targetAnimation( targetAnimation ), animationTime( animationTime ), animationSpeed( animationSpeed ), loopAnimation( loopAnimation ) {
+		this->time = time;
+	};
 };
 
 struct CutsceneTransformKey : CutsceneKey
 {
-	GameObject* targetObject;
+	//GameObject* targetObject;
 	Vec3 pos;
 	Quaternion rot;
 	Vec3 scale;
-	CutsceneTransformKey( GameObject* targetObject, Vec3 pos, Quaternion rot, Vec3 scale ) : targetObject( targetObject ), pos( pos ), rot( rot ), scale( scale ) {};
+	CutsceneTransformKey( float time, GameObject* targetObject, Vec3 pos, Quaternion rot, Vec3 scale ) : /*targetObject( targetObject ), */pos( pos ), rot( rot ), scale( scale ) {
+		this->time = time;
+	};
 };
 
 struct CutsceneTextTriggerKey : CutsceneKey
@@ -42,5 +48,7 @@ struct CutsceneTextTriggerKey : CutsceneKey
 	// some target text box...
 	std::string text;
 	float duration; // needed?
-	CutsceneTextTriggerKey( std::string text, float duration ) : text( text ), duration( duration ) {};
+	CutsceneTextTriggerKey( float time, std::string text, float duration ) : text( text ), duration( duration ) {
+		this->time = time;
+	};
 };

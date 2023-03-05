@@ -42,6 +42,8 @@
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="GUIElement.cpp" />
     <ClCompile Include="GUIRenderable.cpp" />
+    <ClCompile Include="imgui_neo_internal.cpp" />
+    <ClCompile Include="imgui_neo_sequencer.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="LevelHandler.cpp" />
     <ClCompile Include="LevelImporter.cpp" />

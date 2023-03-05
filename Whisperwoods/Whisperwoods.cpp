@@ -11,6 +11,8 @@
 #include "GUI.h"
 #include "TextureResource.h"
 
+#include "CutsceneController.h"
+
 #include "Player.h"
 #include "Empty.h"
 #include "StaticObject.h"
@@ -175,6 +177,12 @@ void Whisperwoods::Run()
 	testGui.GetElement( 1 )->secondTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "HudMask.png");
 
 
+	CutsceneController testController;
+
+	Cutscene testCutScene;
+	testCutScene.AddKey( std::shared_ptr< CutsceneTransformKey >(new CutsceneTransformKey( 0.5f, m_game->GetPlayer(), {0,0,0}, Quaternion::GetEuler({0,0,0}), {1,1,1})));
+
+
 	int frames = 0;
 	cs::Timer deltaTimer;
 	for (bool running = true; running; frames++)
@@ -192,6 +200,7 @@ void Whisperwoods::Run()
 		dTimeAcc += dTime;
 		
 		//patrolEnemy.Update(dTime);
+		testController.Update();
 
 		// Update the test gui with the stamina.
 		testGui.GetElement( 0 )->floatData = m_game->GetPlayer()->GetCurrentStamina()/10.0f;

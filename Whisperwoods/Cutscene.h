@@ -1,13 +1,14 @@
 #pragma once
-#include "CutsceneKey.h"
+#include "CutsceneChannel.h"
 
 struct Cutscene
 {
 	float duration;
 	bool isActive;
-	cs::List<shared_ptr<CutsceneKey>> cutsceneKeys;
+	cs::List<shared_ptr<CutsceneChannel>> channels;
 
-	void AddKey( shared_ptr<CutsceneKey> key );
+	void AddChannel( shared_ptr<CutsceneChannel> newChannel );
+	//void AddKey( shared_ptr<CutsceneKey> key );
 	//void Update( float time );
 	// list of keyframes...
 };

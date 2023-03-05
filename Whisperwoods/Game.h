@@ -33,6 +33,9 @@ public:
 
 	Player* GetPlayer();
 
+	void SetCutSceneMode( bool value );
+
+
 private:
 	void ChangeTimeline(Renderer* renderer);
 	void UpdateTimeSwitchBuffers(Renderer* renderer);
@@ -85,7 +88,8 @@ private:
 	};
 
 	EnvironmentalizeParameters m_envParams;
-
+	
+	bool m_isCutScene;
 	bool m_isHubby;
 	bool m_isInFuture;
 	bool m_isSwitching; // Switching = is true during whole duration (start + end) of time switch.
