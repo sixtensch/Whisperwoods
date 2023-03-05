@@ -17,6 +17,24 @@ class LevelHandler;
 
 class Game sealed
 {
+	float m_initialCamFov;
+	float m_totalFovDelta;
+	float m_currentStamina;
+	float m_deltaTime;
+	float m_closestDistance;
+	bool m_isSeen;
+
+	void UpdateGameplayVars( Renderer* renderer );
+	
+	void UpdateGameObjects();
+
+	void UpdateEnemies( Renderer* renderer );
+
+	void UpdateRoomAndTimeSwappingLogic( Renderer* renderer );
+
+	void DrawIMGUIWindows();
+
+
 public:
 	Game();
 	~Game();
