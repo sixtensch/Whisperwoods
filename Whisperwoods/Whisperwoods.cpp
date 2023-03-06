@@ -464,13 +464,13 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 			}
 			else
 			{
-				Quaternion slerped;
 				if (!(std::isnan(conj2.x) || std::isnan(conj2.y) || std::isnan(conj2.z) || std::isnan(conj2.w)))
 				{
-					slerped = Lerp(cameraCurrentRot, conj2, dTime * 5);
+					Quaternion slerped;
+					slerped = Lerp(cameraCurrentRot, conj2, cs::fclamp( dTime * 5.0f, 0.0001f, 1.0f ) );
 					slerped.NormalizeThis();
+					camera.SetRotation(slerped);
 				}
-				camera.SetRotation(slerped);
 			}
 		}
 	}
