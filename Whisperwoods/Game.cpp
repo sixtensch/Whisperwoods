@@ -549,6 +549,11 @@ float Game::GetMaxPowerCooldown()
 	return m_timeAbilityCooldown;
 }
 
+float Game::GetMaxStamina()
+{
+	return m_maxStamina;
+}
+
 void Game::LoadRoom(Level* level)
 {
 	Mat4 roomMatrix =

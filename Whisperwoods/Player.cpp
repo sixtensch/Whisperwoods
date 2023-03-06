@@ -147,7 +147,12 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 
 		if (m_ranOutOfSprint == true)
 		{
-			if (Input::Get().IsKeybindDown(KeybindSprint) == false || Input::Get().IsKeybindDown(KeybindForward) == false)
+			if (Input::Get().IsKeybindDown(KeybindSprint) == false || (
+				Input::Get().IsKeybindDown(KeybindForward) == false &&
+				Input::Get().IsKeybindDown(KeybindBackward) == false &&
+				Input::Get().IsKeybindDown(KeybindLeft) == false &&
+				Input::Get().IsKeybindDown(KeybindRight) == false 
+				))
 			{
 				m_ranOutOfSprint = false;
 			}

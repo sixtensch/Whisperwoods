@@ -58,6 +58,7 @@ public:
 
 	float GetPowerCooldown();
 	float GetMaxPowerCooldown();
+	float GetMaxStamina();
 
 
 private:
@@ -73,6 +74,7 @@ private:
 	void UnloadRoom();
 	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
+	
 
 
 private:
