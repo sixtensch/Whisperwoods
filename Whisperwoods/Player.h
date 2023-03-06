@@ -6,6 +6,9 @@
 #include "AnimationResource.h"
 #include "Room.h"
 
+constexpr float RUNNING_STAMINA_DECAY = 2.0f;
+
+
 class Player : public GameObject
 {
 	std::string m_modelResource;
@@ -17,6 +20,7 @@ class Player : public GameObject
 	float m_runSpeed;
 	float m_animationSpeed;
 	bool m_isCrouch;
+	bool m_ranOutOfSprint;
 
 	Vec3 Lerp( Vec3 a, Vec3 b, float t )
 	{
@@ -35,6 +39,7 @@ public:
 	Vec3 sampleVector;
 	bool playerInFuture;
 	bool hasPickedUpEssenceBloom;
+	
 
 	shared_ptr<MeshRenderableRigged> characterModel;
 	AnimationResource* animationSet;
@@ -46,6 +51,7 @@ public:
 
 
 	shared_ptr<AudioSource> m_vegetationSound;
+	shared_ptr<AudioSource> m_stepsSound;
 
 
 
