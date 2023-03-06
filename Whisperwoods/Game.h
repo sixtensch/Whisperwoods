@@ -10,7 +10,7 @@
 #include "LevelHandler.h"
 #include "TextRenderable.h"
 
-constexpr float STAMINA_DECAY_MULTIPLIER = 0.15f;
+constexpr float STAMINA_DECAY_MULTIPLIER = 0.27f;
 constexpr float MAX_STAMINA_STARTING_VALUE = 10.0f;
 
 class LevelHandler;

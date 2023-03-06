@@ -266,7 +266,7 @@ void Player::Update(float delta_time)
 
 
 	//regain stamina
-	if ((!Input::Get().IsKeybindDown(KeybindSprint) || m_ranOutOfSprint == true || m_velocity.Length() <= 0.2f) || playerInFuture)
+	if ((!Input::Get().IsKeybindDown(KeybindSprint) || m_ranOutOfSprint == true || m_velocity.Length() <= 0.2f) || playerInFuture || IsCrouching())
 	{
 		m_stamina = cs::fclamp(m_stamina + (2.5f * delta_time), 0.0f, m_maxStamina); //or 0.0f rather than 0
 	}
