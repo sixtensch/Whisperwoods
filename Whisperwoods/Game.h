@@ -17,6 +17,27 @@ class LevelHandler;
 
 class Game sealed
 {
+	bool m_isCutscene;
+
+	float m_initialCamFov;
+	float m_totalFovDelta;
+	float m_currentStamina;
+	float m_deltaTime;
+	float m_closestDistance;
+	bool m_isSeen;
+
+	void UpdateGameplayVars( Renderer* renderer );
+	
+	void UpdateGameObjects();
+
+	void UpdateEnemies( Renderer* renderer );
+
+	void UpdateRoomAndTimeSwappingLogic( Renderer* renderer );
+
+	void DrawIMGUIWindows();
+
+	void CinematicUpdate();
+
 public:
 	Game();
 	~Game();
@@ -32,6 +53,9 @@ public:
 	void UnLoadPrevious();
 
 	Player* GetPlayer();
+
+	void SetCutSceneMode( bool value );
+
 
 private:
 	void ChangeTimeline(Renderer* renderer);
@@ -85,7 +109,8 @@ private:
 	};
 
 	EnvironmentalizeParameters m_envParams;
-
+	
+	bool m_isCutScene;
 	bool m_isHubby;
 	bool m_isInFuture;
 	bool m_isSwitching; // Switching = is true during whole duration (start + end) of time switch.
@@ -98,6 +123,10 @@ private:
 	float m_camFovChangeSpeed;
 
 	const float m_detectionRate = 0.4f;
+	const float m_detCrouchMultiplier = 0.6f;
+	const float m_detSprintMultiplier = 1.3f;
+	const float m_detDistMultiplier = 1.5f;
+
 	const float m_timeBeforeDetectionLowers = 4.0f; //in seconds
 	float m_timeUnseen = 0.0f; // for determining when to derease global detection
 	float m_dangerousTimeInFuture = 0.0f;// time in seconds

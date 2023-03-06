@@ -203,7 +203,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	D3D11_DEPTH_STENCIL_DESC dssDesc = {};
 	dssDesc.DepthEnable = true;
-	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	dssDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	EXC_COMCHECK(m_device->CreateDepthStencilState(&dssDesc, m_dsDSS.GetAddressOf()));
 
@@ -518,7 +518,7 @@ void RenderCore::TargetStaticShadowMap()
 void RenderCore::TargetRenderTexture()
 {
 	EXC_COMINFO(m_context->OMSetDepthStencilState(m_dsDSS.Get(), 1));
-
+	EXC_COMINFO( m_context->RSSetViewports( 1, &m_viewport ) );
 
 
 	ID3D11RenderTargetView* rtvs[RTV_COUNT] = {

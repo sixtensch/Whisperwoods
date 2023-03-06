@@ -98,7 +98,7 @@ void RenderHandler::Draw()
 
 	static std::string zPrepassProfileName = "Z Prepass Draw";
 	static std::string mainSceneProfileName = "Main Scene Draw";
-	PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
+	//PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
 	PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_timelineState, false));
 	m_renderCore->UnbindRenderTexture();
 
