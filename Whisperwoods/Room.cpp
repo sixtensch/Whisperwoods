@@ -97,7 +97,7 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	Renderer::RegisterShadowRenderable();
 
 	m_wallsAndFloorRenderable->worldMatrix = modelOffset2;
-	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("TestSceneBigTree.wwmt"));
+	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("BackgroundTrees.wwmt"));
 	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("TestSceneGround.wwmt"));
 	
 	

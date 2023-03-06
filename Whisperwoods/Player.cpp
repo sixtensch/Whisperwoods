@@ -62,9 +62,10 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	m_maxStamina = 10.0f;
 	m_walkSpeed = 2.0f;
 	m_runSpeed = 3.5f;
-	cameraFollowDistance = 3.0f;
+	cameraFollowDistance = 3.2f;
 	//cameraFollowHeight = 2.0f;
-	cameraFollowTilt = cs::c_pi / 4;
+	cameraLookTargetOffset = Vec3( 0, -0.5, 0 );
+	cameraFollowTilt = 0.95f;
 	cameraIsLocked = true;
 	playerInFuture = false;
 	hasPickedUpEssenceBloom = false;

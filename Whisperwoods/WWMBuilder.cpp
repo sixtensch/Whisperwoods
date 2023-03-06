@@ -72,7 +72,7 @@ void BuildRoomWWM( int subdivisions, float radius, float height, std::string nam
 {
 	// Create the verticies.
 	cs::List<VertexTextured> verticies;
-	for (int i = 0; i < subdivisions; i++)
+	for (int i = 0; i < subdivisions+1; i++)
 	{
 		// Base vertex
 		float angle = ((cs::c_pi * 2) / (float)subdivisions) * (float)i;
@@ -84,9 +84,9 @@ void BuildRoomWWM( int subdivisions, float radius, float height, std::string nam
 		Vec3 tan( 0, 1, 0 );
 		Vec3 bitan = nor.Cross( tan );
 		// Wall Base vertex
-		verticies.Add( VertexTextured( pos, nor, tan, bitan, Vec4( ((1.0f / subdivisions) * i), 1, 0, 0 ) ) );
+		verticies.Add( VertexTextured( pos, nor, tan, bitan, Vec4( ((1.0f / (float)(subdivisions)) * i)*10, 0, 0, 0 ) ) );
 		// Wall Top vertex
-		verticies.Add( VertexTextured( pos + Vec3( 0, height, 0 ), nor, tan, bitan, Vec4( ((1.0f / subdivisions) * i), 0, 0, 0 ) ) );
+		verticies.Add( VertexTextured( pos + Vec3( 0, height, 0 ), nor, tan, bitan, Vec4( ((1.0f / (float)(subdivisions)) * i)*10, 1, 0, 0 ) ) );
 		// Floor edge vertex 
 		verticies.Add( VertexTextured(
 			pos,
@@ -94,7 +94,7 @@ void BuildRoomWWM( int subdivisions, float radius, float height, std::string nam
 			{ 1,0,0 }, // Tangent
 			{ 0,0,1 }, // Bitangent
 			Vec4(
-				1.0f - (0.5f + (cos( angle ) * 0.5f)), // UV-X (Circle)
+				1.0f-(0.5f + (cos( angle ) * 0.5f)), // UV-X (Circle)
 				1.0f-(0.5f + (sin( angle ) * 0.5f)), // UV-Y
 				0,
 				0
@@ -104,26 +104,29 @@ void BuildRoomWWM( int subdivisions, float radius, float height, std::string nam
 
 	// Create the faces
 	cs::List<int> indicies;
+	int lastIndex;
 	for (int i = 0; i < subdivisions; i++)
 	{
 		// top1->base1->top2 - triangle 1
 		// base2->top2->base1 - triangle 2
 		int currentIndex = i*3;
-		int nextIndex = (i == subdivisions -1) ? 0 : (currentIndex + 3);
+		int nextIndex = (i == subdivisions) ? 0 : (currentIndex + 3);
 
 		// Wall Triangle 1
 		indicies.Add( currentIndex + 1 ); // top1
-		VertexTextured debug1 = verticies[currentIndex + 1];
+		//VertexTextured debug1 = verticies[currentIndex + 1];
 		indicies.Add( currentIndex ); // base1
-		VertexTextured debug2 = verticies[currentIndex];
+		//VertexTextured debug2 = verticies[currentIndex];
 		indicies.Add( nextIndex + 1 ); // top2
-		VertexTextured debug3 = verticies[nextIndex + 1];
+		//VertexTextured debug3 = verticies[nextIndex + 1];
 
 		// Wall Triangle 2
 		indicies.Add( nextIndex ); // base2
 		indicies.Add( nextIndex + 1 ); // top2
 		indicies.Add( currentIndex ); // base1
+		lastIndex = currentIndex;
 	}
+
 
 	int floorStart = indicies.Size();
 

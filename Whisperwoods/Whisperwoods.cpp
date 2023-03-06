@@ -97,7 +97,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	cs::List<int> rectIndicies = { 0,1,2,3,2,1 };
 	BuildWWM(rectVerts, rectIndicies, "ui_rect");*/
 
-	//BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
+	BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
 
 
 	m_sound = std::make_unique<Sound>();
@@ -154,7 +154,7 @@ void Whisperwoods::Run()
 	testGui.GetElement( 0 )->vectorData = Vec3( 1, 1, 1 );
 	testGui.GetElement( 0 )->floatData = 0.5f;
 	testGui.GetElement( 0 )->intData = Point4( 0, 1, 0, 0 ); // Makes it follow the float value.
-	testGui.GetElement( 0 )->firstTexture = newTexture;
+	testGui.GetElement( 0 )->firstTexture = nullptr;
 	testGui.GetElement( 0 )->secondTexture = Resources::Get().GetTexture("StaminaBarMask09.png");
 
 	// Minimap
@@ -163,7 +163,7 @@ void Whisperwoods::Run()
 	testGui.GetElement( 1 )->alpha = 0.6f;
 	testGui.GetElement( 1 )->intData = Point4( 1, 0, 0, 0 ); // makes it transform with the playermatrix
 	testGui.GetElement( 1 )->firstTexture = Resources::Get().GetTexture( "Hubby.png" );
-	testGui.GetElement( 1 )->secondTexture = Resources::Get().GetTexture("HudMask.png");
+	testGui.GetElement( 1 )->secondTexture = Resources::Get().GetTexture("HudMask2.png");
 
 
 	// Test of the cutscene system.
