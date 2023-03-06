@@ -59,6 +59,8 @@ public:
 
 	void RenderGUI();
 
+	void RenderTerrain();
+
 	RenderCore* GetCore() const;
 	Camera& GetCamera();
 
@@ -74,6 +76,8 @@ public:
 	shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin);
 
 	shared_ptr<GUIRenderable> CreateGUIRenderable(const string& subpath);
+
+	shared_ptr<MeshRenderableTerrain> CreateMeshTerrain( const string& subpath );
 
 	void DestroyMeshStatic(shared_ptr<MeshRenderableStatic> renderable);
 
@@ -122,6 +126,7 @@ private:
 	cs::List<std::pair<shared_ptr<WorldRenderable>, shared_ptr<WorldRenderable>>> m_worldRenderables;
 	cs::List<shared_ptr<GUIRenderable>> m_guiRenderables;
 	cs::List<shared_ptr<TextRenderable>> m_texts;
+	cs::List<shared_ptr<MeshRenderableTerrain>> m_worldTerrainRenderables;
 
 	cs::Color3f m_lightAmbient;
 	float m_lightAmbientIntensity;

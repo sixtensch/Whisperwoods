@@ -91,10 +91,10 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	// Cylinder thing
 	m_wallsFloorOffset = modelOffset2;
 
-	m_wallsAndFloorRenderable = Renderer::CreateMeshStatic( modelResource2 );
+	m_wallsAndFloorRenderable = Renderer::CreateMeshTerrain( modelResource2 );
 
 	// Registers the last added renderable as one to do shadows on
-	Renderer::RegisterShadowRenderable();
+	//Renderer::RegisterShadowRenderable();
 
 	m_wallsAndFloorRenderable->worldMatrix = modelOffset2;
 	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("BackgroundTrees.wwmt"));

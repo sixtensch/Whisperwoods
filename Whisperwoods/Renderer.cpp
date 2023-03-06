@@ -125,6 +125,10 @@ shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpat
 	return s_singleton->m_renderHandler->CreateMeshStatic(subpath);
 }
 
+shared_ptr<MeshRenderableTerrain> Renderer::CreateMeshTerrain( const string& subpath )
+{
+	return s_singleton->m_renderHandler->CreateMeshTerrain( subpath );
+}
 
 shared_ptr<MeshRenderableRigged> Renderer::CreateMeshRigged(const string& subpath)
 {

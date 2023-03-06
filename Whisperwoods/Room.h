@@ -21,7 +21,7 @@ public:
 	// Might have to move
 	Mat4 m_wallsFloorOffset;
 	ModelStaticResource* m_roomWallsAndFloor;
-	shared_ptr<MeshRenderableStatic> m_wallsAndFloorRenderable;
+	shared_ptr<MeshRenderableTerrain> m_wallsAndFloorRenderable;
 
 	const Level* m_level;
 	const LevelResource* m_levelResource;

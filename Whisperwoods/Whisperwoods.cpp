@@ -29,7 +29,8 @@
 void TestPlay(void*, void*)
 {
 	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
-	AudioSource testSource(Vec3(0, 0, 0), 0.2f, 0.5f, 0, 10, soundPtr);
+	AudioSource testSource(Vec3(0, 0, 0), 0.7f, 1.0f, 0, 10, soundPtr);
+	testSource.mix2d3d = 0;
 	testSource.Play();
 }
 
@@ -87,7 +88,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM(planeVerts, planeIndicies, "room_plane");
 
 
-	/*cs::List<VertexTextured> rectVerts = { 
+	cs::List<VertexTextured> rectVerts = { 
 		VertexTextured({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }), 
 		VertexTextured({ 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f }),
 		VertexTextured({ 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 0.0f }),
@@ -95,7 +96,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	};
 
 	cs::List<int> rectIndicies = { 0,1,2,3,2,1 };
-	BuildWWM(rectVerts, rectIndicies, "ui_rect");*/
+	BuildWWM(rectVerts, rectIndicies, "ui_rect");
 
 	BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
 
@@ -123,10 +124,16 @@ Whisperwoods::~Whisperwoods()
 {
 }
 
+float LerpFloat( float a, float b, float t )
+{
+	return a * (1.0f - t) + b * t;
+}
+
+
 void Whisperwoods::Run()
 {
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
-
+	
 	m_game->Init();
 	m_game->LoadHubby();
 
@@ -166,6 +173,18 @@ void Whisperwoods::Run()
 	testGui.GetElement( 1 )->secondTexture = Resources::Get().GetTexture("HudMask2.png");
 
 
+	// Duck
+	testGui.AddGUIElement( { -0.5f,-0.5f }, { 1.0f,1.0f }, nullptr, nullptr );
+	testGui.GetElement( 2 )->colorTint = Vec3( 1, 1, 1 );
+	testGui.GetElement( 2 )->alpha = 1.0f;
+	testGui.GetElement( 2 )->intData = Point4( 0, 0, 0, 0 ); // makes it transform with the playermatrix
+	testGui.GetElement( 2 )->firstTexture = Resources::Get().GetTexture( "duck.jpg" );
+	//testGui.GetElement( 2 )->secondTexture = Resources::Get().GetTexture( "HudMask2.png" );
+	float targetAlpha = 0.0f;
+
+
+
+
 	// Test of the cutscene system.
 	CutsceneController testController;
 	shared_ptr<Cutscene> testCutScene(new Cutscene("Test scene"));
@@ -186,7 +205,6 @@ void Whisperwoods::Run()
 	//channel->keys[2]->frame = 2;
 
 	//testCutScene.AddKey( std::shared_ptr< CutsceneTransformKey >(new CutsceneTransformKey( 0.5f, m_game->GetPlayer(), {0,0,0}, Quaternion::GetEuler({0,0,0}), {1,1,1})));
-
 
 	// Main frame loop
 	int frames = 0;
@@ -211,6 +229,37 @@ void Whisperwoods::Run()
 		testController.Update();
 		// Update the test gui with the stamina.
 		testGui.GetElement( 0 )->floatData = m_game->GetPlayer()->GetCurrentStamina()/10.0f;
+
+		if (Input::Get().IsDXKeyPressed( DXKey::B ))
+		{
+			Debug::ExecuteCommand( "Duck", "play" );
+			targetAlpha = !targetAlpha;
+		}
+		testGui.GetElement( 2 )->alpha = LerpFloat( testGui.GetElement( 2 )->alpha, targetAlpha, 4.0f * dTime );
+
+
+		// Button/Interaction Test
+		if (Input::Get().GetMouseState().leftButton && !Input::Get().GetLastMouseState().leftButton)
+		{
+			//bool isInside = testGui.GetElement( 2 )->TestMouse();
+			//LOG_TRACE( "Inside: %d ", isInside );
+			if (testGui.GetElement( 2 )->TestMouse())
+			{
+				Debug::ExecuteCommand( "Duck", "play" );
+				targetAlpha = !targetAlpha;
+			}
+		}
+		else if (!Input::Get().GetMouseState().leftButton)
+		{
+			if( testGui.GetElement( 2 )->TestMouse() )
+			{
+				testGui.GetElement( 2 )->colorTint = Vec3( 0.5, 1.0f, 0.5 );
+			}
+			else
+			{
+				testGui.GetElement( 2 )->colorTint = Vec3( 1, 1, 1 );
+			}
+		}
 
 		// Main game update
 		m_game->Update(dTime, m_renderer.get());
@@ -327,7 +376,6 @@ Quaternion Lerp(Quaternion q0, Quaternion q1, float t)
 	return Quaternion(FL4.x, FL4.y, FL4.z, FL4.w);
 }
 
-
 Vec3 EulerAngles( Quaternion q )
 {
 	Vec3 returnValue;
@@ -350,8 +398,6 @@ Vec3 EulerAngles( Quaternion q )
 
 	return returnValue;
 }
-
-
 
 void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutSceneController)
 {

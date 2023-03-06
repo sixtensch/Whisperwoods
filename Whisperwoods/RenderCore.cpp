@@ -1419,6 +1419,23 @@ void RenderCore::InitPipelines()
 		m_pipelines[PipelineTypeGUI].inputLayout.GetAddressOf()
 	));
 
+
+
+	// Terrain Pipeline (light phong with blending)
+
+	m_pipelines[PipelineTypeTerrain].primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+	EXC_COMCHECK( D3DReadFileToBlob( DIR_SHADERS L"PSTerrain.cso", &blob ) );
+	EXC_COMCHECK( m_device->CreatePixelShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypeTerrain].pixelShader
+	) );
+
+	m_pipelines[PipelineTypeTerrain].vertexShader = m_pipelines[PipelineTypeStandard].vertexShader;
+	m_pipelines[PipelineTypeTerrain].inputLayout = m_pipelines[PipelineTypeStandard].inputLayout;
+
 	blob->Release();
 }
 

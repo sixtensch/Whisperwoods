@@ -576,6 +576,9 @@
     <FxCompile Include="VSGUI.hlsl">
       <Filter>%2a Code\%2a Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="PSTerrain.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Constants.hlsli">
@@ -592,6 +595,9 @@
       <Filter>%2a Code\%2a Shaders</Filter>
     </None>
     <None Include="FogFuncs.hlsli">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </None>
+    <None Include="PhongAlgLite.hlsli">
       <Filter>%2a Code\%2a Shaders</Filter>
     </None>
   </ItemGroup>

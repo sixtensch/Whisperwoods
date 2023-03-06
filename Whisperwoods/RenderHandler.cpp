@@ -97,8 +97,10 @@ void RenderHandler::Draw()
 	QuadCull(m_mainCamera);
 
 	static std::string zPrepassProfileName = "Z Prepass Draw";
+	static std::string terrainProfileName = "Terrain Draw";
 	static std::string mainSceneProfileName = "Main Scene Draw";
 	//PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
+	PROFILE_JOB( terrainProfileName, RenderTerrain() );
 	PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_timelineState, false));
 	m_renderCore->UnbindRenderTexture();
 
@@ -202,6 +204,20 @@ void RenderHandler::RenderGUI()
 			m_renderCore->UpdateGUIInfo(data.get()->m_elementRef);
 			m_renderCore->UpdateObjectInfo(data.get());
 			m_renderCore->DrawObject(data.get(), false);
+		}
+	}
+}
+
+void RenderHandler::RenderTerrain()
+{
+	m_renderCore->TargetRenderTexture();
+	for (int i = 0; i < m_worldTerrainRenderables.Size(); i++)
+	{
+		auto data = m_worldTerrainRenderables[i];
+		if (data && data->enabled)
+		{
+			m_renderCore->UpdateObjectInfo( data.get() );
+			m_renderCore->DrawObject( data.get(), false );
 		}
 	}
 }
@@ -482,6 +498,7 @@ void RenderHandler::UnLoadEnvironment()
 		m_envMeshes[i].hotInstances.Clear( false );
 	}
 	m_worldRenderables.Clear();
+	m_worldTerrainRenderables.Clear();
 }
 
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
@@ -499,6 +516,24 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 
 	return newRenderable;
 }
+
+
+shared_ptr<MeshRenderableTerrain> RenderHandler::CreateMeshTerrain( const string& subpath )
+{
+	Resources& resources = Resources::Get();
+
+	const ModelStaticResource* model = resources.GetModelStatic( subpath );
+
+	const shared_ptr<MeshRenderableTerrain> newRenderable = make_shared<MeshRenderableTerrain>(
+		m_renderableIDCounter++,
+		model,
+		cs::Mat4()
+		);
+	//m_worldRenderables.Add( { (shared_ptr<WorldRenderable>)newRenderable, (shared_ptr<WorldRenderable>)newRenderable } );
+	m_worldTerrainRenderables.Add( shared_ptr<MeshRenderableTerrain>(newRenderable) );
+	return newRenderable;
+}
+
 
 std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> RenderHandler::CreateMeshStaticSwappable(const string& subpathCurrent, const string& subpathFuture)
 {

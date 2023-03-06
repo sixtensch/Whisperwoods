@@ -10,6 +10,7 @@ enum PipelineType
 	PipelineTypePPFX,
 	PipelineTypeText,
 	PipelineTypeGUI,
+	PipelineTypeTerrain,
 
 	PipelineTypeCount // <-- Keep last
 };

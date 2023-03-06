@@ -40,6 +40,7 @@ public:
 	static void ExecuteShadowRender();
 
 	static shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
+	static shared_ptr<MeshRenderableTerrain> CreateMeshTerrain( const string& subpath );
 	static shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
 	static void DestroyMeshStatic(shared_ptr<MeshRenderableStatic> renderable);
 	static shared_ptr<GUIRenderable> CreateGUIRenderable(const string& subpath);

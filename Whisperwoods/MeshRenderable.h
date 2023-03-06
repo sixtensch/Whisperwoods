@@ -32,3 +32,17 @@ private:
 	MaterialBundle m_materials;
 	const ModelRiggedResource* m_model;
 };
+
+
+class MeshRenderableTerrain : public WorldRenderable
+{
+public:
+	MeshRenderableTerrain( uint id, const ModelStaticResource* model, Mat4 worldMatrix );
+
+	void Draw( const DrawInfo& drawInfo ) const override;
+	MaterialBundle& Materials();
+
+private:
+	MaterialBundle m_materials;
+	const ModelStaticResource* m_model;
+};

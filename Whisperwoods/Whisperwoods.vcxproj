@@ -146,6 +146,12 @@
     <ClInclude Include="WWMBuilder.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="PSTerrain.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
     <FxCompile Include="CSBloomPass.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -241,6 +247,7 @@
     <None Include="Constants.hlsli" />
     <None Include="FogFuncs.hlsli" />
     <None Include="PhongAlg.hlsli" />
+    <None Include="PhongAlgLite.hlsli" />
     <None Include="TimeSwitchFuncs.hlsli" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
