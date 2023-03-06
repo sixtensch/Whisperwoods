@@ -65,12 +65,14 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	playerInFuture = false;
 	hasPickedUpEssenceBloom = false;
 	m_ranOutOfSprint = false;
-
-	FMOD::Sound* undergrowthSoundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "foliage.mp3"))->currentSound;
+	/*FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
+	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
+	m_audioSource->Play();*/
+	FMOD::Sound* undergrowthSoundPtr = (Resources::Get().GetSound("foliage.mp3"))->currentSound;
 	m_vegetationSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.5f, 1.1f, 0.0f, 10.0f, undergrowthSoundPtr);
 	this->AddChild((GameObject *) m_vegetationSound.get());
 	
-	FMOD::Sound* stepsSoundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "footstep.mp3"))->currentSound;
+	FMOD::Sound* stepsSoundPtr = ((SoundResource*)Resources::Get().GetResource(ResourceTypeSound, "footstep.mp3"))->currentSound;
 	m_stepsSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 2.0f, 1.1f, 0.0f, 10.0f, stepsSoundPtr);
 	this->AddChild((GameObject*)m_stepsSound.get());
 }
@@ -145,7 +147,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 
 		if (m_ranOutOfSprint == true)
 		{
-			if (Input::Get().IsKeybindDown(KeybindSprint) == false)
+			if (Input::Get().IsKeybindDown(KeybindSprint) == false || Input::Get().IsKeybindDown(KeybindForward) == false)
 			{
 				m_ranOutOfSprint = false;
 			}
@@ -264,7 +266,7 @@ void Player::Update(float delta_time)
 
 
 	//regain stamina
-	if (!Input::Get().IsKeybindDown(KeybindSprint) || m_ranOutOfSprint == true || m_velocity.Length() <= 0.2f)
+	if ((!Input::Get().IsKeybindDown(KeybindSprint) || m_ranOutOfSprint == true || m_velocity.Length() <= 0.2f) || playerInFuture)
 	{
 		m_stamina = cs::fclamp(m_stamina + (2.5f * delta_time), 0.0f, m_maxStamina); //or 0.0f rather than 0
 	}
@@ -274,6 +276,8 @@ void Player::Update(float delta_time)
 	characterAnimator->Update( delta_time );
 	transform.CalculateWorldMatrix();
 	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
+
+	UpdateSound(delta_time);
 }
 
 // Only the essentials.
@@ -284,6 +288,10 @@ void Player::CinematicUpdate( float delta_time )
 	transform.CalculateWorldMatrix();
 	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
 
+}
+
+void Player::UpdateSound(float delta_time)
+{
 	m_vegetationSound->Update(delta_time);
 	m_stepsSound->Update(delta_time);
 
@@ -326,7 +334,7 @@ void Player::CinematicUpdate( float delta_time )
 		//volPercent *= volPercent;
 		m_stepsSound->volume = 0.25f * volPercent;
 		//trigger when character sets foot on ground
-		if(((characterAnimator->globalTime > 0.2f && characterAnimator->globalTime < 0.3f) || (characterAnimator->globalTime > 0.66f && characterAnimator->globalTime < 0.76f)) /*&& !m_stepsSound->IsPlaying()*/)
+		if (((characterAnimator->globalTime > 0.2f && characterAnimator->globalTime < 0.3f) || (characterAnimator->globalTime > 0.66f && characterAnimator->globalTime < 0.76f)) /*&& !m_stepsSound->IsPlaying()*/)
 		{
 			m_stepsSound->Stop();
 			m_stepsSound->Play();
