@@ -56,6 +56,9 @@ public:
 
 	void SetCutSceneMode( bool value );
 
+	float GetPowerCooldown();
+	float GetMaxPowerCooldown();
+
 
 private:
 	void ChangeTimeline(Renderer* renderer);
