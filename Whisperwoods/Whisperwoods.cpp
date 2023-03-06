@@ -42,35 +42,35 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	//// WWM Building below
 	//// Rigged Models
-	BuildWWM( "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx", true );
-	BuildWWM( "Assets/Models/FBX/Rigged/Grafiki_Animated.fbx", true );
-	BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Animated.fbx", true );
-	BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Animated2.fbx", true );
-	BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", true );
+	//BuildWWM( "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx", true );
+	//BuildWWM( "Assets/Models/FBX/Rigged/Grafiki_Animated.fbx", true );
+	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Animated.fbx", true );
+	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Animated2.fbx", true );
+	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", true );
 
-	//// Static Models
-	BuildWWM( "Assets/Models/FBX/Static/EssenseBloom.fbx", false );
-	BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false );
-	BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false );
-	BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false );
-	BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false );
-	BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
-	BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false );
-	BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false );
-	BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
-	BuildWWM("Assets/Models/FBX/Static/Big_Trunk_1.fbx", false);
-	BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
-	BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false, 1.0f );
-	BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Future.fbx", false);
-	BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false);
-	BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Future.fbx", false);
-	BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Present.fbx", false);
-	BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Future.fbx", false);
-	BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Present.fbx", false);
-	BuildWWM("Assets/Models/FBX/Static/Stone_1_Future.fbx", false);
-	BuildWWM("Assets/Models/FBX/Static/Stone_1_Present.fbx", false);
-	BuildWWM("Assets/Models/FBX/Static/Stone_2_Future.fbx", false);
-	BuildWWM("Assets/Models/FBX/Static/Stone_2_Present.fbx", false);
+	////// Static Models
+	//BuildWWM( "Assets/Models/FBX/Static/EssenseBloom.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false );
+	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
+	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_1.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
+	//BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false, 1.0f );
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Stone_2_Future.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Stone_2_Present.fbx", false);
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
@@ -327,6 +327,24 @@ Quaternion Lerp(Quaternion q0, Quaternion q1, float t)
 	return Quaternion(FL4.x, FL4.y, FL4.z, FL4.w);
 }
 
+
+Quaternion FromEulerAngles( double yaw, double pitch, double roll )
+{
+	double cy = cos( yaw * 0.5 );
+	double sy = sin( yaw * 0.5 );
+	double cp = cos( pitch * 0.5 );
+	double sp = sin( pitch * 0.5 );
+	double cr = cos( roll * 0.5 );
+	double sr = sin( roll * 0.5 );
+	return Quaternion(
+		sr * cp * cy - cr * sp * sy,
+		cr * sp * cy + sr * cp * sy,
+		cr * cp * sy - sr * sp * cy,
+		cr * cp * cy + sr * sp * sy
+	);
+}
+
+
 void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutSceneController)
 {
 	static bool cameraLock = false;
@@ -367,20 +385,30 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 		}
 
 		MouseState mouseState = Input::Get().GetMouseState();
-
-		static Vec3 rotationVec = {};
-		if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
+		if (!cameraPlayer)
 		{
-			cs::Vec3 delta = Vec3((float)mouseState.y, (float)mouseState.x, 0.0f);
-
-			rotationVec += delta * dTime * 4.0f;
-			if (!cameraPlayer)
+			static Vec3 rotationVec = {};
+			if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
 			{
-				camera.SetRotation(Quaternion::GetEuler(rotationVec));
-			}
-			//camera.SetRotation(Quaternion::GetEuler(rotationVec));
-		}
+				cs::Vec3 delta = Vec3( (float)mouseState.y, (float)mouseState.x, 0.0f );
 
+				rotationVec -= delta * dTime * 4.0f;
+
+				camera.SetRotation( Quaternion::GetEuler( { rotationVec.x, rotationVec.y, rotationVec.z } ).Conjugate() );
+
+				if (ImGui::Begin( "Camera rotation dev" ))
+				{
+					ImGui::Text( "Rot Vec: %f, %f, %f", rotationVec.x, rotationVec.y, rotationVec.z );
+					ImGui::Text( "Rot: %f, %f, %f, %f", camera.GetRotation().x, camera.GetRotation().y, camera.GetRotation().z, camera.GetRotation().w );
+					ImGui::Text( "Dir: %f, %f, %f", camera.GetDirection().x, camera.GetDirection().y, camera.GetDirection().z );
+					ImGui::Text( "Delta: %f, %f, %f", delta.x, delta.y, delta.z );
+
+				}
+				ImGui::End();
+
+				//camera.SetRotation(Quaternion::GetEuler(rotationVec));
+			}
+		}
 		Input::Get().SetMode(cameraLock ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
 
 		if (!cameraPlayer)
@@ -422,7 +450,7 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 			// sometimes the lerping/target goes bad so this is required or screen can go black.
 			if (std::isnan(cameraCurrentRot.x) || std::isnan(cameraCurrentRot.y) || std::isnan(cameraCurrentRot.z) || std::isnan(cameraCurrentRot.w))
 			{
-				camera.SetRotation(conj2);
+				//camera.SetRotation(conj2);
 			}
 			else
 			{

@@ -28,7 +28,8 @@ Camera::~Camera()
 void Camera::Update()
 {
 	Mat4 viewMat = cs::Mat::translation3(-m_transform.position.x, -m_transform.position.y, -m_transform.position.z);
-	viewMat = m_transform.rotation.Matrix().Transpose() * viewMat; //TODO: is this correct? (Probably now)
+	viewMat = m_transform.rotation.Conjugate().Matrix() * viewMat; //TODO: is this correct? (Probably now)
+
 	m_viewMatrix = viewMat;
 	m_transform.CalculateWorldMatrix();
 	m_worldMatrix = m_transform.worldMatrix;
