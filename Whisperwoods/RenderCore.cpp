@@ -953,7 +953,7 @@ void RenderCore::DrawPPFX()
 		
 		EXC_COMINFO(m_context->CSSetShaderResources(renderTexSRVReg, 1u, m_renderTextureSRV.GetAddressOf()));
 		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, m_ppfxLumUAV.GetAddressOf(), nullptr)); // Last argument is ignored.
-		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X/2, COMPUTE_GROUP_COUNT_Y/2, 1u));
+		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X/1, COMPUTE_GROUP_COUNT_Y/1, 1u));
 		
 		// Generate all mips for lumen texture for artificial blur used in bloom pass.
 		EXC_COMINFO(m_context->GenerateMips(m_ppfxLumSRV.Get()));

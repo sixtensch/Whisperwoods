@@ -35,7 +35,7 @@ cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
     bool PADDING[3];
 }
 
-#define REGION_SIZE_PER_THREAD 2
+#define REGION_SIZE_PER_THREAD 1
 [numthreads(NUM_THREADS.x, NUM_THREADS.y, 1)]
 void main( uint3 DTid : SV_DispatchThreadID )
 {
@@ -43,25 +43,26 @@ void main( uint3 DTid : SV_DispatchThreadID )
     texPos *= REGION_SIZE_PER_THREAD;
     
     [unroll]
-    for (uint y = texPos.y; y < texPos.y + REGION_SIZE_PER_THREAD; ++y)
+    for (uint y = texPos.y; y < texPos.y + REGION_SIZE_PER_THREAD; y++)
     [unroll]
-        for (uint x = texPos.x; x < texPos.x + REGION_SIZE_PER_THREAD; ++x)
+        for (uint x = texPos.x; x < texPos.x + REGION_SIZE_PER_THREAD; x++)
         {
-            float3 texColor = renderTexture.Load(texPos).rgb;
+            uint2 coord = uint2(x, y);
+            
+            float3 texColor = renderTexture.Load(uint3(coord, 0)).rgb;
+            
             float totalInflunce = TotalTimeSwitchInfluence(
                 timeSinceSwitch,
                 timeSwitchStartDuration,
                 timeSwitchEndDuration
             );
-            
             texColor = FilterBrightness(
                 texColor,
                 lerp(luminanceThreshold, 0.0f, totalInflunce),
                 lerp(strength, strength * 1.4f, totalInflunce),
                 lerp(minLuminance, 0.0f, totalInflunce)
             );
-            
-            uint2 coord = uint2(x, y);
+           
             lumTexture[coord] = float4(texColor, 1.0f);
         }
 }
