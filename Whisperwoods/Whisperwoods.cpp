@@ -133,7 +133,7 @@ void Whisperwoods::Run()
 
 	GUI testGui;
 	testGui.AddGUIElement({ 0,-0.95 }, { 1.0f,0.1f }, nullptr, nullptr);
-	testGui.GetElement( 0 )->colorTint = Vec3(0.2f, 0.8f, 0.2f);
+	testGui.GetElement( 0 )->colorTint = Vec3(1.0f, 0.72f, 0.0f);
 	testGui.GetElement( 0 )->alpha = 0.6f;
 	testGui.GetElement( 0 )->vectorData = Vec3( 1, 1, 1 );
 	testGui.GetElement( 0 )->floatData = 0.5f;
@@ -147,6 +147,17 @@ void Whisperwoods::Run()
 	testGui.GetElement( 1 )->intData = Point4( 1, 0, 0, 0 ); // makes it transform with the playermatrix
 	testGui.GetElement( 1 )->firstTexture = Resources::Get().GetTexture("Hubby.png");
 	testGui.GetElement( 1 )->secondTexture = Resources::Get().GetTexture("HudMask.png");
+
+	//************* power cooldown
+	testGui.AddGUIElement({ 0.475f,-0.82f }, { 0.5f,0.1f }, nullptr, nullptr);
+	testGui.GetElement(2)->colorTint = Vec3(0.08f, 0.18f, 0.8f);
+	testGui.GetElement(2)->alpha = 0.6f;
+	testGui.GetElement(2)->vectorData = Vec3(1, 1, 1);
+	testGui.GetElement(2)->floatData = 0.5f;
+	testGui.GetElement(2)->intData = Point4(0, 1, 0, 0); // Makes it follow the float value.
+	//testGui.GetElement( 2 )->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "Test+Pattern+t.png");
+	testGui.GetElement(2)->secondTexture = Resources::Get().GetTexture("StaminaBarMask01.png");
+	//*************
 
 
 	CutsceneController testController;
@@ -182,6 +193,32 @@ void Whisperwoods::Run()
 		testController.Update();
 		// Update the test gui with the stamina.
 		testGui.GetElement( 0 )->floatData = m_game->GetPlayer()->GetCurrentStamina()/10.0f;
+		if (m_game->GetMaxStamina() == 1.0f)
+		{
+			testGui.GetElement(0)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+		}
+		else
+		{
+			testGui.GetElement(0)->colorTint = Vec3(1.0f, 0.72f, 0.0f);
+		}
+
+		//update test gui with power cooldown
+		if (m_game->GetPlayer()->playerInFuture == false && m_game->GetPowerCooldown() != 0)
+		{
+			testGui.GetElement(2)->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
+			testGui.GetElement(2)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+		}
+		else if (m_game->GetPlayer()->playerInFuture == false && m_game->GetPowerCooldown() == 0)
+		{
+			testGui.GetElement(2)->colorTint = Vec3(0.08f, 0.18f, 0.8f);
+			testGui.GetElement(2)->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
+		}
+		else
+		{
+			testGui.GetElement(2)->floatData = 0.06;
+			testGui.GetElement(2)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+		}
+
 
 		// Main game update
 		m_game->Update(dTime, m_renderer.get());

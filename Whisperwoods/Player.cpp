@@ -147,7 +147,12 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 
 		if (m_ranOutOfSprint == true)
 		{
-			if (Input::Get().IsKeybindDown(KeybindSprint) == false || Input::Get().IsKeybindDown(KeybindForward) == false)
+			if (Input::Get().IsKeybindDown(KeybindSprint) == false || (
+				Input::Get().IsKeybindDown(KeybindForward) == false &&
+				Input::Get().IsKeybindDown(KeybindBackward) == false &&
+				Input::Get().IsKeybindDown(KeybindLeft) == false &&
+				Input::Get().IsKeybindDown(KeybindRight) == false 
+				))
 			{
 				m_ranOutOfSprint = false;
 			}
@@ -266,7 +271,7 @@ void Player::Update(float delta_time)
 
 
 	//regain stamina
-	if ((!Input::Get().IsKeybindDown(KeybindSprint) || m_ranOutOfSprint == true || m_velocity.Length() <= 0.2f) || playerInFuture)
+	if ((!Input::Get().IsKeybindDown(KeybindSprint) || m_ranOutOfSprint == true || m_velocity.Length() <= 0.2f) || playerInFuture || IsCrouching())
 	{
 		m_stamina = cs::fclamp(m_stamina + (2.5f * delta_time), 0.0f, m_maxStamina); //or 0.0f rather than 0
 	}
