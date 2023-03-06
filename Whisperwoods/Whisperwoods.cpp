@@ -162,7 +162,7 @@ void Whisperwoods::Run()
 	testGui.GetElement( 1 )->colorTint = Vec3(1, 1, 1);
 	testGui.GetElement( 1 )->alpha = 0.6f;
 	testGui.GetElement( 1 )->intData = Point4( 1, 0, 0, 0 ); // makes it transform with the playermatrix
-	testGui.GetElement( 1 )->firstTexture = newTexture;
+	testGui.GetElement( 1 )->firstTexture = Resources::Get().GetTexture( "Hubby.png" );
 	testGui.GetElement( 1 )->secondTexture = Resources::Get().GetTexture("HudMask.png");
 
 
@@ -176,13 +176,13 @@ void Whisperwoods::Run()
 	testController.ActivateCutscene( 0 );
 
 	CutsceneCameraChannel* channel = (CutsceneCameraChannel*)testController.m_cutscenes[0]->channels[0].get();
-	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, {0,0,0}, Quaternion::GetEuler({0,0,0}), 90, 1)));
+	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, {0,0,0}, Quaternion::GetEuler( {0,0,0} ), 90, 1)));
 	//channel->keys[0]->frame = 0;
 
-	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,5,0 }, Quaternion::GetEuler({ 0,0,0 }), 90, 1)));
+	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,5,0 }, Quaternion::GetEuler( { 0,0,0 } ), 90, 1)));
 	//channel->keys[1]->frame = 1;
 
-	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,1,5 }, Quaternion::GetEuler({ 0,0,0 }), 90, 1)));
+	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,1,5 }, Quaternion::GetEuler( { 0,0,0 } ), 90, 1)));
 	//channel->keys[2]->frame = 2;
 
 	//testCutScene.AddKey( std::shared_ptr< CutsceneTransformKey >(new CutsceneTransformKey( 0.5f, m_game->GetPlayer(), {0,0,0}, Quaternion::GetEuler({0,0,0}), {1,1,1})));
@@ -460,10 +460,6 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 					slerped = Lerp(cameraCurrentRot, conj2, dTime * 5);
 					slerped.NormalizeThis();
 				}
-
-				//LOG_TRACE("Rot from: %f, %f, %f, %f", cameraCurrentRot.x, cameraCurrentRot.y, cameraCurrentRot.z, cameraCurrentRot.w);
-				//LOG_TRACE("Rot to: %f, %f, %f, %f", conj2.x, conj2.y, conj2.z, conj2.w);
-
 				camera.SetRotation(slerped);
 			}
 		}
