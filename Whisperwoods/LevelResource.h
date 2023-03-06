@@ -33,6 +33,8 @@ struct LevelExit
 	Vec2 position;
 	Vec2 direction;
 	float width;
+
+	float angle;
 };
 
 struct LevelPickup

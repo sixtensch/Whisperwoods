@@ -7,6 +7,7 @@
 #include "LevelImporter.h"
 #include "SoundResource.h"
 
+
 Player::Player(std::string modelResource, std::string animationsPath, Mat4 modelOffset)
 {
 	// Initialize the model
@@ -18,11 +19,11 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	// Import the animations
 	Resources& resources = Resources::Get(); // BIG NONO: Resources resources = Resources::Get();
 	
-	animationSet = (AnimationResource*)resources.GetResource( ResourceTypeAnimations, animationsPath );
+	animationSet = resources.GetAnimation(animationsPath);
 	//importer.ImportFBXAnimations(animationsPath, animationSet.get());
 	// Init the animator
 	//ModelRiggedResource* modelResource = (ModelRiggedResource*)resources.GetResource( ResourceTypeModelRigged, m_modelResource );
-	characterAnimator = make_shared<Animator>( (ModelRiggedResource*)resources.GetResource( ResourceTypeModelRigged, m_modelResource ), characterModel );
+	characterAnimator = make_shared<Animator>(resources.GetModelRigged(m_modelResource), characterModel );
 
 	// Hardcoded animation retrieving because loops are annoying.
 	// Idle
@@ -47,11 +48,11 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	characterAnimator->AddAnimation( couchAnimation, 0, m_animationSpeed, 0.0f );
 
 	// Get materials
-	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiCombined.wwmt" ) );
-	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiWhite.wwmt" ) );
-	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiPupil.wwmt" ) );
-	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiPants.wwmt" ) );
-	//characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiSpikes.wwmt" ) );
+	characterModel->Materials().AddMaterial(resources.GetMaterial("ShadiiCombined.wwmt"));
+	//characterModel->Materials().AddMaterial(resources.GetMaterial("ShadiiWhite.wwmt"));
+	//characterModel->Materials().AddMaterial(resources.GetMaterial("ShadiiPupil.wwmt"));
+	//characterModel->Materials().AddMaterial(resources.GetMaterial("ShadiiPants.wwmt"));
+	//characterModel->Materials().AddMaterial(resources.GetMaterial("ShadiiSpikes.wwmt"));
 
 	m_stamina = 10.0f;
 	m_maxStamina = 10.0f;
@@ -79,7 +80,7 @@ void Player::ReloadPlayer()
 	Resources& resources = Resources::Get();
 	characterModel = Renderer::CreateMeshRigged( m_modelResource );
 	characterAnimator->instanceReference = characterModel;
-	characterModel->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, "ShadiiCombined.wwmt" ) );
+	characterModel->Materials().AddMaterial(resources.GetMaterial("ShadiiCombined.wwmt"));
 }
 
 void Player::UpdateStamina(float maxStamina)
@@ -96,6 +97,16 @@ void Player::ResetStaminaToMax(float staminaMax)
 float Player::GetCurrentStamina()
 {
 	return m_stamina;
+}
+
+bool Player::IsCrouching()
+{
+	return m_isCrouch;
+}
+
+bool Player::IsRunning()
+{
+	return (m_velocity.Length() > m_walkSpeed);
 }
 
 void Player::PlayerMovement(float delta_time, float movementMultiplier)
@@ -259,6 +270,15 @@ void Player::Update(float delta_time)
 	}
 
 
+	characterAnimator->playbackSpeed = m_animationSpeed;
+	characterAnimator->Update( delta_time );
+	transform.CalculateWorldMatrix();
+	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
+}
+
+// Only the essentials.
+void Player::CinematicUpdate( float delta_time )
+{
 	characterAnimator->playbackSpeed = m_animationSpeed;
 	characterAnimator->Update( delta_time );
 	transform.CalculateWorldMatrix();

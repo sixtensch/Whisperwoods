@@ -1,7 +1,7 @@
 #include "core.h"
 #include "Renderer.h"
 
-#include "GUI.h"
+#include "DebugGUI.h"
 
 Renderer* Renderer::s_singleton = nullptr;
 
@@ -34,7 +34,7 @@ void Renderer::Init(uint width, uint height)
 	m_renderHandler->InitCore(m_window);
 
 //#ifdef WW_DEBUG
-	m_gui = make_unique<GUI>(m_renderHandler->GetCore(), true, true);
+	m_gui = make_unique<DebugGUI>(m_renderHandler->GetCore(), true, true);
 //#endif
 
 	//m_renderHandler->CreateTextRenderable(L"        Reach the exit! \nHold down shift to run faster! \n Running drains your stamina!", dx::SimpleMath::Vector2(width/2 - 400,  height - 500), FontDefault, cs::Color4f(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 0.0f });
@@ -129,6 +129,16 @@ shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpat
 shared_ptr<MeshRenderableRigged> Renderer::CreateMeshRigged(const string& subpath)
 {
 	return s_singleton->m_renderHandler->CreateMeshRigged(subpath);
+}
+
+void Renderer::DestroyMeshStatic(shared_ptr<MeshRenderableStatic> renderable)
+{
+	s_singleton->m_renderHandler->DestroyMeshStatic(renderable);
+}
+
+shared_ptr<GUIRenderable> Renderer::CreateGUIRenderable(const string& subpath)
+{
+	return s_singleton->m_renderHandler->CreateGUIRenderable(subpath);
 }
 
 

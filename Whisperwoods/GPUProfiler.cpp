@@ -2,7 +2,7 @@
 #include "GPUProfiler.h"
 #include "imgui.h"
 
-constexpr uint DEFAULT_PRESENT_FREQ = 50u;
+constexpr uint DEFAULT_PRESENT_FRAME_WAIT = 50u;
 
 GPUProfiler::GPUProfiler(ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context, uint waitFramesPerUpdate) : 
 	m_profiles({}), 
@@ -15,7 +15,7 @@ GPUProfiler::GPUProfiler(ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext
 	m_lastSummary("") {}
 
 GPUProfiler::GPUProfiler(ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext> context)
-	: GPUProfiler(device, context, DEFAULT_PRESENT_FREQ) {}
+	: GPUProfiler(device, context, DEFAULT_PRESENT_FRAME_WAIT) {}
 	
 GPUProfiler::GPUProfiler()
 	: GPUProfiler(nullptr, nullptr) {}
@@ -63,13 +63,13 @@ void GPUProfiler::TimestampEnd(const std::string profileName)
 
 void GPUProfiler::FinilizeAndPresent()
 {
-	DrawImGui();
-
 	if (m_isOn) 
 	{
-		PostEndFrameSummary();
+		SynthesizeSummary();
 		m_frameCounter++;
 	}
+
+	DrawImGui();
 }
 
 void GPUProfiler::InitProfileData(const std::string profileName)
@@ -86,18 +86,22 @@ void GPUProfiler::InitProfileData(const std::string profileName)
 
 	// Wont emplace if it already exits (this should never happen if used correctly).
 	m_profiles.try_emplace(profileName, std::move(profile));
+	m_insertionOrder.Add(profileName);
 }
 
-void GPUProfiler::PostEndFrameSummary()
+void GPUProfiler::SynthesizeSummary()
 {
 	if (!IsAllowedToUpdate())
 		return;
 
-	// Reset time sum.
+	static const char profileFormat[] = "[%s]\nDiff %.5f | Avg %.5f | Max %.5f | Min %.5f\n\n";
 	float summedTime = 0.0f;
-	std::string frameSummary = "\n\n-- GPU PROFILE SUMMARY --\n\n";
-	for (const auto& [profileName, profile] : m_profiles)
+
+	std::string frameSummary = "\n\n-- GPU PROFILE SUMMARY (in ms) --\n\n";
+	for (const std::string& profileName : m_insertionOrder)
 	{
+		ProfileData& profile = m_profiles[profileName];
+
 		UINT64 startStamp = 0u;
 		while (m_context->GetData(profile.queryTimeStart.Get(), (void*)&startStamp, sizeof(startStamp), 0u) != S_OK);
 
@@ -110,16 +114,34 @@ void GPUProfiler::PostEndFrameSummary()
 
 		if (!queryData.Disjoint)
 		{
+			const size_t maxBufSize = 256;
+			char profileTextBuff[maxBufSize] = {0};
+
 			UINT64 stampDiff = endStamp - startStamp;
 			// Time in milliseconds.
 			float timeDiff = (stampDiff / (float)queryData.Frequency) * 1000.0f;
 			summedTime += timeDiff;
 
-			frameSummary.append(profileName).append(": ").append(std::to_string(timeDiff)).append(" ms\n");
+			profile.lastDiffs.UpdateBuffer(timeDiff);
+
+			float currentMax = profile.maxDelta;
+			float currentMin = profile.minDelta;
+			profile.maxDelta = currentMax < timeDiff ? timeDiff : currentMax;
+			profile.minDelta = currentMin > timeDiff ? timeDiff : currentMin;
+
+			std::snprintf(profileTextBuff, maxBufSize - 1, profileFormat, 
+				profileName.c_str(), 
+				timeDiff, 
+				profile.lastDiffs.lastAverage,
+				profile.maxDelta, 
+				profile.minDelta
+			);
+
+			frameSummary += std::string(profileTextBuff);
 		}
 		else
 		{
-			LOG_WARN("Query data for '%s' is disjoint. Timing is invalid.", profileName.c_str());
+			LOG_WARN("Query data for [%s] is disjoint. Timing is invalid.", profileName.c_str());
 		}
 	}
 
@@ -151,7 +173,15 @@ void GPUProfiler::DrawImGui()
 
 	// TODO: Simple fix for avoiding user setting negative value of update frequency. Find a better ImGui solution for this?
 	static uint s_maxFrameWait = 10000u;
-	m_waitFramesPerUpdate = m_waitFramesPerUpdate > s_maxFrameWait ? s_maxFrameWait : m_waitFramesPerUpdate;
+	static uint s_minFrameWait = 10u;
+	if (m_waitFramesPerUpdate < s_minFrameWait)
+	{
+		m_waitFramesPerUpdate = s_minFrameWait;
+	}
+	else if (m_waitFramesPerUpdate > s_maxFrameWait)
+	{
+		m_waitFramesPerUpdate = s_maxFrameWait;
+	}
 }
 
 bool GPUProfiler::IsAllowedToUpdate()

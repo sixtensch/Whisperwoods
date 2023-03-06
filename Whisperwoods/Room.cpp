@@ -49,6 +49,14 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 
 	Renderer::ClearShadowRenderables();
 
+	// Stop previous sounds and clear
+	for (int i = 0; i < m_ambianceSources.Size(); i++)
+	{
+		m_ambianceSources[i]->Stop();
+	}
+	if (m_ambianceSources.Size())
+		m_ambianceSources.Clear();
+
 	// Add ambiance sounds around the room
 	Resources& resources = Resources::Get();
 	int numSounds = 3;
@@ -61,8 +69,8 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 		pos = pos * radius * 1.5f;
 		pos.y = 8.0f;
 		std::string soundName = "Jungle_AmbianceLoop0" + std::to_string( (i + 1) % 6 ) + ".wav";
-		FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource( ResourceTypeSound, soundName ))->currentSound;
-		shared_ptr<AudioSource> audioSource = make_shared<AudioSource>( pos, 0.3f, 1.0f, 0.0f, radius * 3.0f, soundPtr );
+		FMOD::Sound* soundPtr = (Resources::Get().GetSound(soundName))->currentSound;
+		shared_ptr<AudioSource> audioSource = make_shared<AudioSource>( pos, 0.5f, 1.0f, 0.0f, radius * 3.0f, soundPtr );
 		audioSource->mix2d3d = 0.75f;
 		audioSource->loop = true;
 		audioSource->Play();
@@ -83,17 +91,14 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	// Cylinder thing
 	m_wallsFloorOffset = modelOffset2;
 
-	// TODO: Doesnt seem to do anything. Remove?
-	//ModelStaticResource* m_roomWallsAndFloor; 
-
 	m_wallsAndFloorRenderable = Renderer::CreateMeshStatic( modelResource2 );
 
 	// Registers the last added renderable as one to do shadows on
 	Renderer::RegisterShadowRenderable();
 
 	m_wallsAndFloorRenderable->worldMatrix = modelOffset2;
-	m_wallsAndFloorRenderable->Materials().AddMaterial( (const MaterialResource*)Resources::Get().GetResource( ResourceTypeMaterial, "TestSceneBigTree.wwmt" ) );
-	m_wallsAndFloorRenderable->Materials().AddMaterial( (const MaterialResource*)Resources::Get().GetResource( ResourceTypeMaterial, "TestSceneGround.wwmt" ) );
+	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("TestSceneBigTree.wwmt"));
+	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("TestSceneGround.wwmt"));
 	
 	
 	//GenerateRoomShadowMap();

@@ -32,14 +32,13 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 
 	m_carcinian = Renderer::CreateMeshRigged(modelResource);
 	//FBXImporter importer;
-	m_characterAnimator = std::make_unique<Animator>((ModelRiggedResource*)Resources::Get().GetResource(ResourceTypeModelRigged, "Carcinian_Animated.wwm"), m_carcinian);
+	Resources& resources = Resources::Get();
+	m_characterAnimator = std::make_unique<Animator>(resources.GetModelRigged("Carcinian_Animated.wwm"), m_carcinian);
 	
-
 
 	m_modelOffset = modelOffset;
 	// Import the animations
-	Resources& resources = Resources::Get();
-	m_animationSet = (AnimationResource*)resources.GetResource( ResourceTypeAnimations, animationsPath );
+	m_animationSet = resources.GetAnimation(animationsPath);
 	//importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 	m_firstTrigger = false;
 
@@ -63,7 +62,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_characterAnimator->playbackSpeed = 0.8f;
 	m_characterAnimator->PlayAnimation(0, 0, 1, true, true);
 
-	m_carcinian->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "Carcinian.wwmt"));
+	m_carcinian->Materials().AddMaterial(resources.GetMaterial("Carcinian.wwmt"));
 }
 
 Enemy::~Enemy()
@@ -357,7 +356,7 @@ void Enemy::AddModel(std::string modelResource, std::string animationsPath, Mat4
 	m_modelOffset = modelOffset;
 	// Import the animations (Now using the resource manager)
 	Resources& resources = Resources::Get();
-	m_animationSet = (AnimationResource*)resources.GetResource(ResourceTypeAnimations, animationsPath);
+	m_animationSet = resources.GetAnimation(animationsPath);
 	//m_animationSet = std::make_shared<AnimationResource>();
 	//importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 }

@@ -39,8 +39,8 @@ public:
 	Vec3 sampleVector;
 	bool playerInFuture;
 	bool hasPickedUpEssenceBloom;
-	
 
+	
 	shared_ptr<MeshRenderableRigged> characterModel;
 	AnimationResource* animationSet;
 	shared_ptr<Animator> characterAnimator;
@@ -62,9 +62,13 @@ public:
 	void UpdateStamina(float maxStamina);
 	void ResetStaminaToMax(float staminaMax);
 	float GetCurrentStamina();
+	bool IsCrouching();
+	bool IsRunning();
 
 	void PlayerMovement(float delta_time, float movementMultiplier);
 	void Update(float delta_time) override;
+
+	void CinematicUpdate( float delta_time );
 
 
 };

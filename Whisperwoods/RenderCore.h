@@ -13,7 +13,8 @@
 #include "Bone.h"
 #include "Enemy.h"
 #include "GPUProfiler.h"
-
+//#include "GUIElement.h"
+struct GUIElement;
 
 class RenderCore
 {
@@ -22,6 +23,7 @@ public:
 	~RenderCore();
 
 	void NewFrame();
+	void TargetPrepass();
 	void TargetRenderTexture();
 	void UnbindRenderTexture();
 	void TargetShadowMap();
@@ -44,6 +46,8 @@ public:
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
 
 	void UpdatePlayerInfo( Mat4 matrix );
+
+	void UpdateGUIInfo(const GUIElement* guiElement) const;
 
 	void UpdateMaterialInfo(const MaterialResource* material) const;
 	void UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* data, uint count);
@@ -170,6 +174,7 @@ private:
 	// Depth stencil
 	ComPtr<ID3D11Texture2D> m_dsTexture;
 	ComPtr<ID3D11DepthStencilState> m_dsDSS;
+	ComPtr<ID3D11DepthStencilState> m_ppDSS;
 	ComPtr<ID3D11DepthStencilView> m_dsDSV;
 	ComPtr<ID3D11ShaderResourceView> m_dsSRV;
 
@@ -189,6 +194,7 @@ private:
 
 
 	ComPtr<ID3D11SamplerState> m_sampler;
+	ComPtr<ID3D11SamplerState> m_samplerNoWrap;
 	ComPtr<ID3D11SamplerState> m_pointSampler;
 
 	// Pipelines
