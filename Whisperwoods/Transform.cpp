@@ -113,6 +113,13 @@ void Transform::SetRotationEuler(Vec3 p_rotation)
 Vec3 Transform::GetWorldPosition()
 {
 	CalculateWorldMatrix();
+	worldPosition = Vec3( worldMatrix( 3, 0 ), worldMatrix( 3, 1 ), worldMatrix( 3, 2 ) ); // TODO: Possibly do this in a more systematic manner instead of on each Get.
+	return worldPosition;
+}
+
+Vec3 Transform::GetWorldPositionDX()
+{
+	CalculateWorldMatrix();
 	DecomposeWorldMatrixIntoWorldParameters(); // TODO: Possibly do this in a more systematic manner instead of on each Get.
 	return worldPosition;
 }
@@ -120,6 +127,7 @@ Vec3 Transform::GetWorldPosition()
 Quaternion Transform::GetWorldRotation()
 {
 	CalculateWorldMatrix();
+	//worldRotation = Quaternion::GetDeconstruct( worldMatrix );
 	DecomposeWorldMatrixIntoWorldParameters(); // TODO: Possibly do this in a more systematic manner instead of on each Get.
 	return worldRotation;
 }

@@ -38,7 +38,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	m_player->playerInFuture = m_isInFuture;
 	m_player->UpdateStamina( m_maxStamina );
 	m_currentStamina = m_player->GetCurrentStamina();
-	Renderer::SetPlayerMatrix( m_player->transform.worldMatrix );
+	Renderer::SetPlayerMatrix( m_player->compassMatrix );
 
 	// Pickups
 	for (int i = 0; i < m_pickups.Size(); ++i)

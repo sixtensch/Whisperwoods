@@ -328,21 +328,29 @@ Quaternion Lerp(Quaternion q0, Quaternion q1, float t)
 }
 
 
-Quaternion FromEulerAngles( double yaw, double pitch, double roll )
+Vec3 EulerAngles( Quaternion q )
 {
-	double cy = cos( yaw * 0.5 );
-	double sy = sin( yaw * 0.5 );
-	double cp = cos( pitch * 0.5 );
-	double sp = sin( pitch * 0.5 );
-	double cr = cos( roll * 0.5 );
-	double sr = sin( roll * 0.5 );
-	return Quaternion(
-		sr * cp * cy - cr * sp * sy,
-		cr * sp * cy + sr * cp * sy,
-		cr * cp * sy - sr * sp * cy,
-		cr * cp * cy + sr * sp * sy
-	);
+	Vec3 returnValue;
+	// roll (x-axis rotation)
+	double sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z);
+	double cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
+	returnValue.x = std::atan2( sinr_cosp, cosr_cosp );
+
+	// pitch (z-axis rotation)
+	double sinp = 2 * (q.w * q.y - q.z * q.x);
+	if (std::abs( sinp ) >= 1)
+		returnValue.y = std::copysign( DirectX::XM_PI / 2, sinp ); // use 90 degrees if out of range
+	else
+		returnValue.y = std::asin( sinp );
+
+	// yaw (y-axis rotation)
+	double siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
+	double cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
+	returnValue.z = std::atan2( siny_cosp, cosy_cosp );
+
+	return returnValue;
 }
+
 
 
 void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutSceneController)
@@ -405,7 +413,6 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 
 				}
 				ImGui::End();
-
 				//camera.SetRotation(Quaternion::GetEuler(rotationVec));
 			}
 		}
@@ -428,24 +435,27 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 			Quaternion cameraCurrentRot = camera.GetRotation();
 			//Quaternion cameraTargetRot = Quaternion::GetDirection(direction, Vec3(0,1,0));
 			Vec3 upVector(0.0f, 1.0f, 0.0f);
-			Quaternion cameraTargetRot = QuaternionLookRotation(direction, upVector);
-
-			Quaternion conj1 = cameraTargetRot;
+			//Quaternion cameraTargetRot = QuaternionLookRotation(direction, upVector);
+			//Quaternion conj1 = cameraTargetRot;
 			Quaternion conj2 = player->cameraLookRotationTarget;
 			if (ImGui::Begin("Camera rotation player"))
 			{
+				Vec3 playPos = player->transform.GetWorldPosition();
+				Quaternion playerRot = player->transform.GetWorldRotation();
+				Vec3 playerRotEuler = EulerAngles( playerRot );
+
+				//Vec3 playRotEuler = player->transform.g
+				ImGui::Text( "Player Pos: %f, %f, %f", playPos.x, playPos.y, playPos.z );
+				ImGui::Text( "Player Rot: %f, %f, %f, %f", playerRot.x, playerRot.y, playerRot.z, playerRot.w );
+				ImGui::Text( "Player Rot Euler deg: %f, %f, %f", playerRotEuler.x * RAD2DEG, playerRotEuler.y * RAD2DEG, playerRotEuler.z * RAD2DEG );
 				ImGui::Text("Dir: %f, %f, %f", direction.x, direction.y, direction.z);
-				ImGui::Text("Rot: %f, %f, %f, %f", conj1.x, conj1.y, conj1.z, conj1.w);
+				//ImGui::Text("Rot: %f, %f, %f, %f", conj1.x, conj1.y, conj1.z, conj1.w);
 				ImGui::Text("RotP: %f, %f, %f, %f", conj2.x, conj2.y, conj2.z, conj2.w);
 				ImGui::DragFloat("Camera Follow Distance", &player->cameraFollowDistance, 0.05f, 0.1f, 10.0f);
 				ImGui::DragFloat("Camera Follow Tilt", &player->cameraFollowTilt, 0.05f, 0.1f, cs::c_pi / 2 - 0.1f);
 				ImGui::DragFloat3("Camera lookAt offset", (float*)&player->cameraLookTargetOffset, 0.1f);
 			}
 			ImGui::End();
-
-			//Quaternion slerped = Quaternion::GetSlerp(cameraCurrentRot, cameraTargetRot.Conjugate(), dTime * 5);
-			//Quaternion slerped = Lerp((cameraCurrentRot.x != NAN) ? cameraCurrentRot : conj2, conj2, dTime * 5); // sometimes turns black
-			//Quaternion slerped = Lerp(cameraCurrentRot, conj2, dTime * 5); // sometimes turns black
 
 			// sometimes the lerping/target goes bad so this is required or screen can go black.
 			if (std::isnan(cameraCurrentRot.x) || std::isnan(cameraCurrentRot.y) || std::isnan(cameraCurrentRot.z) || std::isnan(cameraCurrentRot.w))
