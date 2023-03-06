@@ -17,7 +17,7 @@ EssenceBloom::EssenceBloom(Player* player, Vec2 mapCoordPos)
 	
 	m_player = player;
 
-	m_renderable->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "EssenseBloom.wwmt"));
+	m_renderable->Materials().AddMaterial(Resources::Get().GetMaterial("EssenseBloom.wwmt"));
 	m_pickupRadius = 0.5f;
 }
 

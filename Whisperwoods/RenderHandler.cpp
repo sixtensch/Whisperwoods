@@ -503,7 +503,7 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> RenderHandler::CreateMeshStaticSwappable(const string& subpathCurrent, const string& subpathFuture)
 {
 	Resources& resources = Resources::Get();
-	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpathCurrent));
+	const ModelStaticResource* model = resources.GetModelStatic(subpathCurrent);
 	shared_ptr<MeshRenderableStatic> renderableCurrent = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter,
 		model,
@@ -550,7 +550,7 @@ shared_ptr<GUIRenderable> RenderHandler::CreateGUIRenderable(const string& subpa
 {
 	Resources& resources = Resources::Get();
 
-	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpath));
+	const ModelStaticResource* model = resources.GetModelStatic(subpath);
 
 	const shared_ptr<GUIRenderable> newRenderable = make_shared<GUIRenderable>(
 		m_renderableIDCounter++,

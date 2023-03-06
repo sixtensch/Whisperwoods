@@ -104,19 +104,14 @@ AnimationResource* Resources::GetAnimation(std::string filename)
 	return (AnimationResource*)GetResource(ResourceTypeAnimations, filename);
 }
 
-const BasicResource* Resources::GetResource(const ResourceType resourceType, std::string filename) const
-{
-	return (const BasicResource*)GetWritableResource(resourceType, filename);
-}
-
-BasicResource* Resources::GetWritableResource(const ResourceType resourceType, std::string filename) const
+BasicResource* Resources::GetResource(const ResourceType resourceType, std::string filename) const
 {
 	auto& resourceMap = m_resourceMaps[resourceType];
 	auto it = resourceMap.find(filename);
 
 	if (it == resourceMap.end())
 	{
-		EXC("Resource '%s' does not exist. Called with ResourceType = %d.", filename.c_str(), resourceType)
+		EXC("Resource [%s] does not exist. Called with ResourceType = %d.", filename.c_str(), resourceType)
 			return nullptr;
 	}
 
