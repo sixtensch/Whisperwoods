@@ -70,5 +70,6 @@ public:
 
 	void CinematicUpdate( float delta_time );
 
+	void UpdateSound(float delta_time);
 
 };

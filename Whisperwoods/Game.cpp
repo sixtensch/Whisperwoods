@@ -523,6 +523,7 @@ void Game::LoadGame(uint gameSeed)
 
 void Game::UnLoadPrevious()
 {
+	m_pickups.Clear();
 	UnloadRoom();
 }
 
@@ -554,7 +555,7 @@ void Game::LoadRoom(Level* level)
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
 	m_player->currentRoom = m_currentRoom.get();
-
+	
 	for ( LevelPickup& pickup : level->resource->pickups )
 	{
 		Vec3 worldpos = m_player->currentRoom->bitMapToWorldPos(static_cast<Point2>(pickup.position));
