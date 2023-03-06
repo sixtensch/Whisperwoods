@@ -482,10 +482,10 @@ void Game::LoadHubby()
 {
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
 	LoadRoom( &m_floor.rooms[0] );
-	Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
-	Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
-	Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
-	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	//Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
+	//Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
+	//Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
+	//Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = true;
 	m_player->transform.position = Vec3(0, 0, 0);
 	Renderer::ExecuteShadowRender();
@@ -495,10 +495,10 @@ void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[0]);
-	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
-	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
-	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	//Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
+	//Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
+	//Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
+	//Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
 }
@@ -508,10 +508,10 @@ void Game::LoadGame(uint gameSeed)
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
 	m_player->transform.position = m_floor.startPosition;
-	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
-	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
-	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	//Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
+	//Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
+	//Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
+	//Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = false;
 }
 

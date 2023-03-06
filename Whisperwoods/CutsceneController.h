@@ -20,6 +20,7 @@ public:
 
 	cs::List<bool> channelTabs;
 
+	bool m_cutSceneActive;
 	float m_time;
 	cs::List<shared_ptr<Cutscene>> m_cutscenes;
 	Cutscene* activeCutscene;
