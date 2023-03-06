@@ -42,35 +42,35 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	//// WWM Building below
 	//// Rigged Models
-	//BuildWWM( "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx", true );
-	//BuildWWM( "Assets/Models/FBX/Rigged/Grafiki_Animated.fbx", true );
-	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Animated.fbx", true );
-	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Animated2.fbx", true );
-	//BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", true );
+	BuildWWM( "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx", true );
+	BuildWWM( "Assets/Models/FBX/Rigged/Grafiki_Animated.fbx", true );
+	BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Animated.fbx", true );
+	BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Animated2.fbx", true );
+	BuildWWM( "Assets/Models/FBX/Rigged/Shadii_Rigged_Optimized.fbx", true );
 
 	//// Static Models
-	//BuildWWM( "Assets/Models/FBX/Static/EssenseBloom.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false );
-	//BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
-	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_1.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
-	//BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false, 1.0f );
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Present.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Present.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Present.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Stone_2_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Stone_2_Present.fbx", false);
+	BuildWWM( "Assets/Models/FBX/Static/EssenseBloom.fbx", false );
+	BuildWWM( "Assets/Models/FBX/Static/Ground.fbx", false );
+	BuildWWM( "Assets/Models/FBX/Static/BigTrees.fbx", false );
+	BuildWWM( "Assets/Models/FBX/Static/BigPlants.fbx", false );
+	BuildWWM( "Assets/Models/FBX/Static/SmallPlants.fbx", false );
+	BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
+	BuildWWM( "Assets/Models/FBX/Static/Stones.fbx", false );
+	BuildWWM( "Assets/Models/FBX/Static/Grafitree.fbx", false );
+	BuildWWM( "Assets/Models/FBX/Static/MediumTrees.fbx", false );
+	BuildWWM("Assets/Models/FBX/Static/Big_Trunk_1.fbx", false);
+	BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
+	BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false, 1.0f );
+	BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Future.fbx", false);
+	BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false);
+	BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Future.fbx", false);
+	BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Present.fbx", false);
+	BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Future.fbx", false);
+	BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Present.fbx", false);
+	BuildWWM("Assets/Models/FBX/Static/Stone_1_Future.fbx", false);
+	BuildWWM("Assets/Models/FBX/Static/Stone_1_Present.fbx", false);
+	BuildWWM("Assets/Models/FBX/Static/Stone_2_Future.fbx", false);
+	BuildWWM("Assets/Models/FBX/Static/Stone_2_Present.fbx", false);
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
@@ -218,7 +218,7 @@ void Whisperwoods::Run()
 		// Audio listener calculation (maybe move this somewhere more appropriate)
 		Camera& camera = Renderer::GetCamera();
 		Quaternion rotation = camera.GetRotation();
-		rotation = rotation.Conjugate();
+		rotation = rotation;
 		Vec3 forward( 0, 0, 1 );
 		forward = rotation * forward;
 		forward.Normalize();
@@ -373,7 +373,7 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 		{
 			cs::Vec3 delta = Vec3((float)mouseState.y, (float)mouseState.x, 0.0f);
 
-			rotationVec -= delta * dTime * 4.0f;
+			rotationVec += delta * dTime * 4.0f;
 			if (!cameraPlayer)
 			{
 				camera.SetRotation(Quaternion::GetEuler(rotationVec));
@@ -402,8 +402,8 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 			Vec3 upVector(0.0f, 1.0f, 0.0f);
 			Quaternion cameraTargetRot = QuaternionLookRotation(direction, upVector);
 
-			Quaternion conj1 = cameraTargetRot.Conjugate();
-			Quaternion conj2 = player->cameraLookRotationTarget.Conjugate();
+			Quaternion conj1 = cameraTargetRot;
+			Quaternion conj2 = player->cameraLookRotationTarget;
 			if (ImGui::Begin("Camera rotation player"))
 			{
 				ImGui::Text("Dir: %f, %f, %f", direction.x, direction.y, direction.z);

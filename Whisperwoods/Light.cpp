@@ -11,9 +11,13 @@ void DirectionalLight::Update(float delta_time)
 	camera.CalculateOrthoProjection(diameter, diameter);
 	camera.Update();
 
+	transform.CalculateWorldMatrix();
 	bufferData.intensity = (Vec3)color * intensity;
-	bufferData.clipMatrix = camera.GetProjectionMatrix().Transpose() * camera.GetViewMatrix();
-	bufferData.direction = transform.GetWorldRotation().Conjugate() * Vec3(0, 0, 1.0f);
+	bufferData.clipMatrix = camera.GetProjectionMatrix()/*.Transpose()*/ * camera.GetViewMatrix();
+	//Mat::transform(transform.worldMatrix, {0,0,1});
+	//Vec4 temp = transform.worldMatrix/*.Conjugate()*/ * Vec4(0.0f, 1.0f, 0.0f, 0.0f);
+	bufferData.direction = transform.worldMatrix/*.Conjugate()*/ * Vec4(0.0f, 0.0f, 1.0f, 0.0f);
+	bufferData.direction = bufferData.direction.Normalized();
 }
 
 void PointLight::Update(float delta_time)
@@ -31,7 +35,7 @@ void SpotLight::Update(float delta_time)
 	camera.Update();
 
 	bufferData.intensity = (Vec3)color * intensity;
-	bufferData.clipMatrix = camera.GetProjectionMatrix().Transpose() * camera.GetViewMatrix();
+	bufferData.clipMatrix = camera.GetProjectionMatrix()/*.Transpose()*/ * camera.GetViewMatrix();
 	bufferData.direction = transform.GetWorldRotation() * Vec3(0, 0, 1.0f);
 	bufferData.range = range;
 	bufferData.position = transform.GetWorldPosition();

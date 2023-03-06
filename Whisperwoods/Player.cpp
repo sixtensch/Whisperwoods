@@ -165,7 +165,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 
 		if (transform.parent != nullptr)
 		{
-			transform.position += transform.parent->GetWorldRotation().Conjugate() *  m_velocity * delta_time;
+			transform.position += transform.parent->GetWorldRotation()/*.Conjugate()*/ *  m_velocity * delta_time;
 		}
 		else
 		{

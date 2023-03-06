@@ -84,7 +84,7 @@ void Transform::CalculateWorldMatrix(Mat4 parentWorldMatrix)
 void Transform::DecomposeMatrixIntoWorldParameters(Mat4 matrix)
 {
 	// TODO: Change this dirty, naughty, filthyness to use the CHSL better.
-// Decompose matrix
+	// Decompose matrix
 	DirectX::XMVECTOR outScale;
 	DirectX::XMVECTOR outRotation;
 	DirectX::XMVECTOR outTranslation;

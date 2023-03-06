@@ -841,10 +841,10 @@ namespace cs
 	inline _Vec4<T> Matrix4<T>::operator*(const _Vec4<T>& v) const
 	{
 		return _Vec4<T>(
-			v.x * (*this)(0, 0) + v.y * (*this)(1, 0) + v.z * (*this)(2, 0) + v.w + (*this)(3, 0),
-			v.x * (*this)(0, 1) + v.y * (*this)(1, 1) + v.z * (*this)(2, 1) + v.w + (*this)(3, 1), 
-			v.x * (*this)(0, 2) + v.y * (*this)(1, 2) + v.z * (*this)(2, 2) + v.w + (*this)(3, 2),
-			v.x * (*this)(0, 3) + v.y * (*this)(1, 3) + v.z * (*this)(2, 3) + v.w + (*this)(3, 3)
+			v.x * (*this)(0, 0) + v.y * (*this)(1, 0) + v.z * (*this)(2, 0) + v.w * (*this)(3, 0),
+			v.x * (*this)(0, 1) + v.y * (*this)(1, 1) + v.z * (*this)(2, 1) + v.w * (*this)(3, 1), 
+			v.x * (*this)(0, 2) + v.y * (*this)(1, 2) + v.z * (*this)(2, 2) + v.w * (*this)(3, 2),
+			v.x * (*this)(0, 3) + v.y * (*this)(1, 3) + v.z * (*this)(2, 3) + v.w * (*this)(3, 3)
 		);
 	}
 

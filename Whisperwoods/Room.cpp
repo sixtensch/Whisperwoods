@@ -234,7 +234,7 @@ Vec2 Room::sampleBitMapCollision(Vec3 worldPos)
 	Vec2 returnVal(p0 + p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8);
 
 	Vec3 ret2(returnVal.x, 0, returnVal.y);
-	ret2 = transform.GetWorldRotation().Conjugate() * ret2;
+	ret2 = transform.GetWorldRotation()/*.Conjugate()*/ * ret2;
 
 	return Vec2(ret2.x, ret2.z);
 }

@@ -21,7 +21,7 @@ struct CutsceneAnimatorChannel : CutsceneChannel
 	void AddKey( shared_ptr<CutsceneAnimationTriggerKey> key )
 	{
 		this->keys.Add( key );
-		this->keys[this->keys.Size() - 1]->parentChannel = this;
+		//this->keys[this->keys.Size() - 1]->parentChannel = this;
 	}
 };
 
@@ -35,7 +35,7 @@ struct CutsceneTransformChannel : CutsceneChannel
 	void AddKey( shared_ptr<CutsceneTransformKey> key )
 	{
 		this->keys.Add( key );
-		this->keys[this->keys.Size() - 1]->parentChannel = this;
+		//this->keys[this->keys.Size() - 1]->parentChannel = this;
 	}
 };
 
@@ -49,7 +49,7 @@ struct CutsceneCameraChannel : CutsceneChannel
 	void AddKey( shared_ptr<CutsceneCameraKey> key )
 	{
 		this->keys.Add( key );
-		this->keys[this->keys.Size() - 1]->parentChannel = this;
+		//this->keys[this->keys.Size() - 1]->parentChannel = this;
 	}
 };
 
@@ -63,6 +63,6 @@ struct CutsceneTextChannel : CutsceneChannel
 	void AddKey( shared_ptr<CutsceneTextTriggerKey> key )
 	{
 		this->keys.Add( key );
-		this->keys[this->keys.Size() - 1]->parentChannel = this;
+		//this->keys[this->keys.Size() - 1]->parentChannel = this;
 	}
 };

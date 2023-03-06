@@ -4,7 +4,7 @@
 
 struct CutsceneKey
 {
-	CutsceneChannel* parentChannel;
+	//CutsceneChannel* parentChannel;
 	int32_t frame;
 	float time;
 };

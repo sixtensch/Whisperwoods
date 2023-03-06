@@ -637,7 +637,7 @@ void RenderHandler::QuadCull(const Camera& camPOV)
 		position.y,
 		position.z
 	};
-	Quaternion rotation = camPOV.GetRotation().Conjugate();
+	Quaternion rotation = camPOV.GetRotation()/*.Conjugate()*/;
 	viewFrustum.Orientation = {
 		rotation.x,
 		rotation.y,
