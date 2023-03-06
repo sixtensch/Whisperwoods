@@ -103,7 +103,7 @@ bool MaterialImporter::ImportWWMT(string filepath, MaterialResource* const outMa
 		{
 			try
 			{
-				target = (const TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, data[0]);
+				target = Resources::Get().GetTexture(data[0]);
 			}
 			catch (...)
 			{

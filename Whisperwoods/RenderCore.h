@@ -12,9 +12,9 @@
 #include "MaterialResource.h"
 #include "Bone.h"
 #include "Enemy.h"
-
-
-
+#include "GPUProfiler.h"
+//#include "GUIElement.h"
+struct GUIElement;
 
 class RenderCore
 {
@@ -23,9 +23,11 @@ public:
 	~RenderCore();
 
 	void NewFrame();
+	void TargetPrepass();
 	void TargetRenderTexture();
 	void UnbindRenderTexture();
 	void TargetShadowMap();
+	void TargetStaticShadowMap();
 	//void TargetBackBuffer(); // Use target render texture if you want to render anything to the scene.
 	void EndFrame();
 
@@ -44,6 +46,8 @@ public:
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
 
 	void UpdatePlayerInfo( Mat4 matrix );
+
+	void UpdateGUIInfo(const GUIElement* guiElement) const;
 
 	void UpdateMaterialInfo(const MaterialResource* material) const;
 	void UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* data, uint count);
@@ -100,6 +104,10 @@ public:
 	void InitImGui() const;
 
 	void InitFont(std::unique_ptr<dx::SpriteFont> fonts[FontCount], std::unique_ptr<dx::SpriteBatch>* batch) const;
+
+	void ProfileBegin(const std::string& profileName);
+	void ProfileEnd(const std::string& profileName);
+	void UpdateGPUProfiler();
 
 private:
 	void BindPipeline(PipelineType pipeline, bool shadowing);
@@ -166,6 +174,7 @@ private:
 	// Depth stencil
 	ComPtr<ID3D11Texture2D> m_dsTexture;
 	ComPtr<ID3D11DepthStencilState> m_dsDSS;
+	ComPtr<ID3D11DepthStencilState> m_ppDSS;
 	ComPtr<ID3D11DepthStencilView> m_dsDSV;
 	ComPtr<ID3D11ShaderResourceView> m_dsSRV;
 
@@ -183,7 +192,9 @@ private:
 	ComPtr<ID3D11ShaderResourceView> m_defaultEmissiveSRV;
 	ComPtr<ID3D11ShaderResourceView> m_defaultNormalSRV;
 
+
 	ComPtr<ID3D11SamplerState> m_sampler;
+	ComPtr<ID3D11SamplerState> m_samplerNoWrap;
 	ComPtr<ID3D11SamplerState> m_pointSampler;
 
 	// Pipelines
@@ -201,6 +212,10 @@ private:
 	ComPtr<ID3D11Buffer> m_lightBufferStaging;
 
 	// Shadow resources
+	ComPtr<ID3D11Texture2D> m_shadowStaticTexture;
+	ComPtr<ID3D11DepthStencilView> m_shadowStaticDSV;
+	ComPtr<ID3D11ShaderResourceView> m_shadowStaticSRV;
+
 	ComPtr<ID3D11Texture2D> m_shadowTexture;
 	ComPtr<ID3D11DepthStencilView> m_shadowDSV;
 	ComPtr<ID3D11ShaderResourceView> m_shadowSRV;
@@ -210,4 +225,6 @@ private:
 
 	std::unique_ptr<dx::SpriteFont> m_fonts[FontCount];
 	std::unique_ptr<dx::SpriteBatch> m_spriteBatch;
+
+	GPUProfiler m_gpuProfiler;
 };

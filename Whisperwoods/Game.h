@@ -8,13 +8,36 @@
 #include "Light.h"
 #include "SoundResource.h"
 #include "LevelHandler.h"
+#include "TextRenderable.h"
 
-constexpr float STAMINA_DECAY_MULTIPLIER = 0.6f;
+constexpr float STAMINA_DECAY_MULTIPLIER = 0.15f;
+constexpr float MAX_STAMINA_STARTING_VALUE = 10.0f;
 
 class LevelHandler;
 
 class Game sealed
 {
+	bool m_isCutscene;
+
+	float m_initialCamFov;
+	float m_totalFovDelta;
+	float m_currentStamina;
+	float m_deltaTime;
+	float m_closestDistance;
+	bool m_isSeen;
+
+	void UpdateGameplayVars( Renderer* renderer );
+	
+	void UpdateGameObjects();
+
+	void UpdateEnemies( Renderer* renderer );
+
+	void UpdateRoomAndTimeSwappingLogic( Renderer* renderer );
+
+	void DrawIMGUIWindows();
+
+	void CinematicUpdate();
+
 public:
 	Game();
 	~Game();
@@ -31,6 +54,9 @@ public:
 
 	Player* GetPlayer();
 
+	void SetCutSceneMode( bool value );
+
+
 private:
 	void ChangeTimeline(Renderer* renderer);
 	void UpdateTimeSwitchBuffers(Renderer* renderer);
@@ -42,7 +68,7 @@ private:
 	bool SwitchIsDone();
 	void LoadRoom(Level* level);
 	void UnloadRoom();
-	bool IsDetected(float deltaTime);
+	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
 
 
@@ -52,6 +78,12 @@ private:
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
+
+	cs::List<shared_ptr<MeshRenderableStatic>> m_testRenderables;
+	cs::List<MaterialResource> m_testMaterials;
+	int m_testRep;
+	int m_testCount;
+	uint m_testSeed;
 
 	// Current room data
 	cs::List<shared_ptr<PointLight>> m_pointLights;
@@ -77,7 +109,8 @@ private:
 	};
 
 	EnvironmentalizeParameters m_envParams;
-
+	
+	bool m_isCutScene;
 	bool m_isHubby;
 	bool m_isInFuture;
 	bool m_isSwitching; // Switching = is true during whole duration (start + end) of time switch.
@@ -89,13 +122,20 @@ private:
 	bool m_reachedLowestStamina;
 	float m_camFovChangeSpeed;
 
-	const float m_detectionRate = 0.5;
-	const float m_timeBeforeDetectionLowers = 10.0f; //in seconds
+	const float m_detectionRate = 0.4f;
+	const float m_detCrouchMultiplier = 0.6f;
+	const float m_detSprintMultiplier = 1.3f;
+	const float m_detDistMultiplier = 1.5f;
+
+	const float m_timeBeforeDetectionLowers = 4.0f; //in seconds
 	float m_timeUnseen = 0.0f; // for determining when to derease global detection
 	float m_dangerousTimeInFuture = 0.0f;// time in seconds
 	const float m_timeYouSurviveInFuture = 1.5f;// time in seconds
-	const float m_timeAbilityCooldown = 5.0f; // time in seconds
+	const float m_timeAbilityCooldown = 3.0f; // time in seconds
 	float m_coolDownCounter; 
+
+
+	 
 
 	TimeSwitchValues m_switchVals;
 };

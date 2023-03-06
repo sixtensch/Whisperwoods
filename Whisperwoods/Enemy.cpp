@@ -32,14 +32,13 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 
 	m_carcinian = Renderer::CreateMeshRigged(modelResource);
 	//FBXImporter importer;
-	m_characterAnimator = std::make_unique<Animator>((ModelRiggedResource*)Resources::Get().GetResource(ResourceTypeModelRigged, "Carcinian_Animated.wwm"), m_carcinian);
+	Resources& resources = Resources::Get();
+	m_characterAnimator = std::make_unique<Animator>(resources.GetModelRigged("Carcinian_Animated.wwm"), m_carcinian);
 	
-
 
 	m_modelOffset = modelOffset;
 	// Import the animations
-	Resources& resources = Resources::Get();
-	m_animationSet = (AnimationResource*)resources.GetResource( ResourceTypeAnimations, animationsPath );
+	m_animationSet = resources.GetAnimation(animationsPath);
 	//importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 	m_firstTrigger = false;
 
@@ -63,12 +62,14 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_characterAnimator->playbackSpeed = 0.8f;
 	m_characterAnimator->PlayAnimation(0, 0, 1, true, true);
 
-	m_carcinian->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "Carcinian.wwmt"));
+	m_carcinian->Materials().AddMaterial(resources.GetMaterial("Carcinian.wwmt"));
 }
 
 Enemy::~Enemy()
 {
 }
+
+
 
 void Enemy::Update(float dTime)
 {
@@ -84,7 +85,7 @@ void Enemy::Update(float dTime)
 		m_characterAnimator->playbackSpeed = 0.2f;
 	}
 
-
+	
 
 	m_characterAnimator->Update(dTime);
 	bool first = false;
@@ -282,14 +283,14 @@ void Enemy::Update(float dTime)
 	}
 	if (m_PatrolEnemy == true) // behavior for idle enemy
 	{
-		if (m_idleCounter < 4 && m_characterAnimator->AnimationsFinished() && m_triggerTurn == false && !m_characterAnimator->IsPlaying(1)) // run idle animation
+		if (m_idleCounter < 3 && m_characterAnimator->AnimationsFinished() && m_triggerTurn == false && !m_characterAnimator->IsPlaying(1)) // run idle animation
 		{
 			m_characterAnimator->playbackSpeed = 0.2f;
 			m_characterAnimator->PlayAnimation(2, 0, 1, false, true);
 			m_lastPlayedAnimation = 2;
 			m_idleCounter++;
 		}
-		else if (m_idleCounter == 4 && m_characterAnimator->AnimationsFinished() && !m_characterAnimator->IsPlaying(1)) // has been idle long enough, run rotation animation
+		else if (m_idleCounter == 3 && m_characterAnimator->AnimationsFinished() && !m_characterAnimator->IsPlaying(1)) // has been idle long enough, run rotation animation
 		{
 			if(m_characterAnimator->IsPlaying(2))
 				m_characterAnimator->StopAnimation(2);
@@ -355,7 +356,7 @@ void Enemy::AddModel(std::string modelResource, std::string animationsPath, Mat4
 	m_modelOffset = modelOffset;
 	// Import the animations (Now using the resource manager)
 	Resources& resources = Resources::Get();
-	m_animationSet = (AnimationResource*)resources.GetResource(ResourceTypeAnimations, animationsPath);
+	m_animationSet = resources.GetAnimation(animationsPath);
 	//m_animationSet = std::make_shared<AnimationResource>();
 	//importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 }
@@ -435,6 +436,7 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, AudioSource& quack, bool
 
 	float distance = std::abs(playerDirection.Length()); //distance from enemy to player
 	//Vec2 vectorForLineOfSight = playerDirection;
+	m_currentViewDistance = distance;
 
 	playerDirection.Normalize();
 	float angle = acos(m_forwardVector.Dot(playerDirection)); // angle in radians
@@ -613,6 +615,16 @@ float Enemy::GetViewDistance() const
 Vec2 Enemy::GetForwardVector() const
 {
 	return m_forwardVector;
+}
+
+float Enemy::GetDistance() const
+{
+	return m_currentViewDistance;
+}
+
+float Enemy::GetMaxDistance() const
+{
+	return m_enemyViewDistance;
 }
 
 void Enemy::PlayEnemyActiveNoise(AudioSource& quack)

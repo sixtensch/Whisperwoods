@@ -31,12 +31,20 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="CutsceneChannel.cpp" />
+    <ClCompile Include="CutsceneController.cpp" />
     <ClCompile Include="Debug.cpp" />
+    <ClCompile Include="DebugGUI.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="EssenceBloom.cpp" />
     <ClCompile Include="FBXImporter.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="GPUProfiler.cpp" />
     <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="GUIElement.cpp" />
+    <ClCompile Include="GUIRenderable.cpp" />
+    <ClCompile Include="imgui_neo_internal.cpp" />
+    <ClCompile Include="imgui_neo_sequencer.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="LevelHandler.cpp" />
     <ClCompile Include="LevelImporter.cpp" />
@@ -57,6 +65,8 @@
     <ClCompile Include="Sound.cpp" />
     <ClCompile Include="GameObject.cpp" />
     <ClCompile Include="Room.cpp" />
+    <ClCompile Include="Cutscene.cpp" />
+    <ClCompile Include="CutsceneKey.cpp" />
     <ClCompile Include="WWABuilder.cpp" />
     <ClCompile Include="WWMBuilder.cpp" />
     <ClCompile Include="StaticObject.cpp" />
@@ -80,7 +90,11 @@
     <ClInclude Include="ConstantbufferData.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Core.h" />
+    <ClInclude Include="CutsceneChannel.h" />
+    <ClInclude Include="CutsceneController.h" />
+    <ClInclude Include="CutsceneKey.h" />
     <ClInclude Include="Debug.h" />
+    <ClInclude Include="DebugGUI.h" />
     <ClInclude Include="DrawInfo.h" />
     <ClInclude Include="Empty.h" />
     <ClInclude Include="Enemy.h" />
@@ -89,7 +103,11 @@
     <ClInclude Include="Font.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="GPUProfiler.h" />
     <ClInclude Include="GUI.h" />
+    <ClInclude Include="GUIElement.h" />
+    <ClInclude Include="GUIRenderable.h" />
+    <ClInclude Include="Cutscene.h" />
     <ClInclude Include="Level.h" />
     <ClInclude Include="LevelHandler.h" />
     <ClInclude Include="Pickup.h" />
@@ -177,6 +195,12 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="PSGUI.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="VSGUI.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="VSMesh.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>

@@ -1,0 +1,11 @@
+d   1 0.8 1
+s   0.5 0.5 0.5
+e   1 0.6 0.8
+g   8
+a   1
+h   0
+
+D   EssenseBloom_Diffuse.png
+S   EssenseBloom_Specular_Glossiness.png
+E   EssenseBloom_Emissive.png
+N   EssenseBloom_Normal_Height.png

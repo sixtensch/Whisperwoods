@@ -10,10 +10,14 @@
 #include "Sound.h"
 #include "RenderHandler.h"
 
-/*
-	Ett till lager av s‰kerhet kan l‰ggas pÅEdatan genom att returnera weak_ptrs. Dessa kan endast bli
-	castade till en shared_ptr OM den underliggande shared_ptr faktiskt existerar. Den ‰ger pÅEsÅEs‰tt aldrig datan.
-*/
+// Resource headers
+struct TextureResource;
+struct SoundResource;
+struct MaterialResource;
+struct ModelStaticResource;
+struct ModelRiggedResource;
+struct AnimationResource;
+
 
 enum ResourceType 
 {
@@ -41,12 +45,20 @@ public:
 	static Resources& Get();
 
 	// This should be how resources are acquired. Writable pointers are used when allocating or when having to write for a special reason.
-	const BasicResource* GetResource(const ResourceType resourceType, std::string filename) const;
-	// Available if acquisition of a resource needs to be writable.
-	BasicResource* GetWritableResource(const ResourceType resourceType, std::string filename) const;
+	BasicResource* GetResource(const ResourceType resourceType, std::string filename) const;
 
 	// This is supposed to be called after all singletons are initialized.
 	void LoadAssetDirectory(const RenderCore* const renderCore);
+
+
+	// Getter Functions
+	TextureResource* GetTexture(std::string filename);
+	SoundResource* GetSound(std::string filename);
+	MaterialResource* GetMaterial(std::string filename);
+	ModelStaticResource* GetModelStatic(std::string filename);
+	ModelRiggedResource* GetModelRigged(std::string filename);
+	AnimationResource* GetAnimation(std::string filename);
+
 
 private:
 	void InitMapList();

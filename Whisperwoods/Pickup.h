@@ -12,6 +12,7 @@ public:
 
 	virtual void Update(float deltaTime) override;
 	virtual void OnPickup(float deltaTime) = 0;
+	virtual bool IsRemovable() = 0;
 
 protected:
 	float m_pickupRadius;

@@ -7,6 +7,7 @@
 #include "ModelResource.h"
 #include "MeshRenderable.h"
 #include "TextRenderable.h"
+#include "GUIRenderable.h"
 #include "Light.h"
 #include "Font.h"
 #include "LevelResource.h"
@@ -48,9 +49,15 @@ public:
 	void LoadLevel(LevelResource* level, string image);
 
 	void Draw();
+	void UpdateGPUProfiler();
 	void Present();
 
+	void ExecuteDraw(TimelineState state, bool shadows);
+	void ZPrepass(TimelineState state);
+
 	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);
+
+	void RenderGUI();
 
 	RenderCore* GetCore() const;
 	Camera& GetCamera();
@@ -66,6 +73,10 @@ public:
 	shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
 	shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin);
 
+	shared_ptr<GUIRenderable> CreateGUIRenderable(const string& subpath);
+
+	void DestroyMeshStatic(shared_ptr<MeshRenderableStatic> renderable);
+
 	void SetTimelineStateCurrent();
 	void SetTimelineStateFuture();
 
@@ -75,9 +86,14 @@ public:
 
 	void SetPlayerMatrix(const Mat4& matrix);
 
-private:
-	void DrawInstances(uint state, bool shadows);
+	void ClearShadowRenderables();
+	void RegisterLastRenderableAsShadow();
+	void ExecuteStaticShadowDraw();
 
+
+private:
+	void QuadCull(const Camera& camPOV);
+	void DrawInstances(uint state, bool shadows);
 
 
 private:
@@ -104,6 +120,7 @@ private:
 	TimelineState m_timelineState;
 	uint m_renderableIDCounter;
 	cs::List<std::pair<shared_ptr<WorldRenderable>, shared_ptr<WorldRenderable>>> m_worldRenderables;
+	cs::List<shared_ptr<GUIRenderable>> m_guiRenderables;
 	cs::List<shared_ptr<TextRenderable>> m_texts;
 
 	cs::Color3f m_lightAmbient;
@@ -115,6 +132,9 @@ private:
 	Mat4 m_playerMatrix;
 
 	const Level* m_currentLevel;
+
+	// Indicies of the renderables to use when calculating the static shadowmap along the 
+	cs::List<int> m_shadowRenderables;
 
 	ComPtr<ID3D11Buffer> m_envIndices[2];
 	ComPtr<ID3D11Buffer> m_envVertices[2];

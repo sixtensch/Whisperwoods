@@ -60,6 +60,7 @@ void Input::InputInit(const HWND windowHandle)
 	AddKeysToInput(KeybindSprint, { DXKey::LeftShift, DXKey::RightShift });
 	AddKeysToInput(KeybindCrouch, { DXKey::C, DXKey::LeftControl,  DXKey::RightControl });
 	AddKeysToInput(KeybindPower, { DXKey::Q, DXKey::NumPad0 });
+	AddKeysToInput(KeybindEscMenu, { DXKey::Escape });
 
 }
 
