@@ -78,10 +78,10 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWA( "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx" );
 
 	//cs::List<VertexTextured> planeVerts = { 
-	//	VertexTextured({-0.5f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f,0.0f,0.0f, 0.0f}), 
-	//	VertexTextured({ 0.5f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f,0.0f,0.0f, 0.0f}),
-	//	VertexTextured({-0.5f, 0.0f,-0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f,1.0f,0.0f, 0.0f}),
-	//	VertexTextured({ 0.5f, 0.0f,-0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f,1.0f,0.0f, 0.0f})
+	//	VertexTextured({ 0.5f, 0.0f,-0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f,0.0f,0.0f, 0.0f}), 
+	//	VertexTextured({-0.5f, 0.0f,-0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f,0.0f,0.0f, 0.0f}),
+	//	VertexTextured({ 0.5f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f,1.0f,0.0f, 0.0f}),
+	//	VertexTextured({-0.5f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f,1.0f,0.0f, 0.0f})
 	//};
 	//cs::List<int> planeIndicies = { 0,1,3,0,3,2 };
 	//BuildWWM(planeVerts, planeIndicies, "room_plane");
@@ -132,7 +132,7 @@ void Whisperwoods::Run()
 
 
 	GUI testGui;
-	testGui.AddGUIElement({ 0,-0.95 }, { 1.0f,0.1f }, nullptr, nullptr);
+	testGui.AddGUIElement({ 0,-0.95f }, { 1.0f,0.1f }, nullptr, nullptr);
 	testGui.GetElement( 0 )->colorTint = Vec3(0.2f, 0.8f, 0.2f);
 	testGui.GetElement( 0 )->alpha = 0.6f;
 	testGui.GetElement( 0 )->vectorData = Vec3( 1, 1, 1 );

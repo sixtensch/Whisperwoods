@@ -19,6 +19,7 @@ enum LevelAsset : uint
 
 struct Level;
 struct LevelTunnel;
+struct LevelTunnelRef;
 
 struct Level
 {
@@ -26,11 +27,12 @@ struct Level
 	Quaternion rotation;
 	float scale;
 
+	bool essenceBloom = false;
+
 	// In world space
 	cs::List<Mat4> instances[LevelAssetCount];
 
-	// Indices into LevelFloor::tunnels
-	cs::List<uint> connections;
+	cs::List<LevelTunnelRef> connections;
 
 	const LevelResource* resource;
 };
@@ -58,4 +60,15 @@ struct LevelFloor
 
 	cs::List<Level> rooms;
 	cs::List<LevelTunnel> tunnels;
+};
+
+struct LevelTunnelRef
+{
+	// Indices into LevelFloor::rooms;
+	// -1: Entrance to floor
+	// -2: Exit from floor
+	int targetRoom;
+
+	// Indices into LevelFloor::tunnels
+	uint tunnel;
 };

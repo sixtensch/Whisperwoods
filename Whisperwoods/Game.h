@@ -49,7 +49,7 @@ public:
 
 	void LoadHubby();
 	void LoadTest();
-	void LoadGame(uint gameSeed);
+	void LoadGame(uint gameSeed, uint roomCount);
 	void UnLoadPrevious();
 
 	Player* GetPlayer();

@@ -143,13 +143,15 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		sampleVector = currentRoom->sampleBitMapCollision(transform.GetWorldPosition());
 		Vec3 converted(( - (sampleVector.x * sampleVector.x * sampleVector.x))*0.05f, 0,
 			(sampleVector.y * sampleVector.y * sampleVector.y )*0.05f);
-		if (converted.Length() > m_runSpeed)
+
+		if (converted.Length() > m_runSpeed * 1.1f)
 		{
 			converted.Normalize();
-			converted *= m_runSpeed;
+			converted *= m_runSpeed * 1.1f;
 		}
 
 		Vec3 targetWithCollision = m_targetVelocity - converted;
+
 
 		if (!std::isnan( targetWithCollision.x ) && !std::isnan( targetWithCollision.y ) && !std::isnan( targetWithCollision.z ))
 		{
@@ -163,14 +165,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			);
 		}
 
-		if (transform.parent != nullptr)
-		{
-			transform.position += transform.parent->GetWorldRotation().Conjugate() *  m_velocity * delta_time;
-		}
-		else
-		{
-			transform.position += m_velocity * delta_time;
-		}
+		transform.position += m_velocity * cs::fmin(delta_time, 0.05f);
 
 		m_isCrouch = Input::Get().IsKeybindDown( KeybindCrouch );
 

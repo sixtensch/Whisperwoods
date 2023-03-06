@@ -135,9 +135,31 @@ void Game::UpdateGameObjects()
 	}
 }
 
+
+
 // Transform and AI Logic
 void Game::UpdateEnemies( Renderer* renderer )
 {
+	//       $$                      $$
+	//     $$$  $                  $  $$$
+	//    $$$   $$                $$   $$$
+	//    $$$$$$$$                $$$$$$$$
+	//     $$$$$$                  $$$$$$
+	//      $$$$    $$0$$$$$0$$$    $$$$
+	//        $$  $$$$$$$$$$$$$$$$  $$
+	//    $$   $$$$$$$$$$$$$$$$$$$$$$   $$
+	//  $$  $$  $$$$$$$$$$$$$$$$$$$$  $$  $$
+	// $      $$$$$$$$$$$$$$$$$$$$$$$$      $
+	// $  $$$    $$$$$$$$$$$$$$$$$$    $$$  $
+	//   $   $$$$ $$$$$$$$$$$$$$$$ $$$$   $
+	//  $         $ $$$$$$$$$$$$ $         $
+	//  $      $$$                $$$      $
+	//        $                      $
+	//       $                        $
+	//       $                         $
+	// 
+	//     WHAT ARE THESE COPYPASTA TIGERS?
+
 	/*    ("`-''-/").___..--''"`-._
 		   `6_ 6  )   `-.  (     ).`-.__.`)
 		   (_Y_.)'  ._   )  `._ `. ``-..-'
@@ -220,6 +242,26 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			}
 		}
 
+		//       $$                      $$
+		//     $$$  $                  $  $$$
+		//    $$$   $$                $$   $$$
+		//    $$$$$$$$                $$$$$$$$
+		//     $$$$$$                  $$$$$$
+		//      $$$$    $$0$$$$$0$$$    $$$$
+		//        $$  $$$$$$$$$$$$$$$$  $$
+		//    $$   $$$$$$$$$$$$$$$$$$$$$$   $$
+		//  $$  $$  $$$$$$$$$$$$$$$$$$$$  $$  $$
+		// $      $$$$$$$$$$$$$$$$$$$$$$$$      $
+		// $  $$$    $$$$$$$$$$$$$$$$$$    $$$  $
+		//   $   $$$$ $$$$$$$$$$$$$$$$ $$$$   $
+		//  $         $ $$$$$$$$$$$$ $         $
+		//  $      $$$                $$$      $
+		//        $                      $
+		//       $                        $
+		//       $                         $
+		// 
+		//     WHAT ARE THESE COPYPASTA TIGERS?
+
 		/*    ("`-''-/").___..--''"`-._
 			   `6_ 6  )   `-.  (     ).`-.__.`)
 			   (_Y_.)'  ._   )  `._ `. ``-..-'
@@ -230,6 +272,11 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		{
 			m_maxStamina = 1.0f;
 		}*/
+
+		if (!m_isSwitching && !m_isInFuture)
+		{
+			//for (const LevelExitRef& : m_floor[room])
+		}
 
 		if (Input::Get().IsDXKeyPressed( DXKey::H ) && !m_isInFuture)
 		{
@@ -243,7 +290,8 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		if (Input::Get().IsDXKeyPressed( DXKey::L ))
 		{
 			UnLoadPrevious();
-			LoadTest();
+			LoadGame(0, 9);
+			
 			m_player->ReloadPlayer();
 		}
 		if (Input::Get().IsDXKeyPressed( DXKey::H ))
@@ -275,7 +323,9 @@ void Game::DrawIMGUIWindows()
 		}
 		ImGui::Text( "Time ability cooldown: %f", cd );
 		ImGui::Checkbox( "Future", &m_isInFuture );
-
+		
+		ImGui::Separator();
+		ImGui::InputFloat3("Player Position", (float*)&m_player->transform.position);
 	}
 	ImGui::End();
 
@@ -340,7 +390,7 @@ void Game::DrawIMGUIWindows()
 				m_testMaterials.Add( MaterialResource() );
 			}
 
-			float distance = 0.5f;
+			float distance = 0.5f / (BM_MAX_SIZE / BM_PIXELS_PER_UNIT);
 
 			Mat4 halfturn = Quaternion::GetEuler( 0, cs::c_pi, 0 ).Matrix();
 
@@ -348,7 +398,7 @@ void Game::DrawIMGUIWindows()
 			{
 				Level& l = f.rooms[i];
 				m_testRenderables.Add( Renderer::CreateMeshStatic( "room_plane.wwm" ) );
-				m_testRenderables.Back()->worldMatrix = Mat::translation3( l.position.x * distance, 3.2f, l.position.y * distance ) * halfturn * l.rotation.Matrix() * Mat::scale3( 0.8f );
+				m_testRenderables.Back()->worldMatrix = Mat::translation3( l.position.x * distance, 3.2f, l.position.z * distance ) * halfturn * l.rotation.Matrix() * Mat::scale3( 0.8f );
 
 				m_testMaterials[i].specular = Vec3( 0.5f, 0.5f, 0.5f );
 				m_testMaterials[i].textureDiffuse = l.resource->source;
@@ -358,14 +408,14 @@ void Game::DrawIMGUIWindows()
 			for (int i = 0; i < f.tunnels.Size(); i++)
 			{
 				LevelTunnel& t = f.tunnels[i];
-				Vec2 start = f.rooms[t.startRoom].position;
-				Vec2 end = f.rooms[t.endRoom].position;
+				Level& start = f.rooms[t.startRoom];
+				Level& end = f.rooms[t.endRoom];
 
 				m_testRenderables.Add( Renderer::CreateMeshStatic( "Debug_Sphere.wwm" ) );
 				m_testRenderables.Back()->worldMatrix =
-					Mat::translation3( (start.x + end.x) * 0.5f * distance, 3, (start.y + end.y) * 0.5f * distance ) *
-					Quaternion::GetDirection( (Vec3( end.x, 0, end.y ) - Vec3( start.x, 0, start.y )).Normalized() ).Matrix() *
-					Mat::scale3( 0.3f, 0.3f, (end - start).Length() * 2.5f );
+					Mat::translation3( (start.position.x + end.position.x) * 0.5f * distance, 3, (start.position.z + end.position.z) * 0.5f * distance ) *
+					Quaternion::GetDirection( (Vec3( end.position.x, 0, end.position.z ) - Vec3( start.position.x, 0, start.position.z )).Normalized() ).Matrix() *
+					Mat::scale3( 0.3f, 0.3f, (end.position - start.position).Length() * 5.0f * distance);
 			}
 		}
 	}
@@ -503,16 +553,21 @@ void Game::LoadTest()
 	Renderer::ExecuteShadowRender();
 }
 
-void Game::LoadGame(uint gameSeed)
+void Game::LoadGame(uint gameSeed, uint roomCount)
 {
-	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
+	FloorParameters params = {};
+	params.seed = gameSeed;
+	params.roomCount = roomCount;
+	params.angleSteps = 0;
+	params.pushSteps = 3;
+
+	m_levelHandler->GenerateFloor(&m_floor, params, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
+
 	m_player->transform.position = m_floor.startPosition;
-	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
-	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
-	Mat4 worldCombined = worldScale * worldPos * worldRot;
+
 	m_isHubby = false;
+	Renderer::ExecuteShadowRender();
 }
 
 void Game::UnLoadPrevious()
@@ -532,18 +587,19 @@ void Game::SetCutSceneMode( bool value )
 
 void Game::LoadRoom(Level* level)
 {
-	Mat4 roomMatrix =
-		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight) *
-		Mat::translation3(level->position.x, level->position.x - 0.01f, level->position.x)*
-		level->rotation.Matrix();
+	Mat4 roomOffset =
+		Mat::translation3(0, -0.01f, 0) *
+		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight);
 
-	Mat4 roomCylinderMatrix =
-		Mat::scale3( level->resource->worldWidth*1.2f, 1.0f, level->resource->worldHeight * 1.2f ) *
-		Mat::translation3( level->position.x, level->position.x, level->position.x ) *
-		level->rotation.Matrix();
+	Mat4 cylinderOffset =
+		Mat::translation3( 0, -0.02f, 0 ) *
+		Mat::scale3(level->resource->worldWidth * 1.2f, 1.0f, level->resource->worldHeight * 1.2f);
 
-	m_currentRoom = shared_ptr<Room>(new Room(level,"room_plane.wwm", "room_walls_floor.wwm", roomMatrix, roomCylinderMatrix ));
-	m_currentRoom->transform.rotation = Quaternion::GetEuler({ 0, 0, 0 });
+	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
+	m_currentRoom->transform.position = level->position;
+	m_currentRoom->transform.rotation = level->rotation;
+
+	//Vec3 test = level->rotation * Vec3(0, 0, 1);
 
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
@@ -561,8 +617,8 @@ void Game::LoadRoom(Level* level)
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
 			"Carcinian_Animated.wwm", 
 			"Carcinian_Animations.wwa", 
-			Mat::scale3(1.25f, 1.25f, 1.25f) * 
 			Mat::translation3(0, 0, 0) * 
+			Mat::scale3(1.25f, 1.25f, 1.25f) * 
 			Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
 		
 		for (int j = 0; j < p.controlPoints.Size(); j++)
@@ -578,8 +634,8 @@ void Game::LoadRoom(Level* level)
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
 			"Carcinian_Animated.wwm",
 			"Carcinian_Animations.wwa",
-			Mat::scale3(1.25f, 1.25f, 1.25f) *
 			Mat::translation3(0, 0, 0) *
+			Mat::scale3(1.25f, 1.25f, 1.25f) *
 			Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
 
 		for (int j = 0; j < p.controlPoints.Size(); j++)

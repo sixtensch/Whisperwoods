@@ -78,14 +78,14 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 		m_ambianceSources.Add( audioSource );
 	}
 
-	//// Plane
-	//m_renderable = Renderer::CreateMeshStatic( modelResource );
-	//m_modelOffset = modelOffset;
-	//m_renderable->worldMatrix = m_modelOffset;
-	//m_material = MaterialResource();
-	//m_material.specular = Vec3( 0.5f, 0.5f, 0.5f );
-	//m_material.textureDiffuse = level->resource->source;
-	//m_renderable->Materials().AddMaterial( &m_material );
+	// Plane
+	m_renderable = Renderer::CreateMeshStatic( modelResource );
+	m_modelOffset = modelOffset;
+	m_renderable->worldMatrix = /*transform.worldMatrix * */m_modelOffset;
+	m_material = MaterialResource();
+	m_material.specular = Vec3( 0.5f, 0.5f, 0.5f );
+	m_material.textureDiffuse = level->resource->source;
+	m_renderable->Materials().AddMaterial( &m_material );
 	
 	
 	// Cylinder thing
@@ -113,14 +113,14 @@ void Room::GenerateRoomShadowMap()
 void Room::Update(float deltaTime)
 {
 	transform.CalculateWorldMatrix();
-	//m_renderable->worldMatrix = transform.worldMatrix * m_modelOffset;
+	m_renderable->worldMatrix = transform.worldMatrix * m_modelOffset;
 	m_wallsAndFloorRenderable->worldMatrix = transform.worldMatrix * m_wallsFloorOffset;
 }
 
 Point2 Room::worldToBitmapPoint(Vec3 worldPos)
 {
 	Vec3 roomWpos = transform.GetWorldPosition();
-	Quaternion worldRotation = transform.GetWorldRotation();
+	Quaternion worldRotation = transform.GetWorldRotation()/*.Conjugate()*/;
 	Vec3 right(-1, 0, 0);
 	Vec3 forward(0, 0, 1);
 	right = worldRotation * right;
@@ -128,7 +128,7 @@ Point2 Room::worldToBitmapPoint(Vec3 worldPos)
 	Vec3 normalizedPos =  worldPos - roomWpos;
 	float relativeRight = right.Dot(normalizedPos) * BM_PIXELS_PER_UNIT;
 	float realtiveForward = forward.Dot(normalizedPos) * BM_PIXELS_PER_UNIT;
-	return Point2((int)(relativeRight + (m_levelResource->pixelWidth/2)), (int)(realtiveForward + (m_levelResource->pixelHeight/2)));
+	return Point2((int)((m_levelResource->pixelWidth/2) - relativeRight), (int)((m_levelResource->pixelHeight/2) - realtiveForward));
 }
 
 LevelPixel Room::sampleBitMap(Vec3 worldPos)
@@ -147,19 +147,24 @@ Vec3 Room::bitMapToWorldPos(Point2 samplePoint)
 		LOG_WARN("bitMapToWorldPos/defines: BM_PIXELS_PER_UNIT CAN NOT BE 0 -> DIVISION BY 0");
 		return Vec3(0, 0, 0);
 	}
-	float normalizedX = (float)(samplePoint.x) / (float)BM_PIXELS_PER_UNIT;
-	float normalizedY = (float)(samplePoint.y) / (float)BM_PIXELS_PER_UNIT;
 
-	Vec3 normalization(
-		(float)(m_levelResource->pixelWidth / 2) / (float)BM_PIXELS_PER_UNIT, 
-		0, 
-		(float)(m_levelResource->pixelHeight / 2) / (float)BM_PIXELS_PER_UNIT);
+	Vec2 relativePosition = (Vec2)samplePoint - Vec2(m_levelResource->pixelWidth, m_levelResource->pixelHeight) * 0.5f;
+	relativePosition /= BM_PIXELS_PER_UNIT;
 
-	Vec3 localPos(normalizedX, 0, normalizedY);
-	localPos = localPos - normalization;
-	localPos.x = -localPos.x;
+	//float normalizedX = (float)(samplePoint.x) / (float)BM_PIXELS_PER_UNIT;
+	//float normalizedY = (float)(samplePoint.y) / (float)BM_PIXELS_PER_UNIT;
+
+	//Vec3 normalization(
+	//	(float)(m_levelResource->pixelWidth / 2) / (float)BM_PIXELS_PER_UNIT, 
+	//	0, 
+	//	(float)(m_levelResource->pixelHeight / 2) / (float)BM_PIXELS_PER_UNIT);
+
+	//Vec3 localPos(normalizedX, 0, normalizedY);
+	//localPos = localPos - normalization;
+	////localPos.y = -localPos.y;
+
 	Vec3 worldPos = transform.GetWorldPosition(); 
-	Vec3 rotationConverted (transform.GetWorldRotation() * localPos);
+	Vec3 rotationConverted = transform.GetWorldRotation().Conjugate() * Vec3(relativePosition.x, 0, relativePosition.y);
 
 	return worldPos + rotationConverted;
 }

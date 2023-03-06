@@ -29,6 +29,7 @@
 #define BM_PIXELS_PER_UNIT	5
 #define BM_PIXEL_SIZE		(1.0f / BM_PIXELS_PER_UNIT)
 #define BM_MIN_SIZE			BM_PIXELS_PER_UNIT * 5
+#define BM_MAX_SIZE			BM_PIXELS_PER_UNIT * 60
 
 #define BM_C_EMPTY					0xffffff
 #define BM_C_TERRAIN_OUT			0x00ff00
