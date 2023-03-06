@@ -172,14 +172,13 @@ void Whisperwoods::Run()
 	testGui.GetElement( 1 )->firstTexture = Resources::Get().GetTexture( "Hubby.png" );
 	testGui.GetElement( 1 )->secondTexture = Resources::Get().GetTexture("HudMask2.png");
 
-
 	// Duck
 	testGui.AddGUIElement( { -0.5f,-0.5f }, { 1.0f,1.0f }, nullptr, nullptr );
 	testGui.GetElement( 2 )->colorTint = Vec3( 1, 1, 1 );
 	testGui.GetElement( 2 )->alpha = 1.0f;
-	testGui.GetElement( 2 )->intData = Point4( 0, 0, 0, 0 ); // makes it transform with the playermatrix
+	testGui.GetElement( 2 )->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
 	testGui.GetElement( 2 )->firstTexture = Resources::Get().GetTexture( "duck.jpg" );
-	//testGui.GetElement( 2 )->secondTexture = Resources::Get().GetTexture( "HudMask2.png" );
+	testGui.GetElement( 2 )->secondTexture = Resources::Get().GetTexture( "StaminaBarMask09.png" );
 	float targetAlpha = 0.0f;
 
 
