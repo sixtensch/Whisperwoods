@@ -11,7 +11,7 @@ struct VSOutput
     float3 outNormal : NORMAL0;
     float3 outTangent : TANGENT0;
     float3 outBitangent : BITANGENT0;
-    float2 outUV : TEXCOORD0;
+    float4 outUV : TEXCOORD0;
 };
 
 struct LightDirectional
@@ -73,6 +73,7 @@ float2 texOffset(int u, int v, int lNo)
     return float2(u * 1.0f / 2048, v * 1.0f / 2048);
 }
 
+
 // Used here for getting detection rate.
 cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
 {
@@ -88,6 +89,8 @@ cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
 
 SamplerState textureSampler : REGISTER_SAMPLER_STANDARD;
 SamplerComparisonState shadowSampler : REGISTER_SAMPLER_SHADOW;
+
+Texture2D textureBitmap : REGISTER_SRV_TEX_USER_5;
 
 Texture2D textureDiffuse : REGISTER_SRV_TEX_DIFFUSE;
 Texture2D textureSpecular : REGISTER_SRV_TEX_SPECULAR;
@@ -105,28 +108,40 @@ PS_OUTPUT main(VSOutput input)
 {
 	// Output struct for both main texture target and positional target.
     PS_OUTPUT output;
-	
-    float2 uv = input.outUV * tiling;
+    
+    // Diffuse sample
+    float2 uv = input.outUV * tiling;  
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
-	
     if (diffuseSample.a < 0.1f)
         discard;
 	
-    //float4 specularSample = textureSpecular.Sample(textureSampler, uv);
-    //float4 emissiveSample = textureEmissive.Sample(textureSampler, uv);
-    //float4 normalSample = textureNormal.Sample(textureSampler, uv);
-    //normalSample.g = 1.0f - normalSample.g;
-	
-    float4 colorAlbedoOpacity = float4(diffuse * diffuseSample.xyz, alpha * diffuseSample.a);
-    //float4 colorSpecularSpecularity = float4(specular, glossiness) * specularSample;
-    //float3 colorEmissive = emissive * emissiveSample.xyz;
-	
-    //float3 cameraDirection = normalize(cameraPosition - input.wPosition.xyz);
-	
-    //float3x3 texSpace = float3x3(input.outTangent, input.outBitangent, input.outNormal);
-    //float3 normal = normalize(mul(2.0f * normalSample.xyz - float3(1.0f, 1.0f, 1.0f), texSpace));
+    
+    // Mix the color depending on if it's the background or the ground (UV.z value)
+    float4 colorAlbedoOpacity;
+    if (input.outUV.z > 0.0f)
+    {
+        // Compensate for the stretch
+        float2 uvNoTile = input.outUV;
+        uvNoTile.x -= 0.5;
+        uvNoTile.x *= 1.2;
+        uvNoTile.x += 0.5;
+        uvNoTile.y += 0.5;
+        uvNoTile.y *= 1.2;
+        uvNoTile.y -= 0.5;
+        // Bitmap sample
+        float4 bitmapSample = textureBitmap.Sample(textureSampler, uvNoTile);
+        float4 diffuseSample2 = textureDiffuse.Sample(textureSampler, uv * (1.0f - (bitmapSample.r * 0.05f)));
+        colorAlbedoOpacity = float4(diffuse * diffuseSample2.xyz * pow(bitmapSample.r, 2), alpha * diffuseSample.a);
+        //colorAlbedoOpacity = float4(bitmapSample.xyz, alpha * diffuseSample.a);
+    }
+    else
+    {
+        colorAlbedoOpacity = float4(diffuse * diffuseSample.xyz * min(pow(input.wPosition.y, 4), 1.0f), alpha * diffuseSample.a); 
+    }
+    
+    // Normal
     float3 normal = input.outNormal;
-  
+ 
 	// Cumulative color
     float4 color = float4(colorAlbedoOpacity.xyz * ambient, colorAlbedoOpacity.w);
 	
@@ -135,43 +150,75 @@ PS_OUTPUT main(VSOutput input)
     float4 lsNDC = lsPos / lsPos.w; // U, V, Depth
     float2 lsUV = float2(lsNDC.x * 0.5f + 0.5f, lsNDC.y * -0.5f + 0.5f);
     float dirNDotL = dot(normal, directionalLight.direction);
-    float epsilon = 0.00005 / acos(saturate(dirNDotL));
-    //bool shadowAff = shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x;
-	
+    float epsilon = 0.00005 / acos(saturate(dirNDotL));    
+
+    // Distance based smoothing (comment out for minor peformance boost possibly)
+    float shadowSample = shadowTexture.Sample(textureSampler, lsUV).x;
+    float shadowDiff = (shadowSample * 10 - saturate((lsNDC.z - epsilon) * 10));
+    float3 color2 = abs(saturate(shadowDiff * shadowDiff * 20000.0f));
+    float3 shadowSmoothVal = max(saturate(color2), 0.01f);   
+    float kernelWidth = 0.5f + (shadowSmoothVal.r*2);
+    //float kernelWidth = 1.0f; // Comment in
+    
+	// PCF filtering (Smooth shadows)
     float sum = 0;
     float x, y;
-
-	// PCF filtering (Smooth shadows)
+    int indexer = 0; // Used for some randomness to the sampling
 	[unroll]
     for (y = -smoothing; y <= smoothing; y += 1.0f)
     {
 		[unroll]
         for (x = -smoothing; x <= smoothing; x += 1.0f)
-        {
+        {   
             sum += shadowTexture.SampleCmpLevelZero(shadowSampler,
-				lsUV.xy + texOffset(x, y, 0), lsNDC.z - epsilon);
+				lsUV.xy + texOffset(
+            (x + (-1 + ((indexer + 1) % 2) * 2)) * kernelWidth, 
+            (y + (-1 + (indexer % 2) * 2)) * kernelWidth, 0),
+            lsNDC.z - epsilon);
+            indexer++;
+
         }
     }
-    float shadowAff = sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f));
-
-
-
-
-    // Directional lighting
+    // adjust
+    float shadowAff = sum / 25.0f;
+ 
+    // Simple lighting
     color += shadowAff * phongLite(
-		//input.wPosition.xyz,
-		//normal,
 		directionalLight.intensity,
-		//-directionalLight.direction,
-		0.7f,
-		//cameraDirection,
+		1.0f,
 		colorAlbedoOpacity.xyz
-		//colorSpecularSpecularity.xyz,
-		//colorAlbedoOpacity.w,
-		//colorSpecularSpecularity.w
 	);
 
+    // Send the final color.
+    color.a = saturate(color.a); 
+    output.MainTarget = color;
+    
+    // float4 outputColor;
+    //output.MainTarget = float4(1 - saturate(shadowAff), 1 - saturate(shadowAff), 1 - saturate(shadowAff), 1);
+    //output.MainTarget = float4(shadowSmoothVal.r, shadowSmoothVal.r, shadowSmoothVal.r, 1);
+    
+    // Send the position thing.
+    output.PositionTarget = input.wPosition;
 	
+    return output;
+}
+
+
+// Old shader stuff
+
+
+    //float4 specularSample = textureSpecular.Sample(textureSampler, uv);
+    //float4 emissiveSample = textureEmissive.Sample(textureSampler, uv);
+    //float4 normalSample = textureNormal.Sample(textureSampler, uv);
+    //normalSample.g = 1.0f - normalSample.g;
+
+    //float4 colorSpecularSpecularity = float4(specular, glossiness) * specularSample;
+    //float3 colorEmissive = emissive * emissiveSample.xyz;
+    //float3 cameraDirection = normalize(cameraPosition - input.wPosition.xyz);
+    //float3x3 texSpace = float3x3(input.outTangent, input.outBitangent, input.outNormal);
+    //float3 normal = normalize(mul(2.0f * normalSample.xyz - float3(1.0f, 1.0f, 1.0f), texSpace));
+
+
   //  for (uint i = 0; i < pointCount; i++)
   //  {
   //      float3 lightVector = pointLights[i].position - input.wPosition.xyz;
@@ -234,16 +281,22 @@ PS_OUTPUT main(VSOutput input)
 		
  //       finalEmissiveColor = lerp(colorEmissive, detectionColor, totalInfluence);
  //   }
-    
-	
+
+
+ //   // Directional lighting
+ //   color += shadowAff * phongLite(
+	//	//input.wPosition.xyz,
+	//	//normal,
+	//	directionalLight.intensity,
+	//	//-directionalLight.direction,
+	//	1.0f,
+	//	//cameraDirection,
+	//	colorAlbedoOpacity.xyz
+	//	//colorSpecularSpecularity.xyz,
+	//	//colorAlbedoOpacity.w,
+	//	//colorSpecularSpecularity.w
+	//);
+
 	// Used to scale ALL emissive for more dramatic glow.
     //float emissiveScalar = 1.0f;
     //color.rgb += finalEmissiveColor * emissiveScalar;
-    color.a = saturate(color.a);
-	
-	
-    output.MainTarget = color;
-    output.PositionTarget = input.wPosition;
-	
-    return output;
-}

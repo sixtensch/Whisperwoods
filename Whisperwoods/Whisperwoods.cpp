@@ -88,15 +88,15 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM(planeVerts, planeIndicies, "room_plane");
 
 
-	cs::List<VertexTextured> rectVerts = { 
-		VertexTextured({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }), 
-		VertexTextured({ 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f }),
-		VertexTextured({ 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 0.0f }),
-		VertexTextured({ 1.0f, 1.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f, 0.0f })
-	};
+	//cs::List<VertexTextured> rectVerts = { 
+	//	VertexTextured({ 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f }), 
+	//	VertexTextured({ 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 0.0f }),
+	//	VertexTextured({ 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 0.0f }),
+	//	VertexTextured({ 1.0f, 1.0f, 0.0f }, { 0.0f, 0.0f,-1.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f, 0.0f })
+	//};
 
-	cs::List<int> rectIndicies = { 0,1,2,3,2,1 };
-	BuildWWM(rectVerts, rectIndicies, "ui_rect");
+	//cs::List<int> rectIndicies = { 0,1,2,3,2,1 };
+	//BuildWWM(rectVerts, rectIndicies, "ui_rect");
 
 	BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
 
@@ -260,6 +260,12 @@ void Whisperwoods::Run()
 			}
 		}
 
+		if (ImGui::Begin( "Shadow PS Test" ))
+		{
+			ImGui::Checkbox( "Use shadow PS", &m_renderer->GetRenderCore()->m_bindShadowPS );
+		}
+		ImGui::End();
+
 		// Main game update
 		m_game->Update(dTime, m_renderer.get());
 
@@ -406,21 +412,6 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 
 	if (!cutSceneController->CutsceneActive())
 	{
-		// TODO: Little ugly. Maybe pretty it up.
-		Vec3 movement = Vec3(0, 0, 0);
-		Vec3 forwardDirection = camera.GetDirection();
-		forwardDirection.y = 0;
-		forwardDirection.Normalize();
-		Vec3 rightDirection = camera.GetRight();
-		Vec3 upDirection = Vec3(0.0f, 1.0f, 0.0f);
-
-		if (Input::Get().IsKeybindDown(KeybindForward))		movement += forwardDirection;
-		if (Input::Get().IsKeybindDown(KeybindBackward))	movement -= forwardDirection;
-		if (Input::Get().IsKeybindDown(KeybindRight))		movement += rightDirection;
-		if (Input::Get().IsKeybindDown(KeybindLeft))		movement -= rightDirection;
-		if (Input::Get().IsKeybindDown(KeybindUp))			movement += upDirection;
-		if (Input::Get().IsKeybindDown(KeybindDown))		movement -= upDirection;
-
 		if (Input::Get().IsDXKeyPressed(DXKey::R))
 		{
 			cameraLock = !cameraLock;
@@ -432,21 +423,34 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 			player->cameraIsLocked = cameraPlayer;
 		}
 
-		if (Input::Get().IsKeybindDown(KeybindSprint))
-		{
-			movement *= 5.0f;
-		}
 
 		MouseState mouseState = Input::Get().GetMouseState();
+		Input::Get().SetMode(cameraLock ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
+		
 		if (!cameraPlayer)
 		{
+			// Debug Camera Movement
+			Vec3 movement = Vec3(0, 0, 0);
+			Vec3 forwardDirection = camera.GetDirection();
+			forwardDirection.y = 0;
+			forwardDirection.Normalize();
+			Vec3 rightDirection = camera.GetRight();
+			Vec3 upDirection = Vec3(0.0f, 1.0f, 0.0f);
+			if (Input::Get().IsKeybindDown(KeybindForward))		movement += forwardDirection;
+			if (Input::Get().IsKeybindDown(KeybindBackward))	movement -= forwardDirection;
+			if (Input::Get().IsKeybindDown(KeybindRight))		movement += rightDirection;
+			if (Input::Get().IsKeybindDown(KeybindLeft))		movement -= rightDirection;
+			if (Input::Get().IsKeybindDown(KeybindUp))			movement += upDirection;
+			if (Input::Get().IsKeybindDown(KeybindDown))		movement -= upDirection;
+			if (Input::Get().IsKeybindDown(KeybindSprint))
+			{
+				movement *= 5.0f;
+			}
 			static Vec3 rotationVec = {};
 			if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
 			{
 				cs::Vec3 delta = Vec3( (float)mouseState.y, (float)mouseState.x, 0.0f );
-
-				rotationVec -= delta * dTime * 4.0f;
-
+				rotationVec -= delta * dTime * 2.0f;
 				camera.SetRotation( Quaternion::GetEuler( { rotationVec.x, rotationVec.y, rotationVec.z } ).Conjugate() );
 
 				if (ImGui::Begin( "Camera rotation dev" ))
@@ -460,68 +464,41 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 				ImGui::End();
 				//camera.SetRotation(Quaternion::GetEuler(rotationVec));
 			}
-		}
-		Input::Get().SetMode(cameraLock ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
-
-		if (!cameraPlayer)
-		{
 			camera.SetPosition(camera.GetPosition() + movement * dTime);
 		}
 		else
 		{
 			Vec3 cameraCurrentPos = camera.GetPosition();
 			Vec3 cameraTargetPos = player->cameraFollowTarget;
+			Quaternion cameraCurrentRot = camera.GetRotation();
+			Quaternion cameraTargetRot = player->cameraLookRotationTarget;
+
 			Vec3 lerped = Lerp(cameraCurrentPos, cameraTargetPos, dTime * 5);
 			camera.SetPosition(lerped);
-
-			// same as in player only using the bigass function above.
-			Vec3 direction = player->transform.position - cameraTargetPos;
-			direction.Normalize();
-			Quaternion cameraCurrentRot = camera.GetRotation();
-			//Quaternion cameraTargetRot = Quaternion::GetDirection(direction, Vec3(0,1,0));
-			Vec3 upVector(0.0f, 1.0f, 0.0f);
-			//Quaternion cameraTargetRot = QuaternionLookRotation(direction, upVector);
-			//Quaternion conj1 = cameraTargetRot;
-			Quaternion conj2 = player->cameraLookRotationTarget;
+			if (!(std::isnan( cameraTargetRot.x) || std::isnan( cameraTargetRot.y) || std::isnan( cameraTargetRot.z) || std::isnan( cameraTargetRot.w)))
+			{
+				Quaternion slerped;
+				slerped = Lerp(cameraCurrentRot, cameraTargetRot, cs::fclamp( dTime * 5.0f, 0.0001f, 1.0f ) );
+				slerped.NormalizeThis();
+				camera.SetRotation(slerped);
+			}
 			if (ImGui::Begin("Camera rotation player"))
 			{
 				Vec3 playPos = player->transform.GetWorldPosition();
 				Quaternion playerRot = player->transform.GetWorldRotation();
 				Vec3 playerRotEuler = EulerAngles( playerRot );
-
-				//Vec3 playRotEuler = player->transform.g
 				ImGui::Text( "Player Pos: %f, %f, %f", playPos.x, playPos.y, playPos.z );
 				ImGui::Text( "Player Rot: %f, %f, %f, %f", playerRot.x, playerRot.y, playerRot.z, playerRot.w );
 				ImGui::Text( "Player Rot Euler deg: %f, %f, %f", playerRotEuler.x * RAD2DEG, playerRotEuler.y * RAD2DEG, playerRotEuler.z * RAD2DEG );
-				ImGui::Text("Dir: %f, %f, %f", direction.x, direction.y, direction.z);
-				//ImGui::Text("Rot: %f, %f, %f, %f", conj1.x, conj1.y, conj1.z, conj1.w);
-				ImGui::Text("RotP: %f, %f, %f, %f", conj2.x, conj2.y, conj2.z, conj2.w);
+				//ImGui::Text("Dir: %f, %f, %f", direction.x, direction.y, direction.z);
+				ImGui::Text("RotP: %f, %f, %f, %f", cameraTargetRot.x, cameraTargetRot.y, cameraTargetRot.z, cameraTargetRot.w);
 				ImGui::DragFloat("Camera Follow Distance", &player->cameraFollowDistance, 0.05f, 0.1f, 10.0f);
 				ImGui::DragFloat("Camera Follow Tilt", &player->cameraFollowTilt, 0.05f, 0.1f, cs::c_pi / 2 - 0.1f);
 				ImGui::DragFloat3("Camera lookAt offset", (float*)&player->cameraLookTargetOffset, 0.1f);
 			}
 			ImGui::End();
-
-			// sometimes the lerping/target goes bad so this is required or screen can go black.
-			if (std::isnan(cameraCurrentRot.x) || std::isnan(cameraCurrentRot.y) || std::isnan(cameraCurrentRot.z) || std::isnan(cameraCurrentRot.w))
-			{
-				//camera.SetRotation(conj2);
-			}
-			else
-			{
-				if (!(std::isnan(conj2.x) || std::isnan(conj2.y) || std::isnan(conj2.z) || std::isnan(conj2.w)))
-				{
-					Quaternion slerped;
-					slerped = Lerp(cameraCurrentRot, conj2, cs::fclamp( dTime * 5.0f, 0.0001f, 1.0f ) );
-					slerped.NormalizeThis();
-					camera.SetRotation(slerped);
-				}
-			}
 		}
 	}
-
-
-
 
 	camera.Update();
 }

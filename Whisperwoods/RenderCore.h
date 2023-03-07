@@ -51,6 +51,8 @@ public:
 
 	void UpdateGUIInfo(const GUIElement* guiElement) const;
 
+	void UpdateBitmapInfo(const TextureResource* bitmap) const;
+
 	void UpdateMaterialInfo(const MaterialResource* material) const;
 	void UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* data, uint count);
 
@@ -110,6 +112,8 @@ public:
 	void ProfileBegin(const std::string& profileName);
 	void ProfileEnd(const std::string& profileName);
 	void UpdateGPUProfiler();
+
+	bool m_bindShadowPS;
 
 private:
 	void BindPipeline(PipelineType pipeline, bool shadowing);
@@ -203,6 +207,7 @@ private:
 	Pipeline m_pipelines[PipelineTypeCount];
 	int m_pipelineCurrent;
 	bool m_shadowPSBound;
+	
 
 	// Constant buffers
 	ConstantBuffers m_constantBuffers;

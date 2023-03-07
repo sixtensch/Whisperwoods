@@ -461,6 +461,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	sd.MaxLOD = D3D11_FLOAT32_MAX;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(&sd, m_bloomUpscaleSampler.GetAddressOf()));
+
+	m_bindShadowPS = true;
 }
 
 RenderCore::~RenderCore()
@@ -884,6 +886,15 @@ void RenderCore::UpdateGUIInfo(const GUIElement* guiElement) const
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexSpecular, 1, (guiElement->secondTexture ? guiElement->secondTexture->shaderResourceView : m_defaultSpecularSRV).GetAddressOf()));
 }
 
+void RenderCore::UpdateBitmapInfo( const TextureResource* bitmap ) const
+{
+	//if (bitmap == nullptr)
+	//{
+	//	return;
+	//}
+	EXC_COMINFO( m_context->PSSetShaderResources( RegSRVUser5, 1, (bitmap ? bitmap->shaderResourceView : m_defaultDiffuseSRV).GetAddressOf() ) );
+}
+
 void RenderCore::UpdateMaterialInfo(const MaterialResource* material) const
 {
 	if (material == nullptr)
@@ -906,6 +917,10 @@ void RenderCore::UpdateMaterialInfo(const MaterialResource* material) const
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexEmissive,	1,	(material->textureEmissive	? material->textureEmissive->shaderResourceView	: m_defaultEmissiveSRV)	.GetAddressOf()));
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexNormal,	1,	(material->textureNormal	? material->textureNormal->shaderResourceView	: m_defaultNormalSRV)	.GetAddressOf()));
 }
+
+
+
+
 
 void RenderCore::UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* data, uint count)
 {
@@ -1189,6 +1204,7 @@ void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)
 			EXC_COMINFO(m_context->PSSetShader(nullptr, nullptr, 0));
 		}
 
+		m_pipelineCurrent = pipeline; 
 		return;
 	}
 
@@ -1226,7 +1242,14 @@ void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)
 
 	if (shadowing && !m_shadowPSBound)
 	{
-		m_context->PSSetShader(nullptr, nullptr, 0);
+		if (m_bindShadowPS)
+		{
+			m_context->PSSetShader( m_pipelines[PipelineTypeShadow].pixelShader.Get(), nullptr, 0);
+		}
+		else
+		{
+			m_context->PSSetShader(nullptr, nullptr, 0);
+		}
 		m_shadowPSBound = true;
 	}
 	else if (!shadowing && (n.pixelShader != o.pixelShader || m_shadowPSBound))
@@ -1318,7 +1341,15 @@ void RenderCore::InitPipelines()
 
 	// Shadow mapping pipeline
 
-	m_pipelines[PipelineTypeShadow].pixelShader = nullptr;
+	//m_pipelines[PipelineTypeShadow].pixelShader = nullptr;
+
+	EXC_COMCHECK( D3DReadFileToBlob( DIR_SHADERS L"PSShadow.cso", &blob ) );
+	EXC_COMCHECK( m_device->CreatePixelShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypeShadow].pixelShader
+	) );
 
 	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"VSShadow.cso", &blob));
 	EXC_COMCHECK(m_device->CreateVertexShader(
@@ -1327,6 +1358,7 @@ void RenderCore::InitPipelines()
 		nullptr,
 		&m_pipelines[PipelineTypeShadow].vertexShader
 	));
+
 
 	D3D11_INPUT_ELEMENT_DESC inputLayoutShadow[] =
 	{
@@ -1341,7 +1373,7 @@ void RenderCore::InitPipelines()
 		m_pipelines[PipelineTypeShadow].inputLayout.GetAddressOf()
 	));
 
-	blob->Release();
+	//blob->Release();
 
 
 
@@ -1384,7 +1416,7 @@ void RenderCore::InitPipelines()
 
 	// GUI pipeline (Unshaded)
 
-	m_pipelines[PipelineTypeGUI].primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	m_pipelines[PipelineTypeGUI].primitiveTopology = m_pipelines[PipelineTypeStandard].primitiveTopology;
 
 	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"PSGUI.cso", &blob));
 	EXC_COMCHECK(m_device->CreatePixelShader(
@@ -1401,29 +1433,30 @@ void RenderCore::InitPipelines()
 		nullptr,
 		&m_pipelines[PipelineTypeGUI].vertexShader
 	));
+	m_pipelines[PipelineTypeGUI].inputLayout = m_pipelines[PipelineTypeStandard].inputLayout;
 
-	D3D11_INPUT_ELEMENT_DESC inputLayoutGUI[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-	};
+	//D3D11_INPUT_ELEMENT_DESC inputLayoutGUI[] =
+	//{
+	//	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//	{ "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	//};
 
-	EXC_COMCHECK(m_device->CreateInputLayout(
-		inputLayoutGUI,
-		(uint)(sizeof(inputLayoutGUI) / sizeof(*inputLayoutGUI)),
-		blob->GetBufferPointer(),
-		blob->GetBufferSize(),
-		m_pipelines[PipelineTypeGUI].inputLayout.GetAddressOf()
-	));
+	//EXC_COMCHECK(m_device->CreateInputLayout(
+	//	inputLayoutGUI,
+	//	(uint)(sizeof(inputLayoutGUI) / sizeof(*inputLayoutGUI)),
+	//	blob->GetBufferPointer(),
+	//	blob->GetBufferSize(),
+	//	m_pipelines[PipelineTypeGUI].inputLayout.GetAddressOf()
+	//));
 
 
 
 	// Terrain Pipeline (light phong with blending)
 
-	m_pipelines[PipelineTypeTerrain].primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	m_pipelines[PipelineTypeTerrain].primitiveTopology = m_pipelines[PipelineTypeStandard].primitiveTopology;
 
 	EXC_COMCHECK( D3DReadFileToBlob( DIR_SHADERS L"PSTerrain.cso", &blob ) );
 	EXC_COMCHECK( m_device->CreatePixelShader(

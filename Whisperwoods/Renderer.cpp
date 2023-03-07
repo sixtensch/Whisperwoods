@@ -105,6 +105,11 @@ void Renderer::UnLoadEnvironment()
 	s_singleton->m_renderHandler->UnLoadEnvironment();
 }
 
+void Renderer::UpdateBitMapBind( const TextureResource* bitmap )
+{
+	s_singleton->m_renderHandler->GetCore()->UpdateBitmapInfo( bitmap );
+}
+
 void Renderer::ClearShadowRenderables()
 {
 	s_singleton->m_renderHandler->ClearShadowRenderables();

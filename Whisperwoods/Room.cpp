@@ -96,10 +96,15 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	// Registers the last added renderable as one to do shadows on
 	//Renderer::RegisterShadowRenderable();
 
+	// pass the bitmap source to use for modifiers when rendering the terrain textures
+	//m_wallsAndFloorRenderable->m_BitMap = level->resource->source;
+	Renderer::UpdateBitMapBind( level->resource->source );
+
 	m_wallsAndFloorRenderable->worldMatrix = modelOffset2;
 	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("BackgroundTrees.wwmt"));
 	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("TestSceneGround.wwmt"));
 	
+
 	
 	//GenerateRoomShadowMap();
 }

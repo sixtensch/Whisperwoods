@@ -39,6 +39,8 @@ class MeshRenderableTerrain : public WorldRenderable
 public:
 	MeshRenderableTerrain( uint id, const ModelStaticResource* model, Mat4 worldMatrix );
 
+	//const TextureResource* m_BitMap;
+
 	void Draw( const DrawInfo& drawInfo ) const override;
 	MaterialBundle& Materials();
 

@@ -96,11 +96,11 @@ void BuildRoomWWM( int subdivisions, float radius, float height, std::string nam
 			Vec4(
 				1.0f-(0.5f + (cos( angle ) * 0.5f)), // UV-X (Circle)
 				1.0f-(0.5f + (sin( angle ) * 0.5f)), // UV-Y
-				0,
+				1.0f,
 				0
 			) ) );
 	}
-	VertexTextured centerVertex( { 0,0,0 }, { 0,1,0 }, { 1,0,0 }, { 0,0,1 }, { 0.5f,0.5f,0,0 } );
+	VertexTextured centerVertex( { 0,0,0 }, { 0,1,0 }, { 1,0,0 }, { 0,0,1 }, { 0.5f,0.5f,1.0f,0 } );
 
 	// Create the faces
 	cs::List<int> indicies;

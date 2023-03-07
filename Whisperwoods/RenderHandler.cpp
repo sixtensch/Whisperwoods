@@ -46,11 +46,11 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	m_lightAmbientIntensity = 0.15f;
 
 	m_lightDirectional = make_unique<DirectionalLight>();
-	m_lightDirectional->diameter = 100.0f;
+	m_lightDirectional->diameter = 1000.0f;
 	m_lightDirectional->intensity = 0.0f;
 	m_lightDirectional->color = cs::Color3f(0xFFFFFF);
 
-	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 100.0f );
+	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 1000.0f );
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_mainCamera.Update();
 
@@ -84,7 +84,7 @@ void RenderHandler::Draw()
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	//m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
+	m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
 
 
 	// ShadowPass
@@ -101,7 +101,7 @@ void RenderHandler::Draw()
 	static std::string mainSceneProfileName = "Main Scene Draw";
 	//PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
 	PROFILE_JOB( terrainProfileName, RenderTerrain() );
-	PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_timelineState, false));
+	PROFILE_JOB( mainSceneProfileName, ExecuteDraw(m_timelineState, false) );
 	m_renderCore->UnbindRenderTexture();
 
 	// PPFX / FX
@@ -193,7 +193,7 @@ void RenderHandler::ExecuteDraw(TimelineState state, bool shadows)
        `6_ 6  )   `-.  (     ).`-.__.`)
        (_Y_.)'  ._   )  `._ `. ``-..-'
      _..`--'_..-_/  /--'_.' ,'
-    (il),-''  (li),'  ((!.-'   <(~Draw all the GUI renderables~)*/
+    (il),-''  (li),'  ((!.-'   <(~Draw all the GUI renderables~)	*/
 void RenderHandler::RenderGUI()
 {
 	for (int i = 0; i < m_guiRenderables.Size(); i++)
@@ -221,7 +221,6 @@ void RenderHandler::RenderTerrain()
 		}
 	}
 }
-
 
 void RenderHandler::ZPrepass(TimelineState state)
 {
@@ -276,6 +275,15 @@ void RenderHandler::ExecuteStaticShadowDraw()
 			m_renderCore->DrawObject(data.get(), true);
 		}
 	}
+	/*for (int i = 0; i < m_worldTerrainRenderables.Size(); i++)
+	{
+		auto data = m_worldTerrainRenderables[i];
+		if (data && data->enabled)
+		{
+			m_renderCore->UpdateObjectInfo( data.get() );
+			m_renderCore->DrawObject( data.get(), false );
+		}
+	}*/
 	DrawInstances(m_timelineState, true);
 }
 
@@ -517,7 +525,6 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 	return newRenderable;
 }
 
-
 shared_ptr<MeshRenderableTerrain> RenderHandler::CreateMeshTerrain( const string& subpath )
 {
 	Resources& resources = Resources::Get();
@@ -533,7 +540,6 @@ shared_ptr<MeshRenderableTerrain> RenderHandler::CreateMeshTerrain( const string
 	m_worldTerrainRenderables.Add( shared_ptr<MeshRenderableTerrain>(newRenderable) );
 	return newRenderable;
 }
-
 
 std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> RenderHandler::CreateMeshStaticSwappable(const string& subpathCurrent, const string& subpathFuture)
 {

@@ -35,6 +35,8 @@ public:
 
 	static void UnLoadEnvironment();
 
+	static void UpdateBitMapBind( const TextureResource* bitmap );
+
 	static void ClearShadowRenderables();
 	static void RegisterShadowRenderable();
 	static void ExecuteShadowRender();
