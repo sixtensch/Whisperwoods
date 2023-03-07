@@ -15,7 +15,7 @@ struct VSOutput
 
 void main(VSOutput input)
 {
-    //if (textureDiffuse.Sample(textureSampler, input.outUV).a < 0.1f)
-    //    discard;
+    if (textureDiffuse.Sample(textureSampler, input.outUV).a < 0.1f)
+        discard;
     return;
 }

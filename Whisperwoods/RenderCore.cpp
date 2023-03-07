@@ -1114,6 +1114,10 @@ void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing, bool discar
 		{
 			EXC_COMINFO(m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0));
 		}
+		else if (discardPipeline)
+		{
+			EXC_COMINFO(m_context->PSSetShader(m_pipelines[PipelineTypePrepass].pixelShader.Get(), nullptr, 0));
+		}
 		else
 		{
 			EXC_COMINFO(m_context->PSSetShader(nullptr, nullptr, 0));
@@ -1169,7 +1173,7 @@ void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing, bool discar
 			m_context->PSSetShader(nullptr, nullptr, 0);
 			m_shadowPSBound = true;
 		}
-		else if (!shadowing && (n.pixelShader != o.pixelShader || m_shadowPSBound))
+		else if (!shadowing /*&& (n.pixelShader != o.pixelShader || m_shadowPSBound)*/)
 		{
 			m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0);
 			m_shadowPSBound = false;
