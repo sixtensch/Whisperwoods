@@ -85,7 +85,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 				closestDistance = m_enemies[i]->GetDistance();
 			}
 		}
-		m_enemies[i]->EnemySoundUpdate(deltaTime);
+		m_enemies[i]->EnemySoundUpdate(deltaTime, Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), m_detectionLevelGlobal);
 	}
 	static float totalFovDelta = 0.0f;
 	static float initialCamFov;

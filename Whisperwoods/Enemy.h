@@ -19,7 +19,7 @@ public:
 	void AddModel(std::string modelResource, std::string animationsPath, Mat4 modelOffset);
 	bool SeesPlayer(Vec2 playerPosition, Room &room, bool inFuture);
 	void ChangeTimelineState(bool isInFuture);
-	void EnemySoundUpdate(float dTime);
+	void EnemySoundUpdate(float dTime, Vec2 playerPosition, float detectLevel);
 
 	bool enemyAlive; // A bool to know if we render/update the enemy or not in the current room
 
@@ -78,21 +78,35 @@ private:
 	//Audio
 	//****************************
 	bool m_playAmbientSounds = true;
-	bool m_ambientWait = false;
 	float m_ambientWaitTime = 0.0f;
+	int currentAction = -1;
 
-	shared_ptr<AudioSource> m_walkingSource; //use for walking sounds
-	shared_ptr<AudioSource> m_ambientCloseSource; //use for ambient and idle noises
-	shared_ptr<AudioSource> m_ambientFarSource; //use for ambient and idle noises
-	shared_ptr<AudioSource> m_actionSource; //use for more specific reactions and actions. turn, detect, loss.
+	float m_walkingVol = 0.5f;
+	unique_ptr<AudioSource> m_walkingSource; //use for walking sounds
+	float m_closeAmbientVol = 0.2f;
+	unique_ptr<AudioSource> m_ambientCloseSource; //use for ambient and idle noises
+	float m_farAmbientVol = 0.8f;
+	unique_ptr<AudioSource> m_ambientFarSource; //use for ambient and idle noises
+	float m_actionVol = 1.0;
+	unique_ptr<AudioSource> m_actionSource; //use for more specific reactions and actions. turn, detect, loss.
+	float m_futureVol = 0.2f;
+	unique_ptr<AudioSource> m_futureSource; //Use for future sound
+	float m_screamVol = 2.0f;
+	unique_ptr<AudioSource> m_screamSource; //Use for scream sound
+	float m_detectedVol = 1.5f;
+	unique_ptr<AudioSource> m_detectedSource; //Use for detection sound
 
 	FMOD::Sound* m_crabClick;
 	FMOD::Sound* m_softerIdle;
+	FMOD::Sound* m_varyingClicks;
 	FMOD::Sound* m_chirpsLow;
 	FMOD::Sound* m_chirps;
+	FMOD::Sound* m_chirpsLouder;
 	FMOD::Sound* m_smallScreetch;
 	FMOD::Sound* m_megatron;
 	FMOD::Sound* m_theHorror;
 	//****************************
+
+	shared_ptr<cs::Random> m_randGen;
 };
 

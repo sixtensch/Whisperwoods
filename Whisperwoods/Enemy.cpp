@@ -6,6 +6,7 @@
 #include "Resources.h"
 #include "SoundResource.h"
 #include "AudioSource.h"
+#include "Sound.h"
 
 Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOffset)
 {
@@ -69,27 +70,47 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 
 	m_crabClick = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "CrabClick.mp3"))->currentSound;
 	m_softerIdle = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "SofterIdle.mp3"))->currentSound;
+	m_varyingClicks = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "VaryingClicks.mp3"))->currentSound;
 	m_chirpsLow = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "ChirpsLow.mp3"))->currentSound;
 	m_chirps = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Chirps.mp3"))->currentSound;
+	m_chirpsLouder = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "ChirpsLouder.mp3"))->currentSound;
 	m_smallScreetch = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "SmallScreetch.mp3"))->currentSound;
 	m_megatron = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Megatron.mp3"))->currentSound;
 	m_theHorror = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "TheHorror.mp3"))->currentSound;
 
-	m_walkingSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.0f, 0.0f, 10.0f, nullptr);
+	m_walkingSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_walkingVol, 1.0f, 0.0f, 10.0f, nullptr);
 	this->AddChild((GameObject*) m_walkingSource.get());
 	
-	m_ambientCloseSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f, 0.0f, 6.0f, m_megatron);
+	m_ambientCloseSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_closeAmbientVol, 1.0f, 0.0f, 7.0f, m_crabClick);
 	this->AddChild((GameObject*) m_ambientCloseSource.get());
 	
-	m_ambientFarSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.5f, 1.0f, 0.0f, 15.0f, m_chirps);
+	m_ambientFarSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_farAmbientVol, 1.0f, 0.0f, 8.0f, nullptr);
 	this->AddChild((GameObject*)m_ambientFarSource.get());
 
-	m_actionSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.0f, 0.0f, 10.0f, nullptr);
+	m_actionSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_actionVol, 1.0f, 0.0f, 8.0f, nullptr);
 	this->AddChild((GameObject*) m_actionSource.get());
+
+	m_futureSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 5.0f, 7.0f, m_softerIdle);
+	this->AddChild((GameObject*)m_futureSource.get());
+
+	m_screamSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 5.0f, 20.0f, m_smallScreetch);
+	this->AddChild((GameObject*)m_screamSource.get());
+
+	m_detectedSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 5.0f, 20.0f, m_theHorror);
+	this->AddChild((GameObject*)m_detectedSource.get());
+
+	m_randGen = make_shared<cs::Random>(42);
 }
 
 Enemy::~Enemy()
 {
+	m_walkingSource->Stop();
+	m_ambientCloseSource->Stop();
+	m_ambientFarSource->Stop();
+	m_actionSource->Stop();
+	m_futureSource->Stop();
+	m_screamSource->Stop();
+	m_detectedSource->Stop();
 }
 
 
@@ -368,6 +389,13 @@ void Enemy::EmptyPatrolPath()
 {
 	m_patrolPath.clear();
 	enemyAlive = false;
+	m_walkingSource->Stop();
+	m_ambientCloseSource->Stop();
+	m_ambientFarSource->Stop();
+	m_actionSource->Stop();
+	m_futureSource->Stop();
+	m_screamSource->Stop();
+	m_detectedSource->Stop();
 }
 
 void Enemy::AddModel(std::string modelResource, std::string animationsPath, Mat4 modelOffset)
@@ -587,12 +615,15 @@ void Enemy::ChangeTimelineState(bool isInFuture)
 	{
 		m_carcinian->enabled = false;
 		m_seesPlayer = false;
-		/* 
-		if(sound is playing)
-		{
-			Stop playing sound
-		}
-		*/
+		
+		//m_futureSource->SetVolume(m_futureVol);
+		m_walkingSource->SetVolume(0.0f);
+		m_ambientCloseSource->SetVolume(0.0f);
+		m_ambientFarSource->SetVolume(0.0f);
+		m_actionSource->SetVolume(0.0f);
+		m_screamSource->SetVolume(0.0f);
+		m_detectedSource->SetVolume(0.0f);
+
 		if (m_characterAnimator->IsPlaying(1)) //is the detected animation running?
 		{
 			if (m_timeToGivePlayerAChanceToRunAway >= m_amountOfTimeToRunAway) // has the player been given the time to run away?
@@ -620,6 +651,11 @@ void Enemy::ChangeTimelineState(bool isInFuture)
 	else
 	{
 		m_carcinian->enabled = true;
+
+		m_futureSource->SetVolume(0.0f);
+		m_walkingSource->SetVolume(m_walkingVol);
+		m_ambientFarSource->SetVolume(m_farAmbientVol);
+		m_actionSource->SetVolume(m_actionVol);
 	}
 }
 
@@ -648,40 +684,147 @@ float Enemy::GetMaxDistance() const
 	return m_enemyViewDistance;
 }
 
-void Enemy::EnemySoundUpdate(float dTime)
+void Enemy::EnemySoundUpdate(float dTime, Vec2 playerPosition, float detectLevel)
 {
+	//direction vector from enemy position to player position
+	Vec2 playerDirection(playerPosition.x - transform.worldPosition.x, playerPosition.y - transform.worldPosition.z);
+
+	float distance = std::abs(playerDirection.Length()); //distance from enemy to player
+
+	//Volume update
+	if (m_carcinian->enabled)
+	{
+		m_ambientCloseSource->SetVolume(m_closeAmbientVol / (distance + 1.0f));
+		m_screamSource->SetVolume(m_screamVol / (distance * 2 + 1.0f));
+		m_detectedSource->SetVolume(m_detectedVol * detectLevel * m_seesPlayer);
+		m_detectedSource->SetPitch(1.0f + 2.0f * detectLevel);
+	}
+	else 
+	{
+		m_futureSource->SetVolume(m_futureVol / (distance + 1.0f));
+	}
+
+	//future sounds
+	if (!m_futureSource->IsPlaying())
+	{
+		m_futureSource->Play();
+	}
+
 	//Ambient sounds
 	if (m_playAmbientSounds)
 	{
 		if (!m_ambientCloseSource->IsPlaying())
 		{
+			m_ambientCloseSource->Play();
+		}
 
+		if (!m_ambientFarSource->IsPlaying())
+		{
+			if (m_ambientWaitTime > 0)
+			{
+				m_ambientWaitTime -= dTime;
+			}
+			else
+			{
+				m_ambientWaitTime = m_randGen->Getf(0.0f, 5.0f);
+				
+				switch (m_randGen->Get(5))
+				{
+					case 0:
+						m_ambientFarSource->SetSound(m_megatron);
+						break;
+					case 1:
+						m_ambientFarSource->SetSound(m_chirps);
+						break;
+					case 2:
+						m_ambientFarSource->SetSound(m_varyingClicks);
+						break;
+					default:
+						m_ambientFarSource->SetSound(m_chirpsLow);
+						break;
+				}
+				m_ambientFarSource->SetPitch(m_randGen->Getf(0.8f, 1.8f));
+
+				m_ambientFarSource->Play();
+			}
 		}
 	}
-
-
-	if (m_characterAnimator->IsPlaying(0)) //run/walk animation
+	else
 	{
-		
+		if (m_ambientCloseSource->IsPlaying())
+			m_ambientCloseSource->Stop();
+		if (m_ambientCloseSource->IsPlaying())
+			m_ambientCloseSource->Stop();
 	}
-	else if (m_characterAnimator->IsPlaying(1)) //detectStart animation
-	{
 
+	//Detection sounds
+	if (!m_detectedSource->IsPlaying())
+	{
+		m_detectedSource->Play();
+	}
+
+	//Action Sounds
+	int newAction = -1;
+	
+	if (m_characterAnimator->IsPlaying(1)) //detectStart animation
+	{
+		newAction = 0;
 	}
 	else if (m_characterAnimator->IsPlaying(4)) //detectCycle animation
 	{
-
+		//newAction = 1;
 	}
 	else if (m_characterAnimator->IsPlaying(5)) //detectEnd animation
 	{
-
-	}
-	else if (m_characterAnimator->IsPlaying(2))  //idle animation
-	{
-		
+		newAction = 2;
 	}
 	else if (m_characterAnimator->IsPlaying(3)) //180 degree turn animation
 	{
+		newAction = 3;
+	}
+
+	if (currentAction != newAction)
+	{
+		if (newAction == -1)
+		{
+			m_playAmbientSounds = true;
+		}
+		else
+		{
+			m_ambientCloseSource->Stop();
+			m_ambientFarSource->Stop();
+			m_playAmbientSounds = false;
+
+			switch (newAction)
+			{
+			case 0://detectStart animation
+				m_screamSource->SetPitch(1.0);
+				m_screamSource->Play();
+				break;
+
+			case 1://detectCycle animation
+				
+				break;
+
+			case 2://detectEnd animation
+				m_actionSource->SetSound(m_chirpsLouder);
+				m_actionSource->SetPitch(1.8);
+				m_actionSource->Play();
+				break;
+
+			case 3://180 degree turn animation
+				m_actionSource->SetSound(m_chirpsLouder);
+				m_actionSource->SetPitch(1.0);
+				m_actionSource->Play();
+				break;
+			}
+		}
 		
+		currentAction = newAction;
+	}
+
+	if (m_characterAnimator->IsPlaying(0)) //run/walk animation
+	{
+
 	}
 }
