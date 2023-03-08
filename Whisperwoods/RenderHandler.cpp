@@ -98,7 +98,7 @@ void RenderHandler::Draw()
 
 	static std::string zPrepassProfileName = "Z Prepass Draw";
 	static std::string mainSceneProfileName = "Main Scene Draw";
-	//PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
+	PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
 	PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_timelineState, false));
 	m_renderCore->UnbindRenderTexture();
 
@@ -177,13 +177,13 @@ void RenderHandler::ExecuteDraw(TimelineState state, bool shadows)
 		if ( data && data->enabled )
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), shadows);
+			m_renderCore->DrawObject(data.get(), shadows, false);
 		}
 	}
 
 	if (!shadows)
 	{
-		DrawInstances(state, false);
+		DrawInstances(state, false, false);
 	}
 }
 
@@ -201,7 +201,7 @@ void RenderHandler::RenderGUI()
 		{
 			m_renderCore->UpdateGUIInfo(data.get()->m_elementRef);
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), false);
+			m_renderCore->DrawObject(data.get(), false, false);
 		}
 	}
 }
@@ -213,7 +213,7 @@ void RenderHandler::ZPrepass(TimelineState state)
 	m_renderCore->TargetPrepass();
 
 	// Draw to the prepass
-	DrawInstances(state, true);
+	DrawInstances(state, true, true);
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
 		shared_ptr<WorldRenderable> data = {};
@@ -230,7 +230,7 @@ void RenderHandler::ZPrepass(TimelineState state)
 		if ( data && data->enabled )
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), true);
+			m_renderCore->DrawObject(data.get(), true, true);
 		}
 	}
 }
@@ -257,10 +257,10 @@ void RenderHandler::ExecuteStaticShadowDraw()
 		if (data && data->enabled)
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), true);
+			m_renderCore->DrawObject(data.get(), true, false);
 		}
 	}
-	DrawInstances(m_timelineState, true);
+	DrawInstances(m_timelineState, true, false);
 }
 
 RenderCore* RenderHandler::GetCore() const
@@ -656,9 +656,9 @@ void RenderHandler::QuadCull(const Camera& camPOV)
 	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 5);
 }
 
-void RenderHandler::DrawInstances(uint state, bool shadows)
+void RenderHandler::DrawInstances(uint state, bool shadows, bool discardPipeline)
 {
-	m_renderCore->BindInstancedPipeline(shadows);
+	m_renderCore->BindInstancedPipeline(shadows, discardPipeline);
 
 	m_envInstances.Clear(false);
 
