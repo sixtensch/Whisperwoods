@@ -74,7 +74,8 @@ private:
 	void UnloadRoom();
 	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
-	
+
+	void SoundUpdate(float deltaTime);
 
 public:
 	std::unique_ptr<LevelHandler>	m_levelHandler;
@@ -83,6 +84,14 @@ private:
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
+
+	float m_musicVol = 0.3;
+	shared_ptr<AudioSource> m_musicPresent;
+	shared_ptr<AudioSource> m_musicFuture;
+	shared_ptr<AudioSource> m_musicDetected;
+
+	float m_hornVol = 1.0f;
+	shared_ptr<AudioSource> m_enemyHorn;
 
 	cs::List<shared_ptr<MeshRenderableStatic>> m_testRenderables;
 	cs::List<MaterialResource> m_testMaterials;
@@ -137,7 +146,7 @@ private:
 	const float m_timeBeforeDetectionLowers = 4.0f; //in seconds
 	float m_timeUnseen = 0.0f; // for determining when to derease global detection
 	float m_dangerousTimeInFuture = 0.0f;// time in seconds
-	const float m_timeYouSurviveInFuture = 1.5f;// time in seconds
+	const float m_timeYouSurviveInFuture = 2.0f;// time in seconds
 	const float m_timeAbilityCooldown = 3.0f; // time in seconds
 	float m_coolDownCounter; 
 

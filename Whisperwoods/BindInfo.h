@@ -14,8 +14,8 @@ enum RegSampler : char
 	RegSamplerSystem0 = 6,
 	RegSamplerSystem1 = 7,
 	RegSamplerSystem2 = 8,
-	RegSamplerSystem3 = 9,
 
+	RegSamplerBloom = 9,
 	RegSamplerStandard = 10,
 	RegSamplerPoint = 11,
 	RegSamplerShadow = 12,

@@ -27,10 +27,11 @@ public:
 	const LevelResource* m_levelResource;
 
 	Room() = default;
-	~Room();
 
 	Room(const Level* level, std::string modelResource, Mat4 modelOffset);
 	Room( const Level* level, std::string modelResource, std::string modelResource2, Mat4 modelOffset, Mat4 modelOffset2 );
+
+	~Room();
 
 	void GenerateRoomShadowMap();
 
@@ -44,6 +45,10 @@ public:
 	LevelPixel sampleBitMap(Vec3 worldPos);
 	Vec2 sampleBitMapCollision(Vec3 worldPos);
 
+	void SetTimeline(bool isFuture);
+
 private:
 	MaterialResource m_material;
+	
+	float m_ambienceVol = 0.2f;
 };
