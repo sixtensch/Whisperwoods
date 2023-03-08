@@ -98,7 +98,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//cs::List<int> rectIndicies = { 0,1,2,3,2,1 };
 	//BuildWWM(rectVerts, rectIndicies, "ui_rect");
 
-	BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
+	//BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
 
 
 	m_sound = std::make_unique<Sound>();
