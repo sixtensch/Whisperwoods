@@ -85,41 +85,46 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		m_dangerousTimeInFuture = 0.0f;
 	}
 
-	// Detection logic
-	if (m_isSeen)
-	{
-		m_timeUnseen = 0.0f;
-		if (IsDetected( m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance() ))
-		{
-			if (m_isSwitching)
-			{
-				m_switchVals.timeSinceSwitch = 2.0f;
-				m_isInFuture = true;
-				renderer->GetCamera().SetFov( m_initialCamFov );
-				ChangeTimeline( renderer );
-				m_switchVals.timeSinceSwitch = 0.0f;
-				m_isSwitching = false;
-				m_totalFovDelta = 0.0f;
-			}
 
-			// D E A T H
-			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
-			//m_coolDownCounter = m_timeAbilityCooldown;
-			m_player->ResetStaminaToMax( m_maxStamina );
-			UnLoadPrevious();
-			LoadHubby();
-			m_player->ReloadPlayer();
-			m_isSeen = false;
-			m_detectionLevelGlobal = 0.0f;
-			m_detectionLevelFloor = 0.0f;
-		}
-	}
-	else
+	if (!m_enemies.Empty())
 	{
-		m_timeUnseen += m_deltaTime;
-		if (m_timeUnseen > m_timeBeforeDetectionLowers)
+		// Detection logic
+		if (m_isSeen)
 		{
-			LowerToFloor( m_deltaTime );
+			m_timeUnseen = 0.0f;
+
+			if (IsDetected(m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance()))
+			{
+				if (m_isSwitching)
+				{
+					m_switchVals.timeSinceSwitch = 2.0f;
+					m_isInFuture = true;
+					renderer->GetCamera().SetFov(m_initialCamFov);
+					ChangeTimeline(renderer);
+					m_switchVals.timeSinceSwitch = 0.0f;
+					m_isSwitching = false;
+					m_totalFovDelta = 0.0f;
+				}
+
+				// D E A T H
+				m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+				//m_coolDownCounter = m_timeAbilityCooldown;
+				m_player->ResetStaminaToMax(m_maxStamina);
+				UnLoadPrevious();
+				LoadHubby();
+				m_player->ReloadPlayer();
+				m_isSeen = false;
+				m_detectionLevelGlobal = 0.0f;
+				m_detectionLevelFloor = 0.0f;
+			}
+		}
+		else
+		{
+			m_timeUnseen += m_deltaTime;
+			if (m_timeUnseen > m_timeBeforeDetectionLowers)
+			{
+				LowerToFloor(m_deltaTime);
+			}
 		}
 	}
 }
@@ -238,6 +243,10 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			UnLoadPrevious();
 			LoadHubby();
 			m_player->ReloadPlayer();
+			m_detectionLevelGlobal = 0.0f;
+			m_detectionLevelFloor = 0.0f;
+			m_coolDownCounter = m_timeAbilityCooldown;
+			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
 		}
 	}
 	else // If in hubby
