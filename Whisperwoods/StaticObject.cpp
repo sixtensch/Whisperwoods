@@ -15,7 +15,7 @@ StaticObject::StaticObject( std::string modelResource, Mat4 modelOffset, std::ve
 	// Add all materials
 	for (int i = 0; i < materials.size(); i++)
 	{
-		m_renderable->Materials().AddMaterial( (const MaterialResource*)resources.GetResource( ResourceTypeMaterial, materials[i]));
+		m_renderable->Materials().AddMaterial(resources.GetMaterial(materials[i]));
 	}
 }
 

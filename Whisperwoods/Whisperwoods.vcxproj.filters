@@ -43,9 +43,6 @@
     <Filter Include="%2a Code\%2a Game\Map">
       <UniqueIdentifier>{74fa2f17-66c4-4b9a-9248-5da00a47cdc7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="%2a Code\%2a Game\Generator">
-      <UniqueIdentifier>{c9e90a6d-543e-40b0-aed3-fd1c7412adc1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="%2a Code\%2a World\Room">
       <UniqueIdentifier>{dcd16cdc-8669-4a70-8190-545dd54ef225}</UniqueIdentifier>
     </Filter>
@@ -115,9 +112,6 @@
     <Filter Include="%2a Code\%2a Resources\Resources">
       <UniqueIdentifier>{2242c8bc-6a37-4b5f-a78f-166296bf515f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="%2a Code\%2a Rendering\GUI">
-      <UniqueIdentifier>{c199de11-7adc-4e1a-bd34-7c3fd0652133}</UniqueIdentifier>
-    </Filter>
     <Filter Include="%2a Code\%2a Rendering\Constant Buffer Data">
       <UniqueIdentifier>{a9ab767a-3639-45f2-a00b-7e056fbec52f}</UniqueIdentifier>
     </Filter>
@@ -183,6 +177,33 @@
     </Filter>
     <Filter Include="%2a Code\%2a Rendering\%2a Renderable\TextRenderable">
       <UniqueIdentifier>{01597589-9265-4c96-8769-765a7e651d5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\DebugGUI">
+      <UniqueIdentifier>{c199de11-7adc-4e1a-bd34-7c3fd0652133}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\GUI">
+      <UniqueIdentifier>{c6f4c092-957f-4628-96fb-56ce22cac738}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Rendering\%2a Renderable\GUIRenderable">
+      <UniqueIdentifier>{28b5bf79-e6e2-4755-8a03-bd804f07f62d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Cinematics">
+      <UniqueIdentifier>{0b50201d-1baf-48da-add6-86bc7382f14a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Cinematics\Cutscene">
+      <UniqueIdentifier>{eb2cc325-7358-4d35-822a-a1733d704a9e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Cinematics\CutsceneController">
+      <UniqueIdentifier>{fc6b0a53-aab0-42c9-b9b2-ab9bf30d76f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Cinematics\CutsceneKey">
+      <UniqueIdentifier>{1416c2fb-b78f-4250-8047-f60e18008e4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Game\Game\Generator">
+      <UniqueIdentifier>{c9e90a6d-543e-40b0-aed3-fd1c7412adc1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Cinematics\CutsceneChannel">
+      <UniqueIdentifier>{c00771fa-194b-436d-8291-50a9b9b1863f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -255,8 +276,8 @@
     <ClCompile Include="Resources.cpp">
       <Filter>%2a Code\%2a Resources\Resources</Filter>
     </ClCompile>
-    <ClCompile Include="GUI.cpp">
-      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    <ClCompile Include="DebugGUI.cpp">
+      <Filter>%2a Code\%2a Rendering\DebugGUI</Filter>
     </ClCompile>
     <ClCompile Include="MeshRenderable.cpp">
       <Filter>%2a Code\%2a Rendering\%2a Renderable\MeshRenderable</Filter>
@@ -304,6 +325,36 @@
       <Filter>%2a Code\%2a World\Room</Filter>
     </ClCompile>
     <ClCompile Include="LevelHandler.cpp" />
+    <ClCompile Include="EssenceBloom.cpp" />
+    <ClCompile Include="Pickup.cpp" />
+    <ClCompile Include="GUI.cpp">
+      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIRenderable.cpp">
+      <Filter>%2a Code\%2a Rendering\%2a Renderable\GUIRenderable</Filter>
+    </ClCompile>
+    <ClCompile Include="GUIElement.cpp">
+      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="GPUProfiler.cpp" />
+    <ClCompile Include="Cutscene.cpp">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\Cutscene</Filter>
+    </ClCompile>
+    <ClCompile Include="CutsceneController.cpp">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneController</Filter>
+    </ClCompile>
+    <ClCompile Include="CutsceneKey.cpp">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneKey</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_neo_sequencer.cpp">
+      <Filter>%2a Code\%2a Core\%2a Cinematics</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_neo_internal.cpp">
+      <Filter>%2a Code\%2a Core\%2a Cinematics</Filter>
+    </ClCompile>
+    <ClCompile Include="CutsceneChannel.cpp">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneChannel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core.h">
@@ -400,8 +451,8 @@
     <ClInclude Include="Resources.h">
       <Filter>%2a Code\%2a Resources\Resources</Filter>
     </ClInclude>
-    <ClInclude Include="GUI.h">
-      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    <ClInclude Include="DebugGUI.h">
+      <Filter>%2a Code\%2a Rendering\DebugGUI</Filter>
     </ClInclude>
     <ClInclude Include="ConstantbufferData.h">
       <Filter>%2a Code\%2a Rendering\Constant Buffer Data</Filter>
@@ -466,6 +517,30 @@
     </ClInclude>
     <ClInclude Include="Level.h" />
     <ClInclude Include="LevelHandler.h" />
+    <ClInclude Include="EssenceBloom.h" />
+    <ClInclude Include="Pickup.h" />
+    <ClInclude Include="GUI.h">
+      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIRenderable.h">
+      <Filter>%2a Code\%2a Rendering\%2a Renderable\GUIRenderable</Filter>
+    </ClInclude>
+    <ClInclude Include="GUIElement.h">
+      <Filter>%2a Code\%2a Rendering\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="GPUProfiler.h" />
+    <ClInclude Include="Cutscene.h">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\Cutscene</Filter>
+    </ClInclude>
+    <ClInclude Include="CutsceneController.h">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneController</Filter>
+    </ClInclude>
+    <ClInclude Include="CutsceneKey.h">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneKey</Filter>
+    </ClInclude>
+    <ClInclude Include="CutsceneChannel.h">
+      <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneChannel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VSMesh.hlsl">
@@ -495,6 +570,18 @@
     <FxCompile Include="CSPositionalEffectPass.hlsl">
       <Filter>%2a Code\%2a Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="PSGUI.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="VSGUI.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PSTerrain.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PSShadow.hlsl">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Constants.hlsli">
@@ -511,6 +598,9 @@
       <Filter>%2a Code\%2a Shaders</Filter>
     </None>
     <None Include="FogFuncs.hlsli">
+      <Filter>%2a Code\%2a Shaders</Filter>
+    </None>
+    <None Include="PhongAlgLite.hlsli">
       <Filter>%2a Code\%2a Shaders</Filter>
     </None>
   </ItemGroup>

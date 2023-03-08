@@ -21,12 +21,14 @@ public:
 	// Might have to move
 	Mat4 m_wallsFloorOffset;
 	ModelStaticResource* m_roomWallsAndFloor;
-	shared_ptr<MeshRenderableStatic> m_wallsAndFloorRenderable;
+	shared_ptr<MeshRenderableTerrain> m_wallsAndFloorRenderable;
 
 	const Level* m_level;
 	const LevelResource* m_levelResource;
 
 	Room() = default;
+	~Room();
+
 	Room(const Level* level, std::string modelResource, Mat4 modelOffset);
 	Room( const Level* level, std::string modelResource, std::string modelResource2, Mat4 modelOffset, Mat4 modelOffset2 );
 
@@ -36,7 +38,7 @@ public:
 
 	void Update(float deltaTime) override;
 
-	cs::List<GameObject*> traverseAndGenerateHiearchy;
+	//cs::List<GameObject*> traverseAndGenerateHiearchy;
 
 	Vec3 bitMapToWorldPos(Point2 samplePoint);
 	Vec2 GetNineSampleVector(Point2 point);

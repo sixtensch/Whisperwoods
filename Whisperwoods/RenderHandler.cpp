@@ -46,11 +46,11 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	m_lightAmbientIntensity = 0.15f;
 
 	m_lightDirectional = make_unique<DirectionalLight>();
-	m_lightDirectional->diameter = 100.0f;
+	m_lightDirectional->diameter = 1000.0f;
 	m_lightDirectional->intensity = 0.0f;
 	m_lightDirectional->color = cs::Color3f(0xFFFFFF);
 
-	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 100.0f );
+	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 1000.0f );
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_mainCamera.Update();
 
@@ -65,6 +65,7 @@ void RenderHandler::LoadLevel(LevelResource* level, string image)
 void RenderHandler::Draw()
 {
 	m_renderCore->NewFrame();
+	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_renderCore->UpdateViewInfo(m_mainCamera);
@@ -83,17 +84,26 @@ void RenderHandler::Draw()
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	//m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
+	m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
 
 
 	// ShadowPass
+	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
 	static std::string shadowPassProfileName = "Shadow Pass";
-	PROFILE_JOB(shadowPassProfileName, ExecuteDraw(m_lightDirectional->camera, m_timelineState, true));
+	PROFILE_JOB(shadowPassProfileName, ExecuteDraw(m_timelineState, true));
 
 	// Main scene rendering
+	m_renderCore->UpdateViewInfo(m_mainCamera);
+	QuadCull(m_mainCamera);
 
-	static std::string mainSceneProfileName = "Main Scene";
-	PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_mainCamera, m_timelineState, false));
+	static std::string zPrepassProfileName = "Z Prepass Draw";
+	static std::string terrainProfileName = "Terrain Draw";
+	static std::string mainSceneProfileName = "Main Scene Draw";
+	PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
+	//PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_timelineState, false));
+	//PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
+	PROFILE_JOB( terrainProfileName, RenderTerrain() );
+	PROFILE_JOB( mainSceneProfileName, ExecuteDraw(m_timelineState, false) );
 	m_renderCore->UnbindRenderTexture();
 
 	// PPFX / FX
@@ -110,16 +120,17 @@ void RenderHandler::Draw()
 	}
 	
 	// Render text
-	{
-		
+	{	
 		// TODO: Move binding back buffer to OM here instead of it being at the end of DrawToBackBuffer().
-
 		for (int i = 0; i < m_texts.Size(); i++)
 		{
 			m_renderCore->DrawText(m_texts[i].get()->GetFontPos(), m_texts[i].get()->GetText(), m_texts[i].get()->GetFont(), m_texts[i].get()->GetColor(), m_texts[i].get()->GetOrigin());
 		}
 	}
 	
+	// Draw GUI
+	static std::string guiDrawProfileName = "GUI Draw calls";
+	PROFILE_JOB(guiDrawProfileName, RenderGUI());
 }
 
 void RenderHandler::UpdateGPUProfiler()
@@ -132,10 +143,8 @@ void RenderHandler::Present()
 	m_renderCore->EndFrame();
 }
 
-void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows)
+void RenderHandler::ExecuteDraw(TimelineState state, bool shadows)
 {
-	m_renderCore->UpdateViewInfo(povCamera);
-	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 	if ( !shadows )
 	{
 		m_renderCore->TargetRenderTexture();
@@ -172,19 +181,80 @@ void RenderHandler::ExecuteDraw(const Camera& povCamera, TimelineState state, bo
 		if ( data && data->enabled )
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), shadows);
+			m_renderCore->DrawObject(data.get(), shadows, false);
 		}
 	}
 
 	if (!shadows)
 	{
-		static std::string instancesDrawProfileName = "Draw Instances";
-		PROFILE_JOB(instancesDrawProfileName, DrawInstances(state, false));
+		DrawInstances(state, false, false);
+	}
+}
+
+/*    ("`-''-/").___..--''"`-._
+       `6_ 6  )   `-.  (     ).`-.__.`)
+       (_Y_.)'  ._   )  `._ `. ``-..-'
+     _..`--'_..-_/  /--'_.' ,'
+    (il),-''  (li),'  ((!.-'   <(~Draw all the GUI renderables~)	*/
+void RenderHandler::RenderGUI()
+{
+	for (int i = 0; i < m_guiRenderables.Size(); i++)
+	{
+		auto data = m_guiRenderables[i];
+		if (data && data->enabled)
+		{
+			m_renderCore->UpdateGUIInfo(data.get()->m_elementRef);
+			m_renderCore->UpdateObjectInfo(data.get());
+			m_renderCore->DrawObject(data.get(), false, false);
+		}
+	}
+}
+
+void RenderHandler::RenderTerrain()
+{
+	m_renderCore->TargetRenderTexture();
+	for (int i = 0; i < m_worldTerrainRenderables.Size(); i++)
+	{
+		auto data = m_worldTerrainRenderables[i];
+		if (data && data->enabled)
+		{
+			m_renderCore->UpdateObjectInfo( data.get() );
+			m_renderCore->DrawObject( data.get(), false, false );
+		}
+	}
+}
+
+void RenderHandler::ZPrepass(TimelineState state)
+{
+	// Setup
+	m_renderCore->TargetPrepass();
+
+	// Draw to the prepass
+	DrawInstances(state, true, true);
+	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
+	{
+		shared_ptr<WorldRenderable> data = {};
+		switch ( state )
+		{
+			case TimelineStateCurrent:
+				data = m_worldRenderables[i].first;
+				break;
+
+			case TimelineStateFuture:
+				data = m_worldRenderables[i].second;
+				break;
+		}
+		if ( data && data->enabled )
+		{
+			m_renderCore->UpdateObjectInfo(data.get());
+			m_renderCore->DrawObject(data.get(), true, true);
+		}
 	}
 }
 
 void RenderHandler::ExecuteStaticShadowDraw()
 {
+	QuadCull(m_mainCamera);
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
 	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 	m_renderCore->TargetStaticShadowMap();
@@ -204,10 +274,19 @@ void RenderHandler::ExecuteStaticShadowDraw()
 		if (data && data->enabled)
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), true);
+			m_renderCore->DrawObject(data.get(), true, false);
 		}
 	}
-	DrawInstances(m_timelineState, true);
+	/*for (int i = 0; i < m_worldTerrainRenderables.Size(); i++)
+	{
+		auto data = m_worldTerrainRenderables[i];
+		if (data && data->enabled)
+		{
+			m_renderCore->UpdateObjectInfo( data.get() );
+			m_renderCore->DrawObject( data.get(), false );
+		}
+	}*/
+	DrawInstances(m_timelineState, true, false);
 }
 
 RenderCore* RenderHandler::GetCore() const
@@ -240,8 +319,9 @@ void RenderHandler::SetupEnvironmentAssets()
 	{
 		models[asset].asset = asset;
 
-		models[asset].models[0] = (const ModelStaticResource*)Resources::Get().GetResource(ResourceTypeModelStatic, normal);
-		models[asset].models[1] = (const ModelStaticResource*)Resources::Get().GetResource(ResourceTypeModelStatic, future);
+		Resources& resources = Resources::Get();
+		models[asset].models[0] = resources.GetModelStatic(normal);
+		models[asset].models[1] = resources.GetModelStatic(future);
 
 		for (int i = 0; i < normalMaterials.Size(); i++)	models[asset].materials[0].Add(normalMaterials[i]);
 		for (int i = 0; i < futureMaterials.Size(); i++)	models[asset].materials[1].Add(futureMaterials[i]);
@@ -361,7 +441,7 @@ void RenderHandler::SetupEnvironmentAssets()
 					envMaterials.Add(
 						{
 							materialName,
-							(const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, materialName),
+							Resources::Get().GetMaterial(materialName),
 							{}
 						});
 
@@ -428,13 +508,14 @@ void RenderHandler::UnLoadEnvironment()
 		m_envMeshes[i].hotInstances.Clear( false );
 	}
 	m_worldRenderables.Clear();
+	m_worldTerrainRenderables.Clear();
 }
 
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
 {
 	Resources& resources = Resources::Get();
 
-	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpath));
+	const ModelStaticResource* model = resources.GetModelStatic(subpath);
 
 	const shared_ptr<MeshRenderableStatic> newRenderable = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter++,
@@ -446,16 +527,32 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 	return newRenderable;
 }
 
+shared_ptr<MeshRenderableTerrain> RenderHandler::CreateMeshTerrain( const string& subpath )
+{
+	Resources& resources = Resources::Get();
+
+	const ModelStaticResource* model = resources.GetModelStatic( subpath );
+
+	const shared_ptr<MeshRenderableTerrain> newRenderable = make_shared<MeshRenderableTerrain>(
+		m_renderableIDCounter++,
+		model,
+		cs::Mat4()
+		);
+	//m_worldRenderables.Add( { (shared_ptr<WorldRenderable>)newRenderable, (shared_ptr<WorldRenderable>)newRenderable } );
+	m_worldTerrainRenderables.Add( shared_ptr<MeshRenderableTerrain>(newRenderable) );
+	return newRenderable;
+}
+
 std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> RenderHandler::CreateMeshStaticSwappable(const string& subpathCurrent, const string& subpathFuture)
 {
 	Resources& resources = Resources::Get();
-	const ModelStaticResource* model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpathCurrent));
+	const ModelStaticResource* model = resources.GetModelStatic(subpathCurrent);
 	shared_ptr<MeshRenderableStatic> renderableCurrent = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter,
 		model,
 		cs::Mat4()
 	);
-	model = static_cast<const ModelStaticResource*>(resources.GetResource(ResourceTypeModelStatic, subpathFuture));
+	model = resources.GetModelStatic(subpathFuture);
 	shared_ptr<MeshRenderableStatic> renderableFuture = make_shared<MeshRenderableStatic>(
 		m_renderableIDCounter++,
 		model,
@@ -472,7 +569,7 @@ shared_ptr<MeshRenderableRigged> RenderHandler::CreateMeshRigged(const string& s
 {
 	Resources& resources = Resources::Get();
 
-	const ModelRiggedResource* model = static_cast<const ModelRiggedResource*>(resources.GetResource(ResourceTypeModelRigged, subpath));
+	const ModelRiggedResource* model = resources.GetModelRigged(subpath);
 
 	shared_ptr<MeshRenderableRigged> newRenderable = make_shared<MeshRenderableRigged>(
 		m_renderableIDCounter++,
@@ -488,6 +585,36 @@ shared_ptr<TextRenderable> RenderHandler::CreateTextRenderable(const wchar_t* te
 	shared_ptr<TextRenderable> newRenderable = make_shared<TextRenderable>(text, fontPos, font, color, origin);
 	m_texts.Add((shared_ptr<TextRenderable>)newRenderable);
 	return newRenderable;
+}
+
+
+// Same as static, just different :P, useful for adding things later.
+shared_ptr<GUIRenderable> RenderHandler::CreateGUIRenderable(const string& subpath)
+{
+	Resources& resources = Resources::Get();
+
+	const ModelStaticResource* model = resources.GetModelStatic(subpath);
+
+	const shared_ptr<GUIRenderable> newRenderable = make_shared<GUIRenderable>(
+		m_renderableIDCounter++,
+		model,
+		cs::Mat4()
+		);
+	m_guiRenderables.Add(newRenderable);
+
+	return newRenderable;
+}
+
+void RenderHandler::DestroyMeshStatic(shared_ptr<MeshRenderableStatic> renderable)
+{
+	for (int i = 0; i < m_worldRenderables.Size(); i++)
+	{
+		if (m_worldRenderables[i].first == renderable)
+		{
+			m_worldRenderables.Remove(i);
+			return;
+		}
+	}
 }
 
 void RenderHandler::SetTimelineStateCurrent()
@@ -542,23 +669,18 @@ void RenderHandler::RegisterLastRenderableAsShadow()
 	m_shadowRenderables.Add(m_worldRenderables.Size() - 1);
 }
 
-void RenderHandler::DrawInstances(uint state, bool shadows)
+void RenderHandler::QuadCull(const Camera& camPOV)
 {
-	m_renderCore->BindInstancedPipeline(shadows);
-
-	// Culling here
-	m_envInstances.Clear(false);
-
-	// Create the view frustum for the culling
+		// Create the view frustum for the culling
 	dx::BoundingFrustum viewFrustum = {};
-	viewFrustum.CreateFromMatrix(viewFrustum, m_mainCamera.GetProjectionMatrix().XMMatrix());
-	Vec3 position = m_mainCamera.GetPosition();
+	viewFrustum.CreateFromMatrix(viewFrustum, camPOV.GetProjectionMatrix().XMMatrix());
+	Vec3 position = camPOV.GetPosition();
 	viewFrustum.Origin = {
 		position.x,
 		position.y,
 		position.z
 	};
-	Quaternion rotation = m_mainCamera.GetRotation().Conjugate();
+	Quaternion rotation = camPOV.GetRotation()/*.Conjugate()*/;
 	viewFrustum.Orientation = {
 		rotation.x,
 		rotation.y,
@@ -566,10 +688,7 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 		rotation.w
 	};
 
-
-
-
-	for (uint i = 0; i < LevelAssetCount; i++)
+	for ( uint i = 0; i < LevelAssetCount; i++ )
 	{
 		m_envMeshes[i].hotInstances.Clear(false);
 	}
@@ -578,6 +697,13 @@ void RenderHandler::DrawInstances(uint state, bool shadows)
 	//	m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 
 	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 5);
+}
+
+void RenderHandler::DrawInstances(uint state, bool shadows, bool discardPipeline)
+{
+	m_renderCore->BindInstancedPipeline(shadows, discardPipeline);
+
+	m_envInstances.Clear(false);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{

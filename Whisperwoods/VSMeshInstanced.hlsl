@@ -28,7 +28,7 @@ cbuffer ViewInfo : REGISTER_CBV_VIEW_INFO
     matrix ProjectionMatrix;
 };
 
-cbuffer PlayerInfo : REGISTER_CBV_TESSELATION_INFO
+cbuffer PlayerInfo : REGISTER_CBV_PLAYER_INFO
 {
     matrix playerMatrix;
 };
@@ -41,23 +41,23 @@ VSOutput main(VSInput input)
     // Experimental push away...V1
     //float heightEffect = clamp( output.wPosition.y * 0.6f, 0.0f, 0.6f );
     float4 playerPos = float4(playerMatrix._41, 0.15f, playerMatrix._43, 1.0f);
-    float4 playerForward = normalize( mul( float4(0, 0, 1, 0), playerMatrix ));
-    float4 playerRight = normalize( mul( float4(1, 0, 0, 0), playerMatrix ));
+    float4 playerForward = normalize(mul(float4(0, 0, 1, 0), playerMatrix));
+    float4 playerRight = normalize(mul(float4(1, 0, 0, 0), playerMatrix));
     float4 toFrom2 = output.wPosition - playerPos;
-    float dotHor = abs( dot( toFrom2, playerForward ) );
-    float dotVert = abs( dot( toFrom2, playerRight ) );
+    float dotHor = abs(dot(toFrom2, playerForward));
+    float dotVert = abs(dot(toFrom2, playerRight));
     float4 groundedPos = float4(output.wPosition.x, 0.0f, output.wPosition.z, 1.0f);
-    float distFromPlayer = sqrt( sqrt( distance( playerPos, groundedPos )));
+    float distFromPlayer = sqrt(sqrt(distance(playerPos, groundedPos)));
     float4 toFromPlayer = groundedPos - playerPos;
-    float distControl = clamp( (0.80f - distFromPlayer), 0.0f, 0.80f ); // controlls range
-    toFromPlayer = normalize( toFromPlayer );
-    toFromPlayer = toFromPlayer * distControl; 
+    float distControl = clamp((0.80f - distFromPlayer), 0.0f, 0.80f); // controlls range
+    toFromPlayer = normalize(toFromPlayer);
+    toFromPlayer = toFromPlayer * distControl;
     toFromPlayer = float4(
-        clamp( toFromPlayer.x, -1.0f, 1.0f ) * (dotVert * 4.0f),
-        (toFromPlayer.y * 0.2f) - (0.7f * distControl*1.1f),
-        clamp( toFromPlayer.z, -1.0f, 1.0f ) * (dotVert * 4.0f), 0.0f);
+        clamp(toFromPlayer.x, -1.0f, 1.0f) * (dotVert * 4.0f),
+        (toFromPlayer.y * 0.2f) - (0.7f * distControl * 1.1f),
+        clamp(toFromPlayer.z, -1.0f, 1.0f) * (dotVert * 4.0f), 0.0f);
     output.wPosition = output.wPosition + toFromPlayer * input.UV.w * 1.4f; // Multiply for more effect
-    output.wPosition = float4(output.wPosition.x, clamp( output.wPosition.y, 0.001f, 50000 ), output.wPosition.z, output.wPosition.w);
+    output.wPosition = float4(output.wPosition.x, clamp(output.wPosition.y, 0.001f, 50000), output.wPosition.z, output.wPosition.w);
 
     // Normal Shader cont...
     output.outPosition = mul(mul(output.wPosition, ViewMatrix), ProjectionMatrix);

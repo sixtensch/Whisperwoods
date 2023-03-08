@@ -9,7 +9,7 @@ enum RegSampler : char
 	RegSamplerUser1 = 2,
 	RegSamplerUser2 = 3,
 	RegSamplerUser3 = 4,
-	RegSamplerUser4 = 5,
+	RegSamplerStandardNoWrap = 5,
 
 	RegSamplerSystem0 = 6,
 	RegSamplerSystem1 = 7,
@@ -33,11 +33,11 @@ enum RegCBV : char
 	RegCBVTimeSwitchInfo = 3, // Time since switch, start dur, end dur
 	RegCBVEnemyConeInfo = 4, // 
 
-	RegCBVSystem0 = 5,
+	RegCBVGUIInfo = 5,
 	RegCBVSystem1 = 6,
 	RegCBVSystem2 = 7,
 
-	RegCBVTesselationInfo = 8,
+	RegCBVPlayerInfo = 8,
 	RegCBVViewInfo = 9,			// View matrix, projection matrix, etc
 	RegCBVObjectInfo = 10,		// World matrix, etc
 	RegCBVMaterialInfo = 11,

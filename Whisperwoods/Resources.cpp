@@ -74,19 +74,44 @@ void Resources::LoadAssetDirectory(const RenderCore* const renderCore)
 	LoadCompositeResources(renderCore);
 }
 
-const BasicResource* Resources::GetResource(const ResourceType resourceType, std::string filename) const
+TextureResource* Resources::GetTexture(std::string filename)
 {
-	return (const BasicResource*)GetWritableResource(resourceType, filename);
+	return (TextureResource*)GetResource(ResourceTypeTexture, filename);
 }
 
-BasicResource* Resources::GetWritableResource(const ResourceType resourceType, std::string filename) const
+SoundResource* Resources::GetSound(std::string filename)
+{
+	return (SoundResource*)GetResource(ResourceTypeSound, filename);
+}
+
+MaterialResource* Resources::GetMaterial(std::string filename)
+{
+	return (MaterialResource*)GetResource(ResourceTypeMaterial, filename);
+}
+
+ModelStaticResource* Resources::GetModelStatic(std::string filename)
+{
+	return (ModelStaticResource*)GetResource(ResourceTypeModelStatic, filename);
+}
+
+ModelRiggedResource* Resources::GetModelRigged(std::string filename)
+{
+	return (ModelRiggedResource*)GetResource(ResourceTypeModelRigged, filename);
+}
+
+AnimationResource* Resources::GetAnimation(std::string filename)
+{
+	return (AnimationResource*)GetResource(ResourceTypeAnimations, filename);
+}
+
+BasicResource* Resources::GetResource(const ResourceType resourceType, std::string filename) const
 {
 	auto& resourceMap = m_resourceMaps[resourceType];
 	auto it = resourceMap.find(filename);
 
 	if (it == resourceMap.end())
 	{
-		EXC("Resource '%s' does not exist. Called with ResourceType = %d.", filename.c_str(), resourceType)
+		EXC("Resource [%s] does not exist. Called with ResourceType = %d.", filename.c_str(), resourceType)
 			return nullptr;
 	}
 
@@ -207,6 +232,13 @@ void Resources::LoadTextures(const RenderCore* const renderCore)
 		// Will throw exception if failed.
 		renderCore->LoadImageTexture(wstring(filePath.begin(), filePath.end()), textureResource->texture2D, textureResource->shaderResourceView);
 	}
+}
+
+TextureResource* Resources::CreateTexture(RenderCore* renderCore, std::string name, uint8_t* data, size_t size)
+{
+	TextureResource* textureResource = (TextureResource*)AllocateResource(ResourceTypeTexture, name, name);
+	renderCore->CreateImageTexture(data, size, textureResource->texture2D, textureResource->shaderResourceView);
+	return textureResource;
 }
 
 void Resources::LoadCompositeResources(const RenderCore* const renderCore)

@@ -9,6 +9,9 @@ enum PipelineType
 	PipelineTypeParticle,
 	PipelineTypePPFX,
 	PipelineTypeText,
+	PipelineTypeGUI,
+	PipelineTypePrepass,
+	PipelineTypeTerrain,
 
 	PipelineTypeCount // <-- Keep last
 };

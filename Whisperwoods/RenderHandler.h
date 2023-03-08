@@ -7,6 +7,7 @@
 #include "ModelResource.h"
 #include "MeshRenderable.h"
 #include "TextRenderable.h"
+#include "GUIRenderable.h"
 #include "Light.h"
 #include "Font.h"
 #include "LevelResource.h"
@@ -51,9 +52,14 @@ public:
 	void UpdateGPUProfiler();
 	void Present();
 
+	void ExecuteDraw(TimelineState state, bool shadows);
+	void ZPrepass(TimelineState state);
+
 	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);
 
+	void RenderGUI();
 
+	void RenderTerrain();
 
 	RenderCore* GetCore() const;
 	Camera& GetCamera();
@@ -68,6 +74,12 @@ public:
 								   const string& subpathFuture);
 	shared_ptr<MeshRenderableRigged> CreateMeshRigged(const string& subpath);
 	shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin);
+
+	shared_ptr<GUIRenderable> CreateGUIRenderable(const string& subpath);
+
+	shared_ptr<MeshRenderableTerrain> CreateMeshTerrain( const string& subpath );
+
+	void DestroyMeshStatic(shared_ptr<MeshRenderableStatic> renderable);
 
 	void SetTimelineStateCurrent();
 	void SetTimelineStateFuture();
@@ -84,8 +96,8 @@ public:
 
 
 private:
-	void DrawInstances(uint state, bool shadows);
-
+	void QuadCull(const Camera& camPOV);
+	void DrawInstances(uint state, bool shadows, bool discardPipeline);
 
 
 private:
@@ -112,7 +124,9 @@ private:
 	TimelineState m_timelineState;
 	uint m_renderableIDCounter;
 	cs::List<std::pair<shared_ptr<WorldRenderable>, shared_ptr<WorldRenderable>>> m_worldRenderables;
+	cs::List<shared_ptr<GUIRenderable>> m_guiRenderables;
 	cs::List<shared_ptr<TextRenderable>> m_texts;
+	cs::List<shared_ptr<MeshRenderableTerrain>> m_worldTerrainRenderables;
 
 	cs::Color3f m_lightAmbient;
 	float m_lightAmbientIntensity;

@@ -107,8 +107,8 @@ PS_OUTPUT main(VSOutput input)
 	
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
 	
-    if (diffuseSample.a < 0.1f)
-        discard;
+    //if (diffuseSample.a < 0.1f)
+    //    discard;
 	
     float4 specularSample = textureSpecular.Sample(textureSampler, uv);
     float4 emissiveSample = textureEmissive.Sample(textureSampler, uv);
@@ -136,25 +136,27 @@ PS_OUTPUT main(VSOutput input)
     float epsilon = 0.00005 / acos(saturate(dirNDotL));
     //bool shadowAff = shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x;
 	
-	float sum = 0;
-	float x, y;
+    float sum = 0;
+    float x, y;
 
 	// PCF filtering (Smooth shadows)
-	[unroll] for (y = -smoothing; y <= smoothing; y += 1.0f)
-	{
-		[unroll] for (x = -smoothing; x <= smoothing; x += 1.0f)
-		{
-			sum += shadowTexture.SampleCmpLevelZero( shadowSampler,
-				lsUV.xy + texOffset( x, y, 0 ), lsNDC.z - epsilon);
-		}
-	}
-	float shadowAff = sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f));
+	[unroll]
+    for (y = -smoothing; y <= smoothing; y += 1.0f)
+    {
+		[unroll]
+        for (x = -smoothing; x <= smoothing; x += 1.0f)
+        {
+            sum += shadowTexture.SampleCmpLevelZero(shadowSampler,
+				lsUV.xy + texOffset(x, y, 0), lsNDC.z - epsilon);
+        }
+    }
+    float shadowAff = sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f));
 
 
 
 
     // Directional lighting
-	color += shadowAff * phong(
+    color += shadowAff * phong(
 		input.wPosition.xyz,
 		normal,
 		directionalLight.intensity,
@@ -235,7 +237,6 @@ PS_OUTPUT main(VSOutput input)
 	// Used to scale ALL emissive for more dramatic glow.
     float emissiveScalar = 2.0f;
     color.rgb += finalEmissiveColor * emissiveScalar;
-	
     color.a = saturate(color.a);
 	
 	

@@ -12,7 +12,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 {
 	m_currentPosition = Vec2(0.0f, 0.0f);
 	m_currentPatrolIndex = 1; // Starts on patrol index 0 and walks towards index 1
-	m_walkingSpeed = 1.5f;
+	m_walkingSpeed = 1.7f;
 	m_enclosedLoop = false; // Default value
 	m_indexChanger = 1;
 	m_distanceToPatrolPoint = 0.0f;
@@ -35,14 +35,13 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 
 	m_carcinian = Renderer::CreateMeshRigged(modelResource);
 	//FBXImporter importer;
-	m_characterAnimator = std::make_unique<Animator>((ModelRiggedResource*)Resources::Get().GetResource(ResourceTypeModelRigged, "Carcinian_Animated.wwm"), m_carcinian);
+	Resources& resources = Resources::Get();
+	m_characterAnimator = std::make_unique<Animator>(resources.GetModelRigged("Carcinian_Animated.wwm"), m_carcinian);
 	
-
 
 	m_modelOffset = modelOffset;
 	// Import the animations
-	Resources& resources = Resources::Get();
-	m_animationSet = (AnimationResource*)resources.GetResource( ResourceTypeAnimations, animationsPath );
+	m_animationSet = resources.GetAnimation(animationsPath);
 	//importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 	m_firstTrigger = false;
 
@@ -407,7 +406,7 @@ void Enemy::AddModel(std::string modelResource, std::string animationsPath, Mat4
 	m_modelOffset = modelOffset;
 	// Import the animations (Now using the resource manager)
 	Resources& resources = Resources::Get();
-	m_animationSet = (AnimationResource*)resources.GetResource(ResourceTypeAnimations, animationsPath);
+	m_animationSet = resources.GetAnimation(animationsPath);
 	//m_animationSet = std::make_shared<AnimationResource>();
 	//importer.ImportFBXAnimations(animationsPath, m_animationSet.get());
 }

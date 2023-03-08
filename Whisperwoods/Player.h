@@ -27,6 +27,8 @@ class Player : public GameObject
 		return a * (1.0f - t) + b * t;
 	}
 
+	void CalculateCompassMatrix();
+
 public:
 	
 	Vec3 m_velocity;
@@ -39,12 +41,16 @@ public:
 	Vec3 sampleVector;
 	bool playerInFuture;
 	bool hasPickedUpEssenceBloom;
-	
 
+	
 	shared_ptr<MeshRenderableRigged> characterModel;
 	AnimationResource* animationSet;
 	shared_ptr<Animator> characterAnimator;
 	
+	Quaternion cameraCompassRotation;
+	Mat4 compassMatrix;
+
+
 	Vec3 cameraFollowTarget;
 	Vec3 cameraLookAtTarget;
 	Quaternion cameraLookRotationTarget;
@@ -53,6 +59,8 @@ public:
 	shared_ptr<AudioSource> m_vegetationSound;
 	shared_ptr<AudioSource> m_stepsSound;
 	shared_ptr<AudioSource> m_switchSource;
+	shared_ptr<AudioSource> m_coughSound;
+
 
 
 
@@ -63,7 +71,14 @@ public:
 	void UpdateStamina(float maxStamina);
 	void ResetStaminaToMax(float staminaMax);
 	float GetCurrentStamina();
+	bool IsCrouching();
+	bool IsRunning();
 
 	void PlayerMovement(float delta_time, float movementMultiplier);
 	void Update(float delta_time) override;
+
+	void CinematicUpdate( float delta_time );
+
+	void UpdateSound(float delta_time);
+
 };

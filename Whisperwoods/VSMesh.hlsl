@@ -17,7 +17,7 @@ struct VSOutput
     float3 outNormal    : NORMAL0;
     float3 outTangent   : TANGENT0;
     float3 outBitangent : BITANGENT0;
-    float2 outUV        : TEXCOORD0;
+    float4 outUV        : TEXCOORD0;
 };
 
 cbuffer ViewInfo : REGISTER_CBV_VIEW_INFO
@@ -31,7 +31,7 @@ cbuffer ObjectInfo : REGISTER_CBV_OBJECT_INFO
     matrix WorldMatrix;
 };
 
-cbuffer PlayerInfo : REGISTER_CBV_TESSELATION_INFO
+cbuffer PlayerInfo : REGISTER_CBV_PLAYER_INFO
 {
     matrix playerMatrix;
 };
@@ -95,6 +95,6 @@ VSOutput main(VSInput input)
     output.outBitangent = mul(input.bitangent, (float3x3)WorldMatrix);
     //output.outBitangent = normalize(output.outBitangent);
     
-    output.outUV = float2(input.UV.x, -input.UV.y);
+    output.outUV = float4(input.UV.x, -input.UV.y, input.UV.z, input.UV.w);
 	return output;
 }

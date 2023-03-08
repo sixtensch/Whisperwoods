@@ -13,7 +13,8 @@
 #include "Bone.h"
 #include "Enemy.h"
 #include "GPUProfiler.h"
-
+//#include "GUIElement.h"
+struct GUIElement;
 
 class RenderCore
 {
@@ -22,6 +23,7 @@ public:
 	~RenderCore();
 
 	void NewFrame();
+	void TargetPrepass();
 	void TargetRenderTexture();
 	void UnbindRenderTexture();
 	void TargetShadowMap();
@@ -36,6 +38,8 @@ public:
 	void CreateArmatureStructuredBuffer(ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const;
 	void CreateArmatureSRV(ComPtr<ID3D11ShaderResourceView>& matrixSRV, ComPtr<ID3D11Buffer>& matrixBuffer, int numBones) const;
 	void LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Texture2D>& textureResource, ComPtr<ID3D11ShaderResourceView>& srv) const;
+	void CreateImageTexture(uint8_t* data, size_t size, ComPtr<ID3D11Texture2D>& textureResource, ComPtr<ID3D11ShaderResourceView>& srv) const;
+
 
 	// This calls new for the out data
 	void DumpTexture(ID3D11Texture2D* texture, uint* outWidth, uint* outHeight, cs::Color4** newOutData) const;
@@ -45,6 +49,10 @@ public:
 
 	void UpdatePlayerInfo( Mat4 matrix );
 
+	void UpdateGUIInfo(const GUIElement* guiElement) const;
+
+	void UpdateBitmapInfo(const TextureResource* bitmap) const;
+
 	void UpdateMaterialInfo(const MaterialResource* material) const;
 	void UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* data, uint count);
 
@@ -52,9 +60,9 @@ public:
 	void SetInstanceBuffers(ComPtr<ID3D11Buffer> vBuffer, ComPtr<ID3D11Buffer> iBuffer, uint vStride, uint iStride, uint vOffset, uint iOffset);
 	void SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_FORMAT format = DXGI_FORMAT_R32_UINT);
 
-	void BindInstancedPipeline(bool shadowed);
+	void BindInstancedPipeline(bool shadowed, bool discardPipeline);
 
-	void DrawObject(const Renderable* renderable, bool shadowing);
+	void DrawObject(const Renderable* renderable, bool shadowing, bool discardPipeline);
 	void DrawIndexed(uint indexCount, uint indexStart, uint vertexBase);
 	void DrawInstanced(uint indexCount, uint instanceCount, uint startIndex, uint baseVertex, uint startInstance);
 
@@ -105,8 +113,10 @@ public:
 	void ProfileEnd(const std::string& profileName);
 	void UpdateGPUProfiler();
 
+	bool m_bindShadowPS;
+
 private:
-	void BindPipeline(PipelineType pipeline, bool shadowing);
+	void BindPipeline(PipelineType pipeline, bool shadowing, bool discardPipeline);
 
 	void InitPipelines();
 	void InitComputeShaders();
@@ -170,6 +180,7 @@ private:
 	// Depth stencil
 	ComPtr<ID3D11Texture2D> m_dsTexture;
 	ComPtr<ID3D11DepthStencilState> m_dsDSS;
+	ComPtr<ID3D11DepthStencilState> m_ppDSS;
 	ComPtr<ID3D11DepthStencilView> m_dsDSV;
 	ComPtr<ID3D11ShaderResourceView> m_dsSRV;
 
@@ -189,12 +200,14 @@ private:
 
 
 	ComPtr<ID3D11SamplerState> m_sampler;
+	ComPtr<ID3D11SamplerState> m_samplerNoWrap;
 	ComPtr<ID3D11SamplerState> m_pointSampler;
 
 	// Pipelines
 	Pipeline m_pipelines[PipelineTypeCount];
 	int m_pipelineCurrent;
 	bool m_shadowPSBound;
+	
 
 	// Constant buffers
 	ConstantBuffers m_constantBuffers;

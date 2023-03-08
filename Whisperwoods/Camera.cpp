@@ -28,7 +28,7 @@ Camera::~Camera()
 void Camera::Update()
 {
 	Mat4 viewMat = cs::Mat::translation3(-m_transform.position.x, -m_transform.position.y, -m_transform.position.z);
-	viewMat = m_transform.rotation.Matrix()*viewMat; //TODO: is this correct?
+	viewMat = m_transform.rotation.Conjugate().Matrix() * viewMat; //TODO: is this correct? (Probably now)
 	m_viewMatrix = viewMat;
 	m_transform.CalculateWorldMatrix();
 	m_worldMatrix = m_transform.worldMatrix;
@@ -73,7 +73,7 @@ const Vec3 Camera::GetDirection() const
 	// TODO: This should be a "globally" defined vector that transform makes use of.
 	const Vec4 forward = Vec4(0.0f, 0.0f, 1.0f, 0.0f);
 
-	return (Mat4)m_transform.rotation.Matrix().Transpose() * forward;
+	return (Mat4)m_transform.rotation.Matrix() * forward;
 }
 
 const Vec3 Camera::GetUp()
@@ -81,7 +81,7 @@ const Vec3 Camera::GetUp()
 	// TODO: This should be a "globally" defined vector that transform makes use of.
 	const Vec4 up = Vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
-	return (Mat4)m_transform.rotation.Matrix().Transpose() * up;
+	return (Mat4)m_transform.rotation.Matrix() * up;
 }
 
 const Vec3 Camera::GetRight()
@@ -89,11 +89,11 @@ const Vec3 Camera::GetRight()
 	// TODO: This should be a "globally" defined vector that transform makes use of.
 	const Vec4 right = Vec4(1.0f, 0.0f, 0.0f, 0.0f);
 
-	return (Mat4)m_transform.rotation.Matrix().Transpose() * right;
+	return (Mat4)m_transform.rotation.Matrix() * right;
 }
 
 
-const Quaternion Camera::GetRotation()
+const Quaternion Camera::GetRotation() const
 {
 	return m_transform.rotation;
 }

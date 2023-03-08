@@ -5,7 +5,8 @@
 #include "imgui_impl_win32.h"
 #include <d3dcompiler.h>
 #include <WICTextureLoader.h>
-
+#include "GUIElement.h"
+#include <comdef.h>
 
 #define RTV_COUNT 2u // TODO: Maybe make this a const member variable for more official use? 
 
@@ -56,8 +57,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	// Profiler
 
-	uint updateFrequency = 500u;
-	m_gpuProfiler = GPUProfiler(m_device, m_context, updateFrequency);
+	m_gpuProfiler = GPUProfiler(m_device, m_context);
 
 	// Setup viewport
 
@@ -204,10 +204,15 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	D3D11_DEPTH_STENCIL_DESC dssDesc = {};
 	dssDesc.DepthEnable = true;
-	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	dssDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	dssDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	EXC_COMCHECK(m_device->CreateDepthStencilState(&dssDesc, m_dsDSS.GetAddressOf()));
 
-	EXC_COMCHECK(m_device->CreateDepthStencilState(&dssDesc, &m_dsDSS));
+	D3D11_DEPTH_STENCIL_DESC prepassDSDESC = {};
+	prepassDSDESC.DepthEnable = true;
+	prepassDSDESC.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	prepassDSDESC.DepthFunc = D3D11_COMPARISON_LESS;
+	EXC_COMCHECK(m_device->CreateDepthStencilState(&prepassDSDESC, m_ppDSS.GetAddressOf()));
 
 	D3D11_TEXTURE2D_DESC dstDesc;
 	dstDesc.Width = window->GetWidth();
@@ -378,6 +383,27 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateSamplerState(&sd, &m_sampler));
 	EXC_COMINFO(m_context->PSSetSamplers(RegSamplerStandard, 1, m_sampler.GetAddressOf()));
 
+	// No wrap sampler
+	D3D11_SAMPLER_DESC sd2 = {};
+
+	sd2.Filter = D3D11_FILTER_ANISOTROPIC;
+	sd2.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd2.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd2.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd2.MipLODBias = 0.0f;
+	sd2.MaxAnisotropy = 1u;
+	sd2.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	sd2.BorderColor[0] = 0.0f;
+	sd2.BorderColor[1] = 0.0f;
+	sd2.BorderColor[2] = 0.0f;
+	sd2.BorderColor[3] = 0.0f;
+	sd2.MinLOD = 0.0f;
+	sd2.MaxLOD = D3D11_FLOAT32_MAX;
+
+	EXC_COMCHECK( m_device->CreateSamplerState( &sd2, &m_samplerNoWrap ) );
+	EXC_COMINFO( m_context->PSSetSamplers( RegSamplerStandardNoWrap, 1, m_samplerNoWrap.GetAddressOf() ) );
+
+
 	D3D11_SAMPLER_DESC shadowSDesc = {};
 	shadowSDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
 	shadowSDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -435,6 +461,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	sd.MaxLOD = D3D11_FLOAT32_MAX;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(&sd, m_bloomUpscaleSampler.GetAddressOf()));
+
+	m_bindShadowPS = true;
 }
 
 RenderCore::~RenderCore()
@@ -449,13 +477,24 @@ void RenderCore::NewFrame()
 
 	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get()));
 	EXC_COMINFO(m_context->OMSetBlendState(m_blendState.Get(), nullptr, 0xffffffff));
-	EXC_COMINFO(m_context->OMSetDepthStencilState(m_dsDSS.Get(), 1));
+}
+
+void RenderCore::TargetPrepass()
+{
+	EXC_COMINFO(m_context->OMSetDepthStencilState(m_ppDSS.Get(), 1));
+
+	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, m_dsDSV.Get()));
+	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get())); // Backface culling
+	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
 }
 
 void RenderCore::TargetShadowMap()
 {
+	EXC_COMINFO(m_context->OMSetDepthStencilState(m_ppDSS.Get(), 1));
+
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
+	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 
 	EXC_COMINFO(m_context->CopyResource(m_shadowTexture.Get(), m_shadowStaticTexture.Get()));
 
@@ -466,8 +505,11 @@ void RenderCore::TargetShadowMap()
 
 void RenderCore::TargetStaticShadowMap()
 {
+	EXC_COMINFO(m_context->OMSetDepthStencilState(m_ppDSS.Get(), 1));
+
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
+	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowStaticDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
 
@@ -478,6 +520,10 @@ void RenderCore::TargetStaticShadowMap()
 
 void RenderCore::TargetRenderTexture()
 {
+	EXC_COMINFO(m_context->OMSetDepthStencilState(m_dsDSS.Get(), 1));
+	EXC_COMINFO( m_context->RSSetViewports( 1, &m_viewport ) );
+
+
 	ID3D11RenderTargetView* rtvs[RTV_COUNT] = {
 		m_renderTextureRTV.Get(), 
 		m_positionTextureRTV.Get() 
@@ -485,8 +531,6 @@ void RenderCore::TargetRenderTexture()
 
 	EXC_COMINFO(m_context->OMSetRenderTargets(RTV_COUNT, rtvs, m_dsDSV.Get()));
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, m_shadowSRV.GetAddressOf()));
-	EXC_COMINFO(m_context->RSSetState(m_rasterizerState.Get())); // Backface culling
-	EXC_COMINFO(m_context->RSSetViewports(1u, &m_viewport));
 }
 
 void RenderCore::UnbindRenderTexture()
@@ -623,6 +667,75 @@ void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Tex
 	//EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &srvd, &srv));
 }
 
+void RenderCore::CreateImageTexture(uint8_t* data, size_t size, ComPtr<ID3D11Texture2D>& textureResource, ComPtr<ID3D11ShaderResourceView>& srv) const
+{
+	// Load texture using DXTK from filepath.
+
+	ComPtr<ID3D11Resource> resource;
+	//dx::CreateWICTextureFromMemoryEx(
+	//	m_device.Get(), 
+	//	data,
+	//	size, 
+	//	0,
+	//	D3D11_USAGE_DEFAULT,
+	//	D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
+	//	0, D3D11_RESOURCE_MISC_GENERATE_MIPS,
+	//	dx::WIC_LOADER_IGNORE_SRGB | dx::WIC_LOADER_DEFAULT,
+	//	&resource,
+	//	&srv
+	//);
+
+	//HRESULT h = dx::CreateWICTextureFromMemory(m_device.Get(),
+	//	m_context.Get(),
+	//	data, size,
+	//	&resource, &srv);
+
+	//if (h != 0)
+	//{
+	//	_com_error err(h);
+	//	LPCTSTR errMsg = err.ErrorMessage();
+	//	LOG_ERROR("%s", errMsg);
+	//}
+
+	D3D11_TEXTURE2D_DESC desc;
+	desc.Width = 1024;
+	desc.Height = 1024;
+	desc.MipLevels = 1;
+	desc.ArraySize = 1;
+	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	desc.CPUAccessFlags = 0;
+	desc.MiscFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA initialData;
+	initialData.pSysMem = (void*)data;
+	initialData.SysMemPitch = 1024;
+	initialData.SysMemSlicePitch = 0;
+
+	//ID3D11Device* pd3dDevice; // Don't forget to initialize this
+	ID3D11Texture2D* pTexture = NULL;
+	m_device->CreateTexture2D(&desc, &initialData, textureResource.GetAddressOf());
+
+	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
+	memset(&SRVDesc, 0, sizeof(SRVDesc));
+	SRVDesc.Format = desc.Format;
+	SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	SRVDesc.Texture2D.MipLevels = 1;
+
+	m_device->CreateShaderResourceView(textureResource.Get(), &SRVDesc, srv.GetAddressOf());
+
+	//EXC_COMCHECK(resource->QueryInterface(IID_ID3D11Texture2D, (void**)textureResource.GetAddressOf()));
+	//D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
+	//srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	//srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	//srvd.Texture2D.MostDetailedMip = 0;
+	//srvd.Texture2D.MipLevels = 2;
+	//EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &srvd, &srv));
+}
+
 void RenderCore::DumpTexture(ID3D11Texture2D* texture, uint* outWidth, uint* outHeight, cs::Color4** newOutData) const
 {
 	D3D11_TEXTURE2D_DESC desc = {};
@@ -744,6 +857,44 @@ void RenderCore::UpdatePlayerInfo( Mat4 matrix )
 	EXC_COMINFO( m_context->Unmap( m_constantBuffers.playerInfo.Get(), 0u ) );
 }
 
+void RenderCore::UpdateGUIInfo(const GUIElement* guiElement) const
+{
+	if (guiElement == nullptr)
+	{
+		UpdateMaterialInfo(&m_defaultMaterial);
+		return;
+	}
+	
+	//      ("`-''-/").___..--''"`-._
+	//       `6_ 6  )   `-.  (     ).`-.__.`)
+	//       (_Y_.)'  ._   )  `._ `. ``-..-'
+	//     _..`--'_..-_/  /--'_.' ,'
+	//    (il),-''  (li),'  ((!.-'   Hmmm
+	CB::GUIInfo newInfo;
+
+	newInfo.color = guiElement->colorTint;
+	newInfo.alpha = guiElement->alpha;
+	newInfo.vectorData = guiElement->vectorData;
+	newInfo.floatData = guiElement->floatData;
+	newInfo.intData = guiElement->intData;
+
+	D3D11_MAPPED_SUBRESOURCE msr = {};
+	EXC_COMCHECK(m_context->Map(m_constantBuffers.guiInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
+	memcpy(msr.pData, &newInfo, sizeof(CB::GUIInfo));
+	EXC_COMINFO(m_context->Unmap(m_constantBuffers.guiInfo.Get(), 0u));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexDiffuse, 1, (guiElement->firstTexture ? guiElement->firstTexture->shaderResourceView : m_defaultDiffuseSRV).GetAddressOf()));
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexSpecular, 1, (guiElement->secondTexture ? guiElement->secondTexture->shaderResourceView : m_defaultSpecularSRV).GetAddressOf()));
+}
+
+void RenderCore::UpdateBitmapInfo( const TextureResource* bitmap ) const
+{
+	//if (bitmap == nullptr)
+	//{
+	//	return;
+	//}
+	EXC_COMINFO( m_context->PSSetShaderResources( RegSRVUser5, 1, (bitmap ? bitmap->shaderResourceView : m_defaultDiffuseSRV).GetAddressOf() ) );
+}
+
 void RenderCore::UpdateMaterialInfo(const MaterialResource* material) const
 {
 	if (material == nullptr)
@@ -760,11 +911,16 @@ void RenderCore::UpdateMaterialInfo(const MaterialResource* material) const
 	memcpy(msr.pData, mi, sizeof(CB::MaterialInfo));
 	EXC_COMINFO(m_context->Unmap(m_constantBuffers.materialInfo.Get(), 0u));
 
+
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexDiffuse,	1,	(material->textureDiffuse	? material->textureDiffuse->shaderResourceView	: m_defaultDiffuseSRV)	.GetAddressOf()));
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexSpecular,	1,	(material->textureSpecular	? material->textureSpecular->shaderResourceView	: m_defaultSpecularSRV)	.GetAddressOf()));
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexEmissive,	1,	(material->textureEmissive	? material->textureEmissive->shaderResourceView	: m_defaultEmissiveSRV)	.GetAddressOf()));
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexNormal,	1,	(material->textureNormal	? material->textureNormal->shaderResourceView	: m_defaultNormalSRV)	.GetAddressOf()));
 }
+
+
+
+
 
 void RenderCore::UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* data, uint count)
 {
@@ -782,11 +938,11 @@ void RenderCore::UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* 
 	EXC_COMINFO(m_context->Unmap(iBuffer.Get(), 0u));
 }
 
-void RenderCore::DrawObject(const Renderable* renderable, bool shadowing)
+void RenderCore::DrawObject(const Renderable* renderable, bool shadowing, bool discardPipeline)
 {
 	if (renderable->pipelineType != m_pipelineCurrent || shadowing != m_shadowPSBound)
 	{
-		BindPipeline(renderable->pipelineType, shadowing);
+		BindPipeline(renderable->pipelineType, shadowing, discardPipeline);
 	}
 
 	DrawInfo drawInfo =
@@ -816,9 +972,9 @@ void RenderCore::SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_F
 	EXC_COMINFO(m_context->IASetIndexBuffer(buffer.Get(), format, offset));
 }
 
-void RenderCore::BindInstancedPipeline(bool shadowed)
+void RenderCore::BindInstancedPipeline(bool shadowed, bool discardPipeline)
 {
-	BindPipeline(PipelineTypeEnvironment, shadowed);
+	BindPipeline(PipelineTypeEnvironment, shadowed, discardPipeline);
 }
 
 void RenderCore::DrawIndexed(uint indexCount, uint indexStart, uint vertexBase)
@@ -1025,7 +1181,7 @@ void RenderCore::UpdateGPUProfiler()
 	m_gpuProfiler.FinilizeAndPresent();
 }
 
-void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)
+void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing, bool discardPipeline)
 {
 	const Pipeline& n = m_pipelines[pipeline];  // New pipeline
 
@@ -1043,11 +1199,16 @@ void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)
 		{
 			EXC_COMINFO(m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0));
 		}
+		else if (discardPipeline)
+		{
+			EXC_COMINFO(m_context->PSSetShader(m_pipelines[PipelineTypePrepass].pixelShader.Get(), nullptr, 0));
+		}
 		else
 		{
 			EXC_COMINFO(m_context->PSSetShader(nullptr, nullptr, 0));
 		}
 
+		m_pipelineCurrent = pipeline; 
 		return;
 	}
 
@@ -1083,16 +1244,44 @@ void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)
 		m_context->HSSetShader(n.hullShader.Get(), nullptr, 0);
 	}
 
-	if (shadowing && !m_shadowPSBound)
+	if ( discardPipeline )
 	{
-		m_context->PSSetShader(nullptr, nullptr, 0);
-		m_shadowPSBound = true;
+		if ( n.pixelShader != m_pipelines[PipelineTypePrepass].pixelShader )
+		{
+			m_context->PSSetShader(m_pipelines[PipelineTypePrepass].pixelShader.Get(), nullptr, 0);
+			m_shadowPSBound = false;
+		}
 	}
-	else if (!shadowing && (n.pixelShader != o.pixelShader || m_shadowPSBound))
+	else
 	{
-		m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0);
-		m_shadowPSBound = false;
+		if (shadowing && !m_shadowPSBound)
+		{
+			m_context->PSSetShader(nullptr, nullptr, 0);
+			m_shadowPSBound = true;
+		}
+		else if (!shadowing /*&& (n.pixelShader != o.pixelShader || m_shadowPSBound)*/)
+		{
+			m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0);
+			m_shadowPSBound = false;
+		}
 	}
+	//if (shadowing && !m_shadowPSBound)
+	//{
+	//	if (m_bindShadowPS)
+	//	{
+	//		m_context->PSSetShader( m_pipelines[PipelineTypeShadow].pixelShader.Get(), nullptr, 0);
+	//	}
+	//	else
+	//	{
+	//		m_context->PSSetShader(nullptr, nullptr, 0);
+	//	}
+	//	m_shadowPSBound = true;
+	//}
+	//else if (!shadowing && (n.pixelShader != o.pixelShader || m_shadowPSBound))
+	//{
+	//	m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0);
+	//	m_shadowPSBound = false;
+	//}
 
 	m_pipelineCurrent = pipeline;
 }
@@ -1123,11 +1312,11 @@ void RenderCore::InitPipelines()
 
 	D3D11_INPUT_ELEMENT_DESC inputLayoutStandard[] = 
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }, 
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }  
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	}; 
 
 	EXC_COMCHECK(m_device->CreateInputLayout(
@@ -1177,7 +1366,15 @@ void RenderCore::InitPipelines()
 
 	// Shadow mapping pipeline
 
-	m_pipelines[PipelineTypeShadow].pixelShader = nullptr;
+	//m_pipelines[PipelineTypeShadow].pixelShader = nullptr;
+
+	EXC_COMCHECK( D3DReadFileToBlob( DIR_SHADERS L"PSShadow.cso", &blob ) );
+	EXC_COMCHECK( m_device->CreatePixelShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypeShadow].pixelShader
+	) );
 
 	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"VSShadow.cso", &blob));
 	EXC_COMCHECK(m_device->CreateVertexShader(
@@ -1187,9 +1384,10 @@ void RenderCore::InitPipelines()
 		&m_pipelines[PipelineTypeShadow].vertexShader
 	));
 
+
 	D3D11_INPUT_ELEMENT_DESC inputLayoutShadow[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "POSITION", 0, DXGI_FORMAT_R11G11B10_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	EXC_COMCHECK(m_device->CreateInputLayout(
@@ -1199,9 +1397,6 @@ void RenderCore::InitPipelines()
 		blob->GetBufferSize(),
 		m_pipelines[PipelineTypeShadow].inputLayout.GetAddressOf()
 	));
-
-	blob->Release();
-
 
 
 	// Standard pipeline instanced environment
@@ -1239,6 +1434,75 @@ void RenderCore::InitPipelines()
 		m_pipelines[PipelineTypeEnvironment].inputLayout.GetAddressOf()
 	));
 
+
+
+	// GUI pipeline (Unshaded)
+
+	m_pipelines[PipelineTypeGUI].primitiveTopology = m_pipelines[PipelineTypeStandard].primitiveTopology;
+
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"PSGUI.cso", &blob));
+	EXC_COMCHECK(m_device->CreatePixelShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypeGUI].pixelShader
+	));
+
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"VSGUI.cso", &blob));
+	EXC_COMCHECK(m_device->CreateVertexShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypeGUI].vertexShader
+	));
+	m_pipelines[PipelineTypeGUI].inputLayout = m_pipelines[PipelineTypeStandard].inputLayout;
+
+	//D3D11_INPUT_ELEMENT_DESC inputLayoutGUI[] =
+	//{
+	//	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//	{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//	{ "TANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//	{ "BITANGENT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	//	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	//};
+
+	//EXC_COMCHECK(m_device->CreateInputLayout(
+	//	inputLayoutGUI,
+	//	(uint)(sizeof(inputLayoutGUI) / sizeof(*inputLayoutGUI)),
+	//	blob->GetBufferPointer(),
+	//	blob->GetBufferSize(),
+	//	m_pipelines[PipelineTypeGUI].inputLayout.GetAddressOf()
+	//));
+
+
+
+	// Terrain Pipeline (light phong with blending)
+
+	m_pipelines[PipelineTypeTerrain].primitiveTopology = m_pipelines[PipelineTypeStandard].primitiveTopology;
+
+	EXC_COMCHECK( D3DReadFileToBlob( DIR_SHADERS L"PSTerrain.cso", &blob ) );
+	EXC_COMCHECK( m_device->CreatePixelShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypeTerrain].pixelShader
+	) );
+
+	m_pipelines[PipelineTypeTerrain].vertexShader = m_pipelines[PipelineTypeStandard].vertexShader;
+	m_pipelines[PipelineTypeTerrain].inputLayout = m_pipelines[PipelineTypeStandard].inputLayout;
+
+
+	
+	// Prepass
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"PSPrepass.cso", &blob));
+	EXC_COMCHECK(m_device->CreatePixelShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypePrepass].pixelShader
+	));
+	
+	
 	blob->Release();
 }
 
@@ -1324,7 +1588,8 @@ void RenderCore::InitConstantBuffers()
 		m_constantBuffers.playerInfo.GetAddressOf()
 	) );
 
-	EXC_COMINFO( m_context->VSSetConstantBuffers( RegCBVTesselationInfo, 1, m_constantBuffers.playerInfo.GetAddressOf()));
+	EXC_COMINFO( m_context->VSSetConstantBuffers( RegCBVPlayerInfo, 1, m_constantBuffers.playerInfo.GetAddressOf()));
+	EXC_COMINFO( m_context->PSSetConstantBuffers( RegCBVPlayerInfo, 1, m_constantBuffers.playerInfo.GetAddressOf() ) );
 
 
 	// Shading info
@@ -1355,6 +1620,21 @@ void RenderCore::InitConstantBuffers()
 	));
 
 	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVMaterialInfo, 1, m_constantBuffers.materialInfo.GetAddressOf()));
+
+
+
+	// GUI info
+
+	desc.ByteWidth = sizeof(CB::GUIInfo);
+
+	EXC_COMCHECK(m_device->CreateBuffer(
+		&desc,
+		nullptr,
+		m_constantBuffers.guiInfo.GetAddressOf()
+	));
+
+	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVGUIInfo, 1, m_constantBuffers.guiInfo.GetAddressOf()));
+
 
 
 	// Threshold info for bloom
