@@ -290,11 +290,10 @@ PS_OUTPUT main(VSOutput input)
         finalEmissiveColor = lerp(colorEmissive, detectionColor, totalInfluence);
     }
     
-	
+
 	// Used to scale ALL emissive for more dramatic glow.
     static float emissiveScalar = 2.0f;
     color.rgb += finalEmissiveColor * emissiveScalar;
-    color.a = saturate(color.a);
 	
     float totalInflunce =
         TotalTimeSwitchInfluence(
@@ -309,9 +308,11 @@ PS_OUTPUT main(VSOutput input)
         lerp(strength, strength * 1.4f, totalInflunce),
         lerp(minLuminance, 0.0f, totalInflunce)
     );
-    
+
+    // Send the final color.
+    color.a = saturate(color.a);
     output.MainTarget = color;
-    output.LuminanceTexture = float4(lumColor, 1.0f);
+    output.LuminanceTexture = float4(lumColor, color.a);
 
     return output;
 }

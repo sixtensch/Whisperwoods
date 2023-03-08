@@ -1,3 +1,5 @@
+#include "Constants.hlsli"
+
 static const float MAX_CONE_HEIGHT = 2.0f;
 static const float MIN_COLOR_STRENGTH = 1.0f;
 static const float MAX_COLOR_STRENGTH = 7.0f;
@@ -7,7 +9,6 @@ static const float3 DETECTED_CONE_COLOR = float3(1.0f, 0.0f, 0.0f);
 static const float ENEMY_POS_MAX_DISTANCE = 0.3f;
 static const float3 ENEMY_POS_COLOR = float3(2.0f, 0.0f, 0.0f);
 
-// TODO: Move this to HLSLI file.
 float3 DrawEnemyCone(float3 enemyPos, float3 worldPos, float3 viewDirection, float coneLength, float coneAngle, float detectionLevel)
 {
     float3 enemyToPoint = worldPos - enemyPos;
