@@ -79,10 +79,10 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWA( "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx" );
 
 	//cs::List<VertexTextured> planeVerts = { 
-	//	VertexTextured({-0.5f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f,0.0f,0.0f, 0.0f}), 
-	//	VertexTextured({ 0.5f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f,0.0f,0.0f, 0.0f}),
-	//	VertexTextured({-0.5f, 0.0f,-0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f,1.0f,0.0f, 0.0f}),
-	//	VertexTextured({ 0.5f, 0.0f,-0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f,1.0f,0.0f, 0.0f})
+	//	VertexTextured({ 0.5f, 0.0f,-0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f,0.0f,0.0f, 0.0f}), 
+	//	VertexTextured({-0.5f, 0.0f,-0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f,0.0f,0.0f, 0.0f}),
+	//	VertexTextured({ 0.5f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f,1.0f,0.0f, 0.0f}),
+	//	VertexTextured({-0.5f, 0.0f, 0.5f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f,1.0f,0.0f, 0.0f})
 	//};
 	//cs::List<int> planeIndicies = { 0,1,3,0,3,2 };
 	//BuildWWM(planeVerts, planeIndicies, "room_plane");
@@ -98,7 +98,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//cs::List<int> rectIndicies = { 0,1,2,3,2,1 };
 	//BuildWWM(rectVerts, rectIndicies, "ui_rect");
 
-	BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
+	//BuildRoomWWM( 16, 0.5f, 10.0f, "room_walls_floor" );
 
 
 	m_sound = std::make_unique<Sound>();
@@ -138,24 +138,24 @@ void Whisperwoods::Run()
 	m_game->LoadHubby();
 
 
-	// Test generate a floor
-	LevelFloor tempFloor;
-	FloorParameters fParams;
-	fParams.seed = 123;
-	fParams.angleSteps = 0;
-	fParams.pushSteps = 3;
-	fParams.roomCount = 8;
-	EnvironmentalizeParameters eParams = { 0 };
-	m_game->m_levelHandler->GenerateFloor(&tempFloor, fParams, eParams );
+	//// Test generate a floor
+	//LevelFloor tempFloor;
+	//FloorParameters fParams;
+	//fParams.seed = 123;
+	//fParams.angleSteps = 0;
+	//fParams.pushSteps = 3;
+	//fParams.roomCount = 8;
+	//EnvironmentalizeParameters eParams = { 0 };
+	//m_game->m_levelHandler->GenerateFloor(&tempFloor, fParams, eParams );
 
-	// Generate a image from the floor data
-	shared_ptr<uint8_t> imageData = m_game->m_levelHandler->GenerateFloorImage(1024, 1024, tempFloor);
-	TextureResource* newTexture = Resources::Get().CreateTexture(m_renderer->GetRenderCore(), "Test", imageData.get(), 1024 * 1024);
+	//// Generate a image from the floor data
+	//shared_ptr<uint8_t> imageData = m_game->m_levelHandler->GenerateFloorImage(1024, 1024, tempFloor);
+	//TextureResource* newTexture = Resources::Get().CreateTexture(m_renderer->GetRenderCore(), "Test", imageData.get(), 1024 * 1024);
 
 	// Test GUI
 	// Stamina bar
 	GUI testGui;
-	testGui.AddGUIElement({ 0.28f,-0.90 }, { 0.7f,0.08f }, nullptr, nullptr);
+	testGui.AddGUIElement({ 0.28f,-0.90f }, { 0.7f,0.08f }, nullptr, nullptr);
 	testGui.GetElement( 0 )->colorTint = Vec3(1.0f, 0.72f, 0.0f);
 	testGui.GetElement( 0 )->alpha = 0.6f;
 	testGui.GetElement( 0 )->vectorData = Vec3( 1, 1, 1 );
@@ -260,7 +260,7 @@ void Whisperwoods::Run()
 		}
 		else
 		{
-			testGui.GetElement(3)->floatData = 0.06;
+			testGui.GetElement(3)->floatData = 0.06f;
 			testGui.GetElement(3)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
 		}
 
@@ -274,27 +274,27 @@ void Whisperwoods::Run()
 
 
 		// Button/Interaction Test
-		if (Input::Get().GetMouseState().leftButton && !Input::Get().GetLastMouseState().leftButton)
-		{
-			//bool isInside = testGui.GetElement( 2 )->TestMouse();
-			//LOG_TRACE( "Inside: %d ", isInside );
-			if (testGui.GetElement( 2 )->TestMouse())
-			{
-				Debug::ExecuteCommand( "Duck", "play" );
-				targetAlpha = !targetAlpha;
-			}
-		}
-		else if (!Input::Get().GetMouseState().leftButton)
-		{
-			if( testGui.GetElement( 2 )->TestMouse() )
-			{
-				testGui.GetElement( 2 )->colorTint = Vec3( 0.5, 1.0f, 0.5 );
-			}
-			else
-			{
-				testGui.GetElement( 2 )->colorTint = Vec3( 1, 1, 1 );
-			}
-		}
+		//if (Input::Get().GetMouseState().leftButton && !Input::Get().GetLastMouseState().leftButton)
+		//{
+		//	//bool isInside = testGui.GetElement( 2 )->TestMouse();
+		//	//LOG_TRACE( "Inside: %d ", isInside );
+		//	if (testGui.GetElement( 2 )->TestMouse())
+		//	{
+		//		Debug::ExecuteCommand( "Duck", "play" );
+		//		targetAlpha = !targetAlpha;
+		//	}
+		//}
+		//else if (!Input::Get().GetMouseState().leftButton)
+		//{
+		//	if( testGui.GetElement( 2 )->TestMouse() )
+		//	{
+		//		testGui.GetElement( 2 )->colorTint = Vec3( 0.5, 1.0f, 0.5 );
+		//	}
+		//	else
+		//	{
+		//		testGui.GetElement( 2 )->colorTint = Vec3( 1, 1, 1 );
+		//	}
+		//}
 
 		if (ImGui::Begin( "Shadow PS Test" ))
 		{
@@ -421,21 +421,21 @@ Vec3 EulerAngles( Quaternion q )
 {
 	Vec3 returnValue;
 	// roll (x-axis rotation)
-	double sinr_cosp = 2.0 * (q.w * q.x + q.y * q.z);
-	double cosr_cosp = 1.0 - 2.0 * (q.x * q.x + q.y * q.y);
-	returnValue.x = std::atan2( sinr_cosp, cosr_cosp );
+	float sinr_cosp = 2.0f * (q.w * q.x + q.y * q.z);
+	float cosr_cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
+	returnValue.x = std::atan2f( sinr_cosp, cosr_cosp );
 
 	// pitch (z-axis rotation)
-	double sinp = 2 * (q.w * q.y - q.z * q.x);
+	float sinp = 2 * (q.w * q.y - q.z * q.x);
 	if (std::abs( sinp ) >= 1)
-		returnValue.y = std::copysign( DirectX::XM_PI / 2, sinp ); // use 90 degrees if out of range
+		returnValue.y = std::copysignf( DirectX::XM_PI / 2, sinp ); // use 90 degrees if out of range
 	else
-		returnValue.y = std::asin( sinp );
+		returnValue.y = std::asinf( sinp );
 
 	// yaw (y-axis rotation)
-	double siny_cosp = 2.0 * (q.w * q.z + q.x * q.y);
-	double cosy_cosp = 1.0 - 2.0 * (q.y * q.y + q.z * q.z);
-	returnValue.z = std::atan2( siny_cosp, cosy_cosp );
+	float siny_cosp = 2.0f * (q.w * q.z + q.x * q.y);
+	float cosy_cosp = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
+	returnValue.z = std::atan2f( siny_cosp, cosy_cosp );
 
 	return returnValue;
 }
