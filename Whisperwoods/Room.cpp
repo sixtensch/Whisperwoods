@@ -136,7 +136,7 @@ void Room::GenerateRoomShadowMap()
 void Room::Update(float deltaTime)
 {
 	transform.CalculateWorldMatrix();
-	m_renderable->worldMatrix = transform.worldMatrix * m_modelOffset;
+	//m_renderable->worldMatrix = transform.worldMatrix * m_modelOffset;
 	m_wallsAndFloorRenderable->worldMatrix = transform.worldMatrix * m_wallsFloorOffset;
 }
 
