@@ -47,6 +47,7 @@ private:
 	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
 
+	void MusicUpdate(float deltaTime);
 
 private:
 	std::unique_ptr<LevelHandler>	m_levelHandler;
@@ -54,6 +55,11 @@ private:
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
+
+	float m_musicVol = 0.3;
+	shared_ptr<AudioSource> m_musicPresent;
+	shared_ptr<AudioSource> m_musicFuture;
+	shared_ptr<AudioSource> m_musicDetected;
 
 	// Current room data
 	cs::List<shared_ptr<PointLight>> m_pointLights;

@@ -64,8 +64,6 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		}
 	}
 
-	
-
 
 	float closestDistance = 0.0f;
 	if (m_enemies.Size() > 0) // apperently we call update before creating enemies. Dont touch this
@@ -309,6 +307,8 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		Renderer::GetWindow().CloseProgram();
 	}
+
+	MusicUpdate(deltaTime);
 }
 
 void Game::Init()
@@ -317,9 +317,6 @@ void Game::Init()
 	FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
 	m_audioSource->Play();
-
-
-	
 
 	// Environment parameters
 	m_envParams.spawnSeed = 652;
@@ -349,6 +346,17 @@ void Game::Init()
 
 	// In-world objects and entities
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
+
+	//Music
+	m_musicPresent = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_musicVol, 1.0f, 15.0f, 20.0f, ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Strange_Beings.mp3"))->currentSound);
+	m_musicFuture = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Gecko.mp3"))->currentSound);
+	m_musicDetected = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Trespass.mp3"))->currentSound);
+	m_player->AddChild((GameObject*)m_musicPresent.get());
+	m_player->AddChild((GameObject*)m_musicFuture.get());
+	m_player->AddChild((GameObject*)m_musicDetected.get());
+	m_musicPresent->loop = true;
+	m_musicFuture->loop = true;
+	m_musicDetected->loop = true;
 
 	// Lighting
 	m_directionalLight = Renderer::GetDirectionalLight();
@@ -528,6 +536,49 @@ void Game::LowerToFloor(float deltaTime)
 	if (m_detectionLevelGlobal < m_detectionLevelFloor)
 	{
 		m_detectionLevelGlobal = m_detectionLevelFloor;
+	}
+}
+
+void Game::MusicUpdate(float deltaTime)
+{
+	m_musicPresent->Update(deltaTime);
+	m_musicFuture->Update(deltaTime);
+	m_musicDetected->Update(deltaTime);
+
+	if (!m_musicPresent->IsPlaying())
+	{
+		if (!m_isHubby)
+		{
+			m_musicPresent->Play();
+			m_musicFuture->Play();
+			m_musicDetected->Play();
+
+			m_musicPresent->SetVolume(m_musicVol);
+			m_musicFuture->SetVolume(0.0f);
+			m_musicDetected->SetVolume(0.0f);
+		}
+	}
+	else
+	{
+		if (m_isHubby)
+		{
+			m_musicPresent->Stop();
+			m_musicFuture->Stop();
+			m_musicDetected->Stop();
+		}
+
+		if (m_isInFuture)
+		{
+			m_musicPresent->SetVolume(0.0f);
+			m_musicFuture->SetVolume(m_musicVol);
+			m_musicDetected->SetVolume(0.0f);
+		}
+		else
+		{
+			m_musicPresent->SetVolume(m_musicVol);
+			m_musicFuture->SetVolume(0.0f);
+			m_musicDetected->SetVolume(m_musicVol * m_detectionLevelGlobal * (m_timeUnseen <= m_timeBeforeDetectionLowers));
+		}
 	}
 }
 
