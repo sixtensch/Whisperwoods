@@ -123,14 +123,6 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	//GenerateRoomShadowMap();
 }
 
-Room::~Room()
-{
-	for (int i = 0; i < m_ambianceSources.Size(); i++)
-	{
-		m_ambianceSources[i]->Stop();
-	}
-}
-
 
 
 

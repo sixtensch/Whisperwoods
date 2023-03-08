@@ -67,16 +67,16 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 
 	m_carcinian->Materials().AddMaterial((const MaterialResource*)Resources::Get().GetResource(ResourceTypeMaterial, "Carcinian.wwmt"));
 
-	m_crabClick = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "CrabClick.mp3"))->currentSound;
-	m_softerIdle = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "SofterIdle.mp3"))->currentSound;
-	m_varyingClicks = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "VaryingClicks.mp3"))->currentSound;
-	m_chirpsLow = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "ChirpsLow.mp3"))->currentSound;
-	m_chirps = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Chirps.mp3"))->currentSound;
-	m_chirpsLouder = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "ChirpsLouder.mp3"))->currentSound;
-	m_smallScreetch = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "SmallScreetch.mp3"))->currentSound;
-	m_megatron = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Megatron.mp3"))->currentSound;
-	m_theHorror = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "TheHorror.mp3"))->currentSound;
-	m_bigStep = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "BigStep.mp3"))->currentSound;
+	m_crabClick = (Resources::Get().GetSound("CrabClick.mp3"))->currentSound;
+	m_softerIdle = (Resources::Get().GetSound("SofterIdle.mp3"))->currentSound;
+	m_varyingClicks = (Resources::Get().GetSound("VaryingClicks.mp3"))->currentSound;
+	m_chirpsLow = (Resources::Get().GetSound("ChirpsLow.mp3"))->currentSound;
+	m_chirps = (Resources::Get().GetSound("Chirps.mp3"))->currentSound;
+	m_chirpsLouder = (Resources::Get().GetSound("ChirpsLouder.mp3"))->currentSound;
+	m_smallScreetch = (Resources::Get().GetSound("SmallScreetch.mp3"))->currentSound;
+	m_megatron = (Resources::Get().GetSound("Megatron.mp3"))->currentSound;
+	m_theHorror = (Resources::Get().GetSound("TheHorror.mp3"))->currentSound;
+	m_bigStep = (Resources::Get().GetSound("BigStep.mp3"))->currentSound;
 
 	m_walkingSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_walkingVol, 1.0f, 3.0f, 10.0f, m_bigStep);
 	this->AddChild((GameObject*) m_walkingSource.get());

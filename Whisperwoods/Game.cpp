@@ -23,7 +23,8 @@ Game::Game() :
 	m_envParams({}),
 	m_reachedLowestStamina(false),
 	m_coolDownCounter(m_timeAbilityCooldown),
-	m_isCutscene(false)
+	m_isCutscene(false),
+	m_isSeen(false)
 {
 }
 
@@ -159,7 +160,7 @@ void Game::UpdateEnemies( Renderer* renderer )
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update( m_deltaTime ); // Would ideally want to put this in UpdateGameObjects(), but this makes one less loop
-		if (m_enemies[i]->SeesPlayer( Vec2( m_player->transform.worldPosition.x, m_player->transform.worldPosition.z ), *m_currentRoom, *m_audioSource, m_isInFuture ))
+		if (m_enemies[i]->SeesPlayer( Vec2( m_player->transform.worldPosition.x, m_player->transform.worldPosition.z ), *m_currentRoom, m_isInFuture ))
 		{
 			m_isSeen = true;
 			if (m_enemies[i]->GetDistance() < m_closestDistance)
@@ -464,9 +465,9 @@ void Game::Init()
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
 
 	//Music
-	m_musicPresent = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_musicVol, 1.0f, 15.0f, 20.0f, ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Strange_Beings.mp3"))->currentSound);
-	m_musicFuture = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Gecko.mp3"))->currentSound);
-	m_musicDetected = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Trespass.mp3"))->currentSound);
+	m_musicPresent = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_musicVol, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings.mp3"))->currentSound);
+	m_musicFuture = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Gecko.mp3"))->currentSound);
+	m_musicDetected = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Trespass.mp3"))->currentSound);
 	m_player->AddChild((GameObject*)m_musicPresent.get());
 	m_player->AddChild((GameObject*)m_musicFuture.get());
 	m_player->AddChild((GameObject*)m_musicDetected.get());
@@ -474,7 +475,7 @@ void Game::Init()
 	m_musicFuture->loop = true;
 	m_musicDetected->loop = true;
 
-	m_enemyHorn = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_hornVol, 1.0f, 20.0f, 30.0f, ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "HornHeavyReverb.wav"))->currentSound);
+	m_enemyHorn = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_hornVol, 1.0f, 20.0f, 30.0f, (Resources::Get().GetSound("HornHeavyReverb.wav"))->currentSound);
 	m_player->AddChild((GameObject*)m_enemyHorn.get());
 
 	// Lighting
