@@ -53,7 +53,7 @@ public: // Methods
 	~QuadTree();
 
 	void Init(float maxHeight, float minHeight, float top, float left);
-	void Reconstruct(float top, float left);
+	void Reconstruct(float top, float left, Vec3 origo);
 #if WW_DEBUG
 	//const string PrintTree() const;
 #endif
@@ -145,14 +145,14 @@ inline void QuadTree<T>::Init(float maxHeight, float minHeight, float top, float
 	m_root->rootPartition = rootBox;
 }
 template<typename T>
-inline void QuadTree<T>::Reconstruct(float top, float left)
+inline void QuadTree<T>::Reconstruct(float top, float left, Vec3 origo)
 {
 	// Clear the entire tree
 	FreeNode(m_root);
 
 	// Create a new tree
-	dx::XMVECTOR topleft = { left, m_minHeight, top };
-	dx::XMVECTOR bottomRigh = { -left, m_maxHeight, -top };
+	dx::XMVECTOR topleft = { left + origo.x, m_minHeight, top + origo.z };
+	dx::XMVECTOR bottomRigh = { -left + origo.x, m_maxHeight, -top + origo.z };
 
 	dx::BoundingBox rootBox;
 	dx::BoundingBox::CreateFromPoints(rootBox, topleft, bottomRigh);

@@ -37,7 +37,7 @@ float4 main(VSOutput input) : SV_TARGET0
         float4 uvRotated = mul(float4(input.outUV.y + 0.5f, 0, input.outUV.x - 0.5f, 0), playerMatrix);
         rotatedUV = -float2(uvRotated.z - 0.5f + playerPos.x / 40.0f, uvRotated.x + 0.5f - playerPos.z / 40.0f); // Rotated with yanky player offset. 
     }
-    float3 texSample = firstTexture.Sample(textureSampler, rotatedUV);
+    float3 texSample = firstTexture.Sample(textureSampler, rotatedUV).xyz;
     
     // Streching the mask for stamina bar stuff.
     float2 stretchedUV = input.outUV; 
@@ -46,14 +46,14 @@ float4 main(VSOutput input) : SV_TARGET0
     {
         //stretchedUV.x = stretchedUV.x * floatValue + vectorValue.x;
         //stretchedUV.y = stretchedUV.x + vectorValue.y;
-        maskSample = secondTexture.Sample(textureSampler, stretchedUV);
+        maskSample = secondTexture.Sample(textureSampler, stretchedUV).x;
         if (maskSample < 0.001f)
             discard;
         return float4(texSample * colorTint, alpha * (sqrt(sqrt(input.outUV.x - (1.0f - floatValue))) * 2.0f) * (maskSample * maskSample*1.5f));
     }
     else
     {
-        maskSample = secondTexture.Sample(textureSampler, input.outUV);
+        maskSample = secondTexture.Sample(textureSampler, input.outUV).x;
     }
     
     if (maskSample < 0.001f)

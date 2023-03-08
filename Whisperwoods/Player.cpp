@@ -81,6 +81,16 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	FMOD::Sound* stepsSoundPtr = ((SoundResource*)Resources::Get().GetResource(ResourceTypeSound, "footstep.mp3"))->currentSound;
 	m_stepsSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 2.0f, 1.1f, 0.0f, 10.0f, stepsSoundPtr);
 	this->AddChild((GameObject*)m_stepsSound.get());
+
+	FMOD::Sound* coughSoundPtr = ((SoundResource*)Resources::Get().GetResource(ResourceTypeSound, "cough.mp3"))->currentSound;
+	m_coughSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.1f, 0.0f, 10.0f, coughSoundPtr);
+	this->AddChild((GameObject*)m_coughSound.get());
+
+	
+
+	FMOD::Sound* switchSoundPtr = (Resources::Get().GetSound("TimeSwitch.wav"))->currentSound;
+	m_switchSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.5f, 1.5f, 10.0f, 20.0f, switchSoundPtr);
+	this->AddChild((GameObject*)m_switchSource.get());
 }
 
 void Player::ReloadPlayer()
@@ -201,7 +211,8 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		if (Input::Get().IsKeybindDown( KeybindBackward ))	inputVector -= forward;
 		if (Input::Get().IsKeybindDown( KeybindRight ))		inputVector += right;
 		if (Input::Get().IsKeybindDown( KeybindLeft ))		inputVector -= right;
-		float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !m_ranOutOfSprint && !Input::Get().IsKeybindDown(KeybindCrouch) && !playerInFuture) ? m_runSpeed : m_walkSpeed);
+		float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !Input::Get().IsKeybindDown(KeybindCrouch) && !m_ranOutOfSprint && !playerInFuture) ? m_runSpeed : m_walkSpeed);
+		//float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !m_ranOutOfSprint && !Input::Get().IsKeybindDown(KeybindCrouch) && !playerInFuture) ? m_runSpeed : m_walkSpeed);
 		m_targetVelocity = Vec3( inputVector.x, inputVector.y, inputVector.z );
 		if (m_targetVelocity.Length() > 0)
 			m_targetVelocity.Normalize();
@@ -213,6 +224,19 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			m_targetVelocity *= m_runSpeed;
 		}
 
+		if (m_velocity.Length() > m_walkSpeed)
+		{
+			m_stamina = m_stamina - ((cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * delta_time) * RUNNING_STAMINA_DECAY);
+		}
+
+		if (!Input::Get().IsKeybindDown(KeybindSprint)) // not sprinting
+		{
+			if (m_targetVelocity.Length() > m_walkSpeed)
+			{
+				m_targetVelocity = m_targetVelocity.Normalize();
+				m_targetVelocity *= m_walkSpeed;
+			}
+		}
 		m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * 2.0f * delta_time);
 
 
@@ -224,10 +248,19 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		//		m_targetVelocity *= m_walkSpeed;
 		//	}
 		//}
-		if (!m_ranOutOfSprint)
-			m_ranOutOfSprint = (m_stamina < 0.1f);
+		//if (!m_ranOutOfSprint)
+		//	m_ranOutOfSprint = (m_stamina < 0.1f);
 
-		if (m_ranOutOfSprint)
+		if (m_stamina <= 0.0f)
+		{
+			m_stamina = 0.0f;
+			if (Input::Get().IsKeybindDown(KeybindSprint))
+			{
+				m_ranOutOfSprint = true;
+			}
+		}
+
+		if (m_ranOutOfSprint == true)
 		{
 			if (!Input::Get().IsKeybindDown(KeybindSprint) || 
 				(
@@ -261,16 +294,18 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			m_velocity = m_velocity.Normalize() * m_runSpeed;
 		}
 		
-		sampleVector = currentRoom->sampleBitMapCollision(transform.GetWorldPosition());
+		sampleVector = -currentRoom->sampleBitMapCollision(transform.GetWorldPosition());
 		Vec3 converted(( - (sampleVector.x * sampleVector.x * sampleVector.x))*0.05f, 0,
 			(sampleVector.y * sampleVector.y * sampleVector.y )*0.05f);
-		if (converted.Length() > m_runSpeed)
+
+		if (converted.Length() > m_runSpeed * 1.1f)
 		{
 			converted.Normalize();
-			converted *= m_runSpeed;
+			converted *= m_runSpeed * 1.1f;
 		}
 
 		Vec3 targetWithCollision = m_targetVelocity - converted;
+
 
 		if (!std::isnan( targetWithCollision.x ) && !std::isnan( targetWithCollision.y ) && !std::isnan( targetWithCollision.z ))
 		{
@@ -284,14 +319,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			);
 		}
 
-		if (transform.parent != nullptr)
-		{
-			transform.position += transform.parent->GetWorldRotation() *  m_velocity * delta_time;
-		}
-		else
-		{
-			transform.position += m_velocity * delta_time;
-		}
+		transform.position += m_velocity * cs::fmin(delta_time, 0.05f);
 
 		m_isCrouch = Input::Get().IsKeybindDown( KeybindCrouch );
 
@@ -376,6 +404,8 @@ void Player::UpdateSound(float delta_time)
 {
 	m_vegetationSound->Update(delta_time);
 	m_stepsSound->Update(delta_time);
+	m_coughSound->Update(delta_time);
+	m_switchSource->Update(delta_time);
 
 	// Sound management!
 
@@ -395,8 +425,8 @@ void Player::UpdateSound(float delta_time)
 		{
 			volPercent = 0.8f;
 		}
-		realNotWhackDensityWhichActuallyIsAccurate = pow(realNotWhackDensityWhichActuallyIsAccurate, 0.6);
-		m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate;
+		realNotWhackDensityWhichActuallyIsAccurate = powf(realNotWhackDensityWhichActuallyIsAccurate, 0.6f);
+		m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate * (!playerInFuture);
 
 		if (!m_vegetationSound->IsPlaying()) //repeat sound? (looping kind of)
 		{
@@ -407,6 +437,7 @@ void Player::UpdateSound(float delta_time)
 	{
 		m_vegetationSound->Stop();
 	}
+	m_vegetationSound->SetVolume(m_vegetationSound->volume * (!playerInFuture));
 
 	if (m_velocity.Length() > 0.05f)
 	{
@@ -422,8 +453,17 @@ void Player::UpdateSound(float delta_time)
 			m_stepsSound->Play();
 		}
 	}
-	//else if(m_stepsSound->IsPlaying())  // execute order 66
-	//{
-	//	m_stepsSound->Stop();
-	//}
+
+	if (m_maxStamina <= 1.0f && playerInFuture) //danger low stamina
+	{
+		m_coughSound->volume = 0.35f;
+		if (!m_coughSound->IsPlaying()) //repeat sound? (looping kind of)
+		{
+			m_coughSound->Play();
+		}
+	}
+	else if (m_coughSound->IsPlaying())
+	{
+		m_coughSound->Stop();
+	}
 }

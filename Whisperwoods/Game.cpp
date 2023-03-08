@@ -23,7 +23,8 @@ Game::Game() :
 	m_envParams({}),
 	m_reachedLowestStamina(false),
 	m_coolDownCounter(m_timeAbilityCooldown),
-	m_isCutscene(false)
+	m_isCutscene(false),
+	m_isSeen(false)
 {
 }
 
@@ -85,41 +86,48 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		m_dangerousTimeInFuture = 0.0f;
 	}
 
-	// Detection logic
-	if (m_isSeen)
-	{
-		m_timeUnseen = 0.0f;
-		if (IsDetected( m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance() ))
-		{
-			if (m_isSwitching)
-			{
-				m_switchVals.timeSinceSwitch = 2.0f;
-				m_isInFuture = true;
-				renderer->GetCamera().SetFov( m_initialCamFov );
-				ChangeTimeline( renderer );
-				m_switchVals.timeSinceSwitch = 0.0f;
-				m_isSwitching = false;
-				m_totalFovDelta = 0.0f;
-			}
 
-			// D E A T H
-			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
-			//m_coolDownCounter = m_timeAbilityCooldown;
-			m_player->ResetStaminaToMax( m_maxStamina );
-			UnLoadPrevious();
-			LoadHubby();
-			m_player->ReloadPlayer();
-			m_isSeen = false;
-			m_detectionLevelGlobal = 0.0f;
-			m_detectionLevelFloor = 0.0f;
-		}
-	}
-	else
+	if (!m_enemies.Empty())
 	{
-		m_timeUnseen += m_deltaTime;
-		if (m_timeUnseen > m_timeBeforeDetectionLowers)
+		// Detection logic
+		if (m_isSeen)
 		{
-			LowerToFloor( m_deltaTime );
+			m_timeUnseen = 0.0f;
+
+			if (IsDetected(m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance()))
+			{
+				if (m_isSwitching)
+				{
+					m_switchVals.timeSinceSwitch = 2.0f;
+					m_isInFuture = true;
+					renderer->GetCamera().SetFov(m_initialCamFov);
+					ChangeTimeline(renderer);
+					m_switchVals.timeSinceSwitch = 0.0f;
+					m_isSwitching = false;
+					m_totalFovDelta = 0.0f;
+				}
+
+				// D E A T H
+				m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+				//m_coolDownCounter = m_timeAbilityCooldown;
+				m_player->ResetStaminaToMax(m_maxStamina);
+				UnLoadPrevious();
+				LoadHubby();
+				m_player->ReloadPlayer();
+				m_isSeen = false;
+				m_detectionLevelGlobal = 0.0f;
+				m_detectionLevelFloor = 0.0f;
+
+				m_enemyHorn->Play();
+			}
+		}
+		else
+		{
+			m_timeUnseen += m_deltaTime;
+			if (m_timeUnseen > m_timeBeforeDetectionLowers)
+			{
+				LowerToFloor(m_deltaTime);
+			}
 		}
 	}
 }
@@ -135,9 +143,31 @@ void Game::UpdateGameObjects()
 	}
 }
 
+
+
 // Transform and AI Logic
 void Game::UpdateEnemies( Renderer* renderer )
 {
+	//       $$                      $$
+	//     $$$  $                  $  $$$
+	//    $$$   $$                $$   $$$
+	//    $$$$$$$$                $$$$$$$$
+	//     $$$$$$                  $$$$$$
+	//      $$$$    $$0$$$$$0$$$    $$$$
+	//        $$  $$$$$$$$$$$$$$$$  $$
+	//    $$   $$$$$$$$$$$$$$$$$$$$$$   $$
+	//  $$  $$  $$$$$$$$$$$$$$$$$$$$  $$  $$
+	// $      $$$$$$$$$$$$$$$$$$$$$$$$      $
+	// $  $$$    $$$$$$$$$$$$$$$$$$    $$$  $
+	//   $   $$$$ $$$$$$$$$$$$$$$$ $$$$   $
+	//  $         $ $$$$$$$$$$$$ $         $
+	//  $      $$$                $$$      $
+	//        $                      $
+	//       $                        $
+	//       $                         $
+	// 
+	//     WHAT ARE THESE COPYPASTA TIGERS?
+
 	/*    ("`-''-/").___..--''"`-._
 		   `6_ 6  )   `-.  (     ).`-.__.`)
 		   (_Y_.)'  ._   )  `._ `. ``-..-'
@@ -154,7 +184,7 @@ void Game::UpdateEnemies( Renderer* renderer )
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update( m_deltaTime ); // Would ideally want to put this in UpdateGameObjects(), but this makes one less loop
-		if (m_enemies[i]->SeesPlayer( Vec2( m_player->transform.worldPosition.x, m_player->transform.worldPosition.z ), *m_currentRoom, *m_audioSource, m_isInFuture ))
+		if (m_enemies[i]->SeesPlayer( Vec2( m_player->transform.worldPosition.x, m_player->transform.worldPosition.z ), *m_currentRoom, m_isInFuture ))
 		{
 			m_isSeen = true;
 			if (m_enemies[i]->GetDistance() < m_closestDistance)
@@ -162,6 +192,8 @@ void Game::UpdateEnemies( Renderer* renderer )
 				m_closestDistance = m_enemies[i]->GetDistance();
 			}
 		}
+
+		m_enemies[i]->EnemySoundUpdate(m_deltaTime, Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), m_detectionLevelGlobal);
 	}
 }
 
@@ -177,6 +209,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			m_isSwitching = true;
 			m_finishedCharging = false;
 			m_initialCamFov = renderer->GetCamera().GetFov();
+			m_player->m_switchSource->Play();
 		}
 
 		if (m_isSwitching)
@@ -222,6 +255,26 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			}
 		}
 
+		//       $$                      $$
+		//     $$$  $                  $  $$$
+		//    $$$   $$                $$   $$$
+		//    $$$$$$$$                $$$$$$$$
+		//     $$$$$$                  $$$$$$
+		//      $$$$    $$0$$$$$0$$$    $$$$
+		//        $$  $$$$$$$$$$$$$$$$  $$
+		//    $$   $$$$$$$$$$$$$$$$$$$$$$   $$
+		//  $$  $$  $$$$$$$$$$$$$$$$$$$$  $$  $$
+		// $      $$$$$$$$$$$$$$$$$$$$$$$$      $
+		// $  $$$    $$$$$$$$$$$$$$$$$$    $$$  $
+		//   $   $$$$ $$$$$$$$$$$$$$$$ $$$$   $
+		//  $         $ $$$$$$$$$$$$ $         $
+		//  $      $$$                $$$      $
+		//        $                      $
+		//       $                        $
+		//       $                         $
+		// 
+		//     WHAT ARE THESE COPYPASTA TIGERS?
+
 		/*    ("`-''-/").___..--''"`-._
 			   `6_ 6  )   `-.  (     ).`-.__.`)
 			   (_Y_.)'  ._   )  `._ `. ``-..-'
@@ -233,11 +286,59 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			m_maxStamina = 1.0f;
 		}*/
 
+		m_testTunnel = false;
+
+		if (!m_isSwitching && !m_isInFuture)
+		{
+			for (const LevelTunnelRef& r : m_currentRoom->m_level->connections)
+			{
+				Vec3 sideDir = Vec3(r.direction.z, 0.0f, -r.direction.x);
+				Vec3 relative = m_player->transform.worldPosition - r.position;
+
+				if (relative * r.direction > -TUNNEL_TRIGGER_DISTANCE && abs(relative * sideDir) < r.width * 1.1f)
+				{
+					/*m_testTunnel = true;*/
+
+					// Go to next room
+					if (r.targetRoom >= 0)
+					{
+						uint targetIndex = (r.tunnelSubIndex + 1) % 2;
+						const LevelTunnel& t = m_floor.tunnels[r.tunnel];
+
+						UnLoadPrevious();
+						LoadRoom(&m_floor.rooms[r.targetRoom]);
+
+						m_player->transform.position = t.positions[targetIndex] - t.directions[targetIndex] * TUNNEL_SPAWN_DISTANCE;
+						m_player->ReloadPlayer();
+
+						Renderer::ExecuteShadowRender();
+						break;
+					}
+
+					// Floor entrance
+					if (r.targetRoom == -1)
+					{
+
+					}
+
+					// Floor exit
+					if (r.targetRoom == -2)
+					{
+
+					}
+				}
+			}
+		}
+
 		if (Input::Get().IsDXKeyPressed( DXKey::H ) && !m_isInFuture)
 		{
 			UnLoadPrevious();
 			LoadHubby();
 			m_player->ReloadPlayer();
+			m_detectionLevelGlobal = 0.0f;
+			m_detectionLevelFloor = 0.0f;
+			m_coolDownCounter = m_timeAbilityCooldown;
+			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
 		}
 	}
 	else // If in hubby
@@ -245,7 +346,8 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		if (Input::Get().IsDXKeyPressed( DXKey::L ))
 		{
 			UnLoadPrevious();
-			LoadTest();
+			LoadGame(1, 9);
+			
 			m_player->ReloadPlayer();
 		}
 		if (Input::Get().IsDXKeyPressed( DXKey::H ))
@@ -272,7 +374,11 @@ void Game::DrawIMGUIWindows()
 		ImGui::Text( "Time left until future death: %f", m_timeYouSurviveInFuture - m_dangerousTimeInFuture );
 		ImGui::Text( "Time ability cooldown: %f", GetPowerCooldown());
 		ImGui::Checkbox( "Future", &m_isInFuture );
+		
+		ImGui::Separator();
+		ImGui::InputFloat3("Player Position", (float*)&m_player->transform.position);
 
+		ImGui::Text("Transition: %s", m_testTunnel ? "YES" : "NO");
 	}
 	ImGui::End();
 
@@ -337,15 +443,13 @@ void Game::DrawIMGUIWindows()
 				m_testMaterials.Add( MaterialResource() );
 			}
 
-			float distance = 0.5f;
-
-			Mat4 halfturn = Quaternion::GetEuler( 0, cs::c_pi, 0 ).Matrix();
+			float distance = 0.5f / (BM_MAX_SIZE / BM_PIXELS_PER_UNIT);
 
 			for (int i = 0; i < f.rooms.Size(); i++)
 			{
 				Level& l = f.rooms[i];
 				m_testRenderables.Add( Renderer::CreateMeshStatic( "room_plane.wwm" ) );
-				m_testRenderables.Back()->worldMatrix = Mat::translation3( l.position.x * distance, 3.2f, l.position.y * distance ) * halfturn * l.rotation.Matrix() * Mat::scale3( 0.8f );
+				m_testRenderables.Back()->worldMatrix = Mat::translation3( l.position.x * distance, 3.2f, l.position.z * distance ) * l.rotation.Matrix() * Mat::scale3( 0.8f );
 
 				m_testMaterials[i].specular = Vec3( 0.5f, 0.5f, 0.5f );
 				m_testMaterials[i].textureDiffuse = l.resource->source;
@@ -355,14 +459,14 @@ void Game::DrawIMGUIWindows()
 			for (int i = 0; i < f.tunnels.Size(); i++)
 			{
 				LevelTunnel& t = f.tunnels[i];
-				Vec2 start = f.rooms[t.startRoom].position;
-				Vec2 end = f.rooms[t.endRoom].position;
+				Level& start = f.rooms[t.startRoom];
+				Level& end = f.rooms[t.endRoom];
 
 				m_testRenderables.Add( Renderer::CreateMeshStatic( "Debug_Sphere.wwm" ) );
 				m_testRenderables.Back()->worldMatrix =
-					Mat::translation3( (start.x + end.x) * 0.5f * distance, 3, (start.y + end.y) * 0.5f * distance ) *
-					Quaternion::GetDirection( (Vec3( end.x, 0, end.y ) - Vec3( start.x, 0, start.y )).Normalized() ).Matrix() *
-					Mat::scale3( 0.3f, 0.3f, (end - start).Length() * 2.5f );
+					Mat::translation3( (start.position.x + end.position.x) * 0.5f * distance, 3, (start.position.z + end.position.z) * 0.5f * distance ) *
+					Quaternion::GetDirection( (Vec3( end.position.x, 0, end.position.z ) - Vec3( start.position.x, 0, start.position.z )).Normalized() ).Matrix() *
+					Mat::scale3( 0.3f, 0.3f, (end.position - start.position).Length() * 5.0f * distance);
 			}
 		}
 	}
@@ -414,6 +518,8 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		Renderer::GetWindow().CloseProgram();
 	}
+
+	SoundUpdate(deltaTime);
 }
 
 void Game::Init()
@@ -422,9 +528,6 @@ void Game::Init()
 	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
 	m_audioSource->Play();
-
-
-	
 
 	// Environment parameters
 	m_envParams.spawnSeed = 652;
@@ -454,6 +557,20 @@ void Game::Init()
 
 	// In-world objects and entities
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
+
+	//Music
+	m_musicPresent = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_musicVol, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings.mp3"))->currentSound);
+	m_musicFuture = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Gecko.mp3"))->currentSound);
+	m_musicDetected = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Trespass.mp3"))->currentSound);
+	m_player->AddChild((GameObject*)m_musicPresent.get());
+	m_player->AddChild((GameObject*)m_musicFuture.get());
+	m_player->AddChild((GameObject*)m_musicDetected.get());
+	m_musicPresent->loop = true;
+	m_musicFuture->loop = true;
+	m_musicDetected->loop = true;
+
+	m_enemyHorn = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_hornVol, 1.0f, 20.0f, 30.0f, (Resources::Get().GetSound("HornHeavyReverb.wav"))->currentSound);
+	m_player->AddChild((GameObject*)m_enemyHorn.get());
 
 	// Lighting
 	m_directionalLight = Renderer::GetDirectionalLight();
@@ -506,16 +623,21 @@ void Game::LoadTest()
 	Renderer::ExecuteShadowRender();
 }
 
-void Game::LoadGame(uint gameSeed)
+void Game::LoadGame(uint gameSeed, uint roomCount)
 {
-	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
+	FloorParameters params = {};
+	params.seed = gameSeed;
+	params.roomCount = roomCount;
+	params.angleSteps = 0;
+	params.pushSteps = 3;
+
+	m_levelHandler->GenerateFloor(&m_floor, params, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
+
 	m_player->transform.position = m_floor.startPosition;
-	//Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	//Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
-	//Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
-	//Mat4 worldCombined = worldScale * worldPos * worldRot;
+
 	m_isHubby = false;
+	Renderer::ExecuteShadowRender();
 }
 
 void Game::UnLoadPrevious()
@@ -556,18 +678,17 @@ float Game::GetMaxStamina()
 
 void Game::LoadRoom(Level* level)
 {
-	Mat4 roomMatrix =
-		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight) *
-		Mat::translation3(level->position.x, level->position.x - 0.01f, level->position.x)*
-		level->rotation.Matrix();
+	Mat4 roomOffset =
+		Mat::translation3(0, -0.01f, 0) *
+		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight);
 
-	Mat4 roomCylinderMatrix =
-		Mat::scale3( level->resource->worldWidth*1.2f, 1.0f, level->resource->worldHeight * 1.2f ) *
-		Mat::translation3( level->position.x, level->position.x, level->position.x ) *
-		level->rotation.Matrix();
+	Mat4 cylinderOffset =
+		Mat::translation3( 0, -0.02f, 0 ) *
+		Mat::scale3(level->resource->worldWidth * 1.2f, 1.0f, level->resource->worldHeight * 1.2f);
 
-	m_currentRoom = shared_ptr<Room>(new Room(level,"room_plane.wwm", "room_walls_floor.wwm", roomMatrix, roomCylinderMatrix ));
-	m_currentRoom->transform.rotation = Quaternion::GetEuler({ 0, 0, 0 });
+	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
+	m_currentRoom->transform.position = level->position;
+	m_currentRoom->transform.rotation = level->rotation;
 
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
@@ -585,8 +706,8 @@ void Game::LoadRoom(Level* level)
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
 			"Carcinian_Animated.wwm", 
 			"Carcinian_Animations.wwa", 
-			Mat::scale3(1.25f, 1.25f, 1.25f) * 
 			Mat::translation3(0, 0, 0) * 
+			Mat::scale3(1.25f, 1.25f, 1.25f) * 
 			Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
 		
 		for (int j = 0; j < p.controlPoints.Size(); j++)
@@ -602,8 +723,8 @@ void Game::LoadRoom(Level* level)
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
 			"Carcinian_Animated.wwm",
 			"Carcinian_Animations.wwa",
-			Mat::scale3(1.25f, 1.25f, 1.25f) *
 			Mat::translation3(0, 0, 0) *
+			Mat::scale3(1.25f, 1.25f, 1.25f) *
 			Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
 
 		for (int j = 0; j < p.controlPoints.Size(); j++)
@@ -673,10 +794,56 @@ void Game::LowerToFloor(float deltaTime)
 	}
 }
 
+void Game::SoundUpdate(float deltaTime)
+{
+	m_musicPresent->Update(deltaTime);
+	m_musicFuture->Update(deltaTime);
+	m_musicDetected->Update(deltaTime);
+
+	if (!m_musicPresent->IsPlaying())
+	{
+		if (!m_isHubby)
+		{
+			m_musicPresent->Play();
+			m_musicFuture->Play();
+			m_musicDetected->Play();
+
+			m_musicPresent->SetVolume(m_musicVol);
+			m_musicFuture->SetVolume(0.0f);
+			m_musicDetected->SetVolume(0.0f);
+		}
+	}
+	else
+	{
+		if (m_isHubby)
+		{
+			m_musicPresent->Stop();
+			m_musicFuture->Stop();
+			m_musicDetected->Stop();
+		}
+
+		if (m_isInFuture)
+		{
+			m_musicPresent->SetVolume(0.0f);
+			m_musicFuture->SetVolume(m_musicVol);
+			m_musicDetected->SetVolume(0.0f);
+		}
+		else
+		{
+			m_musicPresent->SetVolume(m_musicVol);
+			m_musicFuture->SetVolume(0.0f);
+			m_musicDetected->SetVolume(m_musicVol * m_detectionLevelGlobal * (m_timeUnseen <= m_timeBeforeDetectionLowers));
+		}
+	}
+}
+
+
+
 void Game::ChangeTimeline(Renderer* renderer)
 {
 	m_isInFuture = !m_isInFuture;
 	renderer->SetTimelineState(m_isInFuture);
+	m_currentRoom->SetTimeline(m_isInFuture);
 
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{

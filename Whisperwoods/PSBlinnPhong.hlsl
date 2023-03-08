@@ -1,6 +1,10 @@
 
 #include "Constants.hlsli"
 #include "PhongAlg.hlsli"
+#include "FogFuncs.hlsli"
+#include "TimeSwitchFuncs.hlsli"
+#include "BrightnessFilteringIncludes.hlsli"
+#include "EnemyConeVisIncludes.hlsli"
 
 static float smoothing = 2.0f;
 
@@ -51,8 +55,6 @@ cbuffer ShadingInfo : REGISTER_CBV_SHADING_INFO
     uint spotCount;
 };
 
-
-
 cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
 {
     float3 diffuse;
@@ -63,6 +65,13 @@ cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
     float height;
     float3 pad;
     float tiling;
+};
+
+cbuffer THRESHOLD_INFO_BUFFER : REGISTER_CBV_THRESHOLD_INFO
+{
+    float luminanceThreshold;
+    float strength;
+    float minLuminance;
 };
 
 float2 texOffset( int u, int v, int lNo )
@@ -82,6 +91,15 @@ cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
     float PADDING[3];
 }
 
+cbuffer ENEMY_CONE_INFO_BUFFER : REGISTER_CBV_ENEMY_CONE_INFO
+{
+    float4 worldPosAndDir[ENEMY_CONE_INFO_CAPACITY]; // XY is world pos in XZ plane and ZW is world direction in XZ plane.
+    float coneLength;
+    float coneAngle;
+    uint coneCount;
+    
+    float MOREPADDING;
+}
 
 SamplerState textureSampler : REGISTER_SAMPLER_STANDARD;
 SamplerComparisonState shadowSampler : REGISTER_SAMPLER_SHADOW;
@@ -95,7 +113,7 @@ Texture2D shadowTexture : REGISTER_SRV_SHADOW_DEPTH;
 struct PS_OUTPUT
 {
     float4 MainTarget : SV_TARGET0;
-    float4 PositionTarget : SV_TARGET1;
+    float4 LuminanceTexture : SV_TARGET1;
 };
 
 PS_OUTPUT main(VSOutput input)
@@ -152,9 +170,7 @@ PS_OUTPUT main(VSOutput input)
     }
     float shadowAff = sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f));
 
-
-
-
+    
     // Directional lighting
     color += shadowAff * phong(
 		input.wPosition.xyz,
@@ -214,7 +230,48 @@ PS_OUTPUT main(VSOutput input)
 			colorSpecularSpecularity.w
 		);
     }
+    
+    // Enemy cone effects.
+    // Will not loop if the state is in the future.
+    for (uint i = 0; i < coneCount * !isInFuture; i++)
+    {
+        float4 enemyPosAndDir = worldPosAndDir[i];
+        float3 enemyPos = float3(enemyPosAndDir.x, 0.0f, enemyPosAndDir.y);
+        float3 enemyDir = float3(enemyPosAndDir.z, 0.0f, enemyPosAndDir.w);
+        
+        color.rgb += DrawEnemyCone(
+            enemyPos,
+            input.wPosition.xyz, // Y value is important so dont set to 0.
+            enemyDir,
+            coneLength,
+            coneAngle,
+            detectionLevelGlobal
+        ); 
+    }
+    
+    // Enemy position effects.
+    // Will not loop if the state is in the present.
+    for (uint i = 0; i < coneCount * isInFuture; i++)
+    {
+        float4 enemyPosAndDir = worldPosAndDir[i];
+        float3 enemyPos = float3(enemyPosAndDir.x, 0.0f, enemyPosAndDir.y);
+        
+        color.rgb += DrawEnemyPos(enemyPos, input.wPosition.xyz) * isInFuture;
+    }
 	
+    // Fog effects
+    {
+        float posToCamDist = distance(input.wPosition.xyz, cameraPosition);
+        uint stateIndex = uint(isInFuture);
+        color.rgb = ApplyExpFog(
+            color.rgb, 
+            STATE_FOG_DENSITIES[stateIndex], 
+            posToCamDist, 
+            STATE_FOG_COLORS[stateIndex],
+            STATE_FOG_STRENGTHS[stateIndex]
+        );
+    }
+  
 	
     float3 finalEmissiveColor = 0.0f;
 	// Detection scaled emission calculations.
@@ -233,15 +290,29 @@ PS_OUTPUT main(VSOutput input)
         finalEmissiveColor = lerp(colorEmissive, detectionColor, totalInfluence);
     }
     
-	
+
 	// Used to scale ALL emissive for more dramatic glow.
-    float emissiveScalar = 2.0f;
+    static float emissiveScalar = 2.0f;
     color.rgb += finalEmissiveColor * emissiveScalar;
+	
+    float totalInflunce =
+        TotalTimeSwitchInfluence(
+        timeSinceSwitch,
+        timeSwitchStartDuration,
+        timeSwitchEndDuration
+    );
+    
+    float3 lumColor = FilterBrightness(
+        color.rgb,
+        lerp(luminanceThreshold, 0.0f, totalInflunce),
+        lerp(strength, strength * 1.4f, totalInflunce),
+        lerp(minLuminance, 0.0f, totalInflunce)
+    );
+
+    // Send the final color.
     color.a = saturate(color.a);
-	
-	
     output.MainTarget = color;
-    output.PositionTarget = input.wPosition;
-	
+    output.LuminanceTexture = float4(lumColor, color.a);
+
     return output;
 }
