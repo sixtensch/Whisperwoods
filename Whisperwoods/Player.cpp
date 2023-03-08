@@ -270,6 +270,7 @@ void Player::Update(float delta_time)
 
 	m_vegetationSound->Update(delta_time);
 	m_stepsSound->Update(delta_time);
+	m_switchSource->Update(delta_time);
 
 	// Sound management!
 

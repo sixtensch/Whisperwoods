@@ -687,6 +687,15 @@ float Enemy::GetMaxDistance() const
 
 void Enemy::EnemySoundUpdate(float dTime, Vec2 playerPosition, float detectLevel)
 {
+	//update positions
+	m_walkingSource->Update(dTime);
+	m_ambientCloseSource->Update(dTime);
+	m_ambientFarSource->Update(dTime);
+	m_actionSource->Update(dTime);
+	m_futureSource->Update(dTime);
+	m_screamSource->Update(dTime);
+	m_detectedSource->Update(dTime);
+
 	//direction vector from enemy position to player position
 	Vec2 playerDirection(playerPosition.x - transform.worldPosition.x, playerPosition.y - transform.worldPosition.z);
 
