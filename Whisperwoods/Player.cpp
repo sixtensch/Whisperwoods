@@ -140,7 +140,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			m_velocity = m_velocity.Normalize() * m_runSpeed;
 		}
 		
-		sampleVector = currentRoom->sampleBitMapCollision(transform.GetWorldPosition());
+		sampleVector = -currentRoom->sampleBitMapCollision(transform.GetWorldPosition());
 		Vec3 converted(( - (sampleVector.x * sampleVector.x * sampleVector.x))*0.05f, 0,
 			(sampleVector.y * sampleVector.y * sampleVector.y )*0.05f);
 
