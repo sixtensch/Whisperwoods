@@ -51,5 +51,6 @@ public:
 	//Vec3 GetRotationEuler();
 	//void Rotate(Quaternion p_rotation);
 	Vec3 GetWorldPosition();
+	Vec3 GetWorldPositionDX();
 	Quaternion GetWorldRotation();
 };

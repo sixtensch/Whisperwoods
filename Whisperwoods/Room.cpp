@@ -6,6 +6,17 @@
 #include "SoundResource.h"
 
 
+Room::~Room()
+{
+	if (m_ambianceSources.Size() > 0)
+	{
+		for (int i = 0; i < m_ambianceSources.Size(); i++)
+		{
+			m_ambianceSources[i]->Stop();
+		}
+	}
+}
+
 Room::Room(const Level* level, std::string modelResource, Mat4 modelOffset)
 {
 	m_level = level;
@@ -58,6 +69,9 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 		m_ambianceSources.Clear();
 
 	// Add ambiance sounds around the room
+
+
+
 	Resources& resources = Resources::Get();
 	int numSounds = 3;
 	float radius = m_levelResource->worldWidth / 2.0f;
@@ -91,18 +105,27 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	// Cylinder thing
 	m_wallsFloorOffset = modelOffset2;
 
-	m_wallsAndFloorRenderable = Renderer::CreateMeshStatic( modelResource2 );
+	m_wallsAndFloorRenderable = Renderer::CreateMeshTerrain( modelResource2 );
 
 	// Registers the last added renderable as one to do shadows on
-	Renderer::RegisterShadowRenderable();
+	//Renderer::RegisterShadowRenderable();
+
+	// pass the bitmap source to use for modifiers when rendering the terrain textures
+	//m_wallsAndFloorRenderable->m_BitMap = level->resource->source;
+	Renderer::UpdateBitMapBind( level->resource->source );
 
 	m_wallsAndFloorRenderable->worldMatrix = modelOffset2;
-	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("TestSceneBigTree.wwmt"));
+	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("BackgroundTrees.wwmt"));
 	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("TestSceneGround.wwmt"));
 	
+
 	
 	//GenerateRoomShadowMap();
 }
+
+
+
+
 
 void Room::GenerateRoomShadowMap()
 {
@@ -234,7 +257,7 @@ Vec2 Room::sampleBitMapCollision(Vec3 worldPos)
 	Vec2 returnVal(p0 + p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8);
 
 	Vec3 ret2(returnVal.x, 0, returnVal.y);
-	ret2 = transform.GetWorldRotation().Conjugate() * ret2;
+	ret2 = transform.GetWorldRotation()/*.Conjugate()*/ * ret2;
 
 	return Vec2(ret2.x, ret2.z);
 }

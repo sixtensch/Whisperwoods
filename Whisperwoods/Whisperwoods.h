@@ -8,6 +8,7 @@
 #include "Debug.h"
 #include "Player.h"
 #include "Enemy.h"
+#include "CutsceneController.h"
 
 class Whisperwoods sealed
 {
@@ -17,7 +18,7 @@ public:
 
 	void Run();
 
-	void Move(float dTime, Player* player);
+	void Move(float dTime, Player* player, CutsceneController* cutSceneController);
 
 private:
 	std::unique_ptr<Debug>			m_debug;

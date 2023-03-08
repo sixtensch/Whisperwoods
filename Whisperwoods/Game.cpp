@@ -38,7 +38,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	m_player->playerInFuture = m_isInFuture;
 	m_player->UpdateStamina( m_maxStamina );
 	m_currentStamina = m_player->GetCurrentStamina();
-	Renderer::SetPlayerMatrix( m_player->transform.worldMatrix );
+	Renderer::SetPlayerMatrix( m_player->compassMatrix );
 
 	// Pickups
 	for (int i = 0; i < m_pickups.Size(); ++i)
@@ -171,6 +171,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 	// Time switch logic.
 	if (!m_isHubby) // if not in hubby
 	{
+		
 		if (Input::Get().IsKeyPressed( KeybindPower ) && IsAllowedToSwitch())
 		{
 			m_isSwitching = true;
@@ -180,6 +181,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 
 		if (m_isSwitching)
 		{
+			
 			if (!ChargeIsDone())
 			{
 				m_totalFovDelta += m_camFovChangeSpeed * m_deltaTime;
@@ -268,12 +270,7 @@ void Game::DrawIMGUIWindows()
 		ImGui::DragFloat( "Detection Level Global", &m_detectionLevelGlobal, 0.1f, 0.0f, 1.0f );
 		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
 		ImGui::Text( "Time left until future death: %f", m_timeYouSurviveInFuture - m_dangerousTimeInFuture );
-		float cd = m_timeAbilityCooldown - m_coolDownCounter;
-		if (cd < 0)
-		{
-			cd = 0;
-		}
-		ImGui::Text( "Time ability cooldown: %f", cd );
+		ImGui::Text( "Time ability cooldown: %f", GetPowerCooldown());
 		ImGui::Checkbox( "Future", &m_isInFuture );
 
 	}
@@ -460,8 +457,8 @@ void Game::Init()
 
 	// Lighting
 	m_directionalLight = Renderer::GetDirectionalLight();
-	m_directionalLight->transform.position = { 0, 10, -10 };
-	m_directionalLight->transform.SetRotationEuler({ -dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
+	m_directionalLight->transform.position = { 0, 30, -25 };
+	m_directionalLight->transform.SetRotationEuler({ dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
 	m_directionalLight->diameter = 50.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
@@ -488,10 +485,10 @@ void Game::LoadHubby()
 {
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
 	LoadRoom( &m_floor.rooms[0] );
-	Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
-	Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
-	Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
-	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	//Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
+	//Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
+	//Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
+	//Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = true;
 	m_player->transform.position = Vec3(0, 0, 0);
 	Renderer::ExecuteShadowRender();
@@ -501,10 +498,10 @@ void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[0]);
-	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
-	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
-	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	//Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
+	//Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
+	//Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
+	//Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
 }
@@ -514,10 +511,10 @@ void Game::LoadGame(uint gameSeed)
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
 	m_player->transform.position = m_floor.startPosition;
-	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
-	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
-	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	//Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
+	//Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
+	//Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
+	//Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = false;
 }
 
@@ -535,6 +532,26 @@ Player* Game::GetPlayer()
 void Game::SetCutSceneMode( bool value )
 {
 	m_isCutScene = value;
+}
+
+float Game::GetPowerCooldown()
+{
+	float cd = m_timeAbilityCooldown - m_coolDownCounter;
+	if (cd < 0)
+	{
+		cd = 0;
+	}
+	return cd;
+}
+
+float Game::GetMaxPowerCooldown()
+{
+	return m_timeAbilityCooldown;
+}
+
+float Game::GetMaxStamina()
+{
+	return m_maxStamina;
 }
 
 void Game::LoadRoom(Level* level)

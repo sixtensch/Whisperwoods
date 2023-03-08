@@ -59,6 +59,7 @@ public:
 	ModelRiggedResource* GetModelRigged(std::string filename);
 	AnimationResource* GetAnimation(std::string filename);
 
+	TextureResource* CreateTexture(RenderCore* renderCore, std::string name, uint8_t* data, size_t size);
 
 private:
 	void InitMapList();
@@ -75,6 +76,7 @@ private:
 	void LoadBaseResources(const RenderCore* const renderCore);
 	void LoadSounds();
 	void LoadTextures(const RenderCore* const renderCore);
+
 
 	void LoadCompositeResources(const RenderCore* const renderCore);
 	void LoadMaterialResources();

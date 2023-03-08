@@ -27,6 +27,8 @@ class Player : public GameObject
 		return a * (1.0f - t) + b * t;
 	}
 
+	void CalculateCompassMatrix();
+
 public:
 	
 	Vec3 m_velocity;
@@ -45,6 +47,10 @@ public:
 	AnimationResource* animationSet;
 	shared_ptr<Animator> characterAnimator;
 	
+	Quaternion cameraCompassRotation;
+	Mat4 compassMatrix;
+
+
 	Vec3 cameraFollowTarget;
 	Vec3 cameraLookAtTarget;
 	Quaternion cameraLookRotationTarget;
