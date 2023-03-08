@@ -171,6 +171,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 	// Time switch logic.
 	if (!m_isHubby) // if not in hubby
 	{
+		
 		if (Input::Get().IsKeyPressed( KeybindPower ) && IsAllowedToSwitch())
 		{
 			m_isSwitching = true;
@@ -180,6 +181,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 
 		if (m_isSwitching)
 		{
+			
 			if (!ChargeIsDone())
 			{
 				m_totalFovDelta += m_camFovChangeSpeed * m_deltaTime;
@@ -268,12 +270,7 @@ void Game::DrawIMGUIWindows()
 		ImGui::DragFloat( "Detection Level Global", &m_detectionLevelGlobal, 0.1f, 0.0f, 1.0f );
 		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
 		ImGui::Text( "Time left until future death: %f", m_timeYouSurviveInFuture - m_dangerousTimeInFuture );
-		float cd = m_timeAbilityCooldown - m_coolDownCounter;
-		if (cd < 0)
-		{
-			cd = 0;
-		}
-		ImGui::Text( "Time ability cooldown: %f", cd );
+		ImGui::Text( "Time ability cooldown: %f", GetPowerCooldown());
 		ImGui::Checkbox( "Future", &m_isInFuture );
 
 	}
@@ -535,6 +532,26 @@ Player* Game::GetPlayer()
 void Game::SetCutSceneMode( bool value )
 {
 	m_isCutScene = value;
+}
+
+float Game::GetPowerCooldown()
+{
+	float cd = m_timeAbilityCooldown - m_coolDownCounter;
+	if (cd < 0)
+	{
+		cd = 0;
+	}
+	return cd;
+}
+
+float Game::GetMaxPowerCooldown()
+{
+	return m_timeAbilityCooldown;
+}
+
+float Game::GetMaxStamina()
+{
+	return m_maxStamina;
 }
 
 void Game::LoadRoom(Level* level)
