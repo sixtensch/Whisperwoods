@@ -286,7 +286,7 @@ void Player::Update(float delta_time)
 			volPercent = 0.8f;
 		}
 		realNotWhackDensityWhichActuallyIsAccurate = pow(realNotWhackDensityWhichActuallyIsAccurate, 0.6);
-		m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate;
+		m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate * (!playerInFuture);
 
 		if (!m_vegetationSound->IsPlaying()) //repeat sound? (looping kind of)
 		{
@@ -297,6 +297,7 @@ void Player::Update(float delta_time)
 	{
 		m_vegetationSound->Stop();
 	}
+	m_vegetationSound->SetVolume(m_vegetationSound->volume * (!playerInFuture));
 
 	if (m_velocity.Length() > 0.05f)
 	{
