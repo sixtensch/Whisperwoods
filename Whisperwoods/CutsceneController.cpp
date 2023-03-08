@@ -30,11 +30,35 @@ void CutsceneController::ActivateCutscene( int index )
     }
 }
 
+bool CompareFrame(shared_ptr<CutsceneKey> i, shared_ptr<CutsceneKey> j)
+{
+    return (i->frame < j->frame);
+}
+bool CompareTime(shared_ptr<CutsceneKey> i, shared_ptr<CutsceneKey> j)
+{
+    return (i->time < j->time);
+}
+
 void CutsceneController::Update()
 {
-
-
     // IMGUI timeline things.
+
+
+    CutsceneCameraChannel* cameraChannel = nullptr;
+    int camIndex = -1;
+    if (activeCutscene)
+    {
+        for (int i = 0; i < activeCutscene->channels.Size(); i++)
+        {
+            if (static_cast<CutsceneCameraChannel*>(activeCutscene->channels[i].get()))
+            {
+                cameraChannel = static_cast<CutsceneCameraChannel*>(activeCutscene->channels[i].get());
+                camIndex = i;
+                break;
+            }
+        }
+    }
+
 	if (ImGui::Begin( "Cutscene controller" ))
 	{
         ImGui::Checkbox("Cutscene Active", &m_cutSceneActive);
@@ -52,6 +76,26 @@ void CutsceneController::Update()
         {
             keys.push_back( keyTime );
         }
+
+        if (cameraChannel)
+        {
+            Camera* cam = cameraChannel->targetCamera;
+            Vec3 camPos = cam->GetPosition();
+            Quaternion camRot = cam->GetRotation();
+            ImGui::Text("Camera channel: %d ", camIndex);
+            ImGui::Text("Camera Pos: %.3f %.3f %.3f \nCamera Rot %.3f %.3f %.3f %.3f ",
+                camPos.x, camPos.y, camPos.z, camRot.x, camRot.y, camRot.z, camRot.w);
+            if (ImGui::Button("Add Camera Keyframe"))
+            {
+                cameraChannel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey((float)currentFrame /(float)endFrame, camPos, camRot, 90, 1)));
+                cameraChannel->keys[cameraChannel->keys.Size()-1]->frame = currentFrame;
+                CutsceneCameraKey* debug = (CutsceneCameraKey*)cameraChannel->keys[cameraChannel->keys.Size() - 1].get();
+                float time = debug->time;
+                std::sort(&cameraChannel->keys.Front(), &cameraChannel->keys.Back() + 1, CompareFrame);
+            }
+        }
+
+
 
         if (ImGui::BeginNeoSequencer( "Sequencer", &currentFrame, &startFrame, &endFrame, {0,0}, ImGuiNeoSequencerFlags_EnableSelection | ImGuiNeoSequencerFlags_Selection_EnableDragging ))
         {

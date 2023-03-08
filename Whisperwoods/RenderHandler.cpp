@@ -286,7 +286,7 @@ void RenderHandler::ExecuteStaticShadowDraw()
 			m_renderCore->DrawObject( data.get(), false );
 		}
 	}*/
-	DrawInstances(m_timelineState, true, false);
+	DrawInstances(m_timelineState, true, true);
 }
 
 RenderCore* RenderHandler::GetCore() const

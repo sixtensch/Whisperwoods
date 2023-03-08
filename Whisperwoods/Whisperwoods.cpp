@@ -195,24 +195,27 @@ void Whisperwoods::Run()
 	//*************
 
 	// Test of the cutscene system.
-	CutsceneController testController;
+	CutsceneController cutsceneController;
 	shared_ptr<Cutscene> testCutScene(new Cutscene("Test scene"));
 	testCutScene->AddChannel( std::shared_ptr<CutsceneCameraChannel>( new CutsceneCameraChannel( "Main camera", &Renderer::GetCamera())));
 	testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Player Animator", m_game->GetPlayer()->characterAnimator.get())));
 	testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Player Transform", &m_game->GetPlayer()->transform )));
-	testController.m_cutscenes.Add( testCutScene );
-	testController.ActivateCutscene( 0 );
+	cutsceneController.m_cutscenes.Add( testCutScene );
+	cutsceneController.ActivateCutscene( 0 );
 
-	CutsceneCameraChannel* channel = (CutsceneCameraChannel*)testController.m_cutscenes[0]->channels[0].get();
-	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, {0,0,0}, Quaternion::GetEuler( {0,0,0} ), 90, 1)));
-	//channel->keys[0]->frame = 0;
+	CutsceneCameraChannel* channel = (CutsceneCameraChannel*)cutsceneController.m_cutscenes[0]->channels[0].get();
+	channel->targetCamera = &Renderer::GetCamera();
+	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, {0,0,-20}, Quaternion::GetEuler( { 0,0,0} ), 90, 1)));
+	channel->keys[0]->frame = 0;
 
-	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,5,0 }, Quaternion::GetEuler( { 0,0,0 } ), 90, 1)));
-	//channel->keys[1]->frame = 1;
+	//channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,5,-5 }, Quaternion::GetEuler( { 1.0f,cs::c_pi,0 } ), 90, 1)));
+	//channel->keys[1]->frame = 30;
 
-	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,1,5 }, Quaternion::GetEuler( { 0,0,0 } ), 90, 1)));
-	//channel->keys[2]->frame = 2;
-
+	//channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,1,5 }, Quaternion::GetEuler( { 1.0f,0,0 } ), 90, 1)));
+	//channel->keys[2]->frame = 60;
+	
+	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,1,10 }, Quaternion::GetEuler({ 0,cs::c_pi,0 }), 90, 1)));
+	channel->keys[1]->frame = 99;
 	//testCutScene.AddKey( std::shared_ptr< CutsceneTransformKey >(new CutsceneTransformKey( 0.5f, m_game->GetPlayer(), {0,0,0}, Quaternion::GetEuler({0,0,0}), {1,1,1})));
 
 	// Main frame loop
@@ -235,7 +238,13 @@ void Whisperwoods::Run()
 		dTimeAcc += dTime;
 		
 		// Test of cinematics
-		testController.Update();
+		cutsceneController.Update();
+		if (cutsceneController.CutsceneActive())
+		{
+			static_cast<CutsceneCameraChannel*>(cutsceneController.m_cutscenes[0]->channels[0].get())->Update(
+				(float)cutsceneController.currentFrame/(float)cutsceneController.endFrame, cutsceneController.endFrame);
+		}
+
 		// Update the test gui with the stamina.
 		testGui.GetElement( 0 )->floatData = m_game->GetPlayer()->GetCurrentStamina()/10.0f;
 		if (m_game->GetMaxStamina() == 1.0f)
@@ -274,27 +283,27 @@ void Whisperwoods::Run()
 
 
 		// Button/Interaction Test
-		if (Input::Get().GetMouseState().leftButton && !Input::Get().GetLastMouseState().leftButton)
-		{
-			//bool isInside = testGui.GetElement( 2 )->TestMouse();
-			//LOG_TRACE( "Inside: %d ", isInside );
-			if (testGui.GetElement( 2 )->TestMouse())
-			{
-				Debug::ExecuteCommand( "Duck", "play" );
-				targetAlpha = !targetAlpha;
-			}
-		}
-		else if (!Input::Get().GetMouseState().leftButton)
-		{
-			if( testGui.GetElement( 2 )->TestMouse() )
-			{
-				testGui.GetElement( 2 )->colorTint = Vec3( 0.5, 1.0f, 0.5 );
-			}
-			else
-			{
-				testGui.GetElement( 2 )->colorTint = Vec3( 1, 1, 1 );
-			}
-		}
+		//if (Input::Get().GetMouseState().leftButton && !Input::Get().GetLastMouseState().leftButton)
+		//{
+		//	//bool isInside = testGui.GetElement( 2 )->TestMouse();
+		//	//LOG_TRACE( "Inside: %d ", isInside );
+		//	if (testGui.GetElement( 2 )->TestMouse())
+		//	{
+		//		Debug::ExecuteCommand( "Duck", "play" );
+		//		targetAlpha = !targetAlpha;
+		//	}
+		//}
+		//else if (!Input::Get().GetMouseState().leftButton)
+		//{
+		//	if( testGui.GetElement( 2 )->TestMouse() )
+		//	{
+		//		testGui.GetElement( 2 )->colorTint = Vec3( 0.5, 1.0f, 0.5 );
+		//	}
+		//	else
+		//	{
+		//		testGui.GetElement( 2 )->colorTint = Vec3( 1, 1, 1 );
+		//	}
+		//}
 
 		if (ImGui::Begin( "Shadow PS Test" ))
 		{
@@ -327,7 +336,7 @@ void Whisperwoods::Run()
 		m_renderer->Draw();
 
 		// Camera update
-		Move(dTime, m_game->GetPlayer(), &testController);
+		Move(dTime, m_game->GetPlayer(), &cutsceneController);
 
 		// Draw console
 		m_debug->DrawConsole();
