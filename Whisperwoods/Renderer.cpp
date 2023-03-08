@@ -105,6 +105,11 @@ void Renderer::UnLoadEnvironment()
 	s_singleton->m_renderHandler->UnLoadEnvironment();
 }
 
+void Renderer::UpdateBitMapBind( const TextureResource* bitmap )
+{
+	s_singleton->m_renderHandler->GetCore()->UpdateBitmapInfo( bitmap );
+}
+
 void Renderer::ClearShadowRenderables()
 {
 	s_singleton->m_renderHandler->ClearShadowRenderables();
@@ -125,6 +130,10 @@ shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpat
 	return s_singleton->m_renderHandler->CreateMeshStatic(subpath);
 }
 
+shared_ptr<MeshRenderableTerrain> Renderer::CreateMeshTerrain( const string& subpath )
+{
+	return s_singleton->m_renderHandler->CreateMeshTerrain( subpath );
+}
 
 shared_ptr<MeshRenderableRigged> Renderer::CreateMeshRigged(const string& subpath)
 {

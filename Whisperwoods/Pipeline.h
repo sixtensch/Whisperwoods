@@ -11,6 +11,7 @@ enum PipelineType
 	PipelineTypeText,
 	PipelineTypeGUI,
 	PipelineTypePrepass,
+	PipelineTypeTerrain,
 
 	PipelineTypeCount // <-- Keep last
 };

@@ -76,9 +76,9 @@ private:
 	void LowerToFloor(float deltaTime);
 	
 
-
-private:
+public:
 	std::unique_ptr<LevelHandler>	m_levelHandler;
+private:
 
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;

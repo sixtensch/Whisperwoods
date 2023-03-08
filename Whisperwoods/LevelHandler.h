@@ -45,6 +45,8 @@ public:
 	LevelHandler(const LevelHandler&) = delete;
 	LevelHandler(LevelHandler&&) = delete;
 
+	shared_ptr<uint8_t> GenerateFloorImage(int sizeX, int sizeY, LevelFloor floorRef);
+
 	void LoadFloors();
 	void GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, EnvironmentalizeParameters eParams);
 	void GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParameters params);

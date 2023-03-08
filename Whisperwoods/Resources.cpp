@@ -234,6 +234,13 @@ void Resources::LoadTextures(const RenderCore* const renderCore)
 	}
 }
 
+TextureResource* Resources::CreateTexture(RenderCore* renderCore, std::string name, uint8_t* data, size_t size)
+{
+	TextureResource* textureResource = (TextureResource*)AllocateResource(ResourceTypeTexture, name, name);
+	renderCore->CreateImageTexture(data, size, textureResource->texture2D, textureResource->shaderResourceView);
+	return textureResource;
+}
+
 void Resources::LoadCompositeResources(const RenderCore* const renderCore)
 {
 	LoadMaterialResources();

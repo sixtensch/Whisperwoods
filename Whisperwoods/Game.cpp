@@ -38,7 +38,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	m_player->playerInFuture = m_isInFuture;
 	m_player->UpdateStamina( m_maxStamina );
 	m_currentStamina = m_player->GetCurrentStamina();
-	Renderer::SetPlayerMatrix( m_player->transform.worldMatrix );
+	Renderer::SetPlayerMatrix( m_player->compassMatrix );
 
 	// Pickups
 	for (int i = 0; i < m_pickups.Size(); ++i)
@@ -457,8 +457,8 @@ void Game::Init()
 
 	// Lighting
 	m_directionalLight = Renderer::GetDirectionalLight();
-	m_directionalLight->transform.position = { 0, 10, -10 };
-	m_directionalLight->transform.SetRotationEuler({ -dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
+	m_directionalLight->transform.position = { 0, 30, -25 };
+	m_directionalLight->transform.SetRotationEuler({ dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
 	m_directionalLight->diameter = 50.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
@@ -485,10 +485,10 @@ void Game::LoadHubby()
 {
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
 	LoadRoom( &m_floor.rooms[0] );
-	Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
-	Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
-	Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
-	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	//Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
+	//Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
+	//Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
+	//Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = true;
 	m_player->transform.position = Vec3(0, 0, 0);
 	Renderer::ExecuteShadowRender();
@@ -498,10 +498,10 @@ void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[0]);
-	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
-	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
-	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	//Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
+	//Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
+	//Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
+	//Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
 }
@@ -511,10 +511,10 @@ void Game::LoadGame(uint gameSeed)
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
 	m_player->transform.position = m_floor.startPosition;
-	Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
-	Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
-	Mat4 worldCombined = worldScale * worldPos * worldRot;
+	//Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
+	//Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
+	//Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
+	//Mat4 worldCombined = worldScale * worldPos * worldRot;
 	m_isHubby = false;
 }
 
