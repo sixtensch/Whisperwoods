@@ -73,12 +73,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		/// D E A T H ///
 		if (m_dangerousTimeInFuture >= m_timeYouSurviveInFuture) // how long you can survive in future with 0 stamina (seconds)
 		{
-			ChangeTimeline( renderer );
-			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
-			m_player->ResetStaminaToMax( m_maxStamina );
-			UnLoadPrevious();
-			LoadHubby();
-			m_player->ReloadPlayer();
+			EndRunDueToPoison(renderer);
 		}
 	}
 	if (!m_isInFuture)
@@ -96,29 +91,8 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 
 			if (IsDetected(m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance()))
 			{
-				if (m_isSwitching)
-				{
-					m_switchVals.timeSinceSwitch = 2.0f;
-					m_isInFuture = true;
-					renderer->GetCamera().SetFov(m_initialCamFov);
-					ChangeTimeline(renderer);
-					m_switchVals.timeSinceSwitch = 0.0f;
-					m_isSwitching = false;
-					m_totalFovDelta = 0.0f;
-				}
-
 				// D E A T H
-				m_maxStamina = MAX_STAMINA_STARTING_VALUE;
-				//m_coolDownCounter = m_timeAbilityCooldown;
-				m_player->ResetStaminaToMax(m_maxStamina);
-				UnLoadPrevious();
-				LoadHubby();
-				m_player->ReloadPlayer();
-				m_isSeen = false;
-				m_detectionLevelGlobal = 0.0f;
-				m_detectionLevelFloor = 0.0f;
-
-				m_enemyHorn->Play();
+				EndRunDueToEnemy(renderer);
 			}
 		}
 		else
@@ -180,7 +154,7 @@ void Game::UpdateEnemies( Renderer* renderer )
 	//}	*/
 
 	m_isSeen = false;
-	m_closestDistance = 100000.0f; // large start value to fix the above thing instead of branching.
+	m_closestDistance = FLT_MAX; // large start value to fix the above thing instead of branching.
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update( m_deltaTime ); // Would ideally want to put this in UpdateGameObjects(), but this makes one less loop
@@ -217,25 +191,21 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			
 			if (!ChargeIsDone())
 			{
-				m_totalFovDelta += m_camFovChangeSpeed * m_deltaTime;
-				float newFov = m_initialCamFov + m_totalFovDelta;
-
-				// Max total fov cant exceed half circle.
-				if (newFov > cs::c_pi)
+				float fovSpeed = (m_timeSwitchTargetFov - m_initialCamFov) / m_switchVals.chargeDuration;
+				// Makes sure that the difference results in a positive speed.
+				if (fovSpeed >= 0.0f)
 				{
-					newFov = cs::c_pi;
-				}
-
-				renderer->GetCamera().SetFov( newFov );
+					Camera& cam = renderer->GetCamera();
+					cam.SetFov(cam.GetFov() + fovSpeed * m_deltaTime);
+				}			
 			}
 			else
 			{
 				if (!m_finishedCharging)
 				{
-					ChangeTimeline( renderer );
+					SwapTimeline( renderer );
 					m_finishedCharging = true;
 					renderer->GetCamera().SetFov( m_initialCamFov );
-					m_totalFovDelta = 0.0f;
 
 					if (!m_isInFuture) // time to cooldown
 					{
@@ -330,15 +300,9 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			}
 		}
 
-		if (Input::Get().IsDXKeyPressed( DXKey::H ) && !m_isInFuture)
+		if (Input::Get().IsDXKeyPressed( DXKey::H ))
 		{
-			UnLoadPrevious();
-			LoadHubby();
-			m_player->ReloadPlayer();
-			m_detectionLevelGlobal = 0.0f;
-			m_detectionLevelFloor = 0.0f;
-			m_coolDownCounter = m_timeAbilityCooldown;
-			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+			EndRun(renderer);
 		}
 	}
 	else // If in hubby
@@ -580,8 +544,6 @@ void Game::Init()
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
 
-	
-	
 }
 
 void Game::DeInit()
@@ -774,12 +736,7 @@ bool Game::IsDetected(float deltaTime, float enemyDistance, float maximalDistanc
 	m_detectionLevelGlobal += rate * deltaTime;
 	m_detectionLevelFloor += (rate / 3) * deltaTime;
 
-	if (m_detectionLevelGlobal >= 1.0f)
-	{
-		return true; //game over
-	}
-
-	return false; // game is not over
+	return m_detectionLevelGlobal >= 1.0f;
 }
 
 void Game::LowerToFloor(float deltaTime)
@@ -837,11 +794,66 @@ void Game::SoundUpdate(float deltaTime)
 	}
 }
 
+void Game::ResetGameplayValues()
+{
+	m_isInFuture = false;
+	m_isSwitching = false;
+	m_isSeen = false;
+	m_reachedLowestStamina = false;
 
+	m_switchVals.timeSinceSwitch = 0.0f;
+	m_timeUnseen = 0.0f;
+	m_detectionLevelGlobal = 0.0f;
+	m_detectionLevelFloor = 0.0f;
+	m_dangerousTimeInFuture = 0.0f;
+	
+	m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+	m_coolDownCounter = m_timeAbilityCooldown;
+}
 
-void Game::ChangeTimeline(Renderer* renderer)
+void Game::EndRun(Renderer* renderer)
+{
+	if (m_isSwitching)
+	{
+		renderer->GetCamera().SetFov(m_initialCamFov);
+	}
+
+	ResetGameplayValues();
+	ChangeToPresentTimeline(renderer);
+
+	UnLoadPrevious();
+	LoadHubby();
+
+	// Has to happen after loading hubby for some reason?
+	m_player->ResetStaminaToMax(MAX_STAMINA_STARTING_VALUE);
+	m_player->ReloadPlayer();
+}
+
+void Game::EndRunDueToEnemy(Renderer* renderer)
+{
+	m_enemyHorn->Play();
+
+	// More logic for dying from enemy here.
+
+	EndRun(renderer);
+}
+
+void Game::EndRunDueToPoison(Renderer* renderer)
+{
+	// Logic for dying from future poison here.
+
+	EndRun(renderer);
+}
+
+void Game::SwapTimeline(Renderer* renderer)
 {
 	m_isInFuture = !m_isInFuture;
+
+	ApplyTimelineState(renderer);
+}
+
+void Game::ApplyTimelineState(Renderer* renderer)
+{
 	renderer->SetTimelineState(m_isInFuture);
 	m_currentRoom->SetTimeline(m_isInFuture);
 
@@ -852,7 +864,20 @@ void Game::ChangeTimeline(Renderer* renderer)
 			m_enemies[i]->ChangeTimelineState(m_isInFuture);
 		}
 	}
+
 	UpdateTimeSwitchBuffers(renderer);
+}
+
+void Game::ChangeToFutureTimeline(Renderer* renderer)
+{
+	m_isInFuture = true;
+	ApplyTimelineState(renderer);
+}
+
+void Game::ChangeToPresentTimeline(Renderer* renderer)
+{
+	m_isInFuture = false;
+	ApplyTimelineState(renderer);
 }
 
 void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
@@ -864,7 +889,6 @@ void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
 		m_isInFuture,
 		m_detectionLevelGlobal
 	);
-	
 }
 
 void Game::UpdateEnemyConeBuffers(Renderer* renderer)
