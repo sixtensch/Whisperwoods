@@ -185,13 +185,13 @@ void Whisperwoods::Run()
 
 	//************* power cooldown
 	testGui.AddGUIElement({ 0.475f,-0.82f }, { 0.5f,0.1f }, nullptr, nullptr);
-	testGui.GetElement(2)->colorTint = Vec3(0.08f, 0.18f, 0.8f);
-	testGui.GetElement(2)->alpha = 0.6f;
-	testGui.GetElement(2)->vectorData = Vec3(1, 1, 1);
-	testGui.GetElement(2)->floatData = 0.5f;
-	testGui.GetElement(2)->intData = Point4(0, 1, 0, 0); // Makes it follow the float value.
-	//testGui.GetElement( 2 )->firstTexture = (TextureResource*)Resources::Get().GetResource(ResourceTypeTexture, "Test+Pattern+t.png");
-	testGui.GetElement(2)->secondTexture = Resources::Get().GetTexture("StaminaBarMask01.png");
+	testGui.GetElement(3)->colorTint = Vec3(0.08f, 0.18f, 0.8f);
+	testGui.GetElement(3)->alpha = 0.6f;
+	testGui.GetElement(3)->vectorData = Vec3(1, 1, 1);
+	testGui.GetElement(3)->floatData = 0.5f;
+	testGui.GetElement(3)->intData = Point4(0, 1, 0, 0); // Makes it follow the float value.
+	testGui.GetElement(3)->firstTexture = nullptr;
+	testGui.GetElement(3)->secondTexture = Resources::Get().GetTexture("StaminaBarMask09.png");
 	//*************
 
 	// Test of the cutscene system.
@@ -250,18 +250,18 @@ void Whisperwoods::Run()
 		//update test gui with power cooldown
 		if (m_game->GetPlayer()->playerInFuture == false && m_game->GetPowerCooldown() != 0)
 		{
-			testGui.GetElement(2)->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
-			testGui.GetElement(2)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+			testGui.GetElement(3)->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
+			testGui.GetElement(3)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
 		}
 		else if (m_game->GetPlayer()->playerInFuture == false && m_game->GetPowerCooldown() == 0)
 		{
-			testGui.GetElement(2)->colorTint = Vec3(0.08f, 0.18f, 0.8f);
-			testGui.GetElement(2)->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
+			testGui.GetElement(3)->colorTint = Vec3(0.08f, 0.18f, 0.8f);
+			testGui.GetElement(3)->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
 		}
 		else
 		{
-			testGui.GetElement(2)->floatData = 0.06;
-			testGui.GetElement(2)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+			testGui.GetElement(3)->floatData = 0.06;
+			testGui.GetElement(3)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
 		}
 
 
