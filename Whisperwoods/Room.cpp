@@ -47,10 +47,10 @@ Room::Room(const Level* level, std::string modelResource, Mat4 modelOffset)
 	m_modelOffset = modelOffset;
 	m_renderable->worldMatrix = m_modelOffset;*/
 
-	m_material = MaterialResource();
+	/*m_material = MaterialResource();
 	m_material.specular = Vec3(0.5f, 0.5f, 0.5f);
 	m_material.textureDiffuse = level->resource->source;
-	m_renderable->Materials().AddMaterial( &m_material );
+	m_renderable->Materials().AddMaterial( &m_material );*/
 }
 
 Room::Room( const Level* level, std::string modelResource, std::string modelResource2, Mat4 modelOffset, Mat4 modelOffset2 )
