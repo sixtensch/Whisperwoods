@@ -496,7 +496,8 @@ void RenderCore::TargetShadowMap()
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
 	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 
-	EXC_COMINFO(m_context->CopyResource(m_shadowTexture.Get(), m_shadowStaticTexture.Get()));
+	//EXC_COMINFO(m_context->CopyResource(m_shadowTexture.Get(), m_shadowStaticTexture.Get()));
+	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
 
 	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, m_shadowDSV.Get()));
 	EXC_COMINFO(m_context->RSSetState(m_shadowRenderState.Get())); // Frontface culling
@@ -508,7 +509,7 @@ void RenderCore::TargetStaticShadowMap()
 	EXC_COMINFO(m_context->OMSetDepthStencilState(m_ppDSS.Get(), 1));
 
 	ID3D11ShaderResourceView* nullSRV = nullptr;
-	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepthStatic, 1, &nullSRV)); // Unbind SRV to use as RTV
 	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowStaticDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
@@ -516,6 +517,15 @@ void RenderCore::TargetStaticShadowMap()
 	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, m_shadowStaticDSV.Get()));
 	EXC_COMINFO(m_context->RSSetState(m_shadowRenderState.Get())); // Frontface culling
 	EXC_COMINFO(m_context->RSSetViewports(1, &m_shadowViewport));
+}
+
+void RenderCore::BindStaticShadowMap()
+{
+	// Unbind DSV from RTV 
+	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, nullptr));
+
+	// Bind SRV for ps
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepthStatic, 1, m_shadowStaticSRV.GetAddressOf()));
 }
 
 void RenderCore::TargetRenderTexture()

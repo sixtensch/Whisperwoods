@@ -96,7 +96,9 @@ Texture2D textureDiffuse : REGISTER_SRV_TEX_DIFFUSE;
 Texture2D textureSpecular : REGISTER_SRV_TEX_SPECULAR;
 Texture2D textureEmissive : REGISTER_SRV_TEX_EMISSIVE;
 Texture2D textureNormal : REGISTER_SRV_TEX_NORMAL;
-Texture2D shadowTexture : REGISTER_SRV_SHADOW_DEPTH;
+
+Texture2D shadowTextureStatic : REGUSTER_SRV_SHADOW_STATIC;
+Texture2D shadowTextureDynamic : REGISTER_SRV_SHADOW_DEPTH;
 
 struct PS_OUTPUT
 {
@@ -153,12 +155,12 @@ PS_OUTPUT main(VSOutput input)
     float epsilon = 0.00005 / acos(saturate(dirNDotL));    
 
     // Distance based smoothing (comment out for minor peformance boost possibly)
-    float shadowSample = shadowTexture.Sample(textureSampler, lsUV).x;
-    float shadowDiff = (shadowSample * 10 - saturate((lsNDC.z - epsilon) * 10));
-    float3 color2 = abs(saturate(shadowDiff * shadowDiff * 20000.0f));
-    float3 shadowSmoothVal = max(saturate(color2), 0.01f);   
-    float kernelWidth = 0.5f + (shadowSmoothVal.r*2);
-    //float kernelWidth = 1.0f; // Comment in
+    //float shadowSample = shadowTexture.Sample(textureSampler, lsUV).x;
+    //float shadowDiff = (shadowSample * 10 - saturate((lsNDC.z - epsilon) * 10));
+    //float3 color2 = abs(saturate(shadowDiff * shadowDiff * 20000.0f));
+    //float3 shadowSmoothVal = max(saturate(color2), 0.01f);   
+    //float kernelWidth = 0.5f + (shadowSmoothVal.r*2);
+    float kernelWidth = 1.0f; // Comment in
     
 	// PCF filtering (Smooth shadows)
     float sum = 0;
@@ -170,13 +172,21 @@ PS_OUTPUT main(VSOutput input)
 		[unroll]
         for (x = -smoothing; x <= smoothing; x += 1.0f)
         {   
-            sum += shadowTexture.SampleCmpLevelZero(shadowSampler,
-				lsUV.xy + texOffset(
-            (x + (-1 + ((indexer + 1) % 2) * 2)) * kernelWidth, 
-            (y + (-1 + (indexer % 2) * 2)) * kernelWidth, 0),
-            lsNDC.z - epsilon);
+            sum += min(
+                shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
+				    lsUV.xy + texOffset(
+                (x + (-1 + ((indexer + 1) % 2) * 2)) * kernelWidth, 
+                (y + (-1 + (indexer % 2) * 2)) * kernelWidth, 0),
+                lsNDC.z - epsilon),
+            shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
+				    lsUV.xy + texOffset(
+                (x + (-1 + ((indexer + 1) % 2) * 2)) * kernelWidth,
+                (y + (-1 + (indexer % 2) * 2)) * kernelWidth, 0),
+                lsNDC.z - epsilon)
+            );
+            
+            
             indexer++;
-
         }
     }
     // adjust

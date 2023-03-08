@@ -90,7 +90,9 @@ Texture2D textureDiffuse : REGISTER_SRV_TEX_DIFFUSE;
 Texture2D textureSpecular : REGISTER_SRV_TEX_SPECULAR;
 Texture2D textureEmissive : REGISTER_SRV_TEX_EMISSIVE;
 Texture2D textureNormal : REGISTER_SRV_TEX_NORMAL;
-Texture2D shadowTexture : REGISTER_SRV_SHADOW_DEPTH;
+
+Texture2D shadowTextureStatic : REGUSTER_SRV_SHADOW_STATIC;
+Texture2D shadowTextureDynamic : REGISTER_SRV_SHADOW_DEPTH;
 
 struct PS_OUTPUT
 {
@@ -107,8 +109,8 @@ PS_OUTPUT main(VSOutput input)
 	
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
 	
-    //if (diffuseSample.a < 0.1f)
-    //    discard;
+    if (diffuseSample.a < 0.1f)
+        discard;
 	
     float4 specularSample = textureSpecular.Sample(textureSampler, uv);
     float4 emissiveSample = textureEmissive.Sample(textureSampler, uv);
@@ -134,7 +136,11 @@ PS_OUTPUT main(VSOutput input)
 	
     float dirNDotL = dot(normal, directionalLight.direction);
     float epsilon = 0.00005 / acos(saturate(dirNDotL));
-    //bool shadowAff = shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x;
+ //   bool shadowAff = max(
+	//	shadowTextureStatic.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x,
+	//	shadowTextureDynamic.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x
+	//);
+	
 	
     float sum = 0;
     float x, y;
@@ -146,8 +152,12 @@ PS_OUTPUT main(VSOutput input)
 		[unroll]
         for (x = -smoothing; x <= smoothing; x += 1.0f)
         {
-            sum += shadowTexture.SampleCmpLevelZero(shadowSampler,
-				lsUV.xy + texOffset(x, y, 0), lsNDC.z - epsilon);
+            sum += min(
+			shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
+						lsUV.xy + texOffset(x, y, 0), lsNDC.z - epsilon),
+			shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
+						lsUV.xy + texOffset(x, y, 0), lsNDC.z - epsilon)
+			);
         }
     }
     float shadowAff = sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f));

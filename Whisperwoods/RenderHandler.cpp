@@ -84,7 +84,7 @@ void RenderHandler::Draw()
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
+	//m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
 
 
 	// ShadowPass
@@ -100,8 +100,6 @@ void RenderHandler::Draw()
 	static std::string terrainProfileName = "Terrain Draw";
 	static std::string mainSceneProfileName = "Main Scene Draw";
 	PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
-	//PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_timelineState, false));
-	//PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
 	PROFILE_JOB( terrainProfileName, RenderTerrain() );
 	PROFILE_JOB( mainSceneProfileName, ExecuteDraw(m_timelineState, false) );
 	m_renderCore->UnbindRenderTexture();
@@ -259,7 +257,11 @@ void RenderHandler::ExecuteStaticShadowDraw()
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
 
 	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
+
+	// Write to shadow map
 	m_renderCore->TargetStaticShadowMap();
+	
+	
 	for (int i = 0; i < m_shadowRenderables.Size(); i++)
 	{
 		shared_ptr<WorldRenderable> data = {};
@@ -276,7 +278,7 @@ void RenderHandler::ExecuteStaticShadowDraw()
 		if (data && data->enabled)
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), true, false);
+			m_renderCore->DrawObject(data.get(), true, true);
 		}
 	}
 	/*for (int i = 0; i < m_worldTerrainRenderables.Size(); i++)
@@ -288,7 +290,10 @@ void RenderHandler::ExecuteStaticShadowDraw()
 			m_renderCore->DrawObject( data.get(), false );
 		}
 	}*/
-	DrawInstances(m_timelineState, true, false);
+	DrawInstances(m_timelineState, true, true);
+
+	// Set static shadow as readable
+	m_renderCore->BindStaticShadowMap();
 }
 
 RenderCore* RenderHandler::GetCore() const
