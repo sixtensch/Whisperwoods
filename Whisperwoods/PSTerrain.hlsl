@@ -110,7 +110,7 @@ PS_OUTPUT main(VSOutput input)
     PS_OUTPUT output;
     
     // Diffuse sample
-    float2 uv = input.outUV * tiling;  
+    float2 uv = input.outUV.xy * tiling;  
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
     if (diffuseSample.a < 0.1f)
         discard;
@@ -121,7 +121,7 @@ PS_OUTPUT main(VSOutput input)
     if (input.outUV.z > 0.0f)
     {
         // Compensate for the stretch
-        float2 uvNoTile = input.outUV;
+        float2 uvNoTile = input.outUV.xy;
         uvNoTile.x -= 0.5;
         uvNoTile.x *= 1.2;
         uvNoTile.x += 0.5;

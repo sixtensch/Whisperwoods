@@ -292,7 +292,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		if (Input::Get().IsDXKeyPressed( DXKey::L ))
 		{
 			UnLoadPrevious();
-			LoadGame(0, 9);
+			LoadGame(1, 9);
 			
 			m_player->ReloadPlayer();
 		}

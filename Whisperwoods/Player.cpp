@@ -404,7 +404,7 @@ void Player::UpdateSound(float delta_time)
 		{
 			volPercent = 0.8f;
 		}
-		realNotWhackDensityWhichActuallyIsAccurate = pow(realNotWhackDensityWhichActuallyIsAccurate, 0.6);
+		realNotWhackDensityWhichActuallyIsAccurate = powf(realNotWhackDensityWhichActuallyIsAccurate, 0.6f);
 		m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate;
 
 		if (!m_vegetationSound->IsPlaying()) //repeat sound? (looping kind of)

@@ -143,7 +143,7 @@ void Room::Update(float deltaTime)
 Point2 Room::worldToBitmapPoint(Vec3 worldPos)
 {
 	Vec3 roomWpos = transform.GetWorldPosition();
-	Quaternion worldRotation = transform.GetWorldRotation()/*.Conjugate()*/;
+	Quaternion worldRotation = transform.GetWorldRotation();
 	Vec3 right(-1, 0, 0);
 	Vec3 forward(0, 0, 1);
 	right = worldRotation * right;
@@ -171,23 +171,11 @@ Vec3 Room::bitMapToWorldPos(Point2 samplePoint)
 		return Vec3(0, 0, 0);
 	}
 
-	Vec2 relativePosition = (Vec2)samplePoint - Vec2(m_levelResource->pixelWidth, m_levelResource->pixelHeight) * 0.5f;
+	Vec2 relativePosition = (Vec2)samplePoint - Vec2((float)m_levelResource->pixelWidth, (float)m_levelResource->pixelHeight) * 0.5f;
 	relativePosition /= BM_PIXELS_PER_UNIT;
 
-	//float normalizedX = (float)(samplePoint.x) / (float)BM_PIXELS_PER_UNIT;
-	//float normalizedY = (float)(samplePoint.y) / (float)BM_PIXELS_PER_UNIT;
-
-	//Vec3 normalization(
-	//	(float)(m_levelResource->pixelWidth / 2) / (float)BM_PIXELS_PER_UNIT, 
-	//	0, 
-	//	(float)(m_levelResource->pixelHeight / 2) / (float)BM_PIXELS_PER_UNIT);
-
-	//Vec3 localPos(normalizedX, 0, normalizedY);
-	//localPos = localPos - normalization;
-	////localPos.y = -localPos.y;
-
 	Vec3 worldPos = transform.GetWorldPosition(); 
-	Vec3 rotationConverted = transform.GetWorldRotation().Conjugate() * Vec3(relativePosition.x, 0, relativePosition.y);
+	Vec3 rotationConverted = transform.GetWorldRotation() * Vec3(relativePosition.x, 0, relativePosition.y);
 
 	return worldPos + rotationConverted;
 }
@@ -262,7 +250,7 @@ Vec2 Room::sampleBitMapCollision(Vec3 worldPos)
 	Vec2 returnVal(p0 + p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8);
 
 	Vec3 ret2(returnVal.x, 0, returnVal.y);
-	ret2 = transform.GetWorldRotation()/*.Conjugate()*/ * ret2;
+	ret2 = transform.GetWorldRotation().Conjugate() * ret2;
 
 	return Vec2(ret2.x, ret2.z);
 }

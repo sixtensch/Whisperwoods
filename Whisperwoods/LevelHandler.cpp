@@ -198,7 +198,7 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, 
 					Vec2 exitPixelPosition = l.resource->exits[i].position - Vec2((float)l.resource->pixelWidth, (float)l.resource->pixelHeight) * 0.5f;
 					Vec2 exitRelativePosition = rotMatrix * (exitPixelPosition / BM_PIXELS_PER_UNIT - l.resource->exits[i].direction * inset);
 
-					l.position = Vec3(0, 0, 0);
+					//l.position = Vec3(0, 0, 0);
 					f.startPosition = l.position/* + exitRelativePosition*/;
 					f.startRoom = room;
 				}
@@ -350,7 +350,7 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 			{
 
 				Mat4 foliageMatrix =
-					Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
+					Mat::translation3(newPosition) *
 					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
 					Mat::scale3(scaleVal * parameters.scaleMultiplierFoliage * 3);
 				if (noiseVal < parameters.densityUnwalkableOuter)
