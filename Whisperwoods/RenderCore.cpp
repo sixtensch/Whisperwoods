@@ -153,20 +153,19 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	EXC_COMCHECK(m_device->CreateTexture2D(&bloomtd, nullptr, m_ppfxLumTexture.GetAddressOf()));
 
-	
 	srvd = {};
 	srvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	srvd.Texture2D = { 0, (UINT)-1 }; // Keep all mips as this will be used in compute.
-
-	// Create views for luminosity texture.
+	srvd.Texture2D = { 0, (UINT)-1 }; // Get all mips.
 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_ppfxLumTexture.Get(), &srvd, m_ppfxLumSRV.GetAddressOf()));
-	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_ppfxLumTexture.Get(), nullptr, m_ppfxLumUAV.GetAddressOf()));
 	EXC_COMCHECK(m_device->CreateRenderTargetView(m_ppfxLumTexture.Get(), nullptr, m_ppfxLumRTV.GetAddressOf()));
+	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_ppfxLumTexture.Get(), nullptr, m_ppfxLumUAV.GetAddressOf()));
 
 
 	bloomtd = {};
 	m_renderTexture->GetDesc(&bloomtd);
+	bloomtd.Width = bloomtd.Width / 2u;
+	bloomtd.Height = bloomtd.Height / 2u;
 	bloomtd.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET | D3D11_BIND_UNORDERED_ACCESS;
 	bloomtd.MipLevels = 1u;
 	bloomtd.MiscFlags = 0u;
@@ -181,7 +180,6 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_ppfxLumSumTexture.Get(), nullptr, m_ppfxLumSumUAV.GetAddressOf()));
 
 	// Position texture
-
 	D3D11_TEXTURE2D_DESC postd;
 	postd.Width = window->GetWidth();
 	postd.Height = window->GetHeight();
@@ -445,7 +443,6 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMINFO(m_context->PSSetSamplers(RegSamplerPoint, 1, m_pointSampler.GetAddressOf()));
 
 	sd = {};
-
 	sd.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 	sd.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
 	sd.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -457,10 +454,12 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	sd.BorderColor[1] = 0.0f;
 	sd.BorderColor[2] = 0.0f;
 	sd.BorderColor[3] = 0.0f;
-	sd.MinLOD = 0.0f;
+	sd.MinLOD = 1.0f;
 	sd.MaxLOD = D3D11_FLOAT32_MAX;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(&sd, m_bloomUpscaleSampler.GetAddressOf()));
+	EXC_COMINFO(m_context->CSSetSamplers(RegSamplerBloom, 1u, m_bloomUpscaleSampler.GetAddressOf()));
+
 
 	m_bindShadowPS = true;
 }
@@ -536,7 +535,7 @@ void RenderCore::TargetRenderTexture()
 
 	ID3D11RenderTargetView* rtvs[RTV_COUNT] = {
 		m_renderTextureRTV.Get(), 
-		m_positionTextureRTV.Get() 
+		m_ppfxLumRTV.Get()
 	};
 
 	EXC_COMINFO(m_context->OMSetRenderTargets(RTV_COUNT, rtvs, m_dsDSV.Get()));
@@ -1042,34 +1041,20 @@ void RenderCore::DrawPPFX()
 	const RegUAV lumTexUAVReg			= RegUAVSystem0;
 	const RegSRV lumTexSRVReg			= RegSRVUser0;
 	
-	// Luminance threshold pass
-	{
-		EXC_COMINFO(m_context->CSSetShader(m_thresholdCompute.Get(), nullptr, 0u));
-		
-		EXC_COMINFO(m_context->CSSetShaderResources(renderTexSRVReg, 1u, m_renderTextureSRV.GetAddressOf()));
-		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, m_ppfxLumUAV.GetAddressOf(), nullptr)); // Last argument is ignored.
-		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
-		
-		// Generate all mips for lumen texture for artificial blur used in bloom pass.
-		EXC_COMINFO(m_context->GenerateMips(m_ppfxLumSRV.Get()));
-		EXC_COMINFO(m_context->CSSetSamplers(RegSamplerSystem0, 1u, m_bloomUpscaleSampler.GetAddressOf()));
-		EXC_COMINFO(m_context->CSSetShaderResources(renderTexSRVReg, 1u, &nullSRV));
-		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, &nullUAV, nullptr));
-	}
 	
 	// Bloom pass
 	{
+		EXC_COMINFO(m_context->GenerateMips(m_ppfxLumSRV.Get()));
+
 		EXC_COMINFO(m_context->CSSetShader(m_bloomCompute.Get(), nullptr, 0u));
 		
 		EXC_COMINFO(m_context->CSSetShaderResources(lumTexSRVReg, 1u, m_ppfxLumSRV.GetAddressOf()));
 		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, m_ppfxLumSumUAV.GetAddressOf(), nullptr));
-		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X, COMPUTE_GROUP_COUNT_Y, 1u));
+		EXC_COMINFO(m_context->Dispatch(COMPUTE_GROUP_COUNT_X / 2, COMPUTE_GROUP_COUNT_Y / 2, 1u));
 	
 		EXC_COMINFO(m_context->CSSetShaderResources(lumTexSRVReg, 1u, &nullSRV)); // Unbind lum SRV.
 		EXC_COMINFO(m_context->CSSetUnorderedAccessViews(lumTexUAVReg, 1u, &nullUAV, nullptr)); // Unbind render tex UAV from compute.
 	}
-	
-	
 }
 
 void RenderCore::DrawPositionalEffects()
@@ -1137,10 +1122,6 @@ void RenderCore::DrawToBackBuffer()
 
 	// TODO: Move this to start of text rendering instead.
 	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_bbRTV.GetAddressOf(), m_dsDSV.Get()));
-
-	// Make sure that lumsum texture is cleared.
-	// Its either this or creating a new dispatch in bloom pass to write lum sum to render texture before inserting it to final color grading step.
-	EXC_COMINFO(m_context->ClearUnorderedAccessViewFloat(m_ppfxLumSumUAV.Get(), (float*)&m_bbClearColor));
 }
 
 //void RenderCore::SetArmatureStructuredBuffer(ComPtr<ID3D11Buffer> matrixBuffer)
@@ -1615,7 +1596,7 @@ void RenderCore::InitConstantBuffers()
 	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVShadingInfo, 1, m_constantBuffers.shadingInfo.GetAddressOf()));
 	// TODO: Temporary bind to CS as positional compute shader needs camera info. 
 	// This data should be bound with other more relevant data in its own buffer for use in the compute shader.
-	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVShadingInfo, 1, m_constantBuffers.shadingInfo.GetAddressOf()));
+	//EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVShadingInfo, 1, m_constantBuffers.shadingInfo.GetAddressOf()));
 
 
 
@@ -1658,6 +1639,7 @@ void RenderCore::InitConstantBuffers()
 	));
 
 	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVThresholdInfo, 1, m_constantBuffers.ppfxThresholdInfo.GetAddressOf()));
+	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVThresholdInfo, 1, m_constantBuffers.ppfxThresholdInfo.GetAddressOf()));
 
 
 	// Color grade info
@@ -1685,6 +1667,8 @@ void RenderCore::InitConstantBuffers()
 	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVTimeSwitchInfo, 1, m_constantBuffers.gameLogicInfo.GetAddressOf()));
 	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVTimeSwitchInfo, 1, m_constantBuffers.gameLogicInfo.GetAddressOf()));
 
+	// Enemy info
+
 	desc.ByteWidth = sizeof(CB::EnemyConeInfo);
 
 	EXC_COMCHECK(m_device->CreateBuffer(
@@ -1694,6 +1678,7 @@ void RenderCore::InitConstantBuffers()
 	));
 
 	EXC_COMINFO(m_context->CSSetConstantBuffers(RegCBVEnemyConeInfo, 1, m_constantBuffers.enemyConeInfo.GetAddressOf()));
+	EXC_COMINFO(m_context->PSSetConstantBuffers(RegCBVEnemyConeInfo, 1, m_constantBuffers.enemyConeInfo.GetAddressOf()));
 }
 
 void RenderCore::InitLightBuffers()

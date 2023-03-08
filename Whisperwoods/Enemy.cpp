@@ -9,7 +9,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 {
 	m_currentPosition = Vec2(0.0f, 0.0f);
 	m_currentPatrolIndex = 1; // Starts on patrol index 0 and walks towards index 1
-	m_walkingSpeed = 1.5f;
+	m_walkingSpeed = 1.7f;
 	m_enclosedLoop = false; // Default value
 	m_indexChanger = 1;
 	m_distanceToPatrolPoint = 0.0f;

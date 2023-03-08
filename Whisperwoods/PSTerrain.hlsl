@@ -1,6 +1,10 @@
 
 #include "Constants.hlsli"
 #include "PhongAlgLite.hlsli"
+#include "FogFuncs.hlsli"
+#include "TimeSwitchFuncs.hlsli"
+#include "BrightnessFilteringIncludes.hlsli"
+#include "EnemyConeVisIncludes.hlsli"
 
 static float smoothing = 2.0f;
 
@@ -42,6 +46,25 @@ struct LightSpot
     float cosOuter;
 };
 
+// Used here for getting detection rate.
+cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
+{
+    float timeSinceSwitch;
+    float timeSwitchStartDuration;
+    float timeSwitchEndDuration;
+    float isInFuture; // Bool is 4 bytes.
+    
+    float detectionLevelGlobal;
+    float PADDING[3];
+}
+
+cbuffer THRESHOLD_INFO_BUFFER : REGISTER_CBV_THRESHOLD_INFO
+{
+    float luminanceThreshold;
+    float strength;
+    float minLuminance;
+};
+
 cbuffer ShadingInfo : REGISTER_CBV_SHADING_INFO
 {
     LightDirectional directionalLight;
@@ -53,8 +76,6 @@ cbuffer ShadingInfo : REGISTER_CBV_SHADING_INFO
     float3 cameraPosition;
     uint spotCount;
 };
-
-
 
 cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
 {
@@ -73,17 +94,14 @@ float2 texOffset(int u, int v, int lNo)
     return float2(u * 1.0f / 2048, v * 1.0f / 2048);
 }
 
-
-// Used here for getting detection rate.
-cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
+cbuffer ENEMY_CONE_INFO_BUFFER : REGISTER_CBV_ENEMY_CONE_INFO
 {
-    float timeSinceSwitch;
-    float timeSwitchStartDuration;
-    float timeSwitchEndDuration;
-    float isInFuture; // Bool is 4 bytes.
+    float4 worldPosAndDir[ENEMY_CONE_INFO_CAPACITY]; // XY is world pos in XZ plane and ZW is world direction in XZ plane.
+    float coneLength;
+    float coneAngle;
+    uint coneCount;
     
-    float detectionLevelGlobal;
-    float PADDING[3];
+    float MOREPADDING;
 }
 
 
@@ -103,15 +121,18 @@ Texture2D shadowTextureDynamic : REGISTER_SRV_SHADOW_DEPTH;
 struct PS_OUTPUT
 {
     float4 MainTarget : SV_TARGET0;
-    float4 PositionTarget : SV_TARGET1;
+    float4 LuminanceTexture : SV_TARGET1;
 };
 
 PS_OUTPUT main(VSOutput input)
 {
 	// Output struct for both main texture target and positional target.
     PS_OUTPUT output;
+    //output.MainTarget = float4(1.0f, 0.0f, 1.0f, 1.0f);
+    //output.LuminanceTexture = 0.0f.rrrr;
+    //return output;
     
-    // Diffuse sample
+    //// Diffuse sample
     float2 uv = input.outUV * tiling;  
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
     if (diffuseSample.a < 0.1f)
@@ -143,7 +164,7 @@ PS_OUTPUT main(VSOutput input)
     
     // Normal
     float3 normal = input.outNormal;
- 
+    
 	// Cumulative color
     float4 color = float4(colorAlbedoOpacity.xyz * ambient, colorAlbedoOpacity.w);
 	
@@ -153,7 +174,7 @@ PS_OUTPUT main(VSOutput input)
     float2 lsUV = float2(lsNDC.x * 0.5f + 0.5f, lsNDC.y * -0.5f + 0.5f);
     float dirNDotL = dot(normal, directionalLight.direction);
     float epsilon = 0.00005 / acos(saturate(dirNDotL));    
-
+    
     // Distance based smoothing (comment out for minor peformance boost possibly)
     //float shadowSample = shadowTexture.Sample(textureSampler, lsUV).x;
     //float shadowDiff = (shadowSample * 10 - saturate((lsNDC.z - epsilon) * 10));
@@ -187,28 +208,78 @@ PS_OUTPUT main(VSOutput input)
             
             
             indexer++;
+    
         }
     }
     // adjust
     float shadowAff = sum / 25.0f;
- 
+    
     // Simple lighting
     color += shadowAff * phongLite(
 		directionalLight.intensity,
 		1.0f,
 		colorAlbedoOpacity.xyz
 	);
-
+    
+    // Enemy cone effects.
+    // Will not loop if the state is in the future.
+    for (uint i = 0; i < coneCount * !isInFuture; i++)
+    {
+        float4 enemyPosAndDir = worldPosAndDir[i];
+        float3 enemyPos = float3(enemyPosAndDir.x, 0.0f, enemyPosAndDir.y);
+        float3 enemyDir = float3(enemyPosAndDir.z, 0.0f, enemyPosAndDir.w);
+        
+        color.rgb += DrawEnemyCone(
+            enemyPos,
+            input.wPosition.xyz, // Y value is important so dont set to 0.
+            enemyDir,
+            coneLength,
+            coneAngle,
+            detectionLevelGlobal
+        );
+    }
+    
+    // Enemy position effects.
+    // Will not loop if the state is in the present.
+    for (uint i = 0; i < coneCount * isInFuture; i++)
+    {
+        float4 enemyPosAndDir = worldPosAndDir[i];
+        float3 enemyPos = float3(enemyPosAndDir.x, 0.0f, enemyPosAndDir.y);
+        
+        color.rgb += DrawEnemyPos(enemyPos, input.wPosition.xyz) * isInFuture;
+    }
+	
+    // Fog effects
+    {
+        float posToCamDist = distance(input.wPosition.xyz, cameraPosition);
+        uint stateIndex = uint(isInFuture);
+        color.rgb = ApplyExpFog(
+            color.rgb,
+            STATE_FOG_DENSITIES[stateIndex],
+            posToCamDist,
+            STATE_FOG_COLORS[stateIndex],
+            STATE_FOG_STRENGTHS[stateIndex]
+        );
+    }
+	
+    float totalInflunce =
+        TotalTimeSwitchInfluence(
+        timeSinceSwitch,
+        timeSwitchStartDuration,
+        timeSwitchEndDuration
+    );
+    
+    float3 lumColor = FilterBrightness(
+        color.rgb,
+        lerp(luminanceThreshold, 0.0f, totalInflunce),
+        lerp(strength, strength * 1.4f, totalInflunce),
+        lerp(minLuminance, 0.0f, totalInflunce)
+    );
+    
     // Send the final color.
     color.a = saturate(color.a); 
     output.MainTarget = color;
-    
-    // float4 outputColor;
-    //output.MainTarget = float4(1 - saturate(shadowAff), 1 - saturate(shadowAff), 1 - saturate(shadowAff), 1);
-    //output.MainTarget = float4(shadowSmoothVal.r, shadowSmoothVal.r, shadowSmoothVal.r, 1);
-    
-    // Send the position thing.
-    output.PositionTarget = input.wPosition;
+    output.LuminanceTexture = float4(lumColor, color.a);
 	
     return output;
 }

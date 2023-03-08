@@ -86,7 +86,6 @@ void RenderHandler::Draw()
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
 	//m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
 
-
 	// ShadowPass
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
 	static std::string shadowPassProfileName = "Shadow Pass";
@@ -105,8 +104,6 @@ void RenderHandler::Draw()
 	m_renderCore->UnbindRenderTexture();
 
 	// PPFX / FX
-	static std::string ppfxPositionalProfileName = "PPFX Positional";
-	PROFILE_JOB(ppfxPositionalProfileName, m_renderCore->DrawPositionalEffects());
 	
 	static std::string ppfxBloomProfileName = "PPFX Bloom";
 	PROFILE_JOB(ppfxBloomProfileName, m_renderCore->DrawPPFX());

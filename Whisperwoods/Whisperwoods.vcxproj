@@ -210,6 +210,9 @@
     </FxCompile>
     <FxCompile Include="PSGUI.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="PSPrepass.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -219,6 +222,9 @@
     </FxCompile>
     <FxCompile Include="VSGUI.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
     <FxCompile Include="VSMesh.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
@@ -255,8 +261,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\myfileb.spritefont" />
+    <None Include="BrightnessFilteringIncludes.hlsli" />
     <None Include="ComputeConstants.hlsli" />
     <None Include="Constants.hlsli" />
+    <None Include="EnemyConeVisIncludes.hlsli" />
     <None Include="FogFuncs.hlsli" />
     <None Include="PhongAlg.hlsli" />
     <None Include="PhongAlgLite.hlsli" />
