@@ -80,8 +80,9 @@ private:
 	bool m_playAmbientSounds = true;
 	float m_ambientWaitTime = 0.0f;
 	int currentAction = -1;
+	bool m_stepAlternation = true;
 
-	float m_walkingVol = 0.5f;
+	float m_walkingVol = 1.0f;
 	unique_ptr<AudioSource> m_walkingSource; //use for walking sounds
 	float m_closeAmbientVol = 0.2f;
 	unique_ptr<AudioSource> m_ambientCloseSource; //use for ambient and idle noises
@@ -105,6 +106,7 @@ private:
 	FMOD::Sound* m_smallScreetch;
 	FMOD::Sound* m_megatron;
 	FMOD::Sound* m_theHorror;
+	FMOD::Sound* m_bigStep;
 	//****************************
 
 	shared_ptr<cs::Random> m_randGen;

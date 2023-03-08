@@ -77,8 +77,9 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_smallScreetch = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "SmallScreetch.mp3"))->currentSound;
 	m_megatron = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "Megatron.mp3"))->currentSound;
 	m_theHorror = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "TheHorror.mp3"))->currentSound;
+	m_bigStep = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "BigStep.mp3"))->currentSound;
 
-	m_walkingSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_walkingVol, 1.0f, 0.0f, 10.0f, nullptr);
+	m_walkingSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_walkingVol, 1.0f, 3.0f, 10.0f, m_bigStep);
 	this->AddChild((GameObject*) m_walkingSource.get());
 	
 	m_ambientCloseSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_closeAmbientVol, 1.0f, 0.0f, 7.0f, m_crabClick);
@@ -825,6 +826,19 @@ void Enemy::EnemySoundUpdate(float dTime, Vec2 playerPosition, float detectLevel
 
 	if (m_characterAnimator->IsPlaying(0)) //run/walk animation
 	{
+		if (m_stepAlternation && (m_characterAnimator->globalTime > 0.2f && m_characterAnimator->globalTime < 0.3f))
+		{
+			m_walkingSource->SetPitch(m_randGen->Getf(0.9f, 1.1f));
+			m_walkingSource->Play();
+			m_stepAlternation = false;
+		}
 
+		if (!m_stepAlternation && (m_characterAnimator->globalTime > 0.7f && m_characterAnimator->globalTime < 0.8f))
+		{
+			m_walkingSource->SetPitch(m_randGen->Getf(0.9, 1.1));
+			m_walkingSource->Play();
+			m_stepAlternation = true;
+		}
+		
 	}
 }
