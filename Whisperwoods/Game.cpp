@@ -114,6 +114,8 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			isSeen = false;
 			m_detectionLevelGlobal = 0.0f;
 			m_detectionLevelFloor = 0.0f;
+
+			m_enemyHorn->Play();
 		}
 	}
 	else
@@ -308,7 +310,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		Renderer::GetWindow().CloseProgram();
 	}
 
-	MusicUpdate(deltaTime);
+	SoundUpdate(deltaTime);
 }
 
 void Game::Init()
@@ -357,6 +359,9 @@ void Game::Init()
 	m_musicPresent->loop = true;
 	m_musicFuture->loop = true;
 	m_musicDetected->loop = true;
+
+	m_enemyHorn = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_hornVol, 1.0f, 20.0f, 30.0f, ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "HornHeavyReverb.wav"))->currentSound);
+	m_player->AddChild((GameObject*)m_enemyHorn.get());
 
 	// Lighting
 	m_directionalLight = Renderer::GetDirectionalLight();
@@ -539,7 +544,7 @@ void Game::LowerToFloor(float deltaTime)
 	}
 }
 
-void Game::MusicUpdate(float deltaTime)
+void Game::SoundUpdate(float deltaTime)
 {
 	m_musicPresent->Update(deltaTime);
 	m_musicFuture->Update(deltaTime);
