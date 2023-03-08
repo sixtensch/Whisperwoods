@@ -171,6 +171,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 	// Time switch logic.
 	if (!m_isHubby) // if not in hubby
 	{
+		
 		if (Input::Get().IsKeyPressed( KeybindPower ) && IsAllowedToSwitch())
 		{
 			m_isSwitching = true;
@@ -180,6 +181,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 
 		if (m_isSwitching)
 		{
+			
 			if (!ChargeIsDone())
 			{
 				m_totalFovDelta += m_camFovChangeSpeed * m_deltaTime;
@@ -268,12 +270,7 @@ void Game::DrawIMGUIWindows()
 		ImGui::DragFloat( "Detection Level Global", &m_detectionLevelGlobal, 0.1f, 0.0f, 1.0f );
 		ImGui::Text( "Detection level Floor: %f", m_detectionLevelFloor );
 		ImGui::Text( "Time left until future death: %f", m_timeYouSurviveInFuture - m_dangerousTimeInFuture );
-		float cd = m_timeAbilityCooldown - m_coolDownCounter;
-		if (cd < 0)
-		{
-			cd = 0;
-		}
-		ImGui::Text( "Time ability cooldown: %f", cd );
+		ImGui::Text( "Time ability cooldown: %f", GetPowerCooldown());
 		ImGui::Checkbox( "Future", &m_isInFuture );
 
 	}
@@ -426,6 +423,9 @@ void Game::Init()
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
 	m_audioSource->Play();
 
+
+	
+
 	// Environment parameters
 	m_envParams.spawnSeed = 652;
 	m_envParams.scaleSeed = 635;
@@ -462,6 +462,9 @@ void Game::Init()
 	m_directionalLight->diameter = 50.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
+
+	
+	
 }
 
 void Game::DeInit()
@@ -517,6 +520,7 @@ void Game::LoadGame(uint gameSeed)
 
 void Game::UnLoadPrevious()
 {
+	m_pickups.Clear();
 	UnloadRoom();
 }
 
@@ -528,6 +532,26 @@ Player* Game::GetPlayer()
 void Game::SetCutSceneMode( bool value )
 {
 	m_isCutScene = value;
+}
+
+float Game::GetPowerCooldown()
+{
+	float cd = m_timeAbilityCooldown - m_coolDownCounter;
+	if (cd < 0)
+	{
+		cd = 0;
+	}
+	return cd;
+}
+
+float Game::GetMaxPowerCooldown()
+{
+	return m_timeAbilityCooldown;
+}
+
+float Game::GetMaxStamina()
+{
+	return m_maxStamina;
 }
 
 void Game::LoadRoom(Level* level)
@@ -548,7 +572,7 @@ void Game::LoadRoom(Level* level)
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
 	m_player->currentRoom = m_currentRoom.get();
-
+	
 	for ( LevelPickup& pickup : level->resource->pickups )
 	{
 		Vec3 worldpos = m_player->currentRoom->bitMapToWorldPos(static_cast<Point2>(pickup.position));

@@ -5,6 +5,7 @@
 #include "Input.h"
 #include "Resources.h"
 #include "LevelImporter.h"
+#include "SoundResource.h"
 
 
 void Player::CalculateCompassMatrix()
@@ -69,6 +70,17 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	cameraIsLocked = true;
 	playerInFuture = false;
 	hasPickedUpEssenceBloom = false;
+	m_ranOutOfSprint = false;
+	/*FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
+	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
+	m_audioSource->Play();*/
+	FMOD::Sound* undergrowthSoundPtr = (Resources::Get().GetSound("foliage.mp3"))->currentSound;
+	m_vegetationSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.5f, 1.1f, 0.0f, 10.0f, undergrowthSoundPtr);
+	this->AddChild((GameObject *) m_vegetationSound.get());
+	
+	FMOD::Sound* stepsSoundPtr = ((SoundResource*)Resources::Get().GetResource(ResourceTypeSound, "footstep.mp3"))->currentSound;
+	m_stepsSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 2.0f, 1.1f, 0.0f, 10.0f, stepsSoundPtr);
+	this->AddChild((GameObject*)m_stepsSound.get());
 }
 
 void Player::ReloadPlayer()
@@ -195,15 +207,41 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			m_targetVelocity.Normalize();
 		m_targetVelocity = m_targetVelocity * walkRunMultiplier;
 
+		//float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !Input::Get().IsKeybindDown(KeybindCrouch) && m_stamina > 0.0f && !m_ranOutOfSprint && !playerInFuture) ? m_runSpeed : m_walkSpeed);
+		//
+		//m_targetVelocity = Vec3( inputVector.x * walkRunMultiplier, inputVector.y * walkRunMultiplier, inputVector.z * walkRunMultiplier );
+
 		if (m_targetVelocity.Length() > m_runSpeed)
 		{
 			m_targetVelocity = m_targetVelocity.Normalize();
 			m_targetVelocity *= m_runSpeed;
 		}
 
-		m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * 2.0f * delta_time);
+		if (!Input::Get().IsKeybindDown(KeybindSprint)) // not sprinting
+		{
+			if (m_targetVelocity.Length() > m_walkSpeed)
+			{
+				m_targetVelocity = m_targetVelocity.Normalize();
+				m_targetVelocity *= m_walkSpeed;
+			}
+		}
 
-		if (m_stamina < 0.1f && m_targetVelocity.Length() > 0.0f)
+		if (m_ranOutOfSprint == true)
+		{
+			if (Input::Get().IsKeybindDown(KeybindSprint) == false || (
+				Input::Get().IsKeybindDown(KeybindForward) == false &&
+				Input::Get().IsKeybindDown(KeybindBackward) == false &&
+				Input::Get().IsKeybindDown(KeybindLeft) == false &&
+				Input::Get().IsKeybindDown(KeybindRight) == false 
+				))
+			{
+				m_ranOutOfSprint = false;
+			}
+		}
+		
+		
+
+		if (m_stamina <= 0.0f && m_targetVelocity.Length() > 0.0f)
 		{
 			m_targetVelocity = m_targetVelocity.Normalize();
 			m_targetVelocity *= m_walkSpeed;
@@ -308,7 +346,11 @@ void Player::Update(float delta_time)
 	}
 
 
-	m_stamina = cs::fclamp(m_stamina + (1.0f * delta_time), 0, m_maxStamina); //or 0.0f rather than 0
+	//regain stamina
+	if ((!Input::Get().IsKeybindDown(KeybindSprint) || m_ranOutOfSprint == true || m_velocity.Length() <= 0.2f) || playerInFuture || IsCrouching())
+	{
+		m_stamina = cs::fclamp(m_stamina + (2.5f * delta_time), 0.0f, m_maxStamina); //or 0.0f rather than 0
+	}
 
 
 	characterAnimator->playbackSpeed = m_animationSpeed;
@@ -316,6 +358,8 @@ void Player::Update(float delta_time)
 	transform.CalculateWorldMatrix();
 	CalculateCompassMatrix();
 	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
+
+	UpdateSound(delta_time);
 }
 
 // Only the essentials.
@@ -325,4 +369,61 @@ void Player::CinematicUpdate( float delta_time )
 	characterAnimator->Update( delta_time );
 	transform.CalculateWorldMatrix();
 	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
+
+}
+
+void Player::UpdateSound(float delta_time)
+{
+	m_vegetationSound->Update(delta_time);
+	m_stepsSound->Update(delta_time);
+
+	// Sound management!
+
+	Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
+	LevelPixel bitMapPixel = currentRoom->m_levelResource->bitmap[mapPoint.x + mapPoint.y * currentRoom->m_levelResource->pixelWidth];
+	float realNotWhackDensityWhichActuallyIsAccurate = 1.0f - bitMapPixel.density;
+	if (realNotWhackDensityWhichActuallyIsAccurate > 0.2f && m_velocity.Length() > 0.05f && realNotWhackDensityWhichActuallyIsAccurate < 1.0f) // density
+	{
+		//change volume
+		float volPercent = m_velocity.Length() / m_runSpeed;
+		volPercent = pow(volPercent, 2.0f);
+		if (volPercent < 0.01f)
+		{
+			volPercent = 0.1f;
+		}
+		if (volPercent > 0.8f)
+		{
+			volPercent = 0.8f;
+		}
+		realNotWhackDensityWhichActuallyIsAccurate = pow(realNotWhackDensityWhichActuallyIsAccurate, 0.6);
+		m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate;
+
+		if (!m_vegetationSound->IsPlaying()) //repeat sound? (looping kind of)
+		{
+			m_vegetationSound->Play();
+		}
+	}
+	else if (m_vegetationSound->IsPlaying()) // execute order 66
+	{
+		m_vegetationSound->Stop();
+	}
+
+	if (m_velocity.Length() > 0.05f)
+	{
+		//change volume
+		float volPercent = m_velocity.Length() / m_runSpeed;
+		volPercent = pow(volPercent, 0.7f);
+		//volPercent *= volPercent;
+		m_stepsSound->volume = 0.25f * volPercent;
+		//trigger when character sets foot on ground
+		if (((characterAnimator->globalTime > 0.2f && characterAnimator->globalTime < 0.3f) || (characterAnimator->globalTime > 0.66f && characterAnimator->globalTime < 0.76f)) /*&& !m_stepsSound->IsPlaying()*/)
+		{
+			m_stepsSound->Stop();
+			m_stepsSound->Play();
+		}
+	}
+	//else if(m_stepsSound->IsPlaying())  // execute order 66
+	//{
+	//	m_stepsSound->Stop();
+	//}
 }

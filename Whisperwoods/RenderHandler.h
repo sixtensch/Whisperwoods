@@ -97,7 +97,7 @@ public:
 
 private:
 	void QuadCull(const Camera& camPOV);
-	void DrawInstances(uint state, bool shadows);
+	void DrawInstances(uint state, bool shadows, bool discardPipeline);
 
 
 private:

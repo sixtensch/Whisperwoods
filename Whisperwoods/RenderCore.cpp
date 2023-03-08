@@ -204,7 +204,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	D3D11_DEPTH_STENCIL_DESC dssDesc = {};
 	dssDesc.DepthEnable = true;
-	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dssDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	dssDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 	EXC_COMCHECK(m_device->CreateDepthStencilState(&dssDesc, m_dsDSS.GetAddressOf()));
 
@@ -938,11 +938,11 @@ void RenderCore::UpdateInstanceBuffer(ComPtr<ID3D11Buffer> iBuffer, const Mat4* 
 	EXC_COMINFO(m_context->Unmap(iBuffer.Get(), 0u));
 }
 
-void RenderCore::DrawObject(const Renderable* renderable, bool shadowing)
+void RenderCore::DrawObject(const Renderable* renderable, bool shadowing, bool discardPipeline)
 {
 	if (renderable->pipelineType != m_pipelineCurrent || shadowing != m_shadowPSBound)
 	{
-		BindPipeline(renderable->pipelineType, shadowing);
+		BindPipeline(renderable->pipelineType, shadowing, discardPipeline);
 	}
 
 	DrawInfo drawInfo =
@@ -972,9 +972,9 @@ void RenderCore::SetIndexBuffer(ComPtr<ID3D11Buffer> buffer, uint offset, DXGI_F
 	EXC_COMINFO(m_context->IASetIndexBuffer(buffer.Get(), format, offset));
 }
 
-void RenderCore::BindInstancedPipeline(bool shadowed)
+void RenderCore::BindInstancedPipeline(bool shadowed, bool discardPipeline)
 {
-	BindPipeline(PipelineTypeEnvironment, shadowed);
+	BindPipeline(PipelineTypeEnvironment, shadowed, discardPipeline);
 }
 
 void RenderCore::DrawIndexed(uint indexCount, uint indexStart, uint vertexBase)
@@ -1181,7 +1181,7 @@ void RenderCore::UpdateGPUProfiler()
 	m_gpuProfiler.FinilizeAndPresent();
 }
 
-void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)
+void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing, bool discardPipeline)
 {
 	const Pipeline& n = m_pipelines[pipeline];  // New pipeline
 
@@ -1198,6 +1198,10 @@ void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)
 		if(!shadowing)
 		{
 			EXC_COMINFO(m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0));
+		}
+		else if (discardPipeline)
+		{
+			EXC_COMINFO(m_context->PSSetShader(m_pipelines[PipelineTypePrepass].pixelShader.Get(), nullptr, 0));
 		}
 		else
 		{
@@ -1240,23 +1244,44 @@ void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing)
 		m_context->HSSetShader(n.hullShader.Get(), nullptr, 0);
 	}
 
-	if (shadowing && !m_shadowPSBound)
+	if ( discardPipeline )
 	{
-		if (m_bindShadowPS)
+		if ( n.pixelShader != m_pipelines[PipelineTypePrepass].pixelShader )
 		{
-			m_context->PSSetShader( m_pipelines[PipelineTypeShadow].pixelShader.Get(), nullptr, 0);
+			m_context->PSSetShader(m_pipelines[PipelineTypePrepass].pixelShader.Get(), nullptr, 0);
+			m_shadowPSBound = false;
 		}
-		else
+	}
+	else
+	{
+		if (shadowing && !m_shadowPSBound)
 		{
 			m_context->PSSetShader(nullptr, nullptr, 0);
+			m_shadowPSBound = true;
 		}
-		m_shadowPSBound = true;
+		else if (!shadowing /*&& (n.pixelShader != o.pixelShader || m_shadowPSBound)*/)
+		{
+			m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0);
+			m_shadowPSBound = false;
+		}
 	}
-	else if (!shadowing && (n.pixelShader != o.pixelShader || m_shadowPSBound))
-	{
-		m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0);
-		m_shadowPSBound = false;
-	}
+	//if (shadowing && !m_shadowPSBound)
+	//{
+	//	if (m_bindShadowPS)
+	//	{
+	//		m_context->PSSetShader( m_pipelines[PipelineTypeShadow].pixelShader.Get(), nullptr, 0);
+	//	}
+	//	else
+	//	{
+	//		m_context->PSSetShader(nullptr, nullptr, 0);
+	//	}
+	//	m_shadowPSBound = true;
+	//}
+	//else if (!shadowing && (n.pixelShader != o.pixelShader || m_shadowPSBound))
+	//{
+	//	m_context->PSSetShader(n.pixelShader.Get(), nullptr, 0);
+	//	m_shadowPSBound = false;
+	//}
 
 	m_pipelineCurrent = pipeline;
 }
@@ -1373,9 +1398,6 @@ void RenderCore::InitPipelines()
 		m_pipelines[PipelineTypeShadow].inputLayout.GetAddressOf()
 	));
 
-	//blob->Release();
-
-
 
 	// Standard pipeline instanced environment
 
@@ -1469,6 +1491,18 @@ void RenderCore::InitPipelines()
 	m_pipelines[PipelineTypeTerrain].vertexShader = m_pipelines[PipelineTypeStandard].vertexShader;
 	m_pipelines[PipelineTypeTerrain].inputLayout = m_pipelines[PipelineTypeStandard].inputLayout;
 
+
+	
+	// Prepass
+	EXC_COMCHECK(D3DReadFileToBlob(DIR_SHADERS L"PSPrepass.cso", &blob));
+	EXC_COMCHECK(m_device->CreatePixelShader(
+		blob->GetBufferPointer(),
+		blob->GetBufferSize(),
+		nullptr,
+		&m_pipelines[PipelineTypePrepass].pixelShader
+	));
+	
+	
 	blob->Release();
 }
 
