@@ -6,6 +6,17 @@
 #include "SoundResource.h"
 
 
+Room::~Room()
+{
+	if (m_ambianceSources.Size() > 0)
+	{
+		for (int i = 0; i < m_ambianceSources.Size(); i++)
+		{
+			m_ambianceSources[i]->Stop();
+		}
+	}
+}
+
 Room::Room(const Level* level, std::string modelResource, Mat4 modelOffset)
 {
 	m_level = level;
@@ -58,6 +69,9 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 		m_ambianceSources.Clear();
 
 	// Add ambiance sounds around the room
+
+
+
 	Resources& resources = Resources::Get();
 	int numSounds = 3;
 	float radius = m_levelResource->worldWidth / 2.0f;
@@ -108,6 +122,10 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	
 	//GenerateRoomShadowMap();
 }
+
+
+
+
 
 void Room::GenerateRoomShadowMap()
 {
