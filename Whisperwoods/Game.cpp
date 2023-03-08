@@ -117,6 +117,8 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 				m_isSeen = false;
 				m_detectionLevelGlobal = 0.0f;
 				m_detectionLevelFloor = 0.0f;
+
+				m_enemyHorn->Play();
 			}
 		}
 		else
@@ -168,6 +170,8 @@ void Game::UpdateEnemies( Renderer* renderer )
 				m_closestDistance = m_enemies[i]->GetDistance();
 			}
 		}
+
+		m_enemies[i]->EnemySoundUpdate(m_deltaTime, Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), m_detectionLevelGlobal);
 	}
 }
 
