@@ -62,7 +62,7 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 		pos.y = 8.0f;
 		std::string soundName = "Jungle_AmbianceLoop0" + std::to_string( (i + 1) % 6 ) + ".wav";
 		FMOD::Sound* soundPtr = ((SoundResource*)Resources::Get().GetWritableResource( ResourceTypeSound, soundName ))->currentSound;
-		shared_ptr<AudioSource> audioSource = make_shared<AudioSource>( pos, 0.3f, 1.0f, 0.0f, radius * 3.0f, soundPtr );
+		shared_ptr<AudioSource> audioSource = make_shared<AudioSource>( pos, m_ambienceVol, 1.0f, 0.0f, radius * 3.0f, soundPtr );
 		audioSource->mix2d3d = 0.75f;
 		audioSource->loop = true;
 		audioSource->Play();
@@ -97,6 +97,14 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	
 	
 	//GenerateRoomShadowMap();
+}
+
+Room::~Room()
+{
+	for (int i = 0; i < m_ambianceSources.Size(); i++)
+	{
+		m_ambianceSources[i]->Stop();
+	}
 }
 
 void Room::GenerateRoomShadowMap()
@@ -232,4 +240,12 @@ Vec2 Room::sampleBitMapCollision(Vec3 worldPos)
 	ret2 = transform.GetWorldRotation().Conjugate() * ret2;
 
 	return Vec2(ret2.x, ret2.z);
+}
+
+void Room::SetTimeline(bool isFuture)
+{
+	for (int i = 0; i < m_ambianceSources.Size(); i++)
+	{
+		m_ambianceSources[i]->SetVolume((!isFuture) * m_ambienceVol);
+	}
 }
