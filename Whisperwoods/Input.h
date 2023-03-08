@@ -50,7 +50,7 @@ public:
 	MouseState GetMouseState() const;
 	MouseState GetLastMouseState() const;
 
-	void SetMode(dx::Mouse::Mode mouseMode);
+	void SetMouseMode(dx::Mouse::Mode mouseMode);
 
 	void AddKeyToInput(const Keybind input, const DXKey key);
 	void AddKeysToInput(const Keybind input, const cs::List<DXKey>& keys);

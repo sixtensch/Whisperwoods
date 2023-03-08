@@ -445,23 +445,29 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 	static bool cameraLock = false;
 	static bool cameraPlayer = true;
 	Camera& camera = Renderer::GetCamera();
+	Input& inputRef = Input::Get();
 
 	if (!cutSceneController->CutsceneActive())
 	{
-		if (Input::Get().IsDXKeyPressed(DXKey::R))
+		MouseState mouseState = inputRef.GetMouseState();
+
+		if (inputRef.IsDXKeyPressed(DXKey::R))
 		{
-			cameraLock = !cameraLock;
+			if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
+			{
+				inputRef.SetMouseMode(dx::Mouse::MODE_ABSOLUTE);
+			}
+			else
+			{
+				inputRef.SetMouseMode(dx::Mouse::MODE_RELATIVE);
+			}
 		}
 
-		if (Input::Get().IsDXKeyPressed(DXKey::P))
+		if (inputRef.IsDXKeyPressed(DXKey::P))
 		{
 			cameraPlayer = !cameraPlayer;
 			player->cameraIsLocked = cameraPlayer;
 		}
-
-
-		MouseState mouseState = Input::Get().GetMouseState();
-		Input::Get().SetMode(cameraLock ? dx::Mouse::MODE_RELATIVE : dx::Mouse::MODE_ABSOLUTE);
 		
 		if (!cameraPlayer)
 		{
@@ -472,13 +478,13 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 			forwardDirection.Normalize();
 			Vec3 rightDirection = camera.GetRight();
 			Vec3 upDirection = Vec3(0.0f, 1.0f, 0.0f);
-			if (Input::Get().IsKeybindDown(KeybindForward))		movement += forwardDirection;
-			if (Input::Get().IsKeybindDown(KeybindBackward))	movement -= forwardDirection;
-			if (Input::Get().IsKeybindDown(KeybindRight))		movement += rightDirection;
-			if (Input::Get().IsKeybindDown(KeybindLeft))		movement -= rightDirection;
-			if (Input::Get().IsKeybindDown(KeybindUp))			movement += upDirection;
-			if (Input::Get().IsKeybindDown(KeybindDown))		movement -= upDirection;
-			if (Input::Get().IsKeybindDown(KeybindSprint))
+			if (inputRef.IsKeybindDown(KeybindForward))		movement += forwardDirection;
+			if (inputRef.IsKeybindDown(KeybindBackward))	movement -= forwardDirection;
+			if (inputRef.IsKeybindDown(KeybindRight))		movement += rightDirection;
+			if (inputRef.IsKeybindDown(KeybindLeft))		movement -= rightDirection;
+			if (inputRef.IsKeybindDown(KeybindUp))			movement += upDirection;
+			if (inputRef.IsKeybindDown(KeybindDown))		movement -= upDirection;
+			if (inputRef.IsKeybindDown(KeybindSprint))
 			{
 				movement *= 5.0f;
 			}
