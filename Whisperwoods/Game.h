@@ -10,7 +10,7 @@
 #include "LevelHandler.h"
 #include "TextRenderable.h"
 
-constexpr float STAMINA_DECAY_MULTIPLIER = 0.27f;
+constexpr float STAMINA_DECAY_MULTIPLIER = 0.2f;
 constexpr float MAX_STAMINA_STARTING_VALUE = 10.0f;
 
 class LevelHandler;
@@ -138,7 +138,7 @@ private:
 	bool m_reachedLowestStamina;
 	float m_camFovChangeSpeed;
 
-	const float m_detectionRate = 0.4f;
+	const float m_detectionRate = 0.35f;
 	const float m_detCrouchMultiplier = 0.6f;
 	const float m_detSprintMultiplier = 1.3f;
 	const float m_detDistMultiplier = 1.5f;

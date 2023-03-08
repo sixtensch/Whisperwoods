@@ -73,10 +73,17 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImage(int sizeX, int sizeY, Level
 
 void LevelHandler::LoadFloors()
 {
-	const uint blacklistCount = 1;
+	const uint blacklistCount = 8;
 	string blacklist[blacklistCount] =
 	{
-		"Hubby"
+		"Hubby",
+		"tutorial1",
+		"tutorial2",
+		"tutorial3",
+		"tutorial4",
+		"tutorial5",
+		"tutorial6",
+		"tutorial7"
 	};
 
 	for (const auto& item : std::filesystem::directory_iterator(DIR_LEVELS))
@@ -103,6 +110,20 @@ void LevelHandler::LoadFloors()
 				m_resourceIndices[r->exits.Size() - 1].Add(m_resources.Size() - 1);
 			}
 		}
+	}
+}
+
+void LevelHandler::LoadTutorial()
+{
+	for (int i = 1; i < 8; i++)
+	{
+		
+		m_resources.Add(make_shared<LevelResource>());
+
+		shared_ptr<LevelResource>& r = m_resources.Back();
+		string s = "tutorial" + std::to_string(i) + ".png";
+		Renderer::LoadLevel(r.get(), s);
+		m_resourceIndices[r->exits.Size() - 1].Add(m_resources.Size() - 1);
 	}
 }
 

@@ -554,6 +554,7 @@ void Game::Init()
 	// Level handling
 	m_levelHandler = std::make_unique<LevelHandler>();
 	m_levelHandler->LoadFloors();
+	//m_levelHandler->LoadTutorial(); This needs a different thing. Be sixten skriva hårdkodad connector för tutorial!
 
 	// In-world objects and entities
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));

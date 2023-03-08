@@ -48,6 +48,7 @@ public:
 	shared_ptr<uint8_t> GenerateFloorImage(int sizeX, int sizeY, LevelFloor floorRef);
 
 	void LoadFloors();
+	void LoadTutorial();
 	void GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, EnvironmentalizeParameters eParams);
 	void GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParameters params);
 	void GenerateHubby( LevelFloor* outFloor, EnvironmentalizeParameters params);
