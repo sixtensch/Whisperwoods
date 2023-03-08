@@ -52,6 +52,7 @@ public:
 
 	shared_ptr<AudioSource> m_vegetationSound;
 	shared_ptr<AudioSource> m_stepsSound;
+	shared_ptr<AudioSource> m_switchSource;
 
 
 

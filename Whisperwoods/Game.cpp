@@ -142,6 +142,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			m_isSwitching = true;
 			m_finishedCharging = false;
 			initialCamFov = cameraRef.GetFov();
+			m_player->m_switchSource->Play();
 		}
 
 		

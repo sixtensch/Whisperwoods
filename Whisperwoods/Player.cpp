@@ -72,6 +72,10 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	FMOD::Sound* stepsSoundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "footstep.mp3"))->currentSound;
 	m_stepsSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 2.0f, 1.1f, 0.0f, 10.0f, stepsSoundPtr);
 	this->AddChild((GameObject*)m_stepsSound.get());
+
+	FMOD::Sound* switchSoundPtr = ((SoundResource*)Resources::Get().GetWritableResource(ResourceTypeSound, "TimeSwitch.mp3"))->currentSound;
+	m_switchSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.5f, 1.5f, 10.0f, 20.0f, switchSoundPtr);
+	this->AddChild((GameObject*)m_switchSource.get());
 }
 
 void Player::ReloadPlayer()
