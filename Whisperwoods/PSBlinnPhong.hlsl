@@ -107,8 +107,8 @@ PS_OUTPUT main(VSOutput input)
 	
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
 	
-    if (diffuseSample.a < 0.1f)
-        discard;
+    //if (diffuseSample.a < 0.1f)
+    //    discard;
 	
     float4 specularSample = textureSpecular.Sample(textureSampler, uv);
     float4 emissiveSample = textureEmissive.Sample(textureSampler, uv);

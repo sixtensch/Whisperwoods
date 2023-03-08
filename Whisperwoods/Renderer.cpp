@@ -45,7 +45,7 @@ void Renderer::Init(uint width, uint height)
 	//m_renderHandler->CreateTextRenderable(L"In some situations, you cannot sneak past carcinians! \n   Press Q to jump into the future to avoid them!", dx::SimpleMath::Vector2(width / 2 - 700, height - 500), FontDefault, cs::Color4f(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 0.0f });
 	//m_renderHandler->CreateTextRenderable(L"  You cannot stay in the future indefinitely as \n         it drains your maximum stamina! \n  If your maximum stamina reaches its floor you \ncan only stay in the future briefly before dying!", dx::SimpleMath::Vector2(300, height - 500), FontDefault, cs::Color4f(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 0.0f });
 	//m_renderHandler->CreateTextRenderable(L"    To restore your maximum stamina you can pick upp an essence bloom!", dx::SimpleMath::Vector2(0, height - 500), FontDefault, cs::Color4f(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 0.0f });
-
+	// add text about not run in future
 	
 	m_window->Show(true);
 }
@@ -105,6 +105,11 @@ void Renderer::UnLoadEnvironment()
 	s_singleton->m_renderHandler->UnLoadEnvironment();
 }
 
+void Renderer::UpdateBitMapBind( const TextureResource* bitmap )
+{
+	s_singleton->m_renderHandler->GetCore()->UpdateBitmapInfo( bitmap );
+}
+
 void Renderer::ClearShadowRenderables()
 {
 	s_singleton->m_renderHandler->ClearShadowRenderables();
@@ -125,6 +130,10 @@ shared_ptr<MeshRenderableStatic> Renderer::CreateMeshStatic(const string& subpat
 	return s_singleton->m_renderHandler->CreateMeshStatic(subpath);
 }
 
+shared_ptr<MeshRenderableTerrain> Renderer::CreateMeshTerrain( const string& subpath )
+{
+	return s_singleton->m_renderHandler->CreateMeshTerrain( subpath );
+}
 
 shared_ptr<MeshRenderableRigged> Renderer::CreateMeshRigged(const string& subpath)
 {

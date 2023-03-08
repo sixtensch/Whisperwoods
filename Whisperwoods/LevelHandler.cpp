@@ -42,6 +42,34 @@ LevelHandler::LevelHandler()
 {
 }
 
+shared_ptr<uint8_t> LevelHandler::GenerateFloorImage(int sizeX, int sizeY, LevelFloor floorRef)
+{
+	for (int i = 0; i < floorRef.rooms.Size(); i++)
+	{
+		Vec3 p = floorRef.rooms[i].position;
+		LOG_TRACE("%d - Room pos: %.2f %.2f %.2f", i, p.x, p.y, p.z);
+	}
+
+	shared_ptr<uint8_t> returnVal(new uint8_t[sizeX * sizeY * 4]);
+	for (int y = 0; y < sizeY; y++)
+	{
+		for (int x = 0; x < sizeX; x++)
+		{
+			float xF = (float)x / (float)sizeX;
+			float yF = (float)y / (float)sizeY;
+
+			
+			
+
+			returnVal.get()[(y * sizeX) + (x * 4) + 0 ] = 255;
+			returnVal.get()[(y * sizeX) + (x * 4) + 1 ] = 0;
+			returnVal.get()[(y * sizeX) + (x * 4) + 2 ] = 0;
+			returnVal.get()[(y * sizeX) + (x * 4) + 3 ] = 255;
+		}
+	}
+	return returnVal;
+}
+
 
 void LevelHandler::LoadFloors()
 {
@@ -209,7 +237,7 @@ void LevelHandler::GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParam
 	f.startPosition = Vec3(0, 0, 0);
 
 	// Add a level
-	AddLevelName(f, "firstLevel");
+	AddLevelName(f, "twelthLevel");
 	Environmentalize(f.rooms.Back(), params);
 }
 
@@ -320,8 +348,14 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 			}
 			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable))
 			{
+
+				Mat4 foliageMatrix =
+					Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
+					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
+					Mat::scale3(scaleVal * parameters.scaleMultiplierFoliage * 3);
 				if (noiseVal < parameters.densityUnwalkableOuter)
 				{
+
 					xP = cs::iclamp(x + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
 					xM = cs::iclamp(x - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
 					yP = cs::iclamp(y + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
@@ -354,7 +388,11 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 					{
 						l.instances[LevelAssetTree1].Add(treeMatrix);
 					}
-					else if (diversityVal < 0.6f && !edgeTree)
+					else if (diversityVal < 0.6f)
+					{
+						l.instances[LevelAssetBush1].Add(foliageMatrix);
+					}
+					else if (diversityVal < 0.7f && !edgeTree)
 					{
 						l.instances[LevelAssetTree2].Add(treeMatrix);
 					}
@@ -370,6 +408,11 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 					{
 						l.instances[LevelAssetBigTrunk2].Add(trunkMatrix);
 					}
+				}
+
+				if (noiseVal < parameters.densityWalkable*0.5f)
+				{
+					l.instances[LevelAssetBush1].Add(foliageMatrix);
 				}
 			}
 			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].density != 0))

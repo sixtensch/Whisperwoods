@@ -10,7 +10,7 @@
 #include "LevelHandler.h"
 #include "TextRenderable.h"
 
-constexpr float STAMINA_DECAY_MULTIPLIER = 0.15f;
+constexpr float STAMINA_DECAY_MULTIPLIER = 0.27f;
 constexpr float MAX_STAMINA_STARTING_VALUE = 10.0f;
 
 class LevelHandler;
@@ -56,6 +56,10 @@ public:
 
 	void SetCutSceneMode( bool value );
 
+	float GetPowerCooldown();
+	float GetMaxPowerCooldown();
+	float GetMaxStamina();
+
 
 private:
 	void ChangeTimeline(Renderer* renderer);
@@ -70,10 +74,11 @@ private:
 	void UnloadRoom();
 	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
+	
 
-
-private:
+public:
 	std::unique_ptr<LevelHandler>	m_levelHandler;
+private:
 
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;

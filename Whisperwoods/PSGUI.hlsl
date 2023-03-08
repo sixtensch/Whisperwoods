@@ -47,18 +47,18 @@ float4 main(VSOutput input) : SV_TARGET0
         //stretchedUV.x = stretchedUV.x * floatValue + vectorValue.x;
         //stretchedUV.y = stretchedUV.x + vectorValue.y;
         maskSample = secondTexture.Sample(textureSampler, stretchedUV);
-        if (maskSample < 0.01f)
+        if (maskSample < 0.001f)
             discard;
-        return float4(texSample * colorTint, alpha * (sqrt(sqrt(input.outUV.x - (1.0f - floatValue)))*2.0f));
+        return float4(texSample * colorTint, alpha * (sqrt(sqrt(input.outUV.x - (1.0f - floatValue))) * 2.0f) * (maskSample * maskSample*1.5f));
     }
     else
     {
         maskSample = secondTexture.Sample(textureSampler, input.outUV);
     }
     
-    if (maskSample < 0.01f)
+    if (maskSample < 0.001f)
         discard;
-    return float4(texSample * colorTint, alpha);
+    return float4(texSample * colorTint * maskSample, alpha * maskSample);
 }
 
 /*        !?

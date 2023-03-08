@@ -41,4 +41,7 @@
 #define COMPUTE_GROUP_COUNT_X 80u
 #define COMPUTE_GROUP_COUNT_Y 90u
 	
+#define DEG2RAD (DirectX::XM_PI / 180)
+#define RAD2DEG (180 / DirectX::XM_PI)
+
 #endif

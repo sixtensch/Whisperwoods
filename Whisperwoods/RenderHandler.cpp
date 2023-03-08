@@ -46,11 +46,11 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	m_lightAmbientIntensity = 0.15f;
 
 	m_lightDirectional = make_unique<DirectionalLight>();
-	m_lightDirectional->diameter = 100.0f;
+	m_lightDirectional->diameter = 1000.0f;
 	m_lightDirectional->intensity = 0.0f;
 	m_lightDirectional->color = cs::Color3f(0xFFFFFF);
 
-	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 100.0f );
+	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 1000.0f );
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_mainCamera.Update();
 
@@ -84,7 +84,7 @@ void RenderHandler::Draw()
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
 	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	//m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
+	m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
 
 
 	// ShadowPass
@@ -97,9 +97,13 @@ void RenderHandler::Draw()
 	QuadCull(m_mainCamera);
 
 	static std::string zPrepassProfileName = "Z Prepass Draw";
+	static std::string terrainProfileName = "Terrain Draw";
 	static std::string mainSceneProfileName = "Main Scene Draw";
+	PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
+	//PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_timelineState, false));
 	//PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
-	PROFILE_JOB(mainSceneProfileName, ExecuteDraw(m_timelineState, false));
+	PROFILE_JOB( terrainProfileName, RenderTerrain() );
+	PROFILE_JOB( mainSceneProfileName, ExecuteDraw(m_timelineState, false) );
 	m_renderCore->UnbindRenderTexture();
 
 	// PPFX / FX
@@ -177,13 +181,13 @@ void RenderHandler::ExecuteDraw(TimelineState state, bool shadows)
 		if ( data && data->enabled )
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), shadows);
+			m_renderCore->DrawObject(data.get(), shadows, false);
 		}
 	}
 
 	if (!shadows)
 	{
-		DrawInstances(state, false);
+		DrawInstances(state, false, false);
 	}
 }
 
@@ -191,7 +195,7 @@ void RenderHandler::ExecuteDraw(TimelineState state, bool shadows)
        `6_ 6  )   `-.  (     ).`-.__.`)
        (_Y_.)'  ._   )  `._ `. ``-..-'
      _..`--'_..-_/  /--'_.' ,'
-    (il),-''  (li),'  ((!.-'   <(~Draw all the GUI renderables~)*/
+    (il),-''  (li),'  ((!.-'   <(~Draw all the GUI renderables~)	*/
 void RenderHandler::RenderGUI()
 {
 	for (int i = 0; i < m_guiRenderables.Size(); i++)
@@ -201,11 +205,24 @@ void RenderHandler::RenderGUI()
 		{
 			m_renderCore->UpdateGUIInfo(data.get()->m_elementRef);
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), false);
+			m_renderCore->DrawObject(data.get(), false, false);
 		}
 	}
 }
 
+void RenderHandler::RenderTerrain()
+{
+	m_renderCore->TargetRenderTexture();
+	for (int i = 0; i < m_worldTerrainRenderables.Size(); i++)
+	{
+		auto data = m_worldTerrainRenderables[i];
+		if (data && data->enabled)
+		{
+			m_renderCore->UpdateObjectInfo( data.get() );
+			m_renderCore->DrawObject( data.get(), false, false );
+		}
+	}
+}
 
 void RenderHandler::ZPrepass(TimelineState state)
 {
@@ -213,7 +230,7 @@ void RenderHandler::ZPrepass(TimelineState state)
 	m_renderCore->TargetPrepass();
 
 	// Draw to the prepass
-	DrawInstances(state, true);
+	DrawInstances(state, true, true);
 	for ( int i = 0; i < m_worldRenderables.Size(); i++ )
 	{
 		shared_ptr<WorldRenderable> data = {};
@@ -230,7 +247,7 @@ void RenderHandler::ZPrepass(TimelineState state)
 		if ( data && data->enabled )
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), true);
+			m_renderCore->DrawObject(data.get(), true, true);
 		}
 	}
 }
@@ -257,10 +274,19 @@ void RenderHandler::ExecuteStaticShadowDraw()
 		if (data && data->enabled)
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), true);
+			m_renderCore->DrawObject(data.get(), true, false);
 		}
 	}
-	DrawInstances(m_timelineState, true);
+	/*for (int i = 0; i < m_worldTerrainRenderables.Size(); i++)
+	{
+		auto data = m_worldTerrainRenderables[i];
+		if (data && data->enabled)
+		{
+			m_renderCore->UpdateObjectInfo( data.get() );
+			m_renderCore->DrawObject( data.get(), false );
+		}
+	}*/
+	DrawInstances(m_timelineState, true, false);
 }
 
 RenderCore* RenderHandler::GetCore() const
@@ -482,6 +508,7 @@ void RenderHandler::UnLoadEnvironment()
 		m_envMeshes[i].hotInstances.Clear( false );
 	}
 	m_worldRenderables.Clear();
+	m_worldTerrainRenderables.Clear();
 }
 
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
@@ -497,6 +524,22 @@ shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& s
 		);
 	m_worldRenderables.Add({ (shared_ptr<WorldRenderable>)newRenderable, (shared_ptr<WorldRenderable>)newRenderable });
 
+	return newRenderable;
+}
+
+shared_ptr<MeshRenderableTerrain> RenderHandler::CreateMeshTerrain( const string& subpath )
+{
+	Resources& resources = Resources::Get();
+
+	const ModelStaticResource* model = resources.GetModelStatic( subpath );
+
+	const shared_ptr<MeshRenderableTerrain> newRenderable = make_shared<MeshRenderableTerrain>(
+		m_renderableIDCounter++,
+		model,
+		cs::Mat4()
+		);
+	//m_worldRenderables.Add( { (shared_ptr<WorldRenderable>)newRenderable, (shared_ptr<WorldRenderable>)newRenderable } );
+	m_worldTerrainRenderables.Add( shared_ptr<MeshRenderableTerrain>(newRenderable) );
 	return newRenderable;
 }
 
@@ -637,7 +680,7 @@ void RenderHandler::QuadCull(const Camera& camPOV)
 		position.y,
 		position.z
 	};
-	Quaternion rotation = camPOV.GetRotation().Conjugate();
+	Quaternion rotation = camPOV.GetRotation()/*.Conjugate()*/;
 	viewFrustum.Orientation = {
 		rotation.x,
 		rotation.y,
@@ -656,9 +699,9 @@ void RenderHandler::QuadCull(const Camera& camPOV)
 	m_envQuadTree.CullTreeIndexedQuadrant(viewFrustum, m_envMeshes, 5);
 }
 
-void RenderHandler::DrawInstances(uint state, bool shadows)
+void RenderHandler::DrawInstances(uint state, bool shadows, bool discardPipeline)
 {
-	m_renderCore->BindInstancedPipeline(shadows);
+	m_renderCore->BindInstancedPipeline(shadows, discardPipeline);
 
 	m_envInstances.Clear(false);
 

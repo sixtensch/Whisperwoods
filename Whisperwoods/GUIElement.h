@@ -31,4 +31,7 @@ struct GUIElement
 		// Link reference
 		uiRenderable->m_elementRef = this;
 	};
+
+	bool TestMouse();
+
 };
