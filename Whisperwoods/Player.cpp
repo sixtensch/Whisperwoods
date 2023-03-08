@@ -201,15 +201,11 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		if (Input::Get().IsKeybindDown( KeybindBackward ))	inputVector -= forward;
 		if (Input::Get().IsKeybindDown( KeybindRight ))		inputVector += right;
 		if (Input::Get().IsKeybindDown( KeybindLeft ))		inputVector -= right;
-		float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !Input::Get().IsKeybindDown(KeybindCrouch) && !playerInFuture) ? m_runSpeed : m_walkSpeed);
+		float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !m_ranOutOfSprint && !Input::Get().IsKeybindDown(KeybindCrouch) && !playerInFuture) ? m_runSpeed : m_walkSpeed);
 		m_targetVelocity = Vec3( inputVector.x, inputVector.y, inputVector.z );
 		if (m_targetVelocity.Length() > 0)
 			m_targetVelocity.Normalize();
 		m_targetVelocity = m_targetVelocity * walkRunMultiplier;
-
-		//float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !Input::Get().IsKeybindDown(KeybindCrouch) && m_stamina > 0.0f && !m_ranOutOfSprint && !playerInFuture) ? m_runSpeed : m_walkSpeed);
-		//
-		//m_targetVelocity = Vec3( inputVector.x * walkRunMultiplier, inputVector.y * walkRunMultiplier, inputVector.z * walkRunMultiplier );
 
 		if (m_targetVelocity.Length() > m_runSpeed)
 		{
@@ -217,30 +213,34 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			m_targetVelocity *= m_runSpeed;
 		}
 
-		if (!Input::Get().IsKeybindDown(KeybindSprint)) // not sprinting
-		{
-			if (m_targetVelocity.Length() > m_walkSpeed)
-			{
-				m_targetVelocity = m_targetVelocity.Normalize();
-				m_targetVelocity *= m_walkSpeed;
-			}
-		}
+		m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * 2.0f * delta_time);
 
-		if (m_ranOutOfSprint == true)
+
+		//if (walkRunMultiplier == m_walkSpeed) // not sprinting
+		//{
+		//	if (m_targetVelocity.Length() > m_walkSpeed)
+		//	{
+		//		m_targetVelocity = m_targetVelocity.Normalize();
+		//		m_targetVelocity *= m_walkSpeed;
+		//	}
+		//}
+		if (!m_ranOutOfSprint)
+			m_ranOutOfSprint = (m_stamina < 0.1f);
+
+		if (m_ranOutOfSprint)
 		{
-			if (Input::Get().IsKeybindDown(KeybindSprint) == false || (
-				Input::Get().IsKeybindDown(KeybindForward) == false &&
-				Input::Get().IsKeybindDown(KeybindBackward) == false &&
-				Input::Get().IsKeybindDown(KeybindLeft) == false &&
-				Input::Get().IsKeybindDown(KeybindRight) == false 
+			if (!Input::Get().IsKeybindDown(KeybindSprint) || 
+				(
+				!Input::Get().IsKeybindDown(KeybindForward) &&
+				!Input::Get().IsKeybindDown(KeybindBackward) &&
+				!Input::Get().IsKeybindDown(KeybindLeft) &&
+				!Input::Get().IsKeybindDown(KeybindRight)
 				))
 			{
 				m_ranOutOfSprint = false;
 			}
 		}
 		
-		
-
 		if (m_stamina <= 0.0f && m_targetVelocity.Length() > 0.0f)
 		{
 			m_targetVelocity = m_targetVelocity.Normalize();
