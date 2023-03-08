@@ -49,7 +49,7 @@ public:
 
 	void LoadHubby();
 	void LoadTest();
-	void LoadGame(uint gameSeed);
+	void LoadGame(uint gameSeed, uint roomCount);
 	void UnLoadPrevious();
 
 	Player* GetPlayer();
@@ -130,6 +130,8 @@ private:
 	bool m_isSwitching; // Switching = is true during whole duration (start + end) of time switch.
 	bool m_finishedCharging; // Charging = only first part of whole duration (start)
 	float m_maxStamina;
+
+	bool m_testTunnel;
 
 	float m_detectionLevelGlobal; //how detected you currently are
 	float m_detectionLevelFloor; // minimum detection that detection goes down to
