@@ -524,8 +524,8 @@ namespace cs
 	inline _Vec2<T> Matrix2<T>::operator*(const _Vec2<T>& v) const
 	{
 		return _Vec2<T>(
-			v.x * (*this)(0, 0) + v.y * (*this)(1, 0) + (*this)(2, 0),
-			v.x * (*this)(0, 1) + v.y * (*this)(1, 1) + (*this)(2, 1)
+			v.x * (*this)(0, 0) + v.y * (*this)(1, 0),
+			v.x * (*this)(0, 1) + v.y * (*this)(1, 1)
 		);
 	}
 

@@ -171,11 +171,11 @@ Vec3 Room::bitMapToWorldPos(Point2 samplePoint)
 		return Vec3(0, 0, 0);
 	}
 
-	Vec2 relativePosition = (Vec2)samplePoint - Vec2((float)m_levelResource->pixelWidth, (float)m_levelResource->pixelHeight) * 0.5f;
+	Vec2 relativePosition = (Vec2)samplePoint - Vec2((float)m_levelResource->pixelWidth - 1.0f, (float)m_levelResource->pixelHeight - 1.0f) * 0.5f;
 	relativePosition /= BM_PIXELS_PER_UNIT;
 
 	Vec3 worldPos = transform.GetWorldPosition(); 
-	Vec3 rotationConverted = transform.GetWorldRotation() * Vec3(relativePosition.x, 0, relativePosition.y);
+	Vec3 rotationConverted = transform.GetWorldRotation() * Vec3(relativePosition.x, 0, -relativePosition.y);
 
 	return worldPos + rotationConverted;
 }

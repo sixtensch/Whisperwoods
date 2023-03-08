@@ -275,9 +275,48 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			m_maxStamina = 1.0f;
 		}*/
 
+		m_testTunnel = false;
+
 		if (!m_isSwitching && !m_isInFuture)
 		{
-			//for (const LevelExitRef& : m_floor[room])
+			for (const LevelTunnelRef& r : m_currentRoom->m_level->connections)
+			{
+				Vec3 sideDir = Vec3(r.direction.z, 0.0f, -r.direction.x);
+				Vec3 relative = m_player->transform.worldPosition - r.position;
+
+				if (relative * r.direction > -TUNNEL_TRIGGER_DISTANCE && abs(relative * sideDir) < r.width * 1.1f)
+				{
+					/*m_testTunnel = true;*/
+
+					// Go to next room
+					if (r.targetRoom >= 0)
+					{
+						uint targetIndex = (r.tunnelSubIndex + 1) % 2;
+						const LevelTunnel& t = m_floor.tunnels[r.tunnel];
+
+						UnLoadPrevious();
+						LoadRoom(&m_floor.rooms[r.targetRoom]);
+
+						m_player->transform.position = t.positions[targetIndex] - t.directions[targetIndex] * TUNNEL_SPAWN_DISTANCE;
+						m_player->ReloadPlayer();
+
+						Renderer::ExecuteShadowRender();
+						break;
+					}
+
+					// Floor entrance
+					if (r.targetRoom == -1)
+					{
+
+					}
+
+					// Floor exit
+					if (r.targetRoom == -2)
+					{
+
+					}
+				}
+			}
 		}
 
 		if (Input::Get().IsDXKeyPressed( DXKey::H ) && !m_isInFuture)
@@ -323,6 +362,8 @@ void Game::DrawIMGUIWindows()
 		
 		ImGui::Separator();
 		ImGui::InputFloat3("Player Position", (float*)&m_player->transform.position);
+
+		ImGui::Text("Transition: %s", m_testTunnel ? "YES" : "NO");
 	}
 	ImGui::End();
 
@@ -389,13 +430,11 @@ void Game::DrawIMGUIWindows()
 
 			float distance = 0.5f / (BM_MAX_SIZE / BM_PIXELS_PER_UNIT);
 
-			Mat4 halfturn = Quaternion::GetEuler( 0, cs::c_pi, 0 ).Matrix();
-
 			for (int i = 0; i < f.rooms.Size(); i++)
 			{
 				Level& l = f.rooms[i];
 				m_testRenderables.Add( Renderer::CreateMeshStatic( "room_plane.wwm" ) );
-				m_testRenderables.Back()->worldMatrix = Mat::translation3( l.position.x * distance, 3.2f, l.position.z * distance ) * halfturn * l.rotation.Matrix() * Mat::scale3( 0.8f );
+				m_testRenderables.Back()->worldMatrix = Mat::translation3( l.position.x * distance, 3.2f, l.position.z * distance ) * l.rotation.Matrix() * Mat::scale3( 0.8f );
 
 				m_testMaterials[i].specular = Vec3( 0.5f, 0.5f, 0.5f );
 				m_testMaterials[i].textureDiffuse = l.resource->source;
@@ -622,8 +661,6 @@ void Game::LoadRoom(Level* level)
 	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
 	m_currentRoom->transform.position = level->position;
 	m_currentRoom->transform.rotation = level->rotation;
-
-	//Vec3 test = level->rotation * Vec3(0, 0, 1);
 
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 

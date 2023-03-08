@@ -31,6 +31,9 @@
 #define BM_MIN_SIZE			BM_PIXELS_PER_UNIT * 5
 #define BM_MAX_SIZE			BM_PIXELS_PER_UNIT * 60
 
+#define TUNNEL_TRIGGER_DISTANCE		1.5f
+#define TUNNEL_SPAWN_DISTANCE		2.0f
+
 #define BM_C_EMPTY					0xffffff
 #define BM_C_TERRAIN_OUT			0x00ff00
 #define BM_C_TERRAIN_IN				0x007f00

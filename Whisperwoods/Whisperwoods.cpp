@@ -138,19 +138,19 @@ void Whisperwoods::Run()
 	m_game->LoadHubby();
 
 
-	// Test generate a floor
-	LevelFloor tempFloor;
-	FloorParameters fParams;
-	fParams.seed = 123;
-	fParams.angleSteps = 0;
-	fParams.pushSteps = 3;
-	fParams.roomCount = 8;
-	EnvironmentalizeParameters eParams = { 0 };
-	m_game->m_levelHandler->GenerateFloor(&tempFloor, fParams, eParams );
+	//// Test generate a floor
+	//LevelFloor tempFloor;
+	//FloorParameters fParams;
+	//fParams.seed = 123;
+	//fParams.angleSteps = 0;
+	//fParams.pushSteps = 3;
+	//fParams.roomCount = 8;
+	//EnvironmentalizeParameters eParams = { 0 };
+	//m_game->m_levelHandler->GenerateFloor(&tempFloor, fParams, eParams );
 
-	// Generate a image from the floor data
-	shared_ptr<uint8_t> imageData = m_game->m_levelHandler->GenerateFloorImage(1024, 1024, tempFloor);
-	TextureResource* newTexture = Resources::Get().CreateTexture(m_renderer->GetRenderCore(), "Test", imageData.get(), 1024 * 1024);
+	//// Generate a image from the floor data
+	//shared_ptr<uint8_t> imageData = m_game->m_levelHandler->GenerateFloorImage(1024, 1024, tempFloor);
+	//TextureResource* newTexture = Resources::Get().CreateTexture(m_renderer->GetRenderCore(), "Test", imageData.get(), 1024 * 1024);
 
 	// Test GUI
 	// Stamina bar

@@ -44,8 +44,9 @@ struct LevelTunnel
 	uint endRoom;
 
 	// Same as source/destination exits
-	LevelExit startExit;
-	LevelExit endExit;
+	LevelExit exits[2];
+	Vec3 positions[2];
+	Vec3 directions[2];
 
 	// In world space
 	cs::List<Mat4> instances[LevelAssetCount];
@@ -71,4 +72,9 @@ struct LevelTunnelRef
 
 	// Indices into LevelFloor::tunnels
 	uint tunnel;
+	uint tunnelSubIndex;
+
+	Vec3 position;
+	Vec3 direction;
+	float width;
 };

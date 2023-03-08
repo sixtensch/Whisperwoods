@@ -122,6 +122,8 @@ private:
 	bool m_finishedCharging; // Charging = only first part of whole duration (start)
 	float m_maxStamina;
 
+	bool m_testTunnel;
+
 	float m_detectionLevelGlobal; //how detected you currently are
 	float m_detectionLevelFloor; // minimum detection that detection goes down to
 	bool m_reachedLowestStamina;

@@ -158,7 +158,6 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, 
 	// Create level objects
 
 	float positionModifier = 1.0f;
-	float inset = 1.0f;
 
 	for (const TunnelPrimerNetwork& network : primer.networks)
 	{
@@ -186,20 +185,30 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, 
 
 		for (uint i = 0; i < (uint)p.connections.Size(); i++)
 		{
-			int target = p.connections[(i - p.connectionOffset) % p.connections.Size()];
+			int target = p.connections[(i + p.connections.Size() - p.connectionOffset) % p.connections.Size()];
+
+			Mat2 rotMatrix = Mat::rotation2(-p.angleOffset);
+
+			Vec2 exitPixelPosition = l.resource->exits[i].position - Vec2((float)l.resource->pixelWidth, (float)l.resource->pixelHeight) * 0.5f;
+			Vec2 exitPixelDirection = l.resource->exits[i].direction;
+			exitPixelPosition.y *= -1;
+			float width = l.resource->exits[i].width * BM_PIXEL_SIZE;
+
+			Vec2 exitPosition = rotMatrix * exitPixelPosition * BM_PIXEL_SIZE;
+			Vec2 exitDirection = rotMatrix * exitPixelDirection;
+
+			Vec2 exitRelativePosition = exitPosition - exitDirection * TUNNEL_SPAWN_DISTANCE;
+
+			Vec3 exitPosition3 = l.position + Vec3(exitPosition.x, 0.0f, exitPosition.y);
+			Vec3 exitDirection3 = Vec3(exitDirection.x, 0.0f, exitDirection.y);
 
 			if (target < 0)
 			{
-				l.connections.Add({ target, 0 });
+				l.connections.Add({ target, 0, 0, exitPosition3, exitDirection3, width });
 
 				if (target == -1)
 				{
-					Mat2 rotMatrix = Mat::rotation2(p.angleOffset);
-					Vec2 exitPixelPosition = l.resource->exits[i].position - Vec2((float)l.resource->pixelWidth, (float)l.resource->pixelHeight) * 0.5f;
-					Vec2 exitRelativePosition = rotMatrix * (exitPixelPosition / BM_PIXELS_PER_UNIT - l.resource->exits[i].direction * inset);
-
-					//l.position = Vec3(0, 0, 0);
-					f.startPosition = l.position/* + exitRelativePosition*/;
+					f.startPosition = exitPosition3 - exitDirection3 * TUNNEL_SPAWN_DISTANCE;
 					f.startRoom = room;
 				}
 
@@ -208,17 +217,21 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, 
 
 			for (uint j = 0; j < (uint)f.tunnels.Size(); j++)
 			{
-				LevelTunnel& t = f.tunnels[i];
-				if (i == t.startRoom && target == t.endRoom)
+				LevelTunnel& t = f.tunnels[j];
+				if (room == t.startRoom && target == (int)t.endRoom)
 				{
-					t.startExit = l.resource->exits[i];
-					l.connections.Add({ target, j });
+					t.exits[0] = l.resource->exits[i];
+					t.positions[0] = exitPosition3;
+					t.directions[0] = exitDirection3;
+					l.connections.Add({ target, j, 0, exitPosition3, exitDirection3, width });
 					break;
 				}
-				if (i == t.endRoom && target == t.startRoom)
+				if (room == t.endRoom && target == (int)t.startRoom)
 				{
-					t.endExit = l.resource->exits[i];
-					l.connections.Add({ target, j });
+					t.exits[1] = l.resource->exits[i];
+					t.positions[1] = exitPosition3;
+					t.directions[1] = exitDirection3;
+					l.connections.Add({ target, j, 1, exitPosition3, exitDirection3, width });
 					break;
 				}
 			}
