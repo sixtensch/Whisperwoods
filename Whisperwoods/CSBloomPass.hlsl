@@ -4,21 +4,20 @@
 Texture2D<float4> luminanceTexture                  : REGISTER_SRV_TEX_USER_0;
 RWTexture2D<float4> targetTexture                   : REGISTER_UAV_SYSTEM_0;
 
-SamplerState bloomSampler                           : REGISTER_SAMPLER_SYSTEM_0;
-
-
+SamplerState bloomSampler                           : REGISTER_SAMPLER_BLOOM;
 
 [numthreads(NUM_THREADS.x, NUM_THREADS.y, 1)]
 void main( uint3 DTid : SV_DispatchThreadID )
 {
-    uint2 backBufferDims;
-    targetTexture.GetDimensions(backBufferDims.x, backBufferDims.y);
+    uint2 targetTexDims;
+    targetTexture.GetDimensions(targetTexDims.x, targetTexDims.y);
     
-    float2 texUV = DTid.xy / float2(backBufferDims);
-    texUV += (1.0f / backBufferDims) * 0.5f; // Adjust to middle of texel.
+    float2 texUV = DTid.xy / float2(targetTexDims);
+    texUV += (1.0f / targetTexDims) * 0.5f; // Adjust to middle of texel.
     
     float3 finalColor = float3(0.0f, 0.0f, 0.0f);
-    for (int mipLevel = BLOOM_MIP_LEVELS - 1; mipLevel >= 0; mipLevel--)
+    // Stops at mip index 0 as this saves a large sample batch. Maybe. Idk. It just feels like it would, you know?
+    for (int mipLevel = BLOOM_MIP_LEVELS - 1; mipLevel >= 1; mipLevel--)
     {
         uint mipWidth;
         uint mipHeight;
