@@ -75,7 +75,7 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_chirpsLouder = (Resources::Get().GetSound("ChirpsLouder.mp3"))->currentSound;
 	m_smallScreetch = (Resources::Get().GetSound("SmallScreetch.mp3"))->currentSound;
 	m_megatron = (Resources::Get().GetSound("Megatron.mp3"))->currentSound;
-	m_theHorror = (Resources::Get().GetSound("TheHorror.mp3"))->currentSound;
+	m_theHorror = (Resources::Get().GetSound("Thehorror.mp3"))->currentSound;
 	m_bigStep = (Resources::Get().GetSound("BigStep.mp3"))->currentSound;
 
 	m_walkingSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_walkingVol, 1.0f, 3.0f, 10.0f, m_bigStep);
@@ -604,7 +604,6 @@ bool Enemy::SeesPlayer(Vec2 playerPosition, Room &room, bool inFuture)
 		}
 
 	}
-	if (m_seesPlayer == true)
 	
 	return m_seesPlayer; 
 }
