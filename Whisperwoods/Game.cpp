@@ -187,6 +187,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			m_isSwitching = true;
 			m_finishedCharging = false;
 			m_initialCamFov = renderer->GetCamera().GetFov();
+			m_player->m_switchSource->Play();
 		}
 
 		if (m_isSwitching)
