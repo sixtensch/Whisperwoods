@@ -231,6 +231,15 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			}
 		}
 
+		if (m_stamina <= 0.0f)
+		{
+			m_stamina = 0.0f;
+			if (Input::Get().IsKeybindDown(KeybindSprint))
+			{
+				m_ranOutOfSprint = true;
+			}
+		}
+
 		if (m_ranOutOfSprint == true)
 		{
 			if (Input::Get().IsKeybindDown(KeybindSprint) == false || (
