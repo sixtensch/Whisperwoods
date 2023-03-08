@@ -254,8 +254,10 @@ void RenderHandler::ZPrepass(TimelineState state)
 
 void RenderHandler::ExecuteStaticShadowDraw()
 {
-	QuadCull(m_mainCamera);
+	for (uint i = 0; i < LevelAssetCount; i++)
+		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
+
 	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 	m_renderCore->TargetStaticShadowMap();
 	for (int i = 0; i < m_shadowRenderables.Size(); i++)
