@@ -81,6 +81,12 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	FMOD::Sound* stepsSoundPtr = ((SoundResource*)Resources::Get().GetResource(ResourceTypeSound, "footstep.mp3"))->currentSound;
 	m_stepsSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 2.0f, 1.1f, 0.0f, 10.0f, stepsSoundPtr);
 	this->AddChild((GameObject*)m_stepsSound.get());
+
+	FMOD::Sound* coughSoundPtr = ((SoundResource*)Resources::Get().GetResource(ResourceTypeSound, "cough.mp3"))->currentSound;
+	m_coughSound = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.1f, 0.0f, 10.0f, coughSoundPtr);
+	this->AddChild((GameObject*)m_coughSound.get());
+
+	
 }
 
 void Player::ReloadPlayer()
@@ -390,6 +396,7 @@ void Player::UpdateSound(float delta_time)
 {
 	m_vegetationSound->Update(delta_time);
 	m_stepsSound->Update(delta_time);
+	m_coughSound->Update(delta_time);
 
 	// Sound management!
 
@@ -436,8 +443,17 @@ void Player::UpdateSound(float delta_time)
 			m_stepsSound->Play();
 		}
 	}
-	//else if(m_stepsSound->IsPlaying())  // execute order 66
-	//{
-	//	m_stepsSound->Stop();
-	//}
+
+	if (m_maxStamina <= 1.0f && playerInFuture) //danger low stamina
+	{
+		m_coughSound->volume = 0.35f;
+		if (!m_coughSound->IsPlaying()) //repeat sound? (looping kind of)
+		{
+			m_coughSound->Play();
+		}
+	}
+	else if (m_coughSound->IsPlaying())
+	{
+		m_coughSound->Stop();
+	}
 }
