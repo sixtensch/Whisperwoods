@@ -135,7 +135,7 @@ private:
 	const float m_timeBeforeDetectionLowers = 4.0f; //in seconds
 	float m_timeUnseen = 0.0f; // for determining when to derease global detection
 	float m_dangerousTimeInFuture = 0.0f;// time in seconds
-	const float m_timeYouSurviveInFuture = 1.5f;// time in seconds
+	const float m_timeYouSurviveInFuture = 2.0f;// time in seconds
 	const float m_timeAbilityCooldown = 3.0f; // time in seconds
 	float m_coolDownCounter; 
 
