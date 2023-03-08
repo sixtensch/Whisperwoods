@@ -87,6 +87,10 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	this->AddChild((GameObject*)m_coughSound.get());
 
 	
+
+	FMOD::Sound* switchSoundPtr = (Resources::Get().GetSound("TimeSwitch.wav"))->currentSound;
+	m_switchSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.5f, 1.5f, 10.0f, 20.0f, switchSoundPtr);
+	this->AddChild((GameObject*)m_switchSource.get());
 }
 
 void Player::ReloadPlayer()
@@ -397,6 +401,7 @@ void Player::UpdateSound(float delta_time)
 	m_vegetationSound->Update(delta_time);
 	m_stepsSound->Update(delta_time);
 	m_coughSound->Update(delta_time);
+	m_switchSource->Update(delta_time);
 
 	// Sound management!
 
@@ -417,7 +422,7 @@ void Player::UpdateSound(float delta_time)
 			volPercent = 0.8f;
 		}
 		realNotWhackDensityWhichActuallyIsAccurate = pow(realNotWhackDensityWhichActuallyIsAccurate, 0.6);
-		m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate;
+		m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate * (!playerInFuture);
 
 		if (!m_vegetationSound->IsPlaying()) //repeat sound? (looping kind of)
 		{
@@ -428,6 +433,7 @@ void Player::UpdateSound(float delta_time)
 	{
 		m_vegetationSound->Stop();
 	}
+	m_vegetationSound->SetVolume(m_vegetationSound->volume * (!playerInFuture));
 
 	if (m_velocity.Length() > 0.05f)
 	{

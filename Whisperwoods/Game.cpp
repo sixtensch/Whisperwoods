@@ -23,7 +23,8 @@ Game::Game() :
 	m_envParams({}),
 	m_reachedLowestStamina(false),
 	m_coolDownCounter(m_timeAbilityCooldown),
-	m_isCutscene(false)
+	m_isCutscene(false),
+	m_isSeen(false)
 {
 }
 
@@ -159,7 +160,7 @@ void Game::UpdateEnemies( Renderer* renderer )
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update( m_deltaTime ); // Would ideally want to put this in UpdateGameObjects(), but this makes one less loop
-		if (m_enemies[i]->SeesPlayer( Vec2( m_player->transform.worldPosition.x, m_player->transform.worldPosition.z ), *m_currentRoom, *m_audioSource, m_isInFuture ))
+		if (m_enemies[i]->SeesPlayer( Vec2( m_player->transform.worldPosition.x, m_player->transform.worldPosition.z ), *m_currentRoom, m_isInFuture ))
 		{
 			m_isSeen = true;
 			if (m_enemies[i]->GetDistance() < m_closestDistance)
@@ -423,6 +424,8 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		Renderer::GetWindow().CloseProgram();
 	}
+
+	SoundUpdate(deltaTime);
 }
 
 void Game::Init()
@@ -431,9 +434,6 @@ void Game::Init()
 	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
 	m_audioSource->Play();
-
-
-	
 
 	// Environment parameters
 	m_envParams.spawnSeed = 652;
@@ -463,6 +463,20 @@ void Game::Init()
 
 	// In-world objects and entities
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
+
+	//Music
+	m_musicPresent = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_musicVol, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings.mp3"))->currentSound);
+	m_musicFuture = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Gecko.mp3"))->currentSound);
+	m_musicDetected = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Trespass.mp3"))->currentSound);
+	m_player->AddChild((GameObject*)m_musicPresent.get());
+	m_player->AddChild((GameObject*)m_musicFuture.get());
+	m_player->AddChild((GameObject*)m_musicDetected.get());
+	m_musicPresent->loop = true;
+	m_musicFuture->loop = true;
+	m_musicDetected->loop = true;
+
+	m_enemyHorn = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_hornVol, 1.0f, 20.0f, 30.0f, (Resources::Get().GetSound("HornHeavyReverb.wav"))->currentSound);
+	m_player->AddChild((GameObject*)m_enemyHorn.get());
 
 	// Lighting
 	m_directionalLight = Renderer::GetDirectionalLight();
@@ -682,10 +696,56 @@ void Game::LowerToFloor(float deltaTime)
 	}
 }
 
+void Game::SoundUpdate(float deltaTime)
+{
+	m_musicPresent->Update(deltaTime);
+	m_musicFuture->Update(deltaTime);
+	m_musicDetected->Update(deltaTime);
+
+	if (!m_musicPresent->IsPlaying())
+	{
+		if (!m_isHubby)
+		{
+			m_musicPresent->Play();
+			m_musicFuture->Play();
+			m_musicDetected->Play();
+
+			m_musicPresent->SetVolume(m_musicVol);
+			m_musicFuture->SetVolume(0.0f);
+			m_musicDetected->SetVolume(0.0f);
+		}
+	}
+	else
+	{
+		if (m_isHubby)
+		{
+			m_musicPresent->Stop();
+			m_musicFuture->Stop();
+			m_musicDetected->Stop();
+		}
+
+		if (m_isInFuture)
+		{
+			m_musicPresent->SetVolume(0.0f);
+			m_musicFuture->SetVolume(m_musicVol);
+			m_musicDetected->SetVolume(0.0f);
+		}
+		else
+		{
+			m_musicPresent->SetVolume(m_musicVol);
+			m_musicFuture->SetVolume(0.0f);
+			m_musicDetected->SetVolume(m_musicVol * m_detectionLevelGlobal * (m_timeUnseen <= m_timeBeforeDetectionLowers));
+		}
+	}
+}
+
+
+
 void Game::ChangeTimeline(Renderer* renderer)
 {
 	m_isInFuture = !m_isInFuture;
 	renderer->SetTimelineState(m_isInFuture);
+	m_currentRoom->SetTimeline(m_isInFuture);
 
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{

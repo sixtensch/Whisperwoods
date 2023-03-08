@@ -82,6 +82,18 @@ void AudioSource::SetSound(FMOD::Sound* sound)
 	m_currentSound = sound;
 }
 
+void AudioSource::SetVolume(float volume)
+{
+	this->volume = volume;
+	m_channel->setVolume(this->volume);
+}
+
+void AudioSource::SetPitch(float pitch)
+{
+	this->pitch = pitch;
+	m_channel->setPitch(this->pitch);
+}
+
 void AudioSource::Update(float delta_time)
 {
 	transform.CalculateWorldMatrix();
