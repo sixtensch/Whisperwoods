@@ -88,7 +88,7 @@ private:
 	unique_ptr<AudioSource> m_ambientCloseSource; //use for ambient and idle noises
 	float m_farAmbientVol = 0.7f;
 	unique_ptr<AudioSource> m_ambientFarSource; //use for ambient and idle noises
-	float m_actionVol = 0.7;
+	float m_actionVol = 0.7f;
 	unique_ptr<AudioSource> m_actionSource; //use for more specific reactions and actions. turn, detect, loss.
 	float m_futureVol = 0.3f;
 	unique_ptr<AudioSource> m_futureSource; //Use for future sound

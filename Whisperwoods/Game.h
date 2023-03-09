@@ -56,7 +56,8 @@ public:
 	void UnLoadPrevious();
 
 	Player* GetPlayer();
-
+	void MovePlayer(Vec3 position, Vec3 direction);
+		
 	void SetCutSceneMode( bool value );
 
 	float GetPowerCooldown();
@@ -106,10 +107,18 @@ private:
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
+	cs::Color3f m_ambientColor;
+	float m_ambientIntensity;
+	cs::Color3f m_futureAmbientColor;
+	float m_futureAmbientIntensity;
+	cs::Color3f m_directionalColor;
+	float m_directionalIntensity;
+	cs::Color3f m_futureDirectionalColor;
+	float m_futureDirectionalIntensity;
 
+	float m_musicVol = 0.3f;
 	shared_ptr<Grafiki> m_grafiki;
 
-	float m_musicVol = 0.3;
 	shared_ptr<AudioSource> m_musicPresent;
 	shared_ptr<AudioSource> m_musicFuture;
 	shared_ptr<AudioSource> m_musicDetected;
@@ -135,8 +144,6 @@ private:
 	shared_ptr<Room> m_currentRoom;
 
 	shared_ptr<GUI> m_loadScreen;
-
-private:
 
 
 	// TODO: Might benefit of becoming more of a CLASS that HANDLES time switching.

@@ -45,8 +45,8 @@ RenderHandler::~RenderHandler()
 
 void RenderHandler::InitCore(shared_ptr<Window> window)
 {
-	m_lightAmbient = cs::Color3f(0xD0D0FF);
-	m_lightAmbientIntensity = 0.15f;
+	m_lightAmbient = cs::Color3f(0xC0C0FF);
+	m_lightAmbientIntensity = 0.25f;
 
 	m_lightDirectional = make_unique<DirectionalLight>();
 	m_lightDirectional->diameter = 1000.0f;
@@ -347,7 +347,7 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	load(LevelAssetBush1, 
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
-		"BananaPlant.wwm", { "Tree_Charred_Tiled.wwmt" });
+		"BananaPlant.wwm", { });
 
 	load(LevelAssetBush2, 
 		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
@@ -529,6 +529,11 @@ void RenderHandler::UnLoadEnvironment()
 	m_worldTerrainRenderables.Clear();
 }
 
+void RenderHandler::UpdatePPFXInfo(Vec2 vignette, Vec2 contrast, float brightness, float saturation)
+{
+	m_renderCore->WritePPFXColorgradeInfo(vignette, contrast, brightness, saturation);
+}
+
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
 {
 	Resources& resources = Resources::Get();
@@ -648,6 +653,12 @@ void RenderHandler::SetTimelineStateFuture()
 void RenderHandler::UpdateStaticShadows(bool future)
 {
 	m_renderCore->BindStaticShadowMap(future);
+}
+
+void RenderHandler::SetAmbientLight(cs::Color3f color, float intensity)
+{
+	m_lightAmbient = color;
+	m_lightAmbientIntensity = intensity;
 }
 
 shared_ptr<DirectionalLight> RenderHandler::GetDirectionalLight()

@@ -164,6 +164,16 @@ shared_ptr<TextRenderable> Renderer::CreateTextRenderable(const wchar_t* text, d
 	return s_singleton->m_renderHandler->CreateTextRenderable(text, fontPos, font, color, origin);
 }
 
+void Renderer::UpdatePPFXInfo(Vec2 vignette, Vec2 contrast, float brightness, float saturation)
+{
+	s_singleton->m_renderHandler->UpdatePPFXInfo(vignette, contrast, brightness, saturation);
+}
+
+void Renderer::SetAmbientLight(cs::Color3f color, float intensity)
+{
+	s_singleton->m_renderHandler->SetAmbientLight(color, intensity);
+}
+
 shared_ptr<DirectionalLight> Renderer::GetDirectionalLight()
 {
 	return s_singleton->m_renderHandler->GetDirectionalLight();

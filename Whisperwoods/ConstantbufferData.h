@@ -38,7 +38,7 @@ namespace CB
 		float glossiness;
 		Vec3 emissive;
 		float height;
-		Vec3 pad;
+		Vec3 ambient;
 		float tiling;
 	};
 
