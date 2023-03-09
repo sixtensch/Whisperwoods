@@ -204,75 +204,76 @@ void Whisperwoods::Run()
 
 	// time for tutorial text. Change alpha to make them active or not
 
+	float textAlpha = 0.7f;
 	//tutorial 1
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(4)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(4)->alpha = 1.0f;
+	testGui.GetElement(4)->alpha = textAlpha;
 	testGui.GetElement(4)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(4)->firstTexture = Resources::Get().GetTexture("tut1Text.png");
+	testGui.GetElement(4)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(4)->secondTexture = Resources::Get().GetTexture("tut1Text.png");
 
 	//tutorial 2
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(5)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(5)->alpha = 1.0f;
+	testGui.GetElement(5)->alpha = textAlpha;
 	testGui.GetElement(5)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(5)->firstTexture = Resources::Get().GetTexture("tut2Text.png");
+	testGui.GetElement(5)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(5)->secondTexture = Resources::Get().GetTexture("tut2Text.png");
 
 	//tutorial 3
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(6)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(6)->alpha = 1.0f;
+	testGui.GetElement(6)->alpha = textAlpha;
 	testGui.GetElement(6)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(6)->firstTexture = Resources::Get().GetTexture("tut3Text.png");
+	testGui.GetElement(6)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(6)->secondTexture = Resources::Get().GetTexture("tut3Text.png");
 
 	//tutorial 4
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(7)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(7)->alpha = 1.0f;
+	testGui.GetElement(7)->alpha = textAlpha;
 	testGui.GetElement(7)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(7)->firstTexture = Resources::Get().GetTexture("tut4Text.png");
+	testGui.GetElement(7)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(7)->secondTexture = Resources::Get().GetTexture("tut4Text.png");
 
 	//tutorial 5
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(8)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(8)->alpha = 1.0f;
+	testGui.GetElement(8)->alpha = textAlpha;
 	testGui.GetElement(8)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(8)->firstTexture = Resources::Get().GetTexture("tut5Text.png");
+	testGui.GetElement(8)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(8)->secondTexture = Resources::Get().GetTexture("tut5Text.png");
 
 	//tutorial 6 present
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(9)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(9)->alpha = 1.0f;
+	testGui.GetElement(9)->alpha = textAlpha;
 	testGui.GetElement(9)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(9)->firstTexture = Resources::Get().GetTexture("tut61Text.png");
+	testGui.GetElement(9)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(9)->secondTexture = Resources::Get().GetTexture("tut61Text.png");
 
 	//tutorial 6 future
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(10)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(10)->alpha = 1.0f;
+	testGui.GetElement(10)->alpha = textAlpha;
 	testGui.GetElement(10)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(10)->firstTexture = Resources::Get().GetTexture("tut62Text.png");
+	testGui.GetElement(10)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(10)->secondTexture = Resources::Get().GetTexture("tut62Text.png");
 
 	//tutorial 7
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(11)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(11)->alpha = 1.0f;
+	testGui.GetElement(11)->alpha = textAlpha;
 	testGui.GetElement(11)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(11)->firstTexture = Resources::Get().GetTexture("tut7Text.png");
+	testGui.GetElement(11)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(11)->secondTexture = Resources::Get().GetTexture("tut7Text.png");
 
 
 	//get da bloom
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(12)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(12)->alpha = 1.0f;
+	testGui.GetElement(12)->alpha = textAlpha;
 	testGui.GetElement(12)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
 	testGui.GetElement(12)->firstTexture = Resources::Get().GetTexture("getDaBloom.png");
 	testGui.GetElement(12)->secondTexture = Resources::Get().GetTexture("getDaBloom.png");

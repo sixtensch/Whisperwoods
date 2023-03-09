@@ -105,6 +105,11 @@ public:
 
 private:
 
+	Vec3 noiseVal1;
+	Vec3 noiseVal2;
+	cs::NoiseSimplex noise1;
+	cs::NoiseSimplex noise2;
+
 	Vec3 dirLightOffset;
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;

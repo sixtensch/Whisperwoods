@@ -19,7 +19,7 @@ struct VSOutput
     float3 outNormal : NORMAL0;
     float3 outTangent : TANGENT0;
     float3 outBitangent : BITANGENT0;
-    float2 outUV : TEXCOORD0;
+    float4 outUV : TEXCOORD0;
 };
 
 cbuffer ViewInfo : REGISTER_CBV_VIEW_INFO
@@ -31,6 +31,8 @@ cbuffer ViewInfo : REGISTER_CBV_VIEW_INFO
 cbuffer PlayerInfo : REGISTER_CBV_PLAYER_INFO
 {
     matrix playerMatrix;
+    float4 worldInfo1;
+    float4 worldInfo2;
 };
 
 VSOutput main(VSInput input)
@@ -60,7 +62,11 @@ VSOutput main(VSInput input)
     output.wPosition = float4(output.wPosition.x, clamp(output.wPosition.y, 0.001f, 50000), output.wPosition.z, output.wPosition.w);
 
     // Normal Shader cont...
-    output.outPosition = mul(mul(output.wPosition, ViewMatrix), ProjectionMatrix);
+    output.outPosition = mul(mul(output.wPosition, ViewMatrix), ProjectionMatrix) + 
+    (float4(sin(cos(output.wPosition.x) * (worldInfo1.x)*2) * 0.01f,
+    sin(cos(output.wPosition.x) * (worldInfo1.x)*2) * 0.01f,
+    sin(cos(output.wPosition.z) * (worldInfo1.y)*2) * 0.01f, 0)
+    * min(sin(output.wPosition.y), 1.0f) * input.UV.w);
 
     output.outNormal = mul(input.normal, (float3x3) input.worldMatrix);
     //output.outNormal = normalize(output.outNormal);
@@ -71,6 +77,6 @@ VSOutput main(VSInput input)
     output.outBitangent = mul(input.bitangent, (float3x3) input.worldMatrix);
     //output.outBitangent = normalize(output.outBitangent);
     
-    output.outUV = float2(input.UV.x, -input.UV.y);
+    output.outUV = float4(input.UV.x, -input.UV.y, sin(cos(output.wPosition.x) * worldInfo1.x), 0);
     return output;
 }

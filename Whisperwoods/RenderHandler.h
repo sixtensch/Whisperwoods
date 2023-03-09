@@ -92,6 +92,7 @@ public:
 
 	void SetPlayerMatrix(const Mat4& matrix);
 	void SetFogParameters(Vec3 focus, float radius);
+	void SetWorldParameters( Vec4 worldInfo1, Vec4 worldInfo2 );
 
 	void ClearShadowRenderables();
 	void RegisterLastRenderableAsShadow();
@@ -138,6 +139,8 @@ private:
 	float m_fogRadius;
 
 	Mat4 m_playerMatrix;
+	Vec4 m_worldInfo1;
+	Vec4 m_worldInfo2;
 
 	const Level* m_currentLevel;
 
