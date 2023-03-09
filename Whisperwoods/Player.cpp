@@ -451,7 +451,7 @@ void Player::UpdateSound(float delta_time)
 		float volPercent = m_velocity.Length() / m_runSpeed;
 		volPercent = pow(volPercent, 0.7f);
 		//volPercent *= volPercent;
-		m_stepsSound->volume = 0.25f * volPercent * (1.0f - 0.8f * playerInFuture);
+		m_stepsSound->volume = 0.15f * volPercent * (1.0f - 0.5f * playerInFuture);
 		//trigger when character sets foot on ground
 		if (((characterAnimator->globalTime > 0.2f && characterAnimator->globalTime < 0.3f) || (characterAnimator->globalTime > 0.66f && characterAnimator->globalTime < 0.76f)) /*&& !m_stepsSound->IsPlaying()*/)
 		{

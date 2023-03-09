@@ -809,7 +809,8 @@ void Game::SoundUpdate(float deltaTime)
 		{
 			m_musicPresent->SetVolume(m_musicVol);
 			m_musicFuture->SetVolume(0.0f);
-			m_musicDetected->SetVolume(m_musicVol * m_detectionLevelGlobal /** ((m_timeUnseen <= m_timeBeforeDetectionLowers) ? (m_timeBeforeDetectionLowers - m_timeUnseen)/m_timeBeforeDetectionLowers : 0.0f)*/);
+			float temp = m_detectionLevelGlobal / 0.75f;
+			m_musicDetected->SetVolume(m_musicVol * (temp > 1.0f ? 1.0f : temp));
 		}
 	}
 }
