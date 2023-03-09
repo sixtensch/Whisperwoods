@@ -47,10 +47,10 @@ Room::Room(const Level* level, std::string modelResource, Mat4 modelOffset)
 	m_modelOffset = modelOffset;
 	m_renderable->worldMatrix = m_modelOffset;*/
 
-	m_material = MaterialResource();
+	/*m_material = MaterialResource();
 	m_material.specular = Vec3(0.5f, 0.5f, 0.5f);
 	m_material.textureDiffuse = level->resource->source;
-	m_renderable->Materials().AddMaterial( &m_material );
+	m_renderable->Materials().AddMaterial( &m_material );*/
 }
 
 Room::Room( const Level* level, std::string modelResource, std::string modelResource2, Mat4 modelOffset, Mat4 modelOffset2 )
@@ -69,8 +69,6 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 		m_ambianceSources.Clear();
 
 	// Add ambiance sounds around the room
-
-
 
 	Resources& resources = Resources::Get();
 	int numSounds = 3;
@@ -93,13 +91,13 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	}
 
 	// Plane
-	m_renderable = Renderer::CreateMeshStatic( modelResource );
-	m_modelOffset = modelOffset;
-	m_renderable->worldMatrix = /*transform.worldMatrix * */m_modelOffset;
-	m_material = MaterialResource();
-	m_material.specular = Vec3( 0.5f, 0.5f, 0.5f );
-	m_material.textureDiffuse = level->resource->source;
-	m_renderable->Materials().AddMaterial( &m_material );
+	//m_renderable = Renderer::CreateMeshStatic( modelResource );
+	//m_modelOffset = modelOffset;
+	//m_renderable->worldMatrix = /*transform.worldMatrix * */m_modelOffset;
+	//m_material = MaterialResource();
+	//m_material.specular = Vec3( 0.5f, 0.5f, 0.5f );
+	//m_material.textureDiffuse = level->resource->source;
+	//m_renderable->Materials().AddMaterial( &m_material );
 	
 	
 	// Cylinder thing
@@ -136,8 +134,9 @@ void Room::GenerateRoomShadowMap()
 void Room::Update(float deltaTime)
 {
 	transform.CalculateWorldMatrix();
-	m_renderable->worldMatrix = transform.worldMatrix * m_modelOffset;
-	m_wallsAndFloorRenderable->worldMatrix = transform.worldMatrix * m_wallsFloorOffset;
+	//m_renderable->worldMatrix = transform.worldMatrix * m_modelOffset;
+	Quaternion fixRotation = Quaternion::GetAxis( { 0,1,0 }, cs::c_pi );
+	m_wallsAndFloorRenderable->worldMatrix = transform.worldMatrix * m_wallsFloorOffset * fixRotation.Matrix() * m_testOffset;
 }
 
 Point2 Room::worldToBitmapPoint(Vec3 worldPos)

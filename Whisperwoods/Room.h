@@ -12,6 +12,7 @@ class Room : public GameObject
 {
 public:
 	// Map resource here
+	Mat4 m_testOffset;
 	Mat4 m_modelOffset;
 	ModelStaticResource* m_modelResource;
 	shared_ptr<MeshRenderableStatic> m_renderable;

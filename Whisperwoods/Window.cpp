@@ -24,6 +24,7 @@ LRESULT CALLBACK Window::WndProc(HWND window, UINT message, WPARAM wParam, LPARA
 		{
 			case WM_ACTIVATEAPP: // This activates at destruct
 			{
+				inputRef.SetMouseMode(dx::Mouse::MODE_ABSOLUTE);
 				inputRef.ProcessKeyboardMessage(message, wParam, lParam);
 				inputRef.ProcessMouseMessage(message, wParam, lParam);
 				break;
