@@ -629,7 +629,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			//player pressed spacebar when outside while loop
 			m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
 			youWin = false;
-			LoadHubby();
+			EndRun(renderer);
 		}
 		else
 		{
@@ -1101,7 +1101,7 @@ void Game::EndRun(Renderer* renderer)
 {
 	if (m_isSwitching)
 	{
-		renderer->GetCamera().SetFov(m_initialCamFov);
+		Renderer::GetCamera().SetFov(m_initialCamFov);
 	}
 
 	ResetGameplayValues();
@@ -1138,7 +1138,7 @@ void Game::SwapTimeline(Renderer* renderer)
 
 void Game::ApplyTimelineState(Renderer* renderer)
 {
-	renderer->SetTimelineState(m_isInFuture);
+	Renderer::SetTimelineState(m_isInFuture);
 	m_currentRoom->SetTimeline(m_isInFuture);
 
 	for (int i = 0; i < m_enemies.Size(); i++)
