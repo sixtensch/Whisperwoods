@@ -725,9 +725,9 @@ void Game::Init()
 	m_loadScreen->GetElement(3)->secondTexture = Resources::Get().GetTexture("coward.png");
 
 	// Audio test startup
-	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
+	/*FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
-	m_audioSource->Play();
+	m_audioSource->Play();*/
 
 	// Environment parameters
 	m_envParams.spawnSeed = 652;
@@ -801,15 +801,15 @@ void Game::Init()
 void Game::DeInit()
 {
 	// Audio test 2 shutdown
-	m_audioSource->pitch = 0.75f;
-	m_audioSource->Play();
+	//m_audioSource->pitch = 0.75f;
+	//m_audioSource->Play();
 
-	int indexer = 0;
+	/*int indexer = 0;
 	while (m_audioSource->IsPlaying())
 	{
 		Sound::Get().Update();
 		indexer++;
-	}
+	}*/
 }
 
 void Game::LoadHubby()
