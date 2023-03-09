@@ -64,7 +64,7 @@ public:
 	// TODO: Check if there is a better way of gaining access to the render core.
 	RenderCore* GetRenderCore();
 
-	void SetTimelineState(bool future);
+	static void SetTimelineState(bool future);
 private:
 	static Renderer* s_singleton;
 

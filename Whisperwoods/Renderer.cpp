@@ -214,13 +214,13 @@ void Renderer::SetTimelineState(bool future)
 	switch ( future )
 	{
 		case false: 
-			m_renderHandler.get()->SetTimelineStateCurrent();
-			m_renderHandler->UpdateStaticShadows(false);
+			s_singleton->m_renderHandler.get()->SetTimelineStateCurrent();
+			s_singleton->m_renderHandler->UpdateStaticShadows(false);
 			break;
 
 		case true:
-			m_renderHandler.get()->SetTimelineStateFuture();
-			m_renderHandler->UpdateStaticShadows(true);
+			s_singleton->m_renderHandler.get()->SetTimelineStateFuture();
+			s_singleton->m_renderHandler->UpdateStaticShadows(true);
 			break;
 	}
 }
