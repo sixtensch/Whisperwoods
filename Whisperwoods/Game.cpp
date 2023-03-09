@@ -34,7 +34,7 @@ Game::~Game() {}
 void Game::UpdateGameplayVars( Renderer* renderer )
 {
 	m_coolDownCounter += m_deltaTime;
-
+	showTextForPickupBloom = false;
 	// Player vars
 	m_player->playerInFuture = m_isInFuture;
 	m_player->UpdateStamina( m_maxStamina );
@@ -334,7 +334,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 					{
 						
 					}
-
+					
 					// Floor exit for tutorial
 					if (r.targetRoom == -2)  
 					{
@@ -349,6 +349,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						else if (!m_player->hasPickedUpEssenceBloom)
 						{
 							//show text for not picking up essence bloom yet
+							showTextForPickupBloom = true;
 						}
 						else if (m_player->hasPickedUpEssenceBloom && !tutorial)
 						{

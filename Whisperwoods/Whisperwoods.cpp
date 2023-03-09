@@ -262,6 +262,15 @@ void Whisperwoods::Run()
 	testGui.GetElement(11)->secondTexture = Resources::Get().GetTexture("tut7Text.png");
 
 
+	//get da bloom
+	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	testGui.GetElement(12)->colorTint = Vec3(1, 1, 1);
+	testGui.GetElement(12)->alpha = 0.0f;
+	testGui.GetElement(12)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	testGui.GetElement(12)->firstTexture = Resources::Get().GetTexture("getDaBloom.png");
+	testGui.GetElement(12)->secondTexture = Resources::Get().GetTexture("getDaBloom.png");
+
+
 
 
 	// 
@@ -344,6 +353,14 @@ void Whisperwoods::Run()
 			testGui.GetElement(3)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
 		}
 
+		if (m_game->showTextForPickupBloom)
+		{
+			testGui.GetElement(12)->alpha = 1.0f;
+		}
+		else
+		{
+			testGui.GetElement(12)->alpha = 0.0f;
+		}
 
 		if (Input::Get().IsDXKeyPressed( DXKey::B ))
 		{
