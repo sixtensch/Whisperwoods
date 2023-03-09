@@ -399,8 +399,8 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		if (m_grafiki->InteractPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z)))
 		{
 			m_grafiki->enabled = false;
-			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
-			m_loadingTutorial = true;
+			m_loadScreen->GetElement(2)->uiRenderable->enabled = true;
+			m_skipTutorialQuestion = true;
 		}
 		else if (Input::Get().IsDXKeyPressed( DXKey::H ))
 		{
@@ -598,6 +598,29 @@ void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_deltaTime = deltaTime;
 
+
+	if (m_skipTutorialQuestion)
+	{
+		if (Input::Get().IsDXKeyPressed(DXKey::Y)) // does not skip tutorial
+		{
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
+			m_loadingTutorial = true;
+			m_loadScreen->GetElement(2)->uiRenderable->enabled = false;
+			m_skipTutorialQuestion = false;
+		}
+		else if (Input::Get().IsDXKeyPressed(DXKey::N)) // skips tutorial
+		{
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
+			m_loadScreen->GetElement(2)->uiRenderable->enabled = false;
+			m_loadNewFloor = true;
+			m_skipTutorialQuestion = false;
+			tutorial = false;
+		}
+		
+		return;
+		
+	}
+
 	if (youWin)
 	{
 		
@@ -613,7 +636,6 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			return;
 		}
 	}
-
 	if (!m_isCutScene)
 	{
 		UpdateGameObjects();
@@ -678,6 +700,15 @@ void Game::Init()
 	m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
 	m_loadScreen->GetElement(1)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
 	m_loadScreen->GetElement(1)->firstTexture = Resources::Get().GetTexture("winScreen.png");
+
+
+	//skip tutorial screen 
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(2)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(2)->alpha = 1.0f;
+	m_loadScreen->GetElement(2)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(2)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(2)->firstTexture = Resources::Get().GetTexture("skipTutorial.png");
 
 
 	// Audio test startup
@@ -933,7 +964,7 @@ void Game::LoadRoom(Level* level)
 			m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
 		}
 	}
-
+	
 	for (LevelPatrol& p : level->resource->patrolsOpen)
 	{
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(

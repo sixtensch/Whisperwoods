@@ -196,6 +196,7 @@ private:
 	bool m_deathPoison = false;
 	bool m_deathEnemy = false; 
 	bool m_loadNewFloor = false;
+	bool m_skipTutorialQuestion = false;
 	
 	 
 	TimeSwitchValues m_switchVals;
