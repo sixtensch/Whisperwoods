@@ -628,7 +628,7 @@ void Game::Init()
 	m_directionalColor = cs::Color3f(0xD0D0D0);
 
 	m_ambientColor = cs::Color3f(0xC0C0FF);
-	m_ambientIntensity = 0.20f;
+	m_ambientIntensity = 0.26f;
 
 	m_futureDirectionalIntensity = 2.4f;
 	m_futureDirectionalColor = cs::Color3f(0xFFF4C3);

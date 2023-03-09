@@ -214,7 +214,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 
 		float runSpeed = m_runSpeed * (m_godMode ? 2.0f : 1.0f);
 
-		float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !Input::Get().IsKeybindDown(KeybindCrouch) && !m_ranOutOfSprint && !playerInFuture) ? (runSpeed) : m_walkSpeed);
+		float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !Input::Get().IsKeybindDown(KeybindCrouch) && !m_ranOutOfSprint && (!playerInFuture || m_godMode)) ? (runSpeed) : m_walkSpeed);
 		//float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !m_ranOutOfSprint && !Input::Get().IsKeybindDown(KeybindCrouch) && !playerInFuture) ? m_runSpeed : m_walkSpeed);
 		m_targetVelocity = Vec3( inputVector.x, inputVector.y, inputVector.z );
 		if (m_targetVelocity.Length() > 0)
