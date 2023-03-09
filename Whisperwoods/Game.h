@@ -53,7 +53,8 @@ public:
 	void UnLoadPrevious();
 
 	Player* GetPlayer();
-
+	void MovePlayer(Vec3 position, Vec3 direction);
+		
 	void SetCutSceneMode( bool value );
 
 	float GetPowerCooldown();

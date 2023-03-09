@@ -10,7 +10,7 @@
 
 void Player::CalculateCompassMatrix()
 {
-	compassMatrix = transform.CalculateMatrix( transform.position, cameraCompassRotation, transform.scale );
+	compassMatrix = Transform::CalculateMatrix( transform.position, cameraCompassRotation, transform.scale );
 }
 
 Player::Player(std::string modelResource, std::string animationsPath, Mat4 modelOffset)
@@ -399,6 +399,18 @@ void Player::Update(float delta_time)
 
 
 	UpdateSound(delta_time);
+}
+
+void Player::ResetCamera(Vec3 direction)
+{
+	cameraCompassRotation = Quaternion::GetDirection(direction);
+	Vec3 followPoint = -(cameraCompassRotation * (Quaternion::GetAxis(Vec3(1, 0, 0), cameraFollowTilt) * Vec3(0, 0, 1)) * cameraFollowDistance);
+	cameraFollowTarget = followPoint;
+	Vec3 currentPos = transform.GetWorldPosition();
+	cameraFollowTarget = currentPos + cameraFollowTarget;
+	Vec3 lookDir = currentPos - (cameraFollowTarget + cameraLookTargetOffset);
+	lookDir.Normalize();
+	cameraLookRotationTarget = Quaternion::GetDirection(lookDir);
 }
 
 // Only the essentials.

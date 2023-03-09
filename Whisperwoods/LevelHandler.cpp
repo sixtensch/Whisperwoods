@@ -208,6 +208,7 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, 
 
 				if (target == -1)
 				{
+					f.startDirection = -exitDirection3;
 					f.startPosition = exitPosition3 - exitDirection3 * TUNNEL_SPAWN_DISTANCE;
 					f.startRoom = room;
 				}

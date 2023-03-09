@@ -285,7 +285,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						m_directionalLight->transform.parent = &m_currentRoom->transform;
 						m_directionalLight->Update( 0 );
 
-						m_player->transform.position = t.positions[targetIndex] - t.directions[targetIndex] * TUNNEL_SPAWN_DISTANCE;
+						MovePlayer(t.positions[targetIndex] - t.directions[targetIndex] * TUNNEL_SPAWN_DISTANCE, -t.directions[targetIndex]);
 						m_player->ReloadPlayer();
 
 						Renderer::ExecuteShadowRender();
@@ -316,17 +316,11 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 	{
 		if (Input::Get().IsDXKeyPressed( DXKey::L ))
 		{
-			UnLoadPrevious();
 			LoadGame(1, 9);
-			//LoadTest();
-			
-			m_player->ReloadPlayer();
 		}
 		if (Input::Get().IsDXKeyPressed( DXKey::H ))
 		{
-			UnLoadPrevious();
 			LoadHubby();
-			m_player->ReloadPlayer();
 		}
 	}
 }
@@ -334,7 +328,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 // Debug stuff
 void Game::DrawIMGUIWindows()
 {
-	#if WW_DEBUG
+#if WW_DEBUG
 
 	// Gameplay variables window
 	if (ImGui::Begin( "Gameplay Vars" ))
@@ -497,8 +491,8 @@ void Game::DrawIMGUIWindows()
 	ImGui::End();
 
 
-	#endif
-	}
+#endif
+}
 
 
 void Game::CinematicUpdate()
@@ -653,12 +647,14 @@ void Game::DeInit()
 
 void Game::LoadHubby()
 {
+	UnLoadPrevious();
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
 	LoadRoom( &m_floor.rooms[0] );
 
-	m_currentRoom->transform.CalculateWorldMatrix();
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update( 0 );
+	m_currentRoom->transform.CalculateWorldMatrix();
+	m_player->ReloadPlayer();
 
 	m_isHubby = true;
 	m_player->transform.position = Vec3(0, 0, 0);
@@ -670,9 +666,10 @@ void Game::LoadTest()
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[0]);
 
-	m_currentRoom->transform.CalculateWorldMatrix();
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update( 0 );
+	m_currentRoom->transform.CalculateWorldMatrix();
+	m_player->ReloadPlayer();
 
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
@@ -686,10 +683,12 @@ void Game::LoadGame(uint gameSeed, uint roomCount)
 	params.angleSteps = 0;
 	params.pushSteps = 3;
 
+	UnLoadPrevious();
 	m_levelHandler->GenerateFloor(&m_floor, params, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
 
-	m_player->transform.position = m_floor.startPosition;
+	MovePlayer(m_floor.startPosition, m_floor.startDirection);
+	m_player->ReloadPlayer();
 
 	m_currentRoom->transform.CalculateWorldMatrix();
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
@@ -708,6 +707,17 @@ void Game::UnLoadPrevious()
 Player* Game::GetPlayer()
 {
 	return m_player.get();
+}
+
+void Game::MovePlayer(Vec3 position, Vec3 direction)
+{
+	m_player->transform.position = position;
+	
+	Camera& c = Renderer::GetCamera();
+	c.SetPosition(position - direction * 0.5f);
+	c.SetRotation(Quaternion::GetDirection(direction));
+
+	m_player->ResetCamera(direction);
 }
 
 void Game::SetCutSceneMode( bool value )
@@ -886,7 +896,7 @@ void Game::SoundUpdate(float deltaTime)
 		if (m_isInFuture)
 		{
 			m_musicPresent->SetVolume(0.0f);
-			m_musicFuture->SetVolume(m_musicVol * 0.7);
+			m_musicFuture->SetVolume(m_musicVol * 0.7f);
 			m_musicDetected->SetVolume(0.0f);
 		}
 		else
