@@ -77,6 +77,7 @@
 #define REGISTER_SRV_PARTICLE_DATA      register(t21)
 
 #define REGISTER_SRV_CUBE_MAP           register(t22)
+#define REGUSTER_SRV_SHADOW_STATIC      register(t23)
 #define REGISTER_SRV_SHADOW_DEPTH       register(t24)
 
 

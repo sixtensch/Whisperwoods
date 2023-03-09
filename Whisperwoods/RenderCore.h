@@ -28,6 +28,7 @@ public:
 	void UnbindRenderTexture();
 	void TargetShadowMap();
 	void TargetStaticShadowMap();
+	void BindStaticShadowMap();
 	//void TargetBackBuffer(); // Use target render texture if you want to render anything to the scene.
 	void EndFrame();
 
@@ -218,6 +219,7 @@ private:
 	ComPtr<ID3D11Buffer> m_lightBufferSpot;
 	ComPtr<ID3D11Buffer> m_lightBufferDir;
 	ComPtr<ID3D11Buffer> m_lightBufferStaging;
+
 
 	// Shadow resources
 	ComPtr<ID3D11Texture2D> m_shadowStaticTexture;

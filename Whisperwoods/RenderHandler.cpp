@@ -53,7 +53,7 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	m_lightDirectional->intensity = 0.0f;
 	m_lightDirectional->color = cs::Color3f(0xFFFFFF);
 
-	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 1000.0f );
+	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.86f, 1000.0f );
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_mainCamera.Update();
 
@@ -253,18 +253,23 @@ void RenderHandler::ZPrepass(TimelineState state)
 		if ( data && data->enabled )
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), true, true);
+			m_renderCore->DrawObject(data.get(), true, false);
 		}
 	}
 }
 
 void RenderHandler::ExecuteStaticShadowDraw()
 {
-	//m_renderCore->UpdateViewInfo( m_mainCamera );
+	for (uint i = 0; i < LevelAssetCount; i++)
+		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
-	QuadCull(m_lightDirectional->camera);
+
 	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
+
+	// Write to shadow map
 	m_renderCore->TargetStaticShadowMap();
+	
+	
 	for (int i = 0; i < m_shadowRenderables.Size(); i++)
 	{
 		shared_ptr<WorldRenderable> data = {};
@@ -294,6 +299,9 @@ void RenderHandler::ExecuteStaticShadowDraw()
 		}
 	}*/
 	DrawInstances(m_timelineState, true, true);
+
+	// Set static shadow as readable
+	m_renderCore->BindStaticShadowMap();
 }
 
 RenderCore* RenderHandler::GetCore() const
