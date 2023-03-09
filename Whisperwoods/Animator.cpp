@@ -17,7 +17,7 @@ Quaternion AnimatorAnimation::Squad( Quaternion q0, Quaternion q1, Quaternion q2
 	return Quaternion( FL4.x, FL4.y, FL4.z, FL4.w );
 }
 
-Vec3 AnimatorAnimation::GetInterpolatedValue( cs::List<Vec3KeyFrame> keys, float time, float duration )
+Vec3 AnimatorAnimation::GetInterpolatedValue( cs::List<Vec3KeyFrame>& keys, float time, float duration )
 {
 	//int index = (int)((float)t * (float)keys.size());
 	int index = 0;
@@ -58,7 +58,7 @@ Vec3 AnimatorAnimation::GetInterpolatedValue( cs::List<Vec3KeyFrame> keys, float
 	}
 }
 
-Quaternion AnimatorAnimation::GetInterpolatedValue( cs::List<QuatKeyFrame> keys, float time, float duration )
+Quaternion AnimatorAnimation::GetInterpolatedValue( cs::List<QuatKeyFrame>& keys, float time, float duration )
 {
 	int index = 0;
 	float actualTime = time * duration;
