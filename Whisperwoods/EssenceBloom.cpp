@@ -23,10 +23,17 @@ EssenceBloom::EssenceBloom(Player* player, Vec2 mapCoordPos)
 
 	m_soundSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_Vol, 1.5f, 5.0f, 20.0f, (Resources::Get().GetSound("EssenceBloom.mp3"))->currentSound);
 	m_soundSource->mix2d3d = 0.0f;
+
+	m_ambianceSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_ambianceVol, 1.0f, 0.0f, 15.0f, (Resources::Get().GetSound("TheEssence.mp3"))->currentSound);
+	m_ambianceSource->loop = true;
+	this->AddChild((GameObject*)m_ambianceSource.get());
+	m_ambianceSource->Play();
 }
 
 EssenceBloom::~EssenceBloom()
-{}
+{
+	m_ambianceSource->Stop();
+}
 
 void EssenceBloom::OnPickup(float deltatime)
 {
@@ -36,7 +43,7 @@ void EssenceBloom::OnPickup(float deltatime)
 	m_player->hasPickedUpEssenceBloom = true;
 	m_isAlive = false;
 	// Play animation
-
+	m_ambianceSource->Stop();
 	m_soundSource->Play();
 }
 
