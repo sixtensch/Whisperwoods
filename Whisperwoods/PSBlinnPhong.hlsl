@@ -330,10 +330,10 @@ float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float d
 
 	// PCF filtering (Smooth shadows)
 	[unroll]
-    for (uint y = -smoothing; y <= smoothing; ++y)
+    for (int y = -smoothing; y <= smoothing; ++y)
     {
 		[unroll]
-        for (uint x = -smoothing + 1; x <= smoothing; ++x)
+        for (int x = -smoothing + 1; x <= smoothing; ++x)
         {
             sum += textureToSample.SampleCmpLevelZero(shadowSampler,
 						UV + texOffset(x, y, 0), depthCMP - epsilon);
