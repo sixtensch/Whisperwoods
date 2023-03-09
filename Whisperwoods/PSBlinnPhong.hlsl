@@ -49,10 +49,12 @@ cbuffer ShadingInfo : REGISTER_CBV_SHADING_INFO
 	LightPoint			pointLights[LIGHT_CAPACITY_POINT];
 	LightSpot			spotLights[LIGHT_CAPACITY_SPOT];
 	
-	float3 ambient;
+	float3 ambientLight;
     uint pointCount;
     float3 cameraPosition;
     uint spotCount;
+    float3 fogFocusPosition;
+    float fogFocusRadius;
 };
 
 cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
@@ -63,7 +65,7 @@ cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
     float glossiness;
     float3 emissive;
     float height;
-    float3 pad;
+    float3 ambient;
     float tiling;
 };
 
@@ -108,13 +110,18 @@ Texture2D textureDiffuse : REGISTER_SRV_TEX_DIFFUSE;
 Texture2D textureSpecular : REGISTER_SRV_TEX_SPECULAR;
 Texture2D textureEmissive : REGISTER_SRV_TEX_EMISSIVE;
 Texture2D textureNormal : REGISTER_SRV_TEX_NORMAL;
-Texture2D shadowTexture : REGISTER_SRV_SHADOW_DEPTH;
+
+Texture2D shadowTextureStatic : REGUSTER_SRV_SHADOW_STATIC;
+Texture2D shadowTextureDynamic : REGISTER_SRV_SHADOW_DEPTH;
 
 struct PS_OUTPUT
 {
     float4 MainTarget : SV_TARGET0;
     float4 LuminanceTexture : SV_TARGET1;
 };
+
+float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float depthCMP, float epsilon);
+float PCFShadowsBoth(float startValue, float2 UV, float depthCMP, float epsilon);
 
 PS_OUTPUT main(VSOutput input)
 {
@@ -124,16 +131,21 @@ PS_OUTPUT main(VSOutput input)
     float2 uv = input.outUV * tiling;
 	
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
-	
+    float4 colorAlbedoOpacity = float4(diffuse * diffuseSample.xyz, alpha * diffuseSample.a);
+    
     //if (diffuseSample.a < 0.1f)
+    //{
     //    discard;
+    //}
+	
+    if (diffuseSample.a < 0.1f)
+        discard;
 	
     float4 specularSample = textureSpecular.Sample(textureSampler, uv);
     float4 emissiveSample = textureEmissive.Sample(textureSampler, uv);
     float4 normalSample = textureNormal.Sample(textureSampler, uv);
     normalSample.g = 1.0f - normalSample.g;
 	
-    float4 colorAlbedoOpacity = float4(diffuse * diffuseSample.xyz, alpha * diffuseSample.a);
     float4 colorSpecularSpecularity = float4(specular, glossiness) * specularSample;
     float3 colorEmissive = emissive * emissiveSample.xyz;
 	
@@ -143,34 +155,33 @@ PS_OUTPUT main(VSOutput input)
     float3 normal = normalize(mul(2.0f * normalSample.xyz - float3(1.0f, 1.0f, 1.0f), texSpace));
 	
 	// Cumulative color
-    float4 color = float4(colorAlbedoOpacity.xyz * ambient, colorAlbedoOpacity.w);
+    float4 color = float4(colorAlbedoOpacity.xyz * ambientLight * ambient, colorAlbedoOpacity.w);
 	
-	// Check shadow
+    
+    // Check shadow
     float4 lsPos = mul(input.wPosition, directionalLight.clip);
     float4 lsNDC = lsPos / lsPos.w; // U, V, Depth
     float2 lsUV = float2(lsNDC.x * 0.5f + 0.5f, lsNDC.y * -0.5f + 0.5f);
 	
     float dirNDotL = dot(normal, directionalLight.direction);
     float epsilon = 0.00005 / acos(saturate(dirNDotL));
-    //bool shadowAff = shadowTexture.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x;
-	
-    float sum = 0;
-    float x, y;
-
-	// PCF filtering (Smooth shadows)
-	[unroll]
-    for (y = -smoothing; y <= smoothing; y += 1.0f)
-    {
-		[unroll]
-        for (x = -smoothing; x <= smoothing; x += 1.0f)
-        {
-            sum += shadowTexture.SampleCmpLevelZero(shadowSampler,
-				lsUV.xy + texOffset(x, y, 0), lsNDC.z - epsilon);
-        }
-    }
-    float shadowAff = sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f));
-
     
+    float sStatic = shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
+						lsUV, lsNDC.z - epsilon);
+    float sDynamic = shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
+						lsUV, lsNDC.z - epsilon);
+    float sMin = min(sStatic, sDynamic);
+    
+    float shadowAff = 0.0f;
+    if (sMin < sDynamic)
+    {
+        shadowAff = PCFShadows(shadowTextureStatic, sStatic, lsUV, lsNDC.z, epsilon);
+    }
+    else
+    {
+        shadowAff = PCFShadowsBoth(sMin, lsUV, lsNDC.z, epsilon);
+    }
+
     // Directional lighting
     color += shadowAff * phong(
 		input.wPosition.xyz,
@@ -262,10 +273,12 @@ PS_OUTPUT main(VSOutput input)
     // Fog effects
     {
         float posToCamDist = distance(input.wPosition.xyz, cameraPosition);
+        float posToFocalDist = distance(input.wPosition.xyz, fogFocusPosition);
+        float focalModifier = 1.0f + (max(fogFocusRadius, posToFocalDist) - fogFocusRadius) * 0.25f;
         uint stateIndex = uint(isInFuture);
         color.rgb = ApplyExpFog(
             color.rgb, 
-            STATE_FOG_DENSITIES[stateIndex], 
+            STATE_FOG_DENSITIES[stateIndex] * focalModifier, 
             posToCamDist, 
             STATE_FOG_COLORS[stateIndex],
             STATE_FOG_STRENGTHS[stateIndex]
@@ -315,4 +328,43 @@ PS_OUTPUT main(VSOutput input)
     output.LuminanceTexture = float4(lumColor, color.a);
 
     return output;
+}
+
+
+float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float depthCMP, float epsilon)
+{
+    float sum = startValue;
+
+	// PCF filtering (Smooth shadows)
+	[unroll]
+    for (int y = -smoothing; y <= smoothing; ++y)
+    {
+		[unroll]
+        for (int x = -smoothing + 1; x <= smoothing; ++x)
+        {
+            sum += textureToSample.SampleCmpLevelZero(shadowSampler,
+						UV + texOffset(x, y, 0), depthCMP - epsilon);
+        }
+    }
+    return (sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f)));
+}
+float PCFShadowsBoth(float startValue, float2 UV, float depthCMP, float epsilon)
+{
+    float sum = startValue;
+
+    [unroll]
+    for (int y = -smoothing; y <= smoothing; ++y)
+    {
+        [unroll]
+        for (int x = -smoothing + 1; x <= smoothing; ++x)
+        {
+            sum += min(
+                shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
+                    UV + texOffset(x, y, 0), depthCMP - epsilon),
+                shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
+                    UV + texOffset(x, y, 0), depthCMP - epsilon)
+                );
+        }
+    }
+    return (sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f)));
 }

@@ -55,8 +55,6 @@ public:
 	void ExecuteDraw(TimelineState state, bool shadows);
 	void ZPrepass(TimelineState state);
 
-	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);
-
 	void RenderGUI();
 
 	void RenderTerrain();
@@ -68,6 +66,7 @@ public:
 	void LoadEnvironment(const Level* level);
 	void UnLoadEnvironment();
 
+	void UpdatePPFXInfo(Vec2 vignette, Vec2 contrast, float brightness, float saturation);
 
 	shared_ptr<MeshRenderableStatic> CreateMeshStatic(const string& subpath);
 	std::pair<shared_ptr<MeshRenderableStatic>, shared_ptr<MeshRenderableStatic>> CreateMeshStaticSwappable(const string& subpathCurrent,
@@ -84,21 +83,23 @@ public:
 	void SetTimelineStateCurrent();
 	void SetTimelineStateFuture();
 
+	void UpdateStaticShadows(bool future);
+
+	void SetAmbientLight(cs::Color3f color, float intensity);
 	shared_ptr<DirectionalLight> GetDirectionalLight();
 	bool RegisterPointLight(shared_ptr<PointLight> pointLight);
 	bool RegisterSpotLight(shared_ptr<SpotLight> spotLight);
 
 	void SetPlayerMatrix(const Mat4& matrix);
+	void SetFogParameters(Vec3 focus, float radius);
 
 	void ClearShadowRenderables();
 	void RegisterLastRenderableAsShadow();
 	void ExecuteStaticShadowDraw();
 
-
 private:
 	void QuadCull(const Camera& camPOV);
 	void DrawInstances(uint state, bool shadows, bool discardPipeline);
-
 
 private:
 	struct EnvMaterial
@@ -133,6 +134,8 @@ private:
 	shared_ptr<DirectionalLight> m_lightDirectional;
 	cs::List<shared_ptr<PointLight>> m_lightsPoint;
 	cs::List<shared_ptr<SpotLight>> m_lightsSpot;
+	Vec3 m_fogFocus;
+	float m_fogRadius;
 
 	Mat4 m_playerMatrix;
 

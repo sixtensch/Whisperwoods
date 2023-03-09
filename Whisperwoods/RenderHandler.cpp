@@ -45,15 +45,15 @@ RenderHandler::~RenderHandler()
 
 void RenderHandler::InitCore(shared_ptr<Window> window)
 {
-	m_lightAmbient = cs::Color3f(0xD0D0FF);
-	m_lightAmbientIntensity = 0.15f;
+	m_lightAmbient = cs::Color3f(0xC0C0FF);
+	m_lightAmbientIntensity = 0.25f;
 
 	m_lightDirectional = make_unique<DirectionalLight>();
 	m_lightDirectional->diameter = 1000.0f;
 	m_lightDirectional->intensity = 0.0f;
 	m_lightDirectional->color = cs::Color3f(0xFFFFFF);
 
-	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 1000.0f );
+	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.86f, 1000.0f );
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_mainCamera.Update();
 
@@ -86,8 +86,15 @@ void RenderHandler::Draw()
 	}
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
-	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
+	m_renderCore->WriteLights(
+		m_lightAmbient, 
+		m_lightAmbientIntensity, 
+		m_mainCamera, 
+		m_lightDirectional, 
+		m_lightsPoint, 
+		m_lightsSpot, 
+		m_fogFocus, m_fogRadius);
+
 
 	// ShadowPass
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
@@ -96,12 +103,15 @@ void RenderHandler::Draw()
 
 	// Main scene rendering
 	m_renderCore->UpdateViewInfo(m_mainCamera);
+	m_renderCore->SetFuture(m_timelineState);
 	QuadCull(m_mainCamera);
 
 	static std::string zPrepassProfileName = "Z Prepass Draw";
 	static std::string terrainProfileName = "Terrain Draw";
 	static std::string mainSceneProfileName = "Main Scene Draw";
+	m_renderCore->TargetRenderTexture();
 	PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
+	m_renderCore->TargetRenderTexture();
 	PROFILE_JOB( terrainProfileName, RenderTerrain() );
 	PROFILE_JOB( mainSceneProfileName, ExecuteDraw(m_timelineState, false) );
 	m_renderCore->UnbindRenderTexture();
@@ -210,7 +220,6 @@ void RenderHandler::RenderGUI()
 
 void RenderHandler::RenderTerrain()
 {
-	m_renderCore->TargetRenderTexture();
 	for (int i = 0; i < m_worldTerrainRenderables.Size(); i++)
 	{
 		auto data = m_worldTerrainRenderables[i];
@@ -245,31 +254,24 @@ void RenderHandler::ZPrepass(TimelineState state)
 		if ( data && data->enabled )
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), true, true);
+			m_renderCore->DrawObject(data.get(), true, false);
 		}
 	}
 }
 
 void RenderHandler::ExecuteStaticShadowDraw()
 {
-	//m_renderCore->UpdateViewInfo( m_mainCamera );
+	for (uint i = 0; i < LevelAssetCount; i++)
+		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
-	QuadCull(m_lightDirectional->camera);
 	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
+
+
+	// Write to static shadow map (Present)
 	m_renderCore->TargetStaticShadowMap();
 	for (int i = 0; i < m_shadowRenderables.Size(); i++)
 	{
-		shared_ptr<WorldRenderable> data = {};
-		switch (m_timelineState)
-		{
-		case TimelineStateCurrent:
-			data = m_worldRenderables[m_shadowRenderables[i]].first;
-			break;
-
-		case TimelineStateFuture:
-			data = m_worldRenderables[m_shadowRenderables[i]].second;
-			break;
-		}
+		shared_ptr<WorldRenderable> data = m_worldRenderables[m_shadowRenderables[i]].first;
 		if (data && data->enabled)
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
@@ -285,7 +287,25 @@ void RenderHandler::ExecuteStaticShadowDraw()
 			m_renderCore->DrawObject( data.get(), false );
 		}
 	}*/
-	DrawInstances(m_timelineState, true, true);
+	DrawInstances(0, true, true);
+
+
+	// Write to static shadow map (Future)
+	m_renderCore->TargetStaticShadowMapFuture();
+	for ( int i = 0; i < m_shadowRenderables.Size(); i++ )
+	{
+		shared_ptr<WorldRenderable> data = m_worldRenderables[m_shadowRenderables[i]].second;
+		if ( data && data->enabled )
+		{
+			m_renderCore->UpdateObjectInfo(data.get());
+			m_renderCore->DrawObject(data.get(), true, false);
+		}
+	}
+	DrawInstances(1, true, true);
+
+
+	// Set static shadow as readable
+	m_renderCore->BindStaticShadowMap(false);
 }
 
 RenderCore* RenderHandler::GetCore() const
@@ -328,7 +348,7 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	load(LevelAssetBush1, 
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
-		"BananaPlant.wwm", { "Tree_Charred_Tiled.wwmt" });
+		"BananaPlant.wwm", { });
 
 	load(LevelAssetBush2, 
 		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
@@ -510,6 +530,11 @@ void RenderHandler::UnLoadEnvironment()
 	m_worldTerrainRenderables.Clear();
 }
 
+void RenderHandler::UpdatePPFXInfo(Vec2 vignette, Vec2 contrast, float brightness, float saturation)
+{
+	m_renderCore->WritePPFXColorgradeInfo(vignette, contrast, brightness, saturation);
+}
+
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
 {
 	Resources& resources = Resources::Get();
@@ -626,6 +651,17 @@ void RenderHandler::SetTimelineStateFuture()
 	m_timelineState = TimelineStateFuture;
 }
 
+void RenderHandler::UpdateStaticShadows(bool future)
+{
+	m_renderCore->BindStaticShadowMap(future);
+}
+
+void RenderHandler::SetAmbientLight(cs::Color3f color, float intensity)
+{
+	m_lightAmbient = color;
+	m_lightAmbientIntensity = intensity;
+}
+
 shared_ptr<DirectionalLight> RenderHandler::GetDirectionalLight()
 {
 	return m_lightDirectional;
@@ -656,6 +692,12 @@ bool RenderHandler::RegisterSpotLight(shared_ptr<SpotLight> spotLight)
 void RenderHandler::SetPlayerMatrix(const Mat4& matrix)
 {
 	m_playerMatrix = matrix;
+}
+
+void RenderHandler::SetFogParameters(Vec3 focus, float radius)
+{
+	m_fogFocus = focus;
+	m_fogRadius = radius;
 }
 
 void RenderHandler::ClearShadowRenderables()

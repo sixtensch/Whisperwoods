@@ -25,6 +25,7 @@ Game::Game() :
 	m_coolDownCounter(m_timeAbilityCooldown),
 	m_isCutscene(false),
 	m_isSeen(false)
+
 {
 }
 
@@ -33,9 +34,25 @@ Game::~Game() {}
 // Stamina, pickups, detection etc
 void Game::UpdateGameplayVars( Renderer* renderer )
 {
-	m_coolDownCounter += m_deltaTime;
+	if (m_deathEnemy == true)
+	{
+		m_deathEnemy = false;
+		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
+		EndRunDueToEnemy(renderer);
+		activeTutorialLevel = 8;
+	}
+	else if (m_deathPoison == true)
+	{
+		m_deathPoison = false;
+		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
+		EndRunDueToPoison(renderer);
+		activeTutorialLevel = 8;
+	}
 
+	m_coolDownCounter += m_deltaTime * (m_godMode ? 5.0f : 1.0f);
+	showTextForPickupBloom = false;
 	// Player vars
+	m_player->SetGodMode(m_godMode);
 	m_player->playerInFuture = m_isInFuture;
 	m_player->UpdateStamina( m_maxStamina );
 	m_currentStamina = m_player->GetCurrentStamina();
@@ -56,7 +73,9 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	}
 
 	// Stamina Logic
-	m_maxStamina -= m_deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging; // (duplicated code thing)
+	m_maxStamina -= 
+		m_deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging * 
+		(m_godMode ? 0.05f : 1.0f); // (duplicated code thing)
 	if (m_maxStamina < 1.0f) // DO NOT CHANGE THIS
 	{
 		m_maxStamina = 1.0f; // DO NOT CHANGE THIS
@@ -73,12 +92,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		/// D E A T H ///
 		if (m_dangerousTimeInFuture >= m_timeYouSurviveInFuture) // how long you can survive in future with 0 stamina (seconds)
 		{
-			ChangeTimeline( renderer );
-			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
-			m_player->ResetStaminaToMax( m_maxStamina );
-			UnLoadPrevious();
-			LoadHubby();
-			m_player->ReloadPlayer();
+			m_deathPoison = true;
 		}
 	}
 	if (!m_isInFuture)
@@ -94,31 +108,10 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		{
 			m_timeUnseen = 0.0f;
 
-			if (IsDetected(m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance()))
+			if (!m_godMode && IsDetected(m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance()))
 			{
-				if (m_isSwitching)
-				{
-					m_switchVals.timeSinceSwitch = 2.0f;
-					m_isInFuture = true;
-					renderer->GetCamera().SetFov(m_initialCamFov);
-					ChangeTimeline(renderer);
-					m_switchVals.timeSinceSwitch = 0.0f;
-					m_isSwitching = false;
-					m_totalFovDelta = 0.0f;
-				}
-
 				// D E A T H
-				m_maxStamina = MAX_STAMINA_STARTING_VALUE;
-				//m_coolDownCounter = m_timeAbilityCooldown;
-				m_player->ResetStaminaToMax(m_maxStamina);
-				UnLoadPrevious();
-				LoadHubby();
-				m_player->ReloadPlayer();
-				m_isSeen = false;
-				m_detectionLevelGlobal = 0.0f;
-				m_detectionLevelFloor = 0.0f;
-
-				m_enemyHorn->Play();
+				m_deathEnemy = true;
 			}
 		}
 		else
@@ -136,6 +129,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 void Game::UpdateGameObjects()
 {
 	m_player->Update( m_deltaTime );
+	m_grafiki->Update(m_deltaTime);
 	m_currentRoom->Update( m_deltaTime );
 	for (int i = 0; i < m_staticObjects.Size(); i++)
 	{
@@ -180,7 +174,7 @@ void Game::UpdateEnemies( Renderer* renderer )
 	//}	*/
 
 	m_isSeen = false;
-	m_closestDistance = 100000.0f; // large start value to fix the above thing instead of branching.
+	m_closestDistance = FLT_MAX; // large start value to fix the above thing instead of branching.
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update( m_deltaTime ); // Would ideally want to put this in UpdateGameObjects(), but this makes one less loop
@@ -200,16 +194,33 @@ void Game::UpdateEnemies( Renderer* renderer )
 // Time logic and Detection logic
 void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 {
+	if (m_loadNewFloor)
+	{
+		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
+		LoadGame(1, 9);
+		m_player->hasPickedUpEssenceBloom = false;
+		tutorial = false;
+		m_loadNewFloor = false;
+		return;
+	}
+
 	// Time switch logic.
 	if (!m_isHubby) // if not in hubby
 	{
 		
 		if (Input::Get().IsKeyPressed( KeybindPower ) && IsAllowedToSwitch())
 		{
-			m_isSwitching = true;
-			m_finishedCharging = false;
-			m_initialCamFov = renderer->GetCamera().GetFov();
-			m_player->m_switchSource->Play();
+			if (tutorial && activeTutorialLevel < 6)
+			{
+				// no power yet lmao
+			}
+			else
+			{
+				m_isSwitching = true;
+				m_finishedCharging = false;
+				m_initialCamFov = renderer->GetCamera().GetFov();
+				m_player->m_switchSource->Play();
+			}
 		}
 
 		if (m_isSwitching)
@@ -217,25 +228,21 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			
 			if (!ChargeIsDone())
 			{
-				m_totalFovDelta += m_camFovChangeSpeed * m_deltaTime;
-				float newFov = m_initialCamFov + m_totalFovDelta;
-
-				// Max total fov cant exceed half circle.
-				if (newFov > cs::c_pi)
+				float fovSpeed = (m_timeSwitchTargetFov - m_initialCamFov) / m_switchVals.chargeDuration;
+				// Makes sure that the difference results in a positive speed.
+				if (fovSpeed >= 0.0f)
 				{
-					newFov = cs::c_pi;
-				}
-
-				renderer->GetCamera().SetFov( newFov );
+					Camera& cam = renderer->GetCamera();
+					cam.SetFov(cam.GetFov() + fovSpeed * m_deltaTime);
+				}			
 			}
 			else
 			{
 				if (!m_finishedCharging)
 				{
-					ChangeTimeline( renderer );
+					SwapTimeline( renderer );
 					m_finishedCharging = true;
 					renderer->GetCamera().SetFov( m_initialCamFov );
-					m_totalFovDelta = 0.0f;
 
 					if (!m_isInFuture) // time to cooldown
 					{
@@ -302,9 +309,9 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 					// Go to next room
 					if (r.targetRoom >= 0)
 					{
+						activeTutorialLevel = r.targetRoom + 1;
 						uint targetIndex = (r.tunnelSubIndex + 1) % 2;
 						const LevelTunnel& t = m_floor.tunnels[r.tunnel];
-
 						UnLoadPrevious();
 						LoadRoom(&m_floor.rooms[r.targetRoom]);
 
@@ -312,54 +319,96 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						m_directionalLight->transform.parent = &m_currentRoom->transform;
 						m_directionalLight->Update( 0 );
 
-						m_player->transform.position = t.positions[targetIndex] - t.directions[targetIndex] * TUNNEL_SPAWN_DISTANCE;
+						MovePlayer(t.positions[targetIndex] - t.directions[targetIndex] * TUNNEL_SPAWN_DISTANCE, -t.directions[targetIndex]);
 						m_player->ReloadPlayer();
 
 						Renderer::ExecuteShadowRender();
+
+						
 						break;
 					}
 
 					// Floor entrance
 					if (r.targetRoom == -1)
 					{
-
+						
 					}
-
-					// Floor exit
-					if (r.targetRoom == -2)
+					
+					// Floor exit 
+					if (r.targetRoom == -2)  
 					{
-
+						if (m_player->hasPickedUpEssenceBloom && tutorial)
+						{
+							m_detectionLevelFloor = 0.0f; // resets detection
+							m_loadNewFloor = true;
+							activeTutorialLevel = 8;
+							m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
+							
+						}
+						else if (!m_player->hasPickedUpEssenceBloom)
+						{
+							//show text for not picking up essence bloom yet
+							showTextForPickupBloom = true;
+						}
+						else if (m_player->hasPickedUpEssenceBloom && !tutorial)
+						{
+							// you win!
+							m_loadScreen->GetElement(1)->uiRenderable->enabled = true;
+							youWin = true;
+						}
+						
 					}
 				}
 			}
 		}
 
-		if (Input::Get().IsDXKeyPressed( DXKey::H ) && !m_isInFuture)
+		if (m_loadingHubby == true)
 		{
-			UnLoadPrevious();
-			LoadHubby();
-			m_player->ReloadPlayer();
-			m_detectionLevelGlobal = 0.0f;
-			m_detectionLevelFloor = 0.0f;
-			m_coolDownCounter = m_timeAbilityCooldown;
-			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+			EndRun(renderer);
+			m_loadingHubby = false;
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
+		}
+		if (Input::Get().IsDXKeyPressed( DXKey::H ))
+		{
+			m_loadingHubby = true;
+			tutorial = false;
+			activeTutorialLevel = 8;
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
 		}
 	}
 	else // If in hubby
 	{
-		if (Input::Get().IsDXKeyPressed( DXKey::L ))
+		if (m_loadingHubby == true)
 		{
-			UnLoadPrevious();
-			LoadGame(1, 9);
-			//LoadTest();
-			
-			m_player->ReloadPlayer();
-		}
-		if (Input::Get().IsDXKeyPressed( DXKey::H ))
-		{
-			UnLoadPrevious();
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
 			LoadHubby();
-			m_player->ReloadPlayer();
+			m_loadingHubby = false;
+		}
+		else if (m_loadingTutorial == true)
+		{
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
+			m_loadingTutorial = false;
+			m_player->hasPickedUpEssenceBloom = false;
+			LoadTutorial();
+			tutorial = true;
+			activeTutorialLevel = 1;
+		}
+
+
+
+		if (m_grafiki->InteractPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z)))
+		{
+			m_grafiki->enabled = false;
+			m_loadScreen->GetElement(2)->uiRenderable->enabled = true;
+			m_skipTutorialQuestion = true;
+		}
+		else if (Input::Get().IsDXKeyPressed( DXKey::H ))
+		{
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
+			m_loadingHubby = true;
+			activeTutorialLevel = 8;
+			tutorial = false;
+			return;
 		}
 	}
 }
@@ -367,7 +416,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 // Debug stuff
 void Game::DrawIMGUIWindows()
 {
-	#if WW_DEBUG
+#if WW_DEBUG
 
 	// Gameplay variables window
 	if (ImGui::Begin( "Gameplay Vars" ))
@@ -381,9 +430,17 @@ void Game::DrawIMGUIWindows()
 		ImGui::Checkbox( "Future", &m_isInFuture );
 		
 		ImGui::Separator();
+		ImGui::Checkbox("God Mode", &m_godMode);
 		ImGui::InputFloat3("Player Position", (float*)&m_player->transform.position);
-
 		ImGui::Text("Transition: %s", m_testTunnel ? "YES" : "NO");
+
+		if (m_isHubby)
+		{
+			ImGui::Separator();
+			ImGui::InputFloat3("Fog Focus", (float*)&m_fogFocus);
+			ImGui::DragFloat("Fog Radius", &m_fogRadius, 0.1f, 0.1f, 100.0f);
+			Renderer::SetFogParameters(m_fogFocus, m_fogRadius);
+		}
 	}
 	ImGui::End();
 
@@ -394,6 +451,42 @@ void Game::DrawIMGUIWindows()
 		m_player->currentRoom->m_testOffset = Quaternion::GetEuler( tempRot ).Matrix();
 	}
 	ImGui::End();
+
+	static Vec2 vignette = Vec2(0.5f, 1.0f);
+	static Vec2 contrast = Vec2(1.0f, 0.4f);
+	static float brightness = 0.0f;
+	static float saturation = 1.25f;
+	static bool firstSet = true;
+
+	if (ImGui::Begin("Color Settings"))
+	{
+		float speed = 0.01f;
+		bool changed = false;
+		changed |= ImGui::DragFloat2("Vignette Radius & Strength", (float*)&vignette, speed, 0.0f, FLT_MAX);
+		changed |= ImGui::DragFloat2("Contrast Amount & Midpoint", (float*)&contrast, speed, 0.0f);
+		changed |= ImGui::DragFloat("Brightness", &brightness, speed, 0.0f, FLT_MAX);
+		changed |= ImGui::DragFloat("Saturation", &saturation, speed, 0.0f, FLT_MAX);
+
+		if (changed || firstSet)
+		{
+			firstSet = false;
+			Renderer::UpdatePPFXInfo(vignette, contrast, brightness, saturation);
+		}
+
+		ImGui::Separator();
+		ImGui::ColorEdit3("Ambient Color", (float*)&m_ambientColor);
+		ImGui::DragFloat("Ambient Intensity", &m_ambientIntensity, 0.01f, 0.0f, 1.0f);
+		ImGui::ColorEdit3("Dir Color", (float*)&m_directionalColor);
+		ImGui::DragFloat("Dir Intensity", (float*)&m_directionalIntensity, 0.01f, 0.0f, 4.0f);
+
+		ImGui::Spacing();
+		ImGui::ColorEdit3("Future Ambient Color", (float*)&m_futureAmbientColor);
+		ImGui::DragFloat("Future Ambient Intensity", &m_futureAmbientIntensity, 0.01f, 0.0f, 1.0f);
+		ImGui::ColorEdit3("Future Dir Color", (float*)&m_futureDirectionalColor);
+		ImGui::DragFloat("Future Dir Intensity", (float*)&m_futureDirectionalIntensity, 0.01f, 0.0f, 4.0f);
+	}
+	ImGui::End();
+
 
 	// Environment generation variables window
 	if (ImGui::Begin( "Environment Parameters" ))
@@ -486,8 +579,8 @@ void Game::DrawIMGUIWindows()
 	ImGui::End();
 
 
-	#endif
-	}
+#endif
+}
 
 
 void Game::CinematicUpdate()
@@ -506,6 +599,44 @@ void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_deltaTime = deltaTime;
 
+
+	if (m_skipTutorialQuestion)
+	{
+		if (Input::Get().IsDXKeyPressed(DXKey::Y)) // does not skip tutorial
+		{
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
+			m_loadingTutorial = true;
+			m_loadScreen->GetElement(2)->uiRenderable->enabled = false;
+			m_skipTutorialQuestion = false;
+		}
+		else if (Input::Get().IsDXKeyPressed(DXKey::N)) // skips tutorial
+		{
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
+			m_loadScreen->GetElement(2)->uiRenderable->enabled = false;
+			m_loadNewFloor = true;
+			m_skipTutorialQuestion = false;
+			tutorial = false;
+		}
+		
+		return;
+		
+	}
+
+	if (youWin)
+	{
+		
+		if (Input::Get().IsDXKeyPressed(DXKey::Space))
+		{
+			//player pressed spacebar when outside while loop
+			m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
+			youWin = false;
+			EndRun(renderer);
+		}
+		else
+		{
+			return;
+		}
+	}
 	if (!m_isCutScene)
 	{
 		UpdateGameObjects();
@@ -514,7 +645,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 		UpdateEnemies( renderer );
 
-		UpdateRoomAndTimeSwappingLogic( renderer );
+		UpdateRoomAndTimeSwappingLogic( renderer);
 
 		// Final steps
 		UpdateTimeSwitchBuffers( renderer );
@@ -523,6 +654,19 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	else
 	{
 		CinematicUpdate();
+	}
+
+	if (m_isInFuture)
+	{
+		Renderer::SetAmbientLight(m_futureAmbientColor, m_futureAmbientIntensity);
+		m_directionalLight->color = m_futureDirectionalColor;
+		m_directionalLight->intensity = m_futureDirectionalIntensity;
+	}
+	else
+	{
+		Renderer::SetAmbientLight(m_ambientColor, m_ambientIntensity);
+		m_directionalLight->color = m_directionalColor;
+		m_directionalLight->intensity = m_directionalIntensity;
 	}
 
 	DrawIMGUIWindows();
@@ -537,6 +681,37 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 void Game::Init()
 {
+	m_godMode = false;
+
+	m_loadScreen = shared_ptr<GUI> (new GUI());
+
+	// loading screen
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(0)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(0)->alpha = 1.0f;
+	m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(0)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(0)->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
+
+
+	//winning screen 
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(1)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(1)->alpha = 1.0f;
+	m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(1)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(1)->firstTexture = Resources::Get().GetTexture("winScreen.png");
+
+
+	//skip tutorial screen 
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(2)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(2)->alpha = 1.0f;
+	m_loadScreen->GetElement(2)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(2)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(2)->firstTexture = Resources::Get().GetTexture("skipTutorial.png");
+
+
 	// Audio test startup
 	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
@@ -564,36 +739,51 @@ void Game::Init()
 	m_envParams.edgeSampleDistanceTrees = 8;
 	m_envParams.edgeSampleDistanceStones = 2;
 
+	m_fogFocus = Vec3(0, 0, 0);
+	m_fogRadius = 10.0f;
+	Renderer::SetFogParameters(m_fogFocus, m_fogRadius);
+
 	// Level handling
 	m_levelHandler = std::make_unique<LevelHandler>();
 	m_levelHandler->LoadFloors();
+	
 
 	// In-world objects and entities
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
+	m_grafiki = make_shared<Grafiki>();
 
 	//Music
 	m_musicPresent = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_musicVol, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings.mp3"))->currentSound);
-	m_musicFuture = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Gecko.mp3"))->currentSound);
-	m_musicDetected = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Trespass.mp3"))->currentSound);
-	m_player->AddChild((GameObject*)m_musicPresent.get());
-	m_player->AddChild((GameObject*)m_musicFuture.get());
-	m_player->AddChild((GameObject*)m_musicDetected.get());
+	m_musicFuture = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings_Who_Left.mp3"))->currentSound);
+	m_musicDetected = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings_on_Your_Tail.mp3"))->currentSound);
 	m_musicPresent->loop = true;
 	m_musicFuture->loop = true;
 	m_musicDetected->loop = true;
+	m_musicPresent->mix2d3d = 0.0f;
+	m_musicFuture->mix2d3d = 0.0f;
+	m_musicDetected->mix2d3d = 0.0f;
 
-	m_enemyHorn = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_hornVol, 1.0f, 20.0f, 30.0f, (Resources::Get().GetSound("HornHeavyReverb.wav"))->currentSound);
-	m_player->AddChild((GameObject*)m_enemyHorn.get());
+	m_enemyHorn = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_hornVol, 0.8f, 20.0f, 30.0f, (Resources::Get().GetSound("HornHeavyReverb.wav"))->currentSound);
+	m_enemyHorn->mix2d3d = 0.0f;
 
 	// Lighting
 	dirLightOffset = Vec3( 0, 20, -20 ); // TODO: Investigate why other values here don't work. << CULLING ON THE SHADOWS WACKY
 	m_directionalLight = Renderer::GetDirectionalLight();
 	m_directionalLight->transform.position = dirLightOffset; 
 	m_directionalLight->transform.SetRotationEuler({ dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
-	m_directionalLight->diameter = 50.0f;
-	m_directionalLight->intensity = 2.0f;
-	m_directionalLight->color = cs::Color3f(0xFFFFD0);
+	m_directionalLight->diameter = 45.0f;
 
+	m_directionalIntensity = 1.25f;
+	m_directionalColor = cs::Color3f(0xD0D0D0);
+
+	m_ambientColor = cs::Color3f(0xC0C0FF);
+	m_ambientIntensity = 0.26f;
+
+	m_futureDirectionalIntensity = 2.4f;
+	m_futureDirectionalColor = cs::Color3f(0xFFF4C3);
+
+	m_futureAmbientColor = cs::Color3f(0xFFFFC0);
+	m_futureAmbientIntensity = 0.35f;
 }
 
 void Game::DeInit()
@@ -612,16 +802,24 @@ void Game::DeInit()
 
 void Game::LoadHubby()
 {
+	UnLoadPrevious();
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
 	LoadRoom( &m_floor.rooms[0] );
+	m_detectionLevelFloor = 0.0f;
 
-	m_currentRoom->transform.CalculateWorldMatrix();
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update( 0 );
+	m_currentRoom->transform.CalculateWorldMatrix();
+	MovePlayer(Vec3(0, 0, -9.0f), Vec3(0, 0, 1));
+	m_player->ReloadPlayer();
 
 	m_isHubby = true;
-	m_player->transform.position = Vec3(0, 0, 0);
 	Renderer::ExecuteShadowRender();
+
+	m_grafiki->Reload();
+	m_grafiki->enabled = true;
+	m_grafiki->transform.SetRotationEuler(Vec3(0.0f, DEG2RAD * 180.0f, 0.0f));
+	m_currentRoom->AddChild((GameObject*)m_grafiki.get());
 }
 
 void Game::LoadTest()
@@ -629,9 +827,22 @@ void Game::LoadTest()
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[0]);
 
-	m_currentRoom->transform.CalculateWorldMatrix();
+	m_isHubby = false;
+	Renderer::ExecuteShadowRender();
+}
+
+void Game::LoadTutorial()
+{
+	UnLoadPrevious();
+	m_levelHandler->GenerateTutorial(&m_floor, m_envParams);
+	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
+
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update( 0 );
+	MovePlayer(m_floor.startPosition, m_floor.startDirection);
+	m_currentRoom->transform.CalculateWorldMatrix();
+
+	m_player->ReloadPlayer();
 
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
@@ -645,14 +856,13 @@ void Game::LoadGame(uint gameSeed, uint roomCount)
 	params.angleSteps = 0;
 	params.pushSteps = 3;
 
+	UnLoadPrevious();
 	m_levelHandler->GenerateFloor(&m_floor, params, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
-
-	m_player->transform.position = m_floor.startPosition;
-
 	m_currentRoom->transform.CalculateWorldMatrix();
-	m_directionalLight->transform.parent = &m_currentRoom->transform;
-	m_directionalLight->Update(0);
+
+	MovePlayer(m_floor.startPosition, m_floor.startDirection);
+	m_player->ReloadPlayer();
 
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
@@ -667,6 +877,17 @@ void Game::UnLoadPrevious()
 Player* Game::GetPlayer()
 {
 	return m_player.get();
+}
+
+void Game::MovePlayer(Vec3 position, Vec3 direction)
+{
+	m_player->transform.position = position;
+
+	m_player->ResetCamera(direction);
+	
+	Camera& c = Renderer::GetCamera();
+	c.SetPosition(m_player->cameraFollowTarget);
+	c.SetRotation(m_player->cameraLookRotationTarget);
 }
 
 void Game::SetCutSceneMode( bool value )
@@ -694,6 +915,16 @@ float Game::GetMaxStamina()
 	return m_maxStamina;
 }
 
+void Game::GodMode(bool godMode)
+{
+	m_godMode = godMode;
+}
+
+bool Game::IsInHubby()
+{
+	return m_isHubby;
+}
+
 void Game::LoadRoom(Level* level)
 {
 	Mat4 roomOffset =
@@ -702,12 +933,17 @@ void Game::LoadRoom(Level* level)
 
 	Mat4 cylinderOffset =
 		Mat::translation3( 0, -0.02f, 0 ) *
-		Mat::scale3(level->resource->worldWidth * 1.2f, 1.0f, level->resource->worldHeight * 1.2f);
+		Mat::scale3(level->resource->worldWidth * 1.3f, 1.0f, level->resource->worldHeight * 1.6f);
 
 	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
 	m_currentRoom->transform.position = level->position;
 	m_currentRoom->transform.rotation = level->rotation;
 
+	m_currentRoom->transform.CalculateWorldMatrix();
+	m_directionalLight->transform.parent = &m_currentRoom->transform;
+	m_directionalLight->Update(0);
+
+	Renderer::SetFogParameters(level->position, level->resource->worldWidth * 0.55f);
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
 	m_player->currentRoom = m_currentRoom.get();
@@ -735,7 +971,7 @@ void Game::LoadRoom(Level* level)
 			m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
 		}
 	}
-
+	
 	for (LevelPatrol& p : level->resource->patrolsOpen)
 	{
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
@@ -792,12 +1028,7 @@ bool Game::IsDetected(float deltaTime, float enemyDistance, float maximalDistanc
 	m_detectionLevelGlobal += rate * deltaTime;
 	m_detectionLevelFloor += (rate / 3) * deltaTime;
 
-	if (m_detectionLevelGlobal >= 1.0f)
-	{
-		return true; //game over
-	}
-
-	return false; // game is not over
+	return m_detectionLevelGlobal >= 1.0f;
 }
 
 void Game::LowerToFloor(float deltaTime)
@@ -843,24 +1074,78 @@ void Game::SoundUpdate(float deltaTime)
 		if (m_isInFuture)
 		{
 			m_musicPresent->SetVolume(0.0f);
-			m_musicFuture->SetVolume(m_musicVol);
+			m_musicFuture->SetVolume(m_musicVol * 0.7f);
 			m_musicDetected->SetVolume(0.0f);
 		}
 		else
 		{
 			m_musicPresent->SetVolume(m_musicVol);
 			m_musicFuture->SetVolume(0.0f);
-			m_musicDetected->SetVolume(m_musicVol * m_detectionLevelGlobal * (m_timeUnseen <= m_timeBeforeDetectionLowers));
+			float temp = m_detectionLevelGlobal / 0.75f;
+			m_musicDetected->SetVolume(m_musicVol * (temp > 1.0f ? 1.0f : temp));
 		}
 	}
 }
 
+void Game::ResetGameplayValues()
+{
+	m_isInFuture = false;
+	m_isSwitching = false;
+	m_isSeen = false;
+	m_reachedLowestStamina = false;
 
+	m_switchVals.timeSinceSwitch = 0.0f;
+	m_timeUnseen = 0.0f;
+	m_detectionLevelGlobal = 0.0f;
+	m_detectionLevelFloor = 0.0f;
+	m_dangerousTimeInFuture = 0.0f;
+	
+	m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+	m_coolDownCounter = m_timeAbilityCooldown;
+}
 
-void Game::ChangeTimeline(Renderer* renderer)
+void Game::EndRun(Renderer* renderer)
+{
+	if (m_isSwitching)
+	{
+		Renderer::GetCamera().SetFov(m_initialCamFov);
+	}
+
+	ResetGameplayValues();
+	ChangeToPresentTimeline(renderer);
+	
+	LoadHubby();
+
+	// Has to happen after loading hubby for some reason?
+	m_player->ResetStaminaToMax(MAX_STAMINA_STARTING_VALUE);
+}
+
+void Game::EndRunDueToEnemy(Renderer* renderer)
+{
+	m_enemyHorn->Play();
+
+	// More logic for dying from enemy here.
+
+	EndRun(renderer);
+}
+
+void Game::EndRunDueToPoison(Renderer* renderer)
+{
+	// Logic for dying from future poison here.
+
+	EndRun(renderer);
+}
+
+void Game::SwapTimeline(Renderer* renderer)
 {
 	m_isInFuture = !m_isInFuture;
-	renderer->SetTimelineState(m_isInFuture);
+
+	ApplyTimelineState(renderer);
+}
+
+void Game::ApplyTimelineState(Renderer* renderer)
+{
+	Renderer::SetTimelineState(m_isInFuture);
 	m_currentRoom->SetTimeline(m_isInFuture);
 
 	for (int i = 0; i < m_enemies.Size(); i++)
@@ -870,7 +1155,20 @@ void Game::ChangeTimeline(Renderer* renderer)
 			m_enemies[i]->ChangeTimelineState(m_isInFuture);
 		}
 	}
+
 	UpdateTimeSwitchBuffers(renderer);
+}
+
+void Game::ChangeToFutureTimeline(Renderer* renderer)
+{
+	m_isInFuture = true;
+	ApplyTimelineState(renderer);
+}
+
+void Game::ChangeToPresentTimeline(Renderer* renderer)
+{
+	m_isInFuture = false;
+	ApplyTimelineState(renderer);
 }
 
 void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
@@ -882,7 +1180,6 @@ void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
 		m_isInFuture,
 		m_detectionLevelGlobal
 	);
-	
 }
 
 void Game::UpdateEnemyConeBuffers(Renderer* renderer)

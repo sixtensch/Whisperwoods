@@ -25,6 +25,8 @@ namespace CB
 		uint pointCount;
 		Vec3 cameraPosition;
 		uint spotCount;
+		Vec3 fogFocus;
+		float fogRadius;
 	};
 
 	struct MaterialInfo
@@ -36,7 +38,7 @@ namespace CB
 		float glossiness;
 		Vec3 emissive;
 		float height;
-		Vec3 pad;
+		Vec3 ambient;
 		float tiling;
 	};
 

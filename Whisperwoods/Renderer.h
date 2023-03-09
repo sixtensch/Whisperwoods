@@ -49,9 +49,13 @@ public:
 
 	static shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin);
 
+	static void UpdatePPFXInfo(Vec2 vignette, Vec2 contrast, float brightness, float saturation);
+	static void SetAmbientLight(cs::Color3f color, float intensity);
 	static shared_ptr<DirectionalLight> GetDirectionalLight();
 	static bool RegisterLight(shared_ptr<PointLight> pointLight);
 	static bool RegisterLight(shared_ptr<SpotLight> spotLight);
+
+	static void SetFogParameters(Vec3 focus, float radius);
 
 	static Camera& GetCamera();
 	static Window& GetWindow();
@@ -60,7 +64,7 @@ public:
 	// TODO: Check if there is a better way of gaining access to the render core.
 	RenderCore* GetRenderCore();
 
-	void SetTimelineState(bool future);
+	static void SetTimelineState(bool future);
 private:
 	static Renderer* s_singleton;
 

@@ -27,7 +27,12 @@ public:
 	void TargetRenderTexture();
 	void UnbindRenderTexture();
 	void TargetShadowMap();
+
 	void TargetStaticShadowMap();
+	void TargetStaticShadowMapFuture();
+
+	void BindStaticShadowMap(bool future);
+
 	//void TargetBackBuffer(); // Use target render texture if you want to render anything to the scene.
 	void EndFrame();
 
@@ -74,7 +79,8 @@ public:
 	void WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
 		const shared_ptr<DirectionalLight>& lightDirectional,
 		const cs::List<shared_ptr<PointLight>>& lightsPoint,
-		const cs::List<shared_ptr<SpotLight>>& lightsSpot);
+		const cs::List<shared_ptr<SpotLight>>& lightsSpot,
+		Vec3 fogFocus, float fogRadius);
 
 	void WritePPFXThresholdInfo(
 		const float luminanceThreshold, 
@@ -112,6 +118,9 @@ public:
 	void ProfileBegin(const std::string& profileName);
 	void ProfileEnd(const std::string& profileName);
 	void UpdateGPUProfiler();
+
+	void SetFuture(bool future);
+	bool IsInFuture() const;
 
 	bool m_bindShadowPS;
 
@@ -218,10 +227,16 @@ private:
 	ComPtr<ID3D11Buffer> m_lightBufferDir;
 	ComPtr<ID3D11Buffer> m_lightBufferStaging;
 
-	// Shadow resources
+
+	// Shadow Resources Present
 	ComPtr<ID3D11Texture2D> m_shadowStaticTexture;
 	ComPtr<ID3D11DepthStencilView> m_shadowStaticDSV;
 	ComPtr<ID3D11ShaderResourceView> m_shadowStaticSRV;
+	// Shadow Resources Future
+	ComPtr<ID3D11Texture2D> m_shadowFutureTexture;
+	ComPtr<ID3D11DepthStencilView> m_shadowFutureDSV;
+	ComPtr<ID3D11ShaderResourceView> m_shadowFutureSRV;
+
 
 	ComPtr<ID3D11Texture2D> m_shadowTexture;
 	ComPtr<ID3D11DepthStencilView> m_shadowDSV;
@@ -234,4 +249,6 @@ private:
 	std::unique_ptr<dx::SpriteBatch> m_spriteBatch;
 
 	GPUProfiler m_gpuProfiler;
+
+	bool m_drawFuture;
 };
