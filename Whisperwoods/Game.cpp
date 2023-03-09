@@ -25,6 +25,7 @@ Game::Game() :
 	m_coolDownCounter(m_timeAbilityCooldown),
 	m_isCutscene(false),
 	m_isSeen(false)
+
 {
 }
 
@@ -33,8 +34,23 @@ Game::~Game() {}
 // Stamina, pickups, detection etc
 void Game::UpdateGameplayVars( Renderer* renderer )
 {
-	m_coolDownCounter += m_deltaTime * (m_godMode ? 5.0f : 1.0f);
+	if (m_deathEnemy == true)
+	{
+		m_deathEnemy = false;
+		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
+		EndRunDueToEnemy(renderer);
+		activeTutorialLevel = 8;
+	}
+	else if (m_deathPoison == true)
+	{
+		m_deathPoison = false;
+		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
+		EndRunDueToPoison(renderer);
+		activeTutorialLevel = 8;
+	}
 
+	m_coolDownCounter += m_deltaTime * (m_godMode ? 5.0f : 1.0f);
+	showTextForPickupBloom = false;
 	// Player vars
 	m_player->SetGodMode(m_godMode);
 	m_player->playerInFuture = m_isInFuture;
@@ -76,7 +92,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		/// D E A T H ///
 		if (m_dangerousTimeInFuture >= m_timeYouSurviveInFuture) // how long you can survive in future with 0 stamina (seconds)
 		{
-			EndRunDueToPoison(renderer);
+			m_deathPoison = true;
 		}
 	}
 	if (!m_isInFuture)
@@ -95,7 +111,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 			if (!m_godMode && IsDetected(m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance()))
 			{
 				// D E A T H
-				EndRunDueToEnemy(renderer);
+				m_deathEnemy = true;
 			}
 		}
 		else
@@ -178,16 +194,35 @@ void Game::UpdateEnemies( Renderer* renderer )
 // Time logic and Detection logic
 void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 {
+	if (m_loadNewFloor)
+	{
+		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
+		UnLoadPrevious();
+		LoadGame(1, 9);
+		m_player->ReloadPlayer();
+		m_player->hasPickedUpEssenceBloom = false;
+		tutorial = false;
+		m_loadNewFloor = false;
+		return;
+	}
+
 	// Time switch logic.
 	if (!m_isHubby) // if not in hubby
 	{
 		
 		if (Input::Get().IsKeyPressed( KeybindPower ) && IsAllowedToSwitch())
 		{
-			m_isSwitching = true;
-			m_finishedCharging = false;
-			m_initialCamFov = renderer->GetCamera().GetFov();
-			m_player->m_switchSource->Play();
+			if (tutorial && activeTutorialLevel < 6)
+			{
+				// no power yet lmao
+			}
+			else
+			{
+				m_isSwitching = true;
+				m_finishedCharging = false;
+				m_initialCamFov = renderer->GetCamera().GetFov();
+				m_player->m_switchSource->Play();
+			}
 		}
 
 		if (m_isSwitching)
@@ -276,9 +311,9 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 					// Go to next room
 					if (r.targetRoom >= 0)
 					{
+						activeTutorialLevel = r.targetRoom + 1;
 						uint targetIndex = (r.tunnelSubIndex + 1) % 2;
 						const LevelTunnel& t = m_floor.tunnels[r.tunnel];
-
 						UnLoadPrevious();
 						LoadRoom(&m_floor.rooms[r.targetRoom]);
 
@@ -296,40 +331,82 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 					// Floor entrance
 					if (r.targetRoom == -1)
 					{
-
+						
 					}
-
-					// Floor exit
-					if (r.targetRoom == -2)
+					
+					// Floor exit for tutorial
+					if (r.targetRoom == -2)  
 					{
-
+						if (m_player->hasPickedUpEssenceBloom && tutorial)
+						{
+							m_loadNewFloor = true;
+							activeTutorialLevel = 8;
+							m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
+						}
+						else if (!m_player->hasPickedUpEssenceBloom)
+						{
+							//show text for not picking up essence bloom yet
+							showTextForPickupBloom = true;
+						}
+						else if (m_player->hasPickedUpEssenceBloom && !tutorial)
+						{
+							// you win!
+						}
+						
 					}
 				}
 			}
 		}
 
-		if (Input::Get().IsDXKeyPressed( DXKey::H ))
+		if (m_loadingHubby == true)
 		{
 			EndRun(renderer);
+			m_loadingHubby = false;
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
+		}
+		if (Input::Get().IsDXKeyPressed( DXKey::H ))
+		{
+			m_loadingHubby = true;
+			tutorial = false;
+			activeTutorialLevel = 8;
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
 		}
 	}
 	else // If in hubby
 	{
-		if (m_grafiki->InteractPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z)))
+		if (m_loadingHubby == true)
 		{
-			m_grafiki->enabled = false;
-			UnLoadPrevious();
-			LoadGame(1, 9);
-			//LoadTest();
-			
-			m_player->ReloadPlayer();
-			m_grafiki->Reload();
-		}
-		if (Input::Get().IsDXKeyPressed( DXKey::H ))
-		{
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
 			UnLoadPrevious();
 			LoadHubby();
 			m_player->ReloadPlayer();
+			m_loadingHubby = false;
+		}
+		else if (m_loadingTutorial == true)
+		{
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
+			m_loadingTutorial = false;
+			UnLoadPrevious();
+			m_player->hasPickedUpEssenceBloom = false;
+			LoadTutorial();
+			m_player->ReloadPlayer();
+			tutorial = true;
+			activeTutorialLevel = 1;
+		}
+
+
+
+		if (Input::Get().IsDXKeyPressed( DXKey::L ))
+		{
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
+			m_loadingTutorial = true;
+		}
+		else if (Input::Get().IsDXKeyPressed( DXKey::H ))
+		{
+			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
+			m_loadingHubby = true;
+			activeTutorialLevel = 8;
+			tutorial = false;
 		}
 	}
 }
@@ -492,7 +569,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 		UpdateEnemies( renderer );
 
-		UpdateRoomAndTimeSwappingLogic( renderer );
+		UpdateRoomAndTimeSwappingLogic( renderer);
 
 		// Final steps
 		UpdateTimeSwitchBuffers( renderer );
@@ -517,6 +594,15 @@ void Game::Init()
 {
 	m_godMode = false;
 
+	m_loadScreen = shared_ptr<GUI> (new GUI());
+
+	// loading screen
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(0)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(0)->alpha = 1.0f;
+	m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(0)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(0)->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
 
 
 	// Audio test startup
@@ -553,6 +639,7 @@ void Game::Init()
 	// Level handling
 	m_levelHandler = std::make_unique<LevelHandler>();
 	m_levelHandler->LoadFloors();
+	
 
 	// In-world objects and entities
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
@@ -599,12 +686,9 @@ void Game::DeInit()
 
 void Game::LoadHubby()
 {
+
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
 	LoadRoom( &m_floor.rooms[0] );
-
-	m_currentRoom->transform.CalculateWorldMatrix();
-	m_directionalLight->transform.parent = &m_currentRoom->transform;
-	m_directionalLight->Update( 0 );
 
 	m_isHubby = true;
 	m_player->transform.position = Vec3(0, 0, -9.0f);
@@ -620,9 +704,16 @@ void Game::LoadTest()
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[0]);
 
-	m_currentRoom->transform.CalculateWorldMatrix();
-	m_directionalLight->transform.parent = &m_currentRoom->transform;
-	m_directionalLight->Update( 0 );
+	m_isHubby = false;
+	Renderer::ExecuteShadowRender();
+}
+
+void Game::LoadTutorial()
+{
+	m_levelHandler->GenerateTutorial(&m_floor, m_envParams);
+	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
+
+	m_player->transform.position = m_floor.startPosition;
 
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
@@ -640,10 +731,6 @@ void Game::LoadGame(uint gameSeed, uint roomCount)
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
 
 	m_player->transform.position = m_floor.startPosition;
-
-	m_currentRoom->transform.CalculateWorldMatrix();
-	m_directionalLight->transform.parent = &m_currentRoom->transform;
-	m_directionalLight->Update(0);
 
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
@@ -703,6 +790,10 @@ void Game::LoadRoom(Level* level)
 	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
 	m_currentRoom->transform.position = level->position;
 	m_currentRoom->transform.rotation = level->rotation;
+
+	m_currentRoom->transform.CalculateWorldMatrix();
+	m_directionalLight->transform.parent = &m_currentRoom->transform;
+	m_directionalLight->Update(0);
 
 	Renderer::SetFogParameters(level->position, level->resource->worldWidth * 0.55f);
 

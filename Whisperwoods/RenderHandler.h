@@ -84,6 +84,8 @@ public:
 	void SetTimelineStateCurrent();
 	void SetTimelineStateFuture();
 
+	void UpdateStaticShadows(bool future);
+
 	shared_ptr<DirectionalLight> GetDirectionalLight();
 	bool RegisterPointLight(shared_ptr<PointLight> pointLight);
 	bool RegisterSpotLight(shared_ptr<SpotLight> spotLight);
