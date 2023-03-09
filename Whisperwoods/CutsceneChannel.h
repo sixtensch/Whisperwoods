@@ -9,6 +9,12 @@ struct CutsceneChannel
 	std::string name;
 	int32_t sceneFrameDuration;
 	cs::List< shared_ptr<CutsceneKey>> keys;
+
+	// Helper functions.
+	Quaternion Squad(Quaternion q0, Quaternion q1, Quaternion q2, Quaternion q3, float t);
+	Vec3 Lerp(Vec3 a, Vec3 b, float t);
+	Vec3 GetInterpolatedValue(cs::List<Vec3KeyFrame> keys, float time, float duration);
+	Quaternion GetInterpolatedValue(cs::List<QuatKeyFrame> keys, float time, float duration);
 };
 
 struct CutsceneAnimatorChannel : CutsceneChannel
@@ -44,13 +50,16 @@ struct CutsceneCameraChannel : CutsceneChannel
 	Camera* targetCamera;
 	//cs::List< shared_ptr<CutsceneCameraKey>> keys;
 
-	CutsceneCameraChannel( std::string name, Camera* targetCamera ) : targetCamera( targetCamera ) { this->name = name; }
+	CutsceneCameraChannel( std::string name, Camera* targetCamera ) : 
+		targetCamera( targetCamera ) { this->name = name; }
 
 	void AddKey( shared_ptr<CutsceneCameraKey> key )
 	{
 		this->keys.Add( key );
 		//this->keys[this->keys.Size() - 1]->parentChannel = this;
 	}
+
+	void Update(float animationTime, float durationRef);
 };
 
 struct CutsceneTextChannel : CutsceneChannel

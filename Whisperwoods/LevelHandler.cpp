@@ -234,7 +234,7 @@ void LevelHandler::GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParam
 	f.startPosition = Vec3(0, 0, 0);
 
 	// Add a level
-	AddLevelName(f, "twelthLevel");
+	AddLevelName(f, "DuoRoomOne");
 	Environmentalize(f.rooms.Back(), params);
 }
 
@@ -284,17 +284,17 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 			Mat4 stoneMatrix =
 				Mat::translation3(newPosition) *
 				Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-				Mat::scale3(scaleVal * parameters.scaleMultiplierStones);
+				Mat::scale3(cs::fclamp(scaleVal * parameters.scaleMultiplierStones,0.2f,2.0f));
 
 			Mat4 treeMatrix =
 				Mat::translation3(newPosition) *
 				Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-				Mat::scale3(scaleVal * parameters.scaleMultiplierTrees);
+				Mat::scale3( cs::fclamp(scaleVal * parameters.scaleMultiplierTrees, 0.05f, 1.0f));
 
 			Mat4 trunkMatrix =
 				Mat::translation3(newPosition) *
 				Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-				Mat::scale3(scaleVal * parameters.scaleMultiplierTrees*0.25f);
+				Mat::scale3( cs::fclamp(scaleVal * parameters.scaleMultiplierTrees*0.25f,0.01, 1.0f));
 
 			if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagTerrainInner & ~LevelPixelFlagTerrainOuter))
 			{
@@ -345,33 +345,41 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 			}
 			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable))
 			{
+				Mat4 foliageMatrixHuge =
+					Mat::translation3( newPosition ) *
+					Mat::rotation3( cs::c_pi * -0.5f, rotateVal, 0.0f ) *
+					Mat::scale3( cs::fclamp( scaleVal * parameters.scaleMultiplierFoliage * 2.5, 0.1f, 2.2f ) );
 
 				Mat4 foliageMatrix =
 					Mat::translation3(newPosition) *
 					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-					Mat::scale3(scaleVal * parameters.scaleMultiplierFoliage * 3);
+					Mat::scale3( cs::fclamp(scaleVal * parameters.scaleMultiplierFoliage * 1.5f,0.05f, 2.0f));
+				Mat4 foliageMatrix2 =
+					Mat::translation3( newPosition ) *
+					Mat::rotation3( cs::c_pi * -0.5f, rotateVal, 0.0f ) *
+					Mat::scale3( cs::fclamp( scaleVal * parameters.scaleMultiplierFoliage * 1.2f, 0.1, 1.5f));
+				xP = cs::iclamp(x + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
+				xM = cs::iclamp(x - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
+				yP = cs::iclamp(y + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
+				yM = cs::iclamp(y - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
+				xPF = l.resource->bitmap[xP + l.resource->pixelWidth * y].flags;
+				xMF = l.resource->bitmap[xM + l.resource->pixelWidth * y].flags;
+				yPF = l.resource->bitmap[x + l.resource->pixelWidth * yP].flags;
+				yMF = l.resource->bitmap[x + l.resource->pixelWidth * yM].flags;
+				bool edgeTrunk = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
+
+				xP = cs::iclamp(x + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
+				xM = cs::iclamp(x - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
+				yP = cs::iclamp(y + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
+				yM = cs::iclamp(y - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
+				xPF = l.resource->bitmap[xP + l.resource->pixelWidth * y].flags;
+				xMF = l.resource->bitmap[xM + l.resource->pixelWidth * y].flags;
+				yPF = l.resource->bitmap[x + l.resource->pixelWidth * yP].flags;
+				yMF = l.resource->bitmap[x + l.resource->pixelWidth * yM].flags;
+				bool edgeTree = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
 				if (noiseVal < parameters.densityUnwalkableOuter)
 				{
 
-					xP = cs::iclamp(x + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
-					xM = cs::iclamp(x - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
-					yP = cs::iclamp(y + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
-					yM = cs::iclamp(y - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
-					xPF = l.resource->bitmap[xP + l.resource->pixelWidth * y].flags;
-					xMF = l.resource->bitmap[xM + l.resource->pixelWidth * y].flags;
-					yPF = l.resource->bitmap[x + l.resource->pixelWidth * yP].flags;
-					yMF = l.resource->bitmap[x + l.resource->pixelWidth * yM].flags;
-					bool edgeTrunk = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
-
-					xP = cs::iclamp(x + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
-					xM = cs::iclamp(x - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
-					yP = cs::iclamp(y + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
-					yM = cs::iclamp(y - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
-					xPF = l.resource->bitmap[xP + l.resource->pixelWidth * y].flags;
-					xMF = l.resource->bitmap[xM + l.resource->pixelWidth * y].flags;
-					yPF = l.resource->bitmap[x + l.resource->pixelWidth * yP].flags;
-					yMF = l.resource->bitmap[x + l.resource->pixelWidth * yM].flags;
-					bool edgeTree = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
 
 					if (diversityVal < 0.1f && !edgeStones)
 					{
@@ -407,9 +415,29 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 					}
 				}
 
-				if (noiseVal < parameters.densityWalkable*0.5f)
+				if (noiseVal < parameters.densityUnwalkableOuter * 1.5f)
+				{
+					if (diversityVal < 0.5f && !edgeStones)
+					{
+						l.instances[LevelAssetStone1].Add( stoneMatrix );
+					}
+					else if (diversityVal < 0.8f && !edgeStones)
+					{
+						l.instances[LevelAssetStone2].Add( stoneMatrix );
+					}
+				}
+
+				if (noiseVal < parameters.densityWalkable * 0.5f && !edgeTree)
+				{
+					l.instances[LevelAssetBush1].Add( foliageMatrixHuge );
+				}
+				else if (noiseVal < parameters.densityWalkable * 0.5f && !edgeStones)
 				{
 					l.instances[LevelAssetBush1].Add(foliageMatrix);
+				}
+				else if (noiseVal < parameters.densityWalkable * 0.5f)
+				{
+					l.instances[LevelAssetBush1].Add(foliageMatrix2);
 				}
 			}
 			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].density != 0))
@@ -418,7 +446,7 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 				Mat4 foliageMatrix =
 					Mat::translation3(newPosition) *
 					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-					Mat::scale3(scaleVal * parameters.scaleMultiplierFoliage * (density * (1.0f - parameters.scaleEffectDensity)) );
+					Mat::scale3(cs::fclamp(scaleVal * parameters.scaleMultiplierFoliage * (density * (1.0f - parameters.scaleEffectDensity)),0.1f, 2.0f ));
 
 				if (density > parameters.minDensity && noiseVal < parameters.densityWalkable)
 				{

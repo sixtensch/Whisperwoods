@@ -133,7 +133,7 @@ MouseState Input::GetLastMouseState() const
 	return m_lastMouseState;
 }
 
-void Input::SetMode(dx::Mouse::Mode mouseMode)
+void Input::SetMouseMode(dx::Mouse::Mode mouseMode)
 {
 	m_mouse->SetMode(mouseMode);
 }

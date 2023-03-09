@@ -27,6 +27,7 @@ public:
 	const Vec3 GetRight();
 	const Quaternion GetRotation() const;
 
+	const Vec3 GetWPosition();
 	const Vec3 GetPosition() const;
 	const Mat4 GetWorldMatrix() const;
 	const Mat4 GetViewMatrix() const;
@@ -35,6 +36,7 @@ public:
 	float GetFov() const;
 	void SetFov(float fov);
 
+	Transform m_transform;
 private:
 	float m_fov, m_ratio, m_near, m_far;
 	float m_cameraSpeed = 10; //how fast the camera is moving, change value after need! 
@@ -42,6 +44,5 @@ private:
 	Mat4 m_projection; // matrix
 	Mat4 m_worldMatrix; 
 
-	Transform m_transform;
 
 };
