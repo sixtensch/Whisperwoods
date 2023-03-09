@@ -125,8 +125,10 @@ private:
 	};
 
 	EnvironmentalizeParameters m_envParams;
-	
+	public:
 	bool m_isCutScene;
+	private:
+
 	bool m_isHubby;
 	bool m_isInFuture;
 	bool m_isSwitching; // Switching = is true during whole duration (start + end) of time switch.

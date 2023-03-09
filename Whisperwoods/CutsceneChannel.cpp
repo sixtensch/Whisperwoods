@@ -19,6 +19,7 @@ Quaternion CutsceneChannel::Squad(Quaternion q0, Quaternion q1, Quaternion q2, Q
 
 Vec3 CutsceneChannel::GetInterpolatedValue(cs::List<Vec3KeyFrame> keys, float time, float duration)
 {
+	if (keys.Size() == 0) return Vec3();
 	//int index = (int)((float)t * (float)keys.size());
 	int index = 0;
 	float actualTime = time * duration;
@@ -60,6 +61,7 @@ Vec3 CutsceneChannel::GetInterpolatedValue(cs::List<Vec3KeyFrame> keys, float ti
 
 Quaternion CutsceneChannel::GetInterpolatedValue(cs::List<QuatKeyFrame> keys, float time, float duration)
 {
+	if (keys.Size() == 0) return Quaternion();
 	int index = 0;
 	float actualTime = time * duration;
 	for (int i = 0; i < keys.Size(); i++)
@@ -145,14 +147,14 @@ void CutsceneCameraChannel::Update(float animationTime, float durationRef)
 
 	for (int i = 0; i < keys.Size(); i++)
 	{
-		CutsceneCameraKey* key = static_cast<CutsceneCameraKey*>(keys[i].get());
+		CutsceneCameraKey* key = &keys[i];
 		Vec3KeyFrame newPosKey;
-		newPosKey.time = key->frame;
+		newPosKey.time = (float)key->frame;
 		newPosKey.value = key->pos;
 		positionFrames.Add(newPosKey);
 
 		QuatKeyFrame newRotKey;
-		newRotKey.time = key->frame;
+		newRotKey.time = (float)key->frame;
 		newRotKey.value = key->rot;
 		rotationFrames.Add(newRotKey);
 	}
@@ -162,7 +164,47 @@ void CutsceneCameraChannel::Update(float animationTime, float durationRef)
 	
 	targetCamera->SetPosition(interpolatedPos);
 	targetCamera->SetRotation(interpolatedRot);
-
-
 }
 
+void CutsceneTransformChannel::Update(float animationTime, float durationRef)
+{
+	cs::List<Vec3KeyFrame> positionFrames;
+	cs::List<QuatKeyFrame> rotationFrames;
+	for (int i = 0; i < keys.Size(); i++)
+	{
+		CutsceneTransformKey* key = &keys[i];
+		Vec3KeyFrame newPosKey;
+		newPosKey.time = (float)key->frame;
+		newPosKey.value = key->pos;
+		positionFrames.Add(newPosKey);
+
+		QuatKeyFrame newRotKey;
+		newRotKey.time = (float)key->frame;
+		newRotKey.value = key->rot;
+		rotationFrames.Add(newRotKey);
+	}
+	Vec3 interpolatedPos = GetInterpolatedValue(positionFrames, animationTime, durationRef);
+	Quaternion interpolatedRot = GetInterpolatedValue(rotationFrames, animationTime, durationRef);
+
+	targetTransform->position = interpolatedPos;
+	targetTransform->rotation = interpolatedRot;
+}
+
+void CutsceneAnimatorChannel::Update(float animationTime, float durationRef)
+{
+	int currentFrameInt = (int)(animationTime * (float)durationRef);
+	for (int i = 0; i < keys.Size(); i++)
+	{
+		if (keys[i].frame == currentFrameInt)
+		{
+			CutsceneAnimationTriggerKey* key = &keys[i];
+			if (!targetAnimator->IsPlaying(key->targetAnimation))
+			{
+				targetAnimator->playbackSpeed = key->animationSpeed;
+				targetAnimator->PlayAnimation(key->targetAnimation, key->animationTime, 1.0f, key->loopAnimation, true);
+				LOG_TRACE("Play: %d", key->targetAnimation);
+			}
+			break;
+		}
+	}
+}

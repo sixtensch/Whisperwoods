@@ -2,6 +2,7 @@
 #include "CutsceneController.h"
 #include <imgui.h>
 #include <imgui_neo_sequencer.h>
+#include "WWCBuilder.h"
 
 CutsceneController::CutsceneController()
 {
@@ -30,13 +31,13 @@ void CutsceneController::ActivateCutscene( int index )
     }
 }
 
-bool CompareFrame(shared_ptr<CutsceneKey> i, shared_ptr<CutsceneKey> j)
+bool CompareFrame(CutsceneKey i, CutsceneKey j)
 {
-    return (i->frame < j->frame);
+    return (i.frame < j.frame);
 }
-bool CompareTime(shared_ptr<CutsceneKey> i, shared_ptr<CutsceneKey> j)
+bool CompareTime(CutsceneKey i, CutsceneKey j)
 {
-    return (i->time < j->time);
+    return (i.time < j.time);
 }
 
 void CutsceneController::Update()
@@ -45,16 +46,48 @@ void CutsceneController::Update()
 
 
     CutsceneCameraChannel* cameraChannel = nullptr;
+   // CutsceneAnimatorChannel* animatorChannel1 = nullptr;
+   // CutsceneAnimatorChannel* animatorChannel2 = nullptr;
+
+    cs::List<CutsceneAnimatorChannel*> animatorChannels;
+
     int camIndex = -1;
+   // int animIndex1 = -1;
+   // int animIndex2 = -1;
+
     if (activeCutscene)
     {
         for (int i = 0; i < activeCutscene->channels.Size(); i++)
         {
-            if (static_cast<CutsceneCameraChannel*>(activeCutscene->channels[i].get()))
+            if (dynamic_cast<CutsceneCameraChannel*>(activeCutscene->channels[i].get()))
+            //if (activeCutscene->channels[i].get()->channelType == CutsceneTypeCamera)
             {
-                cameraChannel = static_cast<CutsceneCameraChannel*>(activeCutscene->channels[i].get());
+                cameraChannel = (CutsceneCameraChannel*)(activeCutscene->channels[i].get());
                 camIndex = i;
                 break;
+            }
+        }
+
+        for (int i = 0; i < activeCutscene->channels.Size(); i++)
+        {
+            if (dynamic_cast<CutsceneAnimatorChannel*>(activeCutscene->channels[i].get()))
+            //if (activeCutscene->channels[i].get()->channelType == CutsceneTypeAnimator)
+            {
+                animatorChannels.Add((CutsceneAnimatorChannel*)activeCutscene->channels[i].get());
+
+
+                //if (animIndex1 < 0)
+                //{
+                //    animatorChannel1 = (CutsceneAnimatorChannel*)activeCutscene->channels[i].get();
+                //    animIndex1 = i;
+                //    //break;
+                //}
+                //else
+                //{
+                //    animatorChannel2 = static_cast<CutsceneAnimatorChannel*>(activeCutscene->channels[i].get());
+                //    animIndex2 = i;
+                //    break;
+                //}
             }
         }
     }
@@ -62,36 +95,122 @@ void CutsceneController::Update()
 	if (ImGui::Begin( "Cutscene controller" ))
 	{
         ImGui::Checkbox("Cutscene Active", &m_cutSceneActive);
-
         ImGui::Text( "Current frame: %d \n Start Frame: %d \n End Frame: %d \n Transform open: %d \n selected %d", currentFrame, startFrame, endFrame, transformOpen, selected );
 
-        ImGui::Text( "KeyFrames: " );
+        /*ImGui::Text( "KeyFrames: " );
         for (int i = 0; i < keys.size(); i++)
         {
             ImGui::Text( "%d  Key: %d", i, keys[i]);
-        }
-        
+        }      
         ImGui::DragInt( "Time to add", &keyTime );
         if (ImGui::Button( "Add Keyframe" ))
         {
             keys.push_back( keyTime );
+        }*/
+
+        if (ImGui::CollapsingHeader("Camera Key Adding", m_cameraKeyOpen))
+        {
+            if (cameraChannel != nullptr)
+            {
+                Camera* cam = cameraChannel->targetCamera;
+                Vec3 camPos = cam->GetPosition();
+                Quaternion camRot = cam->GetRotation();
+                ImGui::Text("Camera channel: %d ", camIndex);
+                ImGui::Text("Camera Pos: %.3f %.3f %.3f \nCamera Rot %.3f %.3f %.3f %.3f ",
+                    camPos.x, camPos.y, camPos.z, camRot.x, camRot.y, camRot.z, camRot.w);
+                if (ImGui::Button("Add Camera Keyframe"))
+                {
+                    cameraChannel->AddKey(CutsceneCameraKey((float)currentFrame / (float)endFrame, camPos, camRot, 90, 1));
+                    cameraChannel->keys[cameraChannel->keys.Size() - 1].frame = currentFrame;
+                    //CutsceneCameraKey* debug = (CutsceneCameraKey*)cameraChannel->keys[cameraChannel->keys.Size() - 1];
+                    //float time = debug->time;
+                    std::sort(&cameraChannel->keys.Front(), &cameraChannel->keys.Back() + 1, CompareFrame);
+                }
+            }
         }
 
-        if (cameraChannel)
+        static int animationIndex;
+        static float animationStartTime;
+        static float animationPlaySpeed;
+        static bool animationLoop;
+        if (ImGui::CollapsingHeader("Animation Key Adding", m_animatorKeyOpen))
         {
-            Camera* cam = cameraChannel->targetCamera;
-            Vec3 camPos = cam->GetPosition();
-            Quaternion camRot = cam->GetRotation();
-            ImGui::Text("Camera channel: %d ", camIndex);
-            ImGui::Text("Camera Pos: %.3f %.3f %.3f \nCamera Rot %.3f %.3f %.3f %.3f ",
-                camPos.x, camPos.y, camPos.z, camRot.x, camRot.y, camRot.z, camRot.w);
-            if (ImGui::Button("Add Camera Keyframe"))
+            for (int i = 0; i < animatorChannels.Size(); i++)
             {
-                cameraChannel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey((float)currentFrame /(float)endFrame, camPos, camRot, 90, 1)));
-                cameraChannel->keys[cameraChannel->keys.Size()-1]->frame = currentFrame;
-                CutsceneCameraKey* debug = (CutsceneCameraKey*)cameraChannel->keys[cameraChannel->keys.Size() - 1].get();
-                float time = debug->time;
-                std::sort(&cameraChannel->keys.Front(), &cameraChannel->keys.Back() + 1, CompareFrame);
+                CutsceneAnimatorChannel* channel = animatorChannels[i];
+                std::string headerText = "Animator channel: " + channel->name;
+                if (ImGui::TreeNode(headerText.c_str()))
+                {
+                    Animator* animator = channel->targetAnimator;
+                    //ImGui::Text("Animator channel: %s ", channel->name.c_str());
+
+                    if (animator->loadedAnimations.Size() > 0)
+                    {
+                        for (int i = 0; i < animator->loadedAnimations.Size(); i++)
+                        {
+                            //if (&animator->loadedAnimations[i] != nullptr)
+                            ImGui::Text("Target animator anim %s ", animator->loadedAnimations[i].sourceAnimation->name.c_str());
+                        }
+
+                        ImGui::DragInt("Animation index to add", &animationIndex);
+                        ImGui::DragFloat("Animation start time", &animationStartTime, 0.1f, 0.0f, 1.0f);
+                        ImGui::DragFloat("Animation play speed", &animationPlaySpeed, 0.1f, 0.0f, 2.0f);
+                        ImGui::Checkbox("Loop animation", &animationLoop);
+                        if (ImGui::Button("Add Animation Trigger Keyframe"))
+                        {
+                            channel->AddKey(CutsceneAnimationTriggerKey(
+                                    (float)currentFrame / (float)endFrame,
+                                    animationIndex,
+                                    animationStartTime,
+                                    animationPlaySpeed, animationLoop));
+                            channel->keys[channel->keys.Size() - 1].frame = currentFrame;
+                            std::sort(&channel->keys.Front(), &channel->keys.Back() + 1, CompareFrame);
+                        }
+                    }
+                    ImGui::TreePop();
+                }
+            }
+            //if (animatorChannel1 != nullptr)
+            //{
+            //    shared_ptr<Animator> animator = animatorChannel1->targetAnimator;
+            //    ImGui::Text("Animator channel 1: %d ", animIndex1);
+
+            //    if (animator->loadedAnimations.Size() > 0)
+            //    {
+            //        for (int i = 0; i < animator->loadedAnimations.Size(); i++)
+            //        {
+            //            //if (&animator->loadedAnimations[i] != nullptr)
+            //            ImGui::Text("Target animator anim %d ", i);
+            //        }
+
+            //        ImGui::DragInt("Animation index to add", &animationIndex);
+            //        ImGui::DragFloat("Animation start time", &animationStartTime, 0.1f, 0.0f, 1.0f);
+            //        ImGui::DragFloat("Animation play speed", &animationPlaySpeed, 0.1f, 0.0f, 2.0f);
+            //        ImGui::Checkbox("Loop animation", &animationLoop);
+            //        if (ImGui::Button("Add Animation Trigger Keyframe"))
+            //        {
+            //            animatorChannel1->AddKey(shared_ptr<CutsceneAnimationTriggerKey>(
+            //                new CutsceneAnimationTriggerKey(
+            //                    (float)currentFrame / (float)endFrame,
+            //                    animationIndex,
+            //                    animationStartTime,
+            //                    animationPlaySpeed, animationLoop)));
+            //            animatorChannel1->keys[animatorChannel1->keys.Size() - 1]->frame = currentFrame;
+            //            std::sort(&animatorChannel1->keys.Front(), &animatorChannel1->keys.Back() + 1, CompareFrame);
+            //        }
+            //    }
+            //}
+        }
+
+        static std::string saveName;
+        static char buf[128];
+        if (ImGui::CollapsingHeader("WWC Saving", m_savingOpen))
+        {
+           // ImGui::InputText("Save Name", buf, 128);
+            //activeCutscene->name = std::string(buf);
+            if (ImGui::Button("Save current timeline"))
+            {
+                SaveWWC(activeCutscene);
             }
         }
 
@@ -109,17 +228,92 @@ void CutsceneController::Update()
                     {
                         if (ImGui::BeginNeoTimelineEx( activeCutscene->channels[i]->name.c_str(), &channelTabs[i]))
                         {
-                            for (auto&& v : activeCutscene->channels[i]->keys)
+                            if (activeCutscene->channels[i]->channelType == CutsceneTypeAnimator)
                             {
-                                ImGui::NeoKeyframe( &v->frame);
-
-                                if (ImGui::IsNeoKeyframeSelected())
+                                CutsceneAnimatorChannel* channel = (CutsceneAnimatorChannel*)activeCutscene->channels[i].get();
+                                for (auto&& v : channel->keys)
                                 {
-                                    selected = v->frame;
-                                }
-                                // Per keyframe code here
-                            }
+                                    ImGui::NeoKeyframe(&v.frame);
 
+                                    if (ImGui::IsNeoKeyframeSelected())
+                                    {
+                                        selected = v.frame;
+                                    }
+                                    // Per keyframe code here
+                                }
+                            }
+                            else if (activeCutscene->channels[i]->channelType == CutsceneTypeTransform)
+                            {
+                                CutsceneTransformChannel* channel = (CutsceneTransformChannel*)activeCutscene->channels[i].get();
+                                for (auto&& v : channel->keys)
+                                {
+                                    ImGui::NeoKeyframe(&v.frame);
+
+                                    if (ImGui::IsNeoKeyframeSelected())
+                                    {
+                                        selected = v.frame;
+                                    }
+                                    // Per keyframe code here
+                                }
+                            }
+                            else if (activeCutscene->channels[i]->channelType == CutsceneTypeCamera)
+                            {
+                                CutsceneCameraChannel* channel = (CutsceneCameraChannel*)activeCutscene->channels[i].get();
+                                for (auto&& v : channel->keys)
+                                {
+                                    ImGui::NeoKeyframe(&v.frame);
+
+                                    if (ImGui::IsNeoKeyframeSelected())
+                                    {
+                                        selected = v.frame;
+                                    }
+                                    // Per keyframe code here
+                                }
+                            }
+                            else if (activeCutscene->channels[i]->channelType == CutsceneTypeGUI)
+                            {
+                                CutsceneGUIChannel* channel = (CutsceneGUIChannel*)activeCutscene->channels[i].get();
+                                for (auto&& v : channel->keys)
+                                {
+                                    ImGui::NeoKeyframe(&v.frame);
+
+                                    if (ImGui::IsNeoKeyframeSelected())
+                                    {
+                                        selected = v.frame;
+                                    }
+                                    // Per keyframe code here
+                                }
+                            }
+                            else if (activeCutscene->channels[i]->channelType == CutsceneTypeText)
+                            {
+                                CutsceneTextChannel* channel = (CutsceneTextChannel*)activeCutscene->channels[i].get();
+                                for (auto&& v : channel->keys)
+                                {
+                                    ImGui::NeoKeyframe(&v.frame);
+
+                                    if (ImGui::IsNeoKeyframeSelected())
+                                    {
+                                        selected = v.frame;
+                                    }
+                                    // Per keyframe code here
+                                }
+                            }
+                            //for (int i = 0; i < activeCutscene->channels[i]->numKeys; i++)
+                            //{
+                            //    CutsceneAnimatorChannel* channel = (CutsceneAnimatorChannel*)&activeCutscene->channels[i];
+                            //    for (auto&& v : channel->keys)
+                            //    {
+                            //        ImGui::NeoKeyframe(&v.frame);
+
+                            //        if (ImGui::IsNeoKeyframeSelected())
+                            //        {
+                            //            selected = v.frame;
+                            //        }
+                            //        // Per keyframe code here
+                            //    }
+
+                            //}
+                            
                             ImGui::EndNeoTimeLine();
                         }
                     }

@@ -4,8 +4,8 @@
 
 class CutsceneController
 {
-
 public:
+
 	CutsceneController();
 
 	// Test vars for the timeline
@@ -17,6 +17,13 @@ public:
 	bool transformOpen = false;
 	std::vector<int> keys;
 	bool doDelete = false;
+
+	bool m_cameraKeyOpen;
+	bool m_animatorKeyOpen;
+	bool m_transformKeyOpen;
+	bool m_uiKeyOpen;
+
+	bool m_savingOpen;
 
 	cs::List<bool> channelTabs;
 
@@ -32,6 +39,5 @@ public:
 	void ActivateCutscene( int index );
 
 	void Update();
-
 
 };
