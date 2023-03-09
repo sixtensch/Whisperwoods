@@ -10,6 +10,7 @@
 #include "LevelHandler.h"
 #include "TextRenderable.h"
 #include "GUI.h"
+#include "Grafiki.h"
 
 constexpr float STAMINA_DECAY_MULTIPLIER = 0.2f;
 constexpr float MAX_STAMINA_STARTING_VALUE = 10.0f;
@@ -105,6 +106,8 @@ private:
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
+
+	shared_ptr<Grafiki> m_grafiki;
 
 	float m_musicVol = 0.3;
 	shared_ptr<AudioSource> m_musicPresent;

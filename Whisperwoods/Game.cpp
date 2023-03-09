@@ -129,6 +129,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 void Game::UpdateGameObjects()
 {
 	m_player->Update( m_deltaTime );
+	m_grafiki->Update(m_deltaTime);
 	m_currentRoom->Update( m_deltaTime );
 	for (int i = 0; i < m_staticObjects.Size(); i++)
 	{
@@ -383,6 +384,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			UnLoadPrevious();
 			LoadHubby();
 			m_player->ReloadPlayer();
+			m_grafiki->Reload();
 			m_loadingHubby = false;
 		}
 		else if (m_loadingTutorial == true)
@@ -399,8 +401,9 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 
 
 
-		if (Input::Get().IsDXKeyPressed( DXKey::L ))
+		if (m_grafiki->InteractPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z)))
 		{
+			m_grafiki->enabled = false;
 			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
 			m_loadingTutorial = true;
 		}
@@ -673,6 +676,7 @@ void Game::Init()
 
 	// In-world objects and entities
 	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
+	m_grafiki = make_shared<Grafiki>();
 
 	//Music
 	m_musicPresent = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_musicVol, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings.mp3"))->currentSound);
@@ -720,8 +724,12 @@ void Game::LoadHubby()
 	LoadRoom( &m_floor.rooms[0] );
 
 	m_isHubby = true;
-	m_player->transform.position = Vec3(0, 0, 0);
+	m_player->transform.position = Vec3(0, 0, -9.0f);
 	Renderer::ExecuteShadowRender();
+
+	m_grafiki->enabled = true;
+	m_grafiki->transform.SetRotationEuler(Vec3(0.0f, DEG2RAD * 180.0f, 0.0f));
+	m_currentRoom->AddChild((GameObject*)m_grafiki.get());
 }
 
 void Game::LoadTest()
@@ -998,6 +1006,7 @@ void Game::EndRun(Renderer* renderer)
 	// Has to happen after loading hubby for some reason?
 	m_player->ResetStaminaToMax(MAX_STAMINA_STARTING_VALUE);
 	m_player->ReloadPlayer();
+	m_grafiki->Reload();
 }
 
 void Game::EndRunDueToEnemy(Renderer* renderer)
