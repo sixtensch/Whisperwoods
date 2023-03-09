@@ -98,8 +98,16 @@ private:
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
+	cs::Color3f m_ambientColor;
+	float m_ambientIntensity;
+	cs::Color3f m_futureAmbientColor;
+	float m_futureAmbientIntensity;
+	cs::Color3f m_directionalColor;
+	float m_directionalIntensity;
+	cs::Color3f m_futureDirectionalColor;
+	float m_futureDirectionalIntensity;
 
-	float m_musicVol = 0.3;
+	float m_musicVol = 0.3f;
 	shared_ptr<AudioSource> m_musicPresent;
 	shared_ptr<AudioSource> m_musicFuture;
 	shared_ptr<AudioSource> m_musicDetected;
@@ -123,8 +131,6 @@ private:
 	// Current floor data
 	LevelFloor m_floor;
 	shared_ptr<Room> m_currentRoom;
-
-private:
 
 
 	// TODO: Might benefit of becoming more of a CLASS that HANDLES time switching.

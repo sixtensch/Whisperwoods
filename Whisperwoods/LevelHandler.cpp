@@ -274,17 +274,7 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 	cs::NoiseSimplex simplexerRotate(parameters.rotationSeed);
 	cs::NoiseSimplex simplexerDiversity(parameters.diversitySeed);
 
-	auto sample = [&](int x, int y)
-	{
-		if (x < 0 || y < 0 || x >= l.resource->pixelWidth || y >= l.resource->pixelHeight)
-		{
-			return LevelPixel{ LevelPixelFlagImpassable, 1.0f };
-		}
-
-		return l.resource->bitmap[x + l.resource->pixelWidth * y];
-	};
-
-	float pushOutFactor = 1.0f;
+	float pushOutFactor = 1.2f;
 	float radiusFactor = std::sqrtf(2.0f) * pushOutFactor;
 	int maxSize = std::max(l.resource->pixelWidth, l.resource->pixelHeight);
 	int extraRadius = (int)((radiusFactor - 1.0f) * 0.5f * maxSize);
@@ -292,7 +282,58 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 	float distanceBoundary = maxSize * 0.5f + extraRadius - 3.0f * BM_PIXELS_PER_UNIT;
 	distanceBoundary *= distanceBoundary;
 
+	float innerPushOutFactor = 1.0f;
+	float innerRadiusFactor = std::sqrtf(2.0f) * innerPushOutFactor;
+	int innerMaxSize = std::max(l.resource->pixelWidth, l.resource->pixelHeight);
+	float innerDistanceBoundary = (int)((innerRadiusFactor) * 0.5f * innerMaxSize) - 3.0f * BM_PIXELS_PER_UNIT;
+	innerDistanceBoundary *= innerDistanceBoundary;
+
 	Vec2 center(l.resource->pixelWidth * 0.5f, l.resource->pixelHeight * 0.5f);
+
+	bool outside = false;
+
+	auto sample = [&](int x, int y)
+	{
+		outside = false;
+
+		Vec3 pos = l.position + l.rotation * Vec3(x * BM_PIXEL_SIZE - l.resource->worldWidth * 0.5f, -0.2f, -y * BM_PIXEL_SIZE + l.resource->worldHeight * 0.5f);
+		bool tunnelEdge = false;
+
+		for (const LevelTunnelRef& r : l.connections)
+		{
+			Vec3 sideDir = Vec3(r.direction.z, 0.0f, -r.direction.x);
+			Vec3 relative = pos - r.position;
+
+			float distance = relative * r.direction;
+			float sideDistance = abs(relative * sideDir);
+
+			if (distance > -0.5f)
+			{
+				if (sideDistance < r.width * 4.0f)
+				{
+					if (sideDistance < r.width * 0.7f)
+					{
+						return LevelPixel{ LevelPixelFlagPassable, 0.0f };
+					}
+
+					return LevelPixel{ LevelPixelFlagImpassable, 1.0f };
+				}
+			}
+		}
+
+		if ((Vec2(x, y) - center).LengthSq() > innerDistanceBoundary)
+		{
+			outside = true;
+			return LevelPixel{ LevelPixelFlagPassable, 0.0f };
+		}
+
+		if (x < 0 || y < 0 || x >= l.resource->pixelWidth || y >= l.resource->pixelHeight)
+		{
+			return LevelPixel{ LevelPixelFlagImpassable, 1.0f };
+		}
+
+		return l.resource->bitmap[x + l.resource->pixelWidth * y];
+	};
 	
 	for (int x = 0 - extraRadius; x < (int)l.resource->pixelWidth + extraRadius; x++)
 	{
@@ -303,9 +344,15 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 				continue;
 			}
 
+			LevelPixelFlag current = sample(x, y).flags;
+
+			if (outside)
+			{
+				continue;
+			}
+
 			Vec3 newPosition = l.position + l.rotation * Vec3(x * BM_PIXEL_SIZE - l.resource->worldWidth * 0.5f, -0.2f, -y * BM_PIXEL_SIZE + l.resource->worldHeight * 0.5f);
 
-			LevelPixelFlag current = sample(x, y).flags;
 			int xP = cs::iclamp(x + parameters.edgeSampleDistanceStones, 0, (int)l.resource->pixelWidth - 1);
 			int xM = cs::iclamp(x - parameters.edgeSampleDistanceStones, 0, (int)l.resource->pixelWidth - 1);
 			int yP = cs::iclamp(y + parameters.edgeSampleDistanceStones, 0, (int)l.resource->pixelHeight - 1);

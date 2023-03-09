@@ -110,7 +110,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
     float3 color = renderTexture.Load(texPos).rgb + lumSumTexture.Load(lumSumTexPos).rgb;
     
     //color = pow(color, (1.0f / 2.2f)); // Gamma correction.
-    color = AcesTonemap(color);
+    //color = AcesTonemap(color);
     
      // Color stuff.
     {

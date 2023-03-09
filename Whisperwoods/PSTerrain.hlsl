@@ -148,10 +148,10 @@ PS_OUTPUT main(VSOutput input)
         // Compensate for the stretch
         float2 uvNoTile = input.outUV.xy;
         uvNoTile.x -= 0.5f;
-        uvNoTile.x *= 1.3f;
+        uvNoTile.x *= 1.6f;
         uvNoTile.x += 0.5f;
         uvNoTile.y += 0.5f;
-        uvNoTile.y *= 1.3f;
+        uvNoTile.y *= 1.6f;
         uvNoTile.y -= 0.5f;
         // Bitmap sample
         float4 bitmapSample = textureBitmap.Sample(textureSampler, uvNoTile);

@@ -49,6 +49,8 @@ public:
 
 	static shared_ptr<TextRenderable> CreateTextRenderable(const wchar_t* text, dx::SimpleMath::Vector2 fontPos, Font font, cs::Color4f color, Vec2 origin);
 
+	static void UpdatePPFXInfo(Vec2 vignette, Vec2 contrast, float brightness, float saturation);
+	static void SetAmbientLight(cs::Color3f color, float intensity);
 	static shared_ptr<DirectionalLight> GetDirectionalLight();
 	static bool RegisterLight(shared_ptr<PointLight> pointLight);
 	static bool RegisterLight(shared_ptr<SpotLight> spotLight);

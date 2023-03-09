@@ -370,6 +370,42 @@ void Game::DrawIMGUIWindows()
 	}
 	ImGui::End();
 
+	static Vec2 vignette = Vec2(0.5f, 1.0f);
+	static Vec2 contrast = Vec2(1.0f, 0.4f);
+	static float brightness = 0.0f;
+	static float saturation = 1.25f;
+	static bool firstSet = true;
+
+	if (ImGui::Begin("Color Settings"))
+	{
+		float speed = 0.01f;
+		bool changed = false;
+		changed |= ImGui::DragFloat2("Vignette Radius & Strength", (float*)&vignette, speed, 0.0f, FLT_MAX);
+		changed |= ImGui::DragFloat2("Contrast Amount & Midpoint", (float*)&contrast, speed, 0.0f);
+		changed |= ImGui::DragFloat("Brightness", &brightness, speed, 0.0f, FLT_MAX);
+		changed |= ImGui::DragFloat("Saturation", &saturation, speed, 0.0f, FLT_MAX);
+
+		if (changed || firstSet)
+		{
+			firstSet = false;
+			Renderer::UpdatePPFXInfo(vignette, contrast, brightness, saturation);
+		}
+
+		ImGui::Separator();
+		ImGui::ColorEdit3("Ambient Color", (float*)&m_ambientColor);
+		ImGui::DragFloat("Ambient Intensity", &m_ambientIntensity, 0.01f, 0.0f, 1.0f);
+		ImGui::ColorEdit3("Dir Color", (float*)&m_directionalColor);
+		ImGui::DragFloat("Dir Intensity", (float*)&m_directionalIntensity, 0.01f, 0.0f, 4.0f);
+
+		ImGui::Spacing();
+		ImGui::ColorEdit3("Future Ambient Color", (float*)&m_futureAmbientColor);
+		ImGui::DragFloat("Future Ambient Intensity", &m_futureAmbientIntensity, 0.01f, 0.0f, 1.0f);
+		ImGui::ColorEdit3("Future Dir Color", (float*)&m_futureDirectionalColor);
+		ImGui::DragFloat("Future Dir Intensity", (float*)&m_futureDirectionalIntensity, 0.01f, 0.0f, 4.0f);
+	}
+	ImGui::End();
+
+
 	// Environment generation variables window
 	if (ImGui::Begin( "Environment Parameters" ))
 	{
@@ -500,6 +536,19 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		CinematicUpdate();
 	}
 
+	if (m_isInFuture)
+	{
+		Renderer::SetAmbientLight(m_futureAmbientColor, m_futureAmbientIntensity);
+		m_directionalLight->color = m_futureDirectionalColor;
+		m_directionalLight->intensity = m_futureDirectionalIntensity;
+	}
+	else
+	{
+		Renderer::SetAmbientLight(m_ambientColor, m_ambientIntensity);
+		m_directionalLight->color = m_directionalColor;
+		m_directionalLight->intensity = m_directionalIntensity;
+	}
+
 	DrawIMGUIWindows();
 
 	if (Input::Get().IsKeybindDown(KeybindEscMenu))
@@ -574,9 +623,18 @@ void Game::Init()
 	m_directionalLight->transform.position = dirLightOffset; 
 	m_directionalLight->transform.SetRotationEuler({ dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
 	m_directionalLight->diameter = 50.0f;
-	m_directionalLight->intensity = 2.0f;
-	m_directionalLight->color = cs::Color3f(0xFFFFD0);
 
+	m_directionalIntensity = 1.25f;
+	m_directionalColor = cs::Color3f(0xD0D0D0);
+
+	m_ambientColor = cs::Color3f(0xC0C0FF);
+	m_ambientIntensity = 0.20f;
+
+	m_futureDirectionalIntensity = 2.4f;
+	m_futureDirectionalColor = cs::Color3f(0xFFF4C3);
+
+	m_futureAmbientColor = cs::Color3f(0xFFFFC0);
+	m_futureAmbientIntensity = 0.35f;
 }
 
 void Game::DeInit()
@@ -690,7 +748,7 @@ void Game::LoadRoom(Level* level)
 
 	Mat4 cylinderOffset =
 		Mat::translation3( 0, -0.02f, 0 ) *
-		Mat::scale3(level->resource->worldWidth * 1.3f, 1.0f, level->resource->worldHeight * 1.3f);
+		Mat::scale3(level->resource->worldWidth * 1.3f, 1.0f, level->resource->worldHeight * 1.6f);
 
 	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
 	m_currentRoom->transform.position = level->position;
