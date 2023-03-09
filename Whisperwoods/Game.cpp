@@ -294,6 +294,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		}*/
 
 		m_testTunnel = false;
+		m_loadScreen->GetElement(3)->uiRenderable->enabled = false;
 
 		if (!m_isSwitching && !m_isInFuture)
 		{
@@ -331,7 +332,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 					// Floor entrance
 					if (r.targetRoom == -1)
 					{
-						
+						m_loadScreen->GetElement(3)->uiRenderable->enabled = true;
 					}
 					
 					// Floor exit 
@@ -714,10 +715,19 @@ void Game::Init()
 	m_loadScreen->GetElement(2)->firstTexture = Resources::Get().GetTexture("skipTutorial.png");
 
 
+	// text for not running backwards
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(3)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(3)->alpha = 1.0f;
+	m_loadScreen->GetElement(3)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(3)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(3)->firstTexture = Resources::Get().GetTexture("coward.png");
+	m_loadScreen->GetElement(3)->secondTexture = Resources::Get().GetTexture("coward.png");
+
 	// Audio test startup
-	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
+	/*FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
-	m_audioSource->Play();
+	m_audioSource->Play();*/
 
 	// Environment parameters
 	m_envParams.spawnSeed = 652;
@@ -791,15 +801,15 @@ void Game::Init()
 void Game::DeInit()
 {
 	// Audio test 2 shutdown
-	m_audioSource->pitch = 0.75f;
-	m_audioSource->Play();
+	//m_audioSource->pitch = 0.75f;
+	//m_audioSource->Play();
 
-	int indexer = 0;
+	/*int indexer = 0;
 	while (m_audioSource->IsPlaying())
 	{
 		Sound::Get().Update();
 		indexer++;
-	}
+	}*/
 }
 
 void Game::LoadHubby()
