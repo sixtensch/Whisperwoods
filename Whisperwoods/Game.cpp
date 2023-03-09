@@ -607,7 +607,6 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
 			youWin = false;
 			LoadHubby();
-			m_player->ReloadPlayer();
 		}
 		else
 		{
@@ -778,10 +777,10 @@ void Game::LoadHubby()
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update( 0 );
 	m_currentRoom->transform.CalculateWorldMatrix();
+	MovePlayer(Vec3(0, 0, -9.0f), Vec3(0, 0, 1));
 	m_player->ReloadPlayer();
 
 	m_isHubby = true;
-	m_player->transform.position = Vec3(0, 0, -9.0f);
 	Renderer::ExecuteShadowRender();
 
 	m_grafiki->Reload();
@@ -850,12 +849,12 @@ Player* Game::GetPlayer()
 void Game::MovePlayer(Vec3 position, Vec3 direction)
 {
 	m_player->transform.position = position;
-	
-	Camera& c = Renderer::GetCamera();
-	c.SetPosition(position - direction * 0.5f);
-	c.SetRotation(Quaternion::GetDirection(direction));
 
 	m_player->ResetCamera(direction);
+	
+	Camera& c = Renderer::GetCamera();
+	c.SetPosition(m_player->cameraFollowTarget);
+	c.SetRotation(m_player->cameraLookRotationTarget);
 }
 
 void Game::SetCutSceneMode( bool value )
