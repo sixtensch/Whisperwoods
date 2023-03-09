@@ -414,7 +414,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	shadowSDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	shadowSDesc.MipLODBias = 0.0f;
 	shadowSDesc.MaxAnisotropy = 0;
-	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
 	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(

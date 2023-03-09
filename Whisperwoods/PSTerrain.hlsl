@@ -124,6 +124,9 @@ struct PS_OUTPUT
     float4 LuminanceTexture : SV_TARGET1;
 };
 
+float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float depthCMP, float epsilon, float kernelWidth);
+float PCFShadowsBoth(float startValue, float2 UV, float depthCMP, float epsilon, float kernelWidth);
+
 PS_OUTPUT main(VSOutput input)
 {
 	// Output struct for both main texture target and positional target.
@@ -192,35 +195,20 @@ PS_OUTPUT main(VSOutput input)
     float kernelWidth = 1.0f; // Comment in
     
 	// PCF filtering (Smooth shadows)
-    float sum = 0;
-    float x, y;
-    int indexer = 0; // Used for some randomness to the sampling
-	[unroll]
-    for (y = -smoothing; y <= smoothing; y += 1.0f)
+    float sStatic = shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
+        lsUV, lsNDC.z - epsilon);
+    float sDynamic = shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
+        lsUV, lsNDC.z - epsilon);
+
+    float shadowAff = 0.0f;
+    if (sStatic < sDynamic)
     {
-		[unroll]
-        for (x = -smoothing; x <= smoothing; x += 1.0f)
-        {   
-            sum += min(
-                shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
-				    lsUV.xy + texOffset(
-                (x + (-1 + ((indexer + 1) % 2) * 2)) * kernelWidth, 
-                (y + (-1 + (indexer % 2) * 2)) * kernelWidth, 0),
-                lsNDC.z - epsilon),
-            shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
-				    lsUV.xy + texOffset(
-                (x + (-1 + ((indexer + 1) % 2) * 2)) * kernelWidth,
-                (y + (-1 + (indexer % 2) * 2)) * kernelWidth, 0),
-                lsNDC.z - epsilon)
-            );
-            
-            
-            indexer++;
-    
-        }
+        shadowAff = PCFShadows(shadowTextureStatic, sStatic, lsUV, lsNDC.z, epsilon, kernelWidth);
     }
-    // adjust
-    float shadowAff = sum / 25.0f;
+    else
+    {
+        shadowAff = PCFShadowsBoth(sDynamic, lsUV, lsNDC.z, epsilon, kernelWidth);
+    }
     
     // Simple lighting
     if (input.outUV.z > 0.0f)
@@ -303,8 +291,57 @@ PS_OUTPUT main(VSOutput input)
 	
     return output;
 }
+float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float depthCMP, float epsilon, float kernelWidth)
+{
+    float sum = startValue;
+    //int indexer = 0;
 
+    [unroll]
+    for (uint y = -smoothing; y <= smoothing; ++y)
+    {
+        [unroll]
+        for (uint x = -smoothing + 1; x <= smoothing; ++x)
+        {
+            sum += textureToSample.SampleCmpLevelZero(shadowSampler,
+                UV + texOffset(
+                    (x/* + (-1 + ((indexer + 1) % 2) * 2))*/ * kernelWidth),
+                    (y/* + (-1 + (indexer % 2) * 2)) * kernelWidth*/), 0),
+                    depthCMP - epsilon);
 
+                //indexer++;
+        }
+    }
+    return (sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f)))/* / 25.0f*/;
+}
+float PCFShadowsBoth(float startValue, float2 UV, float depthCMP, float epsilon, float kernelWidth)
+{
+    float sum = startValue;
+    //int indexer = 0;
+
+    [unroll]
+    for (uint y = -smoothing; y <= smoothing; ++y)
+    {
+        [unroll]
+        for (uint x = -smoothing + 1; x <= smoothing; ++x)
+        {
+            sum += min (
+                shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
+                UV + texOffset(
+                    (x/* + (-1 + ((indexer + 1) % 2) * 2))*/ * kernelWidth),
+                    (y/* + (-1 + (indexer % 2) * 2)) * kernelWidth*/), 0),
+                depthCMP - epsilon), 
+                shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
+                    UV + texOffset(
+                        (x/* + (-1 + ((indexer + 1) % 2) * 2))*/ * kernelWidth),
+                        (y/* + (-1 + (indexer % 2) * 2)) * kernelWidth*/), 0),
+                    depthCMP - epsilon)
+                );
+
+            //indexer++;
+        }
+    }
+    return (sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f)))/* / 25.0f*/;
+}
 // Old shader stuff
 
 

@@ -158,7 +158,6 @@ PS_OUTPUT main(VSOutput input)
     float dirNDotL = dot(normal, directionalLight.direction);
     float epsilon = 0.00005 / acos(saturate(dirNDotL));
     
-    // Directional lighting
     float sStatic = shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
 						lsUV, lsNDC.z - epsilon);
     float sDynamic = shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
@@ -174,6 +173,7 @@ PS_OUTPUT main(VSOutput input)
         shadowAff = PCFShadows(shadowTextureDynamic, sDynamic, lsUV, lsNDC.z, epsilon);
     }
 
+    // Directional lighting
     color += shadowAff * phong(
 		input.wPosition.xyz,
 		normal,
