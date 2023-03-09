@@ -90,7 +90,7 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 
 	FMOD::Sound* switchSoundPtr = (Resources::Get().GetSound("TimeSwitch.wav"))->currentSound;
 	m_switchSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.5f, 1.5f, 10.0f, 20.0f, switchSoundPtr);
-	this->AddChild((GameObject*)m_switchSource.get());
+	m_switchSource->mix2d3d = 0.0f;
 }
 
 void Player::ReloadPlayer()
@@ -441,7 +441,7 @@ void Player::UpdateSound(float delta_time)
 		float volPercent = m_velocity.Length() / m_runSpeed;
 		volPercent = pow(volPercent, 0.7f);
 		//volPercent *= volPercent;
-		m_stepsSound->volume = 0.25f * volPercent;
+		m_stepsSound->volume = 0.25f * volPercent * (1.0f - 0.8f * playerInFuture);
 		//trigger when character sets foot on ground
 		if (((characterAnimator->globalTime > 0.2f && characterAnimator->globalTime < 0.3f) || (characterAnimator->globalTime > 0.66f && characterAnimator->globalTime < 0.76f)) /*&& !m_stepsSound->IsPlaying()*/)
 		{

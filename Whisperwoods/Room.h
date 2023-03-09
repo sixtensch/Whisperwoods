@@ -50,5 +50,5 @@ public:
 private:
 	MaterialResource m_material;
 	
-	float m_ambienceVol = 0.2f;
+	float m_ambienceVol = 0.1f;
 };
