@@ -308,6 +308,10 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						UnLoadPrevious();
 						LoadRoom(&m_floor.rooms[r.targetRoom]);
 
+						m_currentRoom->transform.CalculateWorldMatrix();
+						m_directionalLight->transform.parent = &m_currentRoom->transform;
+						m_directionalLight->Update( 0 );
+
 						m_player->transform.position = t.positions[targetIndex] - t.directions[targetIndex] * TUNNEL_SPAWN_DISTANCE;
 						m_player->ReloadPlayer();
 
@@ -347,6 +351,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		{
 			UnLoadPrevious();
 			LoadGame(1, 9);
+			//LoadTest();
 			
 			m_player->ReloadPlayer();
 		}
@@ -379,6 +384,14 @@ void Game::DrawIMGUIWindows()
 		ImGui::InputFloat3("Player Position", (float*)&m_player->transform.position);
 
 		ImGui::Text("Transition: %s", m_testTunnel ? "YES" : "NO");
+	}
+	ImGui::End();
+
+	static Vec3 tempRot;
+	if (ImGui::Begin( "Room Rot" ))
+	{
+		ImGui::DragFloat3( "Room Additive Rot", (float*)&tempRot );
+		m_player->currentRoom->m_testOffset = Quaternion::GetEuler( tempRot ).Matrix();
 	}
 	ImGui::End();
 
@@ -573,15 +586,14 @@ void Game::Init()
 	m_player->AddChild((GameObject*)m_enemyHorn.get());
 
 	// Lighting
+	dirLightOffset = Vec3( 0, 20, -20 ); // TODO: Investigate why other values here don't work. << CULLING ON THE SHADOWS WACKY
 	m_directionalLight = Renderer::GetDirectionalLight();
-	m_directionalLight->transform.position = { 0, 30, -25 };
+	m_directionalLight->transform.position = dirLightOffset; 
 	m_directionalLight->transform.SetRotationEuler({ dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
 	m_directionalLight->diameter = 50.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
 
-	
-	
 }
 
 void Game::DeInit()
@@ -602,10 +614,11 @@ void Game::LoadHubby()
 {
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
 	LoadRoom( &m_floor.rooms[0] );
-	//Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
-	//Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
-	//Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
-	//Mat4 worldCombined = worldScale * worldPos * worldRot;
+
+	m_currentRoom->transform.CalculateWorldMatrix();
+	m_directionalLight->transform.parent = &m_currentRoom->transform;
+	m_directionalLight->Update( 0 );
+
 	m_isHubby = true;
 	m_player->transform.position = Vec3(0, 0, 0);
 	Renderer::ExecuteShadowRender();
@@ -615,10 +628,11 @@ void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[0]);
-	//Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	//Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
-	//Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
-	//Mat4 worldCombined = worldScale * worldPos * worldRot;
+
+	m_currentRoom->transform.CalculateWorldMatrix();
+	m_directionalLight->transform.parent = &m_currentRoom->transform;
+	m_directionalLight->Update( 0 );
+
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
 }
@@ -635,6 +649,10 @@ void Game::LoadGame(uint gameSeed, uint roomCount)
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
 
 	m_player->transform.position = m_floor.startPosition;
+
+	m_currentRoom->transform.CalculateWorldMatrix();
+	m_directionalLight->transform.parent = &m_currentRoom->transform;
+	m_directionalLight->Update(0);
 
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();

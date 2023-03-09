@@ -98,6 +98,11 @@ const Quaternion Camera::GetRotation() const
 	return m_transform.rotation;
 }
 
+const Vec3 Camera::GetWPosition()
+{
+	return m_transform.GetWorldPosition();
+}
+
 const Vec3 Camera::GetPosition() const
 {
 	return m_transform.position;

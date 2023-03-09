@@ -70,8 +70,6 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 
 	// Add ambiance sounds around the room
 
-
-
 	Resources& resources = Resources::Get();
 	int numSounds = 3;
 	float radius = m_levelResource->worldWidth / 2.0f;
@@ -93,13 +91,13 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	}
 
 	// Plane
-	m_renderable = Renderer::CreateMeshStatic( modelResource );
-	m_modelOffset = modelOffset;
-	m_renderable->worldMatrix = /*transform.worldMatrix * */m_modelOffset;
-	m_material = MaterialResource();
-	m_material.specular = Vec3( 0.5f, 0.5f, 0.5f );
-	m_material.textureDiffuse = level->resource->source;
-	m_renderable->Materials().AddMaterial( &m_material );
+	//m_renderable = Renderer::CreateMeshStatic( modelResource );
+	//m_modelOffset = modelOffset;
+	//m_renderable->worldMatrix = /*transform.worldMatrix * */m_modelOffset;
+	//m_material = MaterialResource();
+	//m_material.specular = Vec3( 0.5f, 0.5f, 0.5f );
+	//m_material.textureDiffuse = level->resource->source;
+	//m_renderable->Materials().AddMaterial( &m_material );
 	
 	
 	// Cylinder thing
@@ -137,7 +135,8 @@ void Room::Update(float deltaTime)
 {
 	transform.CalculateWorldMatrix();
 	//m_renderable->worldMatrix = transform.worldMatrix * m_modelOffset;
-	m_wallsAndFloorRenderable->worldMatrix = transform.worldMatrix * m_wallsFloorOffset;
+	Quaternion fixRotation = Quaternion::GetAxis( { 0,1,0 }, cs::c_pi );
+	m_wallsAndFloorRenderable->worldMatrix = transform.worldMatrix * m_wallsFloorOffset * fixRotation.Matrix() * m_testOffset;
 }
 
 Point2 Room::worldToBitmapPoint(Vec3 worldPos)

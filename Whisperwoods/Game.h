@@ -78,9 +78,11 @@ private:
 	void SoundUpdate(float deltaTime);
 
 public:
+	//Camera* m_camera;
 	std::unique_ptr<LevelHandler>	m_levelHandler;
 private:
 
+	Vec3 dirLightOffset;
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
