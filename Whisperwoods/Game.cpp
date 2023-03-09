@@ -341,9 +341,11 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 					{
 						if (m_player->hasPickedUpEssenceBloom && tutorial)
 						{
+							m_detectionLevelFloor = 0.0f; // resets detection
 							m_loadNewFloor = true;
 							activeTutorialLevel = 8;
 							m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
+							
 						}
 						else if (!m_player->hasPickedUpEssenceBloom)
 						{
