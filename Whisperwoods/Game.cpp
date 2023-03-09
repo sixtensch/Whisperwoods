@@ -380,6 +380,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			UnLoadPrevious();
 			LoadHubby();
 			m_player->ReloadPlayer();
+			m_grafiki->Reload();
 			m_loadingHubby = false;
 		}
 		else if (m_loadingTutorial == true)
@@ -396,8 +397,9 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 
 
 
-		if (Input::Get().IsDXKeyPressed( DXKey::L ))
+		if (m_grafiki->InteractPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z)))
 		{
+			m_grafiki->enabled = false;
 			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
 			m_loadingTutorial = true;
 		}
@@ -973,6 +975,7 @@ void Game::EndRun(Renderer* renderer)
 	// Has to happen after loading hubby for some reason?
 	m_player->ResetStaminaToMax(MAX_STAMINA_STARTING_VALUE);
 	m_player->ReloadPlayer();
+	m_grafiki->Reload();
 }
 
 void Game::EndRunDueToEnemy(Renderer* renderer)

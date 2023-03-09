@@ -76,6 +76,7 @@ void Grafiki::Update(float delta_time)
 
 bool Grafiki::InteractPlayer(Vec2 playerPosition)
 {
+	if (!enabled) return false;
 	//direction vector from enemy position to player position
 	Vec2 playerDirection(playerPosition.x - transform.worldPosition.x, playerPosition.y - transform.worldPosition.z);
 
