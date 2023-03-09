@@ -366,6 +366,8 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		if (Input::Get().IsDXKeyPressed( DXKey::H ))
 		{
 			m_loadingHubby = true;
+			tutorial = false;
+			activeTutorialLevel = 8;
 			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
 		}
 	}
@@ -402,6 +404,8 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		{
 			m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
 			m_loadingHubby = true;
+			activeTutorialLevel = 8;
+			tutorial = false;
 		}
 	}
 }
