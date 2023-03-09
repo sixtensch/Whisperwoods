@@ -804,6 +804,7 @@ void Game::LoadHubby()
 	UnLoadPrevious();
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
 	LoadRoom( &m_floor.rooms[0] );
+	m_detectionLevelFloor = 0.0f;
 
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update( 0 );
