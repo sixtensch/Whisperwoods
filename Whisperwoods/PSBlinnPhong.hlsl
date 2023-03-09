@@ -121,6 +121,7 @@ struct PS_OUTPUT
 };
 
 float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float depthCMP, float epsilon);
+float PCFShadowsBoth(float startValue, float2 UV, float depthCMP, float epsilon);
 
 PS_OUTPUT main(VSOutput input)
 {
@@ -164,15 +165,16 @@ PS_OUTPUT main(VSOutput input)
 						lsUV, lsNDC.z - epsilon);
     float sDynamic = shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
 						lsUV, lsNDC.z - epsilon);
+    float sMin = min(sStatic, sDynamic);
     
     float shadowAff = 0.0f;
-    if (sStatic < sDynamic)
+    if (sMin < sDynamic)
     {
         shadowAff = PCFShadows(shadowTextureStatic, sStatic, lsUV, lsNDC.z, epsilon);
     }
     else
     {
-        shadowAff = PCFShadows(shadowTextureDynamic, sDynamic, lsUV, lsNDC.z, epsilon);
+        shadowAff = PCFShadowsBoth(sMin, lsUV, lsNDC.z, epsilon);
     }
 
     // Directional lighting
@@ -337,6 +339,26 @@ float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float d
         {
             sum += textureToSample.SampleCmpLevelZero(shadowSampler,
 						UV + texOffset(x, y, 0), depthCMP - epsilon);
+        }
+    }
+    return (sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f)));
+}
+float PCFShadowsBoth(float startValue, float2 UV, float depthCMP, float epsilon)
+{
+    float sum = startValue;
+
+    [unroll]
+    for (int y = -smoothing; y <= smoothing; ++y)
+    {
+        [unroll]
+        for (int x = -smoothing + 1; x <= smoothing; ++x)
+        {
+            sum += min(
+                shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
+                    UV + texOffset(x, y, 0), depthCMP - epsilon),
+                shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
+                    UV + texOffset(x, y, 0), depthCMP - epsilon)
+                );
         }
     }
     return (sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f)));
