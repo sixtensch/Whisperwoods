@@ -134,14 +134,20 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, 
 	{
 		attempts++;
 		CreateNodes(primer, fParams.roomCount, fParams.pushSteps);
-		success = TryConnecting(primer, dotThreshold);
 
+		success = TryConnecting(primer, dotThreshold);
 		if (!success)
 		{
 			continue;
 		}
 
 		success = TryLeveling(primer, true, 3);
+		if (!success)
+		{
+			continue;
+		}
+
+		success = TryFinalizing(primer);
 	} 
 	while (!success);
 
@@ -151,23 +157,7 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, 
 
 	// Create level objects
 
-	for (const RoomPrimer& p : primer.rooms)
-	{
-		f.rooms.Add({});
-		Level& l = f.rooms.Back();
-
-		//l.resource =
-		l.position = p.position;
-		l.rotation = Quaternion::GetEuler(0.0f, p.angleOffset, 0.0f);
-		l.resource = m_resources[p.levelIndex].get();
-
-		for (uint i = 0; i < (uint)p.connections.Size(); i++)
-		{
-			l.connections.Add(p.connections[(i - p.connectionOffset) % p.connections.Size()]);
-		}
-
-		Environmentalize(l, eParams);
-	}
+	float positionModifier = 1.0f;
 
 	for (const TunnelPrimerNetwork& network : primer.networks)
 	{
@@ -181,6 +171,74 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, 
 			f.tunnels.Add({ tunnel.start, tunnel.end });
 		}
 	}
+
+	for (uint room = 0; room < (uint)primer.rooms.Size(); room++)
+	{
+		const RoomPrimer& p = primer.rooms[room];
+
+		f.rooms.Add({});
+		Level& l = f.rooms.Back();
+
+		l.position = Vec3(p.position.x, 0, p.position.y) * positionModifier * (BM_MAX_SIZE / BM_PIXELS_PER_UNIT);
+		l.rotation = Quaternion::GetEuler(0.0f, p.angleOffset, 0.0f);
+		l.resource = m_resources[p.levelIndex].get();
+
+		for (uint i = 0; i < (uint)p.connections.Size(); i++)
+		{
+			int target = p.connections[(i + p.connections.Size() - p.connectionOffset) % p.connections.Size()];
+
+			Mat2 rotMatrix = Mat::rotation2(-p.angleOffset);
+
+			Vec2 exitPixelPosition = l.resource->exits[i].position - Vec2((float)l.resource->pixelWidth, (float)l.resource->pixelHeight) * 0.5f;
+			Vec2 exitPixelDirection = l.resource->exits[i].direction;
+			exitPixelPosition.y *= -1;
+			float width = l.resource->exits[i].width * BM_PIXEL_SIZE;
+
+			Vec2 exitPosition = rotMatrix * exitPixelPosition * BM_PIXEL_SIZE;
+			Vec2 exitDirection = rotMatrix * exitPixelDirection;
+
+			Vec2 exitRelativePosition = exitPosition - exitDirection * TUNNEL_SPAWN_DISTANCE;
+
+			Vec3 exitPosition3 = l.position + Vec3(exitPosition.x, 0.0f, exitPosition.y);
+			Vec3 exitDirection3 = Vec3(exitDirection.x, 0.0f, exitDirection.y);
+
+			if (target < 0)
+			{
+				l.connections.Add({ target, 0, 0, exitPosition3, exitDirection3, width });
+
+				if (target == -1)
+				{
+					f.startPosition = exitPosition3 - exitDirection3 * TUNNEL_SPAWN_DISTANCE;
+					f.startRoom = room;
+				}
+
+				continue;
+			}
+
+			for (uint j = 0; j < (uint)f.tunnels.Size(); j++)
+			{
+				LevelTunnel& t = f.tunnels[j];
+				if (room == t.startRoom && target == (int)t.endRoom)
+				{
+					t.exits[0] = l.resource->exits[i];
+					t.positions[0] = exitPosition3;
+					t.directions[0] = exitDirection3;
+					l.connections.Add({ target, j, 0, exitPosition3, exitDirection3, width });
+					break;
+				}
+				if (room == t.endRoom && target == (int)t.startRoom)
+				{
+					t.exits[1] = l.resource->exits[i];
+					t.positions[1] = exitPosition3;
+					t.directions[1] = exitDirection3;
+					l.connections.Add({ target, j, 1, exitPosition3, exitDirection3, width });
+					break;
+				}
+			}
+		}
+
+		Environmentalize(l, eParams);
+	}
 }
 
 void LevelHandler::GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParameters params)
@@ -192,7 +250,7 @@ void LevelHandler::GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParam
 	f.startPosition = Vec3(0, 0, 0);
 
 	// Add a level
-	AddLevelName(f, "twelthLevel");
+	AddLevelName(f, "DuoRoomOne");
 	Environmentalize(f.rooms.Back(), params);
 }
 
@@ -211,8 +269,6 @@ void LevelHandler::GenerateHubby(LevelFloor* outFloor, EnvironmentalizeParameter
 
 void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters parameters)
 {
-	Vec3 offset = l.position + Vec3(l.resource->worldWidth * 0.5f, 0, -l.resource->worldHeight * 0.5f);
-
 	cs::NoiseSimplex simplexerSpawn(parameters.spawnSeed);
 	cs::NoiseSimplex simplexerScale(parameters.scaleSeed);
 	cs::NoiseSimplex simplexerRotate(parameters.rotationSeed);
@@ -222,6 +278,8 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 	{
 		for (int y = 0; y < (int)l.resource->pixelHeight; y++)
 		{
+			Vec3 newPosition = l.position + l.rotation * Vec3(x * BM_PIXEL_SIZE - l.resource->worldWidth * 0.5f, -0.2f, -y * BM_PIXEL_SIZE + l.resource->worldHeight * 0.5f);
+
 			LevelPixelFlag current = l.resource->bitmap[x + l.resource->pixelWidth * y].flags;
 			int xP = cs::iclamp(x + parameters.edgeSampleDistanceStones, 0, (int)l.resource->pixelWidth - 1);
 			int xM = cs::iclamp(x - parameters.edgeSampleDistanceStones, 0, (int)l.resource->pixelWidth - 1);
@@ -240,19 +298,19 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 			float diversityVal = simplexerDiversity.Gen2D(x * parameters.xMult, y * parameters.yMult);
 
 			Mat4 stoneMatrix =
-				Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
+				Mat::translation3(newPosition) *
 				Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-				Mat::scale3(scaleVal * parameters.scaleMultiplierStones);
+				Mat::scale3(cs::fclamp(scaleVal * parameters.scaleMultiplierStones,0.2f,2.0f));
 
 			Mat4 treeMatrix =
-				Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
+				Mat::translation3(newPosition) *
 				Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-				Mat::scale3(scaleVal * parameters.scaleMultiplierTrees);
+				Mat::scale3( cs::fclamp(scaleVal * parameters.scaleMultiplierTrees, 0.05f, 1.0f));
 
 			Mat4 trunkMatrix =
-				Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
+				Mat::translation3(newPosition) *
 				Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-				Mat::scale3(scaleVal * parameters.scaleMultiplierTrees*0.25f);
+				Mat::scale3( cs::fclamp(scaleVal * parameters.scaleMultiplierTrees*0.25f,0.01, 1.0f));
 
 			if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagTerrainInner & ~LevelPixelFlagTerrainOuter))
 			{
@@ -269,7 +327,7 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 
 
 				Mat4 foliageMatrix =
-					Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
+					Mat::translation3(newPosition) *
 					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
 					Mat::scale3(scaleVal * parameters.scaleMultiplierFoliage);
 
@@ -303,33 +361,41 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 			}
 			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable))
 			{
+				Mat4 foliageMatrixHuge =
+					Mat::translation3( newPosition ) *
+					Mat::rotation3( cs::c_pi * -0.5f, rotateVal, 0.0f ) *
+					Mat::scale3( cs::fclamp( scaleVal * parameters.scaleMultiplierFoliage * 2.5, 0.1f, 2.2f ) );
 
 				Mat4 foliageMatrix =
-					Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
+					Mat::translation3(newPosition) *
 					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-					Mat::scale3(scaleVal * parameters.scaleMultiplierFoliage * 3);
+					Mat::scale3( cs::fclamp(scaleVal * parameters.scaleMultiplierFoliage * 1.5f,0.05f, 2.0f));
+				Mat4 foliageMatrix2 =
+					Mat::translation3( newPosition ) *
+					Mat::rotation3( cs::c_pi * -0.5f, rotateVal, 0.0f ) *
+					Mat::scale3( cs::fclamp( scaleVal * parameters.scaleMultiplierFoliage * 1.2f, 0.1, 1.5f));
+				xP = cs::iclamp(x + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
+				xM = cs::iclamp(x - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
+				yP = cs::iclamp(y + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
+				yM = cs::iclamp(y - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
+				xPF = l.resource->bitmap[xP + l.resource->pixelWidth * y].flags;
+				xMF = l.resource->bitmap[xM + l.resource->pixelWidth * y].flags;
+				yPF = l.resource->bitmap[x + l.resource->pixelWidth * yP].flags;
+				yMF = l.resource->bitmap[x + l.resource->pixelWidth * yM].flags;
+				bool edgeTrunk = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
+
+				xP = cs::iclamp(x + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
+				xM = cs::iclamp(x - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
+				yP = cs::iclamp(y + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
+				yM = cs::iclamp(y - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
+				xPF = l.resource->bitmap[xP + l.resource->pixelWidth * y].flags;
+				xMF = l.resource->bitmap[xM + l.resource->pixelWidth * y].flags;
+				yPF = l.resource->bitmap[x + l.resource->pixelWidth * yP].flags;
+				yMF = l.resource->bitmap[x + l.resource->pixelWidth * yM].flags;
+				bool edgeTree = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
 				if (noiseVal < parameters.densityUnwalkableOuter)
 				{
 
-					xP = cs::iclamp(x + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
-					xM = cs::iclamp(x - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
-					yP = cs::iclamp(y + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
-					yM = cs::iclamp(y - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
-					xPF = l.resource->bitmap[xP + l.resource->pixelWidth * y].flags;
-					xMF = l.resource->bitmap[xM + l.resource->pixelWidth * y].flags;
-					yPF = l.resource->bitmap[x + l.resource->pixelWidth * yP].flags;
-					yMF = l.resource->bitmap[x + l.resource->pixelWidth * yM].flags;
-					bool edgeTrunk = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
-
-					xP = cs::iclamp(x + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
-					xM = cs::iclamp(x - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
-					yP = cs::iclamp(y + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
-					yM = cs::iclamp(y - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
-					xPF = l.resource->bitmap[xP + l.resource->pixelWidth * y].flags;
-					xMF = l.resource->bitmap[xM + l.resource->pixelWidth * y].flags;
-					yPF = l.resource->bitmap[x + l.resource->pixelWidth * yP].flags;
-					yMF = l.resource->bitmap[x + l.resource->pixelWidth * yM].flags;
-					bool edgeTree = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
 
 					if (diversityVal < 0.1f && !edgeStones)
 					{
@@ -365,18 +431,38 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 					}
 				}
 
-				if (noiseVal < parameters.densityWalkable*0.5f)
+				if (noiseVal < parameters.densityUnwalkableOuter * 1.5f)
+				{
+					if (diversityVal < 0.5f && !edgeStones)
+					{
+						l.instances[LevelAssetStone1].Add( stoneMatrix );
+					}
+					else if (diversityVal < 0.8f && !edgeStones)
+					{
+						l.instances[LevelAssetStone2].Add( stoneMatrix );
+					}
+				}
+
+				if (noiseVal < parameters.densityWalkable * 0.5f && !edgeTree)
+				{
+					l.instances[LevelAssetBush1].Add( foliageMatrixHuge );
+				}
+				else if (noiseVal < parameters.densityWalkable * 0.5f && !edgeStones)
 				{
 					l.instances[LevelAssetBush1].Add(foliageMatrix);
+				}
+				else if (noiseVal < parameters.densityWalkable * 0.5f)
+				{
+					l.instances[LevelAssetBush1].Add(foliageMatrix2);
 				}
 			}
 			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].density != 0))
 			{
 				float density = 1.0f - l.resource->bitmap[x + l.resource->pixelWidth * y].density;
 				Mat4 foliageMatrix =
-					Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, -0.2f, y * BM_PIXEL_SIZE)) *
+					Mat::translation3(newPosition) *
 					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-					Mat::scale3(scaleVal * parameters.scaleMultiplierFoliage * (density * (1.0f - parameters.scaleEffectDensity)) );
+					Mat::scale3(cs::fclamp(scaleVal * parameters.scaleMultiplierFoliage * (density * (1.0f - parameters.scaleEffectDensity)),0.1f, 2.0f ));
 
 				if (density > parameters.minDensity && noiseVal < parameters.densityWalkable)
 				{
@@ -826,44 +912,125 @@ bool LevelHandler::TryLeveling(FloorPrimer& f, bool repeats, uint roomAttempts)
 	return true;
 }
 
+bool LevelHandler::TryFinalizing(FloorPrimer& f)
+{
+	cs::List<uint> leaves;
+	cs::List<uint> doubles;
+	for (uint i = 0; i < (uint)f.rooms.Size(); i++)
+	{
+		if (f.rooms[i].connections.Size() == 1)
+		{
+			leaves.Add(i);
+		}
+
+		if (f.rooms[i].connections.Size() == 2)
+		{
+			doubles.Add(i);
+		}
+	}
+
+	if (leaves.Size() == 0 || leaves.Size() + doubles.Size() < 3)
+	{
+		return false;
+	}
+
+	uint essenceBloomIndex = f.r.GetUnsigned(leaves.Size());
+	f.rooms[leaves[essenceBloomIndex]].essenceBloom = true;
+	leaves.Remove(essenceBloomIndex);
+
+	cs::List<int> assigns = { -1, -2 };
+	while (assigns.Size() > 0 && leaves.Size() > 0)
+	{
+		// Convert from leaf to entrance/exit
+		const cs::List<uint>& source = m_resourceIndices[1];
+		uint newIndex = source[f.r.Get(source.Size())];
+
+		uint target = leaves.Pop();
+		f.rooms[target].levelIndex = (int)newIndex;
+		f.rooms[target].connections.Add(assigns.Pop());
+
+		AngleRoom(f, f.rooms[target]);
+		EvaluateRoom(f, target);
+	}
+
+	//while (assigns.Size() > 0 && doubles.Size() > 0)
+	//{
+	//	// Convert from 2-spoke connector to triple with entrance/exit
+	//}
+
+	if (assigns.Size() > 0)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void LevelHandler::AngleRoom(FloorPrimer& f, RoomPrimer& r)
+{
+	r.angles.Clear(false);
+	for (uint i = 0u; i < (uint)r.connections.Size(); i++)
+	{
+		Vec2 position;
+
+		if (r.connections[i] < 0)
+		{
+			Vec2 sum;
+			for (uint j = 0; j < (uint)r.connections.Size(); j++)
+			{
+				if (i == j)
+				{
+					continue;
+				}
+
+				sum += f.rooms[r.connections[j]].position - r.position;
+			}
+
+			position = r.position - sum.Normalized();
+		}
+		else
+		{
+			position = f.rooms[r.connections[i]].position;
+		}
+
+		Vec2 direction = position - r.position;
+		r.angles.Add(cs::fwrap(std::atan2f(-direction.y, direction.x), 0.0f, 2 * cs::c_pi));
+	}
+
+	struct AngleSorter
+	{
+		float angle;
+		uint index;
+	};
+
+	cs::List<AngleSorter> sorter;
+	for (uint i = 0u; i < (uint)r.angles.Size(); i++)
+	{
+		sorter.Add({ r.angles[i], i });
+	}
+
+	std::sort(
+		&sorter.Front(),
+		&sorter.Back() + 1,
+		[](const AngleSorter& a, const AngleSorter& b) { return a.angle < b.angle; });
+
+	for (uint i = 0u; i < (uint)r.angles.Size(); i++)
+	{
+		r.connections.Add(r.connections[sorter[i].index]);
+		r.angles[i] = sorter[i].angle;
+	}
+
+	for (uint i = 0u; i < (uint)r.angles.Size(); i++)
+	{
+		r.connections.Remove(0);
+	}
+}
+
 void LevelHandler::AngleRooms(FloorPrimer& f)
 {
 	for (RoomPrimer& r : f.rooms)
 	{
-		r.angles.Clear(false);
-		for (uint i = 0u; i < (uint)r.connections.Size(); i++)
-		{
-			Vec2 direction = f.rooms[r.connections[i]].position - r.position;
-			r.angles.Add(cs::fwrap(std::atan2f(-direction.y, direction.x), 0.0f, 2 * cs::c_pi));
-		}
-
-		struct AngleSorter
-		{
-			float angle;
-			uint index;
-		};
-
-		cs::List<AngleSorter> sorter;
-		for (uint i = 0u; i < (uint)r.angles.Size(); i++)
-		{
-			sorter.Add({ r.angles[i], i });
-		}
-
-		std::sort(
-			&sorter.Front(),
-			&sorter.Back() + 1,
-			[](const AngleSorter& a, const AngleSorter& b) { return a.angle < b.angle; });
-
-		for (uint i = 0u; i < (uint)r.angles.Size(); i++)
-		{
-			r.connections.Add(r.connections[sorter[i].index]);
-			r.angles[i] = sorter[i].angle;
-		}
-
-		for (uint i = 0u; i < (uint)r.angles.Size(); i++)
-		{
-			r.connections.Remove(0);
-		}
+		AngleRoom(f, r);
 	}
 }
 

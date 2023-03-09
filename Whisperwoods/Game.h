@@ -49,7 +49,7 @@ public:
 
 	void LoadHubby();
 	void LoadTest();
-	void LoadGame(uint gameSeed);
+	void LoadGame(uint gameSeed, uint roomCount);
 	void UnLoadPrevious();
 
 	Player* GetPlayer();
@@ -62,9 +62,17 @@ public:
 
 
 private:
-	void ChangeTimeline(Renderer* renderer);
+	// Applies current timeline state to all relevant units.
+	void ApplyTimelineState(Renderer* renderer);
+
+	void SwapTimeline(Renderer* renderer);
+	void ChangeToFutureTimeline(Renderer* renderer);
+	void ChangeToPresentTimeline(Renderer* renderer);
+	
 	void UpdateTimeSwitchBuffers(Renderer* renderer);
 	void UpdateEnemyConeBuffers(Renderer* renderer);
+
+	void SoundUpdate(float deltaTime);
 
 	// Time switch functions
 	bool IsAllowedToSwitch();
@@ -75,12 +83,17 @@ private:
 	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
 
-	void SoundUpdate(float deltaTime);
+	void ResetGameplayValues();
+	void EndRun(Renderer* renderer);
+	void EndRunDueToEnemy(Renderer* renderer);
+	void EndRunDueToPoison(Renderer* renderer);
 
 public:
+	//Camera* m_camera;
 	std::unique_ptr<LevelHandler>	m_levelHandler;
 private:
 
+	Vec3 dirLightOffset;
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
@@ -131,6 +144,8 @@ private:
 	bool m_finishedCharging; // Charging = only first part of whole duration (start)
 	float m_maxStamina;
 
+	bool m_testTunnel;
+
 	float m_detectionLevelGlobal; //how detected you currently are
 	float m_detectionLevelFloor; // minimum detection that detection goes down to
 	bool m_reachedLowestStamina;
@@ -148,7 +163,7 @@ private:
 	const float m_timeAbilityCooldown = 3.0f; // time in seconds
 	float m_coolDownCounter; 
 
-
+	const float m_timeSwitchTargetFov = cs::c_pi * 0.9f;
 	 
 
 	TimeSwitchValues m_switchVals;

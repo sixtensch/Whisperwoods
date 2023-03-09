@@ -73,12 +73,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		/// D E A T H ///
 		if (m_dangerousTimeInFuture >= m_timeYouSurviveInFuture) // how long you can survive in future with 0 stamina (seconds)
 		{
-			ChangeTimeline( renderer );
-			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
-			m_player->ResetStaminaToMax( m_maxStamina );
-			UnLoadPrevious();
-			LoadHubby();
-			m_player->ReloadPlayer();
+			EndRunDueToPoison(renderer);
 		}
 	}
 	if (!m_isInFuture)
@@ -96,29 +91,8 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 
 			if (IsDetected(m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance()))
 			{
-				if (m_isSwitching)
-				{
-					m_switchVals.timeSinceSwitch = 2.0f;
-					m_isInFuture = true;
-					renderer->GetCamera().SetFov(m_initialCamFov);
-					ChangeTimeline(renderer);
-					m_switchVals.timeSinceSwitch = 0.0f;
-					m_isSwitching = false;
-					m_totalFovDelta = 0.0f;
-				}
-
 				// D E A T H
-				m_maxStamina = MAX_STAMINA_STARTING_VALUE;
-				//m_coolDownCounter = m_timeAbilityCooldown;
-				m_player->ResetStaminaToMax(m_maxStamina);
-				UnLoadPrevious();
-				LoadHubby();
-				m_player->ReloadPlayer();
-				m_isSeen = false;
-				m_detectionLevelGlobal = 0.0f;
-				m_detectionLevelFloor = 0.0f;
-
-				m_enemyHorn->Play();
+				EndRunDueToEnemy(renderer);
 			}
 		}
 		else
@@ -143,9 +117,31 @@ void Game::UpdateGameObjects()
 	}
 }
 
+
+
 // Transform and AI Logic
 void Game::UpdateEnemies( Renderer* renderer )
 {
+	//       $$                      $$
+	//     $$$  $                  $  $$$
+	//    $$$   $$                $$   $$$
+	//    $$$$$$$$                $$$$$$$$
+	//     $$$$$$                  $$$$$$
+	//      $$$$    $$0$$$$$0$$$    $$$$
+	//        $$  $$$$$$$$$$$$$$$$  $$
+	//    $$   $$$$$$$$$$$$$$$$$$$$$$   $$
+	//  $$  $$  $$$$$$$$$$$$$$$$$$$$  $$  $$
+	// $      $$$$$$$$$$$$$$$$$$$$$$$$      $
+	// $  $$$    $$$$$$$$$$$$$$$$$$    $$$  $
+	//   $   $$$$ $$$$$$$$$$$$$$$$ $$$$   $
+	//  $         $ $$$$$$$$$$$$ $         $
+	//  $      $$$                $$$      $
+	//        $                      $
+	//       $                        $
+	//       $                         $
+	// 
+	//     WHAT ARE THESE COPYPASTA TIGERS?
+
 	/*    ("`-''-/").___..--''"`-._
 		   `6_ 6  )   `-.  (     ).`-.__.`)
 		   (_Y_.)'  ._   )  `._ `. ``-..-'
@@ -158,7 +154,7 @@ void Game::UpdateEnemies( Renderer* renderer )
 	//}	*/
 
 	m_isSeen = false;
-	m_closestDistance = 100000.0f; // large start value to fix the above thing instead of branching.
+	m_closestDistance = FLT_MAX; // large start value to fix the above thing instead of branching.
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update( m_deltaTime ); // Would ideally want to put this in UpdateGameObjects(), but this makes one less loop
@@ -195,25 +191,21 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			
 			if (!ChargeIsDone())
 			{
-				m_totalFovDelta += m_camFovChangeSpeed * m_deltaTime;
-				float newFov = m_initialCamFov + m_totalFovDelta;
-
-				// Max total fov cant exceed half circle.
-				if (newFov > cs::c_pi)
+				float fovSpeed = (m_timeSwitchTargetFov - m_initialCamFov) / m_switchVals.chargeDuration;
+				// Makes sure that the difference results in a positive speed.
+				if (fovSpeed >= 0.0f)
 				{
-					newFov = cs::c_pi;
-				}
-
-				renderer->GetCamera().SetFov( newFov );
+					Camera& cam = renderer->GetCamera();
+					cam.SetFov(cam.GetFov() + fovSpeed * m_deltaTime);
+				}			
 			}
 			else
 			{
 				if (!m_finishedCharging)
 				{
-					ChangeTimeline( renderer );
+					SwapTimeline( renderer );
 					m_finishedCharging = true;
 					renderer->GetCamera().SetFov( m_initialCamFov );
-					m_totalFovDelta = 0.0f;
 
 					if (!m_isInFuture) // time to cooldown
 					{
@@ -233,6 +225,26 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			}
 		}
 
+		//       $$                      $$
+		//     $$$  $                  $  $$$
+		//    $$$   $$                $$   $$$
+		//    $$$$$$$$                $$$$$$$$
+		//     $$$$$$                  $$$$$$
+		//      $$$$    $$0$$$$$0$$$    $$$$
+		//        $$  $$$$$$$$$$$$$$$$  $$
+		//    $$   $$$$$$$$$$$$$$$$$$$$$$   $$
+		//  $$  $$  $$$$$$$$$$$$$$$$$$$$  $$  $$
+		// $      $$$$$$$$$$$$$$$$$$$$$$$$      $
+		// $  $$$    $$$$$$$$$$$$$$$$$$    $$$  $
+		//   $   $$$$ $$$$$$$$$$$$$$$$ $$$$   $
+		//  $         $ $$$$$$$$$$$$ $         $
+		//  $      $$$                $$$      $
+		//        $                      $
+		//       $                        $
+		//       $                         $
+		// 
+		//     WHAT ARE THESE COPYPASTA TIGERS?
+
 		/*    ("`-''-/").___..--''"`-._
 			   `6_ 6  )   `-.  (     ).`-.__.`)
 			   (_Y_.)'  ._   )  `._ `. ``-..-'
@@ -244,15 +256,57 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			m_maxStamina = 1.0f;
 		}*/
 
-		if (Input::Get().IsDXKeyPressed( DXKey::H ) && !m_isInFuture)
+		m_testTunnel = false;
+
+		if (!m_isSwitching && !m_isInFuture)
 		{
-			UnLoadPrevious();
-			LoadHubby();
-			m_player->ReloadPlayer();
-			m_detectionLevelGlobal = 0.0f;
-			m_detectionLevelFloor = 0.0f;
-			m_coolDownCounter = m_timeAbilityCooldown;
-			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+			for (const LevelTunnelRef& r : m_currentRoom->m_level->connections)
+			{
+				Vec3 sideDir = Vec3(r.direction.z, 0.0f, -r.direction.x);
+				Vec3 relative = m_player->transform.worldPosition - r.position;
+
+				if (relative * r.direction > -TUNNEL_TRIGGER_DISTANCE && abs(relative * sideDir) < r.width * 1.1f)
+				{
+					/*m_testTunnel = true;*/
+
+					// Go to next room
+					if (r.targetRoom >= 0)
+					{
+						uint targetIndex = (r.tunnelSubIndex + 1) % 2;
+						const LevelTunnel& t = m_floor.tunnels[r.tunnel];
+
+						UnLoadPrevious();
+						LoadRoom(&m_floor.rooms[r.targetRoom]);
+
+						m_currentRoom->transform.CalculateWorldMatrix();
+						m_directionalLight->transform.parent = &m_currentRoom->transform;
+						m_directionalLight->Update( 0 );
+
+						m_player->transform.position = t.positions[targetIndex] - t.directions[targetIndex] * TUNNEL_SPAWN_DISTANCE;
+						m_player->ReloadPlayer();
+
+						Renderer::ExecuteShadowRender();
+						break;
+					}
+
+					// Floor entrance
+					if (r.targetRoom == -1)
+					{
+
+					}
+
+					// Floor exit
+					if (r.targetRoom == -2)
+					{
+
+					}
+				}
+			}
+		}
+
+		if (Input::Get().IsDXKeyPressed( DXKey::H ))
+		{
+			EndRun(renderer);
 		}
 	}
 	else // If in hubby
@@ -260,7 +314,9 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		if (Input::Get().IsDXKeyPressed( DXKey::L ))
 		{
 			UnLoadPrevious();
-			LoadTest();
+			LoadGame(1, 9);
+			//LoadTest();
+			
 			m_player->ReloadPlayer();
 		}
 		if (Input::Get().IsDXKeyPressed( DXKey::H ))
@@ -287,7 +343,19 @@ void Game::DrawIMGUIWindows()
 		ImGui::Text( "Time left until future death: %f", m_timeYouSurviveInFuture - m_dangerousTimeInFuture );
 		ImGui::Text( "Time ability cooldown: %f", GetPowerCooldown());
 		ImGui::Checkbox( "Future", &m_isInFuture );
+		
+		ImGui::Separator();
+		ImGui::InputFloat3("Player Position", (float*)&m_player->transform.position);
 
+		ImGui::Text("Transition: %s", m_testTunnel ? "YES" : "NO");
+	}
+	ImGui::End();
+
+	static Vec3 tempRot;
+	if (ImGui::Begin( "Room Rot" ))
+	{
+		ImGui::DragFloat3( "Room Additive Rot", (float*)&tempRot );
+		m_player->currentRoom->m_testOffset = Quaternion::GetEuler( tempRot ).Matrix();
 	}
 	ImGui::End();
 
@@ -352,15 +420,13 @@ void Game::DrawIMGUIWindows()
 				m_testMaterials.Add( MaterialResource() );
 			}
 
-			float distance = 0.5f;
-
-			Mat4 halfturn = Quaternion::GetEuler( 0, cs::c_pi, 0 ).Matrix();
+			float distance = 0.5f / (BM_MAX_SIZE / BM_PIXELS_PER_UNIT);
 
 			for (int i = 0; i < f.rooms.Size(); i++)
 			{
 				Level& l = f.rooms[i];
 				m_testRenderables.Add( Renderer::CreateMeshStatic( "room_plane.wwm" ) );
-				m_testRenderables.Back()->worldMatrix = Mat::translation3( l.position.x * distance, 3.2f, l.position.y * distance ) * halfturn * l.rotation.Matrix() * Mat::scale3( 0.8f );
+				m_testRenderables.Back()->worldMatrix = Mat::translation3( l.position.x * distance, 3.2f, l.position.z * distance ) * l.rotation.Matrix() * Mat::scale3( 0.8f );
 
 				m_testMaterials[i].specular = Vec3( 0.5f, 0.5f, 0.5f );
 				m_testMaterials[i].textureDiffuse = l.resource->source;
@@ -370,14 +436,14 @@ void Game::DrawIMGUIWindows()
 			for (int i = 0; i < f.tunnels.Size(); i++)
 			{
 				LevelTunnel& t = f.tunnels[i];
-				Vec2 start = f.rooms[t.startRoom].position;
-				Vec2 end = f.rooms[t.endRoom].position;
+				Level& start = f.rooms[t.startRoom];
+				Level& end = f.rooms[t.endRoom];
 
 				m_testRenderables.Add( Renderer::CreateMeshStatic( "Debug_Sphere.wwm" ) );
 				m_testRenderables.Back()->worldMatrix =
-					Mat::translation3( (start.x + end.x) * 0.5f * distance, 3, (start.y + end.y) * 0.5f * distance ) *
-					Quaternion::GetDirection( (Vec3( end.x, 0, end.y ) - Vec3( start.x, 0, start.y )).Normalized() ).Matrix() *
-					Mat::scale3( 0.3f, 0.3f, (end - start).Length() * 2.5f );
+					Mat::translation3( (start.position.x + end.position.x) * 0.5f * distance, 3, (start.position.z + end.position.z) * 0.5f * distance ) *
+					Quaternion::GetDirection( (Vec3( end.position.x, 0, end.position.z ) - Vec3( start.position.x, 0, start.position.z )).Normalized() ).Matrix() *
+					Mat::scale3( 0.3f, 0.3f, (end.position - start.position).Length() * 5.0f * distance);
 			}
 		}
 	}
@@ -484,15 +550,14 @@ void Game::Init()
 	m_enemyHorn->mix2d3d = 0.0f;
 
 	// Lighting
+	dirLightOffset = Vec3( 0, 20, -20 ); // TODO: Investigate why other values here don't work. << CULLING ON THE SHADOWS WACKY
 	m_directionalLight = Renderer::GetDirectionalLight();
-	m_directionalLight->transform.position = { 0, 30, -25 };
+	m_directionalLight->transform.position = dirLightOffset; 
 	m_directionalLight->transform.SetRotationEuler({ dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
 	m_directionalLight->diameter = 50.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
 
-	
-	
 }
 
 void Game::DeInit()
@@ -513,10 +578,11 @@ void Game::LoadHubby()
 {
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
 	LoadRoom( &m_floor.rooms[0] );
-	//Mat4 worldScale = Mat::scale3( 0.15f, 0.15f, 0.15f );
-	//Mat4 worldPos = Mat::translation3( 0.0f, 0.0f, -2 );
-	//Mat4 worldRot = Mat::rotation3( cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0 );
-	//Mat4 worldCombined = worldScale * worldPos * worldRot;
+
+	m_currentRoom->transform.CalculateWorldMatrix();
+	m_directionalLight->transform.parent = &m_currentRoom->transform;
+	m_directionalLight->Update( 0 );
+
 	m_isHubby = true;
 	m_player->transform.position = Vec3(0, 0, 0);
 	Renderer::ExecuteShadowRender();
@@ -526,24 +592,34 @@ void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[0]);
-	//Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	//Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
-	//Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
-	//Mat4 worldCombined = worldScale * worldPos * worldRot;
+
+	m_currentRoom->transform.CalculateWorldMatrix();
+	m_directionalLight->transform.parent = &m_currentRoom->transform;
+	m_directionalLight->Update( 0 );
+
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
 }
 
-void Game::LoadGame(uint gameSeed)
+void Game::LoadGame(uint gameSeed, uint roomCount)
 {
-	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
+	FloorParameters params = {};
+	params.seed = gameSeed;
+	params.roomCount = roomCount;
+	params.angleSteps = 0;
+	params.pushSteps = 3;
+
+	m_levelHandler->GenerateFloor(&m_floor, params, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
+
 	m_player->transform.position = m_floor.startPosition;
-	//Mat4 worldScale = Mat::scale3(0.15f, 0.15f, 0.15f);
-	//Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
-	//Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
-	//Mat4 worldCombined = worldScale * worldPos * worldRot;
+
+	m_currentRoom->transform.CalculateWorldMatrix();
+	m_directionalLight->transform.parent = &m_currentRoom->transform;
+	m_directionalLight->Update(0);
+
 	m_isHubby = false;
+	Renderer::ExecuteShadowRender();
 }
 
 void Game::UnLoadPrevious()
@@ -584,18 +660,17 @@ float Game::GetMaxStamina()
 
 void Game::LoadRoom(Level* level)
 {
-	Mat4 roomMatrix =
-		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight) *
-		Mat::translation3(level->position.x, level->position.x - 0.01f, level->position.x)*
-		level->rotation.Matrix();
+	Mat4 roomOffset =
+		Mat::translation3(0, -0.01f, 0) *
+		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight);
 
-	Mat4 roomCylinderMatrix =
-		Mat::scale3( level->resource->worldWidth*1.2f, 1.0f, level->resource->worldHeight * 1.2f ) *
-		Mat::translation3( level->position.x, level->position.x, level->position.x ) *
-		level->rotation.Matrix();
+	Mat4 cylinderOffset =
+		Mat::translation3( 0, -0.02f, 0 ) *
+		Mat::scale3(level->resource->worldWidth * 1.2f, 1.0f, level->resource->worldHeight * 1.2f);
 
-	m_currentRoom = shared_ptr<Room>(new Room(level,"room_plane.wwm", "room_walls_floor.wwm", roomMatrix, roomCylinderMatrix ));
-	m_currentRoom->transform.rotation = Quaternion::GetEuler({ 0, 0, 0 });
+	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
+	m_currentRoom->transform.position = level->position;
+	m_currentRoom->transform.rotation = level->rotation;
 
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
@@ -613,8 +688,8 @@ void Game::LoadRoom(Level* level)
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
 			"Carcinian_Animated.wwm", 
 			"Carcinian_Animations.wwa", 
-			Mat::scale3(1.25f, 1.25f, 1.25f) * 
 			Mat::translation3(0, 0, 0) * 
+			Mat::scale3(1.25f, 1.25f, 1.25f) * 
 			Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
 		
 		for (int j = 0; j < p.controlPoints.Size(); j++)
@@ -630,8 +705,8 @@ void Game::LoadRoom(Level* level)
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
 			"Carcinian_Animated.wwm",
 			"Carcinian_Animations.wwa",
-			Mat::scale3(1.25f, 1.25f, 1.25f) *
 			Mat::translation3(0, 0, 0) *
+			Mat::scale3(1.25f, 1.25f, 1.25f) *
 			Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
 
 		for (int j = 0; j < p.controlPoints.Size(); j++)
@@ -681,12 +756,7 @@ bool Game::IsDetected(float deltaTime, float enemyDistance, float maximalDistanc
 	m_detectionLevelGlobal += rate * deltaTime;
 	m_detectionLevelFloor += (rate / 3) * deltaTime;
 
-	if (m_detectionLevelGlobal >= 1.0f)
-	{
-		return true; //game over
-	}
-
-	return false; // game is not over
+	return m_detectionLevelGlobal >= 1.0f;
 }
 
 void Game::LowerToFloor(float deltaTime)
@@ -744,11 +814,66 @@ void Game::SoundUpdate(float deltaTime)
 	}
 }
 
+void Game::ResetGameplayValues()
+{
+	m_isInFuture = false;
+	m_isSwitching = false;
+	m_isSeen = false;
+	m_reachedLowestStamina = false;
 
+	m_switchVals.timeSinceSwitch = 0.0f;
+	m_timeUnseen = 0.0f;
+	m_detectionLevelGlobal = 0.0f;
+	m_detectionLevelFloor = 0.0f;
+	m_dangerousTimeInFuture = 0.0f;
+	
+	m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+	m_coolDownCounter = m_timeAbilityCooldown;
+}
 
-void Game::ChangeTimeline(Renderer* renderer)
+void Game::EndRun(Renderer* renderer)
+{
+	if (m_isSwitching)
+	{
+		renderer->GetCamera().SetFov(m_initialCamFov);
+	}
+
+	ResetGameplayValues();
+	ChangeToPresentTimeline(renderer);
+
+	UnLoadPrevious();
+	LoadHubby();
+
+	// Has to happen after loading hubby for some reason?
+	m_player->ResetStaminaToMax(MAX_STAMINA_STARTING_VALUE);
+	m_player->ReloadPlayer();
+}
+
+void Game::EndRunDueToEnemy(Renderer* renderer)
+{
+	m_enemyHorn->Play();
+
+	// More logic for dying from enemy here.
+
+	EndRun(renderer);
+}
+
+void Game::EndRunDueToPoison(Renderer* renderer)
+{
+	// Logic for dying from future poison here.
+
+	EndRun(renderer);
+}
+
+void Game::SwapTimeline(Renderer* renderer)
 {
 	m_isInFuture = !m_isInFuture;
+
+	ApplyTimelineState(renderer);
+}
+
+void Game::ApplyTimelineState(Renderer* renderer)
+{
 	renderer->SetTimelineState(m_isInFuture);
 	m_currentRoom->SetTimeline(m_isInFuture);
 
@@ -759,7 +884,20 @@ void Game::ChangeTimeline(Renderer* renderer)
 			m_enemies[i]->ChangeTimelineState(m_isInFuture);
 		}
 	}
+
 	UpdateTimeSwitchBuffers(renderer);
+}
+
+void Game::ChangeToFutureTimeline(Renderer* renderer)
+{
+	m_isInFuture = true;
+	ApplyTimelineState(renderer);
+}
+
+void Game::ChangeToPresentTimeline(Renderer* renderer)
+{
+	m_isInFuture = false;
+	ApplyTimelineState(renderer);
 }
 
 void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
@@ -771,7 +909,6 @@ void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
 		m_isInFuture,
 		m_detectionLevelGlobal
 	);
-	
 }
 
 void Game::UpdateEnemyConeBuffers(Renderer* renderer)
