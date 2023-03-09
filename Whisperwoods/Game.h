@@ -49,6 +49,7 @@ public:
 
 	void LoadHubby();
 	void LoadTest();
+	void LoadTutorial();
 	void LoadGame(uint gameSeed, uint roomCount);
 	void UnLoadPrevious();
 

@@ -322,9 +322,12 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 					}
 
 					// Floor exit
-					if (r.targetRoom == -2)
+					if (r.targetRoom == -2 && m_player->hasPickedUpEssenceBloom)  
 					{
-
+						UnLoadPrevious();
+						LoadGame(1, 9);
+						m_player->ReloadPlayer();
+						m_player->hasPickedUpEssenceBloom = false;
 					}
 				}
 			}
@@ -346,8 +349,8 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		if (Input::Get().IsDXKeyPressed( DXKey::L ))
 		{
 			UnLoadPrevious();
-			LoadGame(1, 9);
-			
+			//LoadGame(1, 9);
+			LoadTutorial();
 			m_player->ReloadPlayer();
 		}
 		if (Input::Get().IsDXKeyPressed( DXKey::H ))
@@ -620,6 +623,17 @@ void Game::LoadTest()
 	//Mat4 worldPos = Mat::translation3(0.0f, 0.0f, -2);
 	//Mat4 worldRot = Mat::rotation3(cs::c_pi * -0.5f, cs::c_pi * 0.5f, 0);
 	//Mat4 worldCombined = worldScale * worldPos * worldRot;
+	m_isHubby = false;
+	Renderer::ExecuteShadowRender();
+}
+
+void Game::LoadTutorial()
+{
+	m_levelHandler->GenerateTutorial(&m_floor, m_envParams);
+	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
+
+	m_player->transform.position = m_floor.startPosition;
+
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
 }

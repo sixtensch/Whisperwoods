@@ -183,6 +183,7 @@ void Whisperwoods::Run()
 
 
 
+
 	//************* power cooldown
 	testGui.AddGUIElement({ 0.475f,-0.82f }, { 0.5f,0.1f }, nullptr, nullptr);
 	testGui.GetElement(3)->colorTint = Vec3(0.08f, 0.18f, 0.8f);
@@ -192,8 +193,17 @@ void Whisperwoods::Run()
 	testGui.GetElement(3)->intData = Point4(0, 1, 0, 0); // Makes it follow the float value.
 	testGui.GetElement(3)->firstTexture = nullptr;
 	testGui.GetElement(3)->secondTexture = Resources::Get().GetTexture("StaminaBarMask09.png");
-	//*************
+	//**********
 
+
+	// time for tutorial text
+
+
+
+
+
+
+	// 
 	// Test of the cutscene system.
 	CutsceneController testController;
 	shared_ptr<Cutscene> testCutScene(new Cutscene("Test scene"));

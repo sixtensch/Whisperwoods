@@ -48,7 +48,7 @@ public:
 	shared_ptr<uint8_t> GenerateFloorImage(int sizeX, int sizeY, LevelFloor floorRef);
 
 	void LoadFloors();
-	void LoadTutorial();
+	void GenerateTutorial(LevelFloor* outFloor, EnvironmentalizeParameters params);
 	void GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, EnvironmentalizeParameters eParams);
 	void GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParameters params);
 	void GenerateHubby( LevelFloor* outFloor, EnvironmentalizeParameters params);
@@ -102,6 +102,8 @@ private:
 	void AngleRooms(FloorPrimer& f);
 	void EvaluateRoom(FloorPrimer& f, uint index);
 	float EvaluateDeviation(RoomPrimer& r, const LevelResource* level);
+
+	void Unprime(FloorPrimer& primer, LevelFloor& f, EnvironmentalizeParameters parameters);
 
 private:
 	static LevelHandler* s_handler;
