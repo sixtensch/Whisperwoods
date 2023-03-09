@@ -76,7 +76,7 @@ cbuffer TIME_SWITCH_INFO_BUFFER : REGISTER_CBV_SWITCH_INFO
     float isInFuture;
     
     float detectionLevel;
-    float PADDING[3];
+    float3 PADDING;
 }
 
 cbuffer COLORGRADE_INFO_BUFFER : REGISTER_CBV_COLORGRADE_INFO
@@ -85,6 +85,8 @@ cbuffer COLORGRADE_INFO_BUFFER : REGISTER_CBV_COLORGRADE_INFO
     float2 contrast; // x: Contrast amount, y: Midpoint value
     float brightness; // Brightness offset
     float saturation; // Saturation value
+    
+    float2 PADDINGTON;
 };
 
 RWTexture2D<unorm float4> backBufferTexture : REGISTER_UAV_RENDER_TARGET;
@@ -107,19 +109,19 @@ void main( uint3 DTid : SV_DispatchThreadID )
     
     float3 color = renderTexture.Load(texPos).rgb + lumSumTexture.Load(lumSumTexPos).rgb;
     
+    //color = pow(color, (1.0f / 2.2f)); // Gamma correction.
     color = AcesTonemap(color);
     
-    // Color stuff.
+     // Color stuff.
     {
-        //color = Tint(color, lerp(1.0f.rrr, float3(0.0f, 0.0f, 2.0f), totalInflunce));
-        //color = Brightness(color, lerp(brightness, 1.0f, totalInflunce));
-        color = Saturation(color, smoothstep(saturation, 0.0f, totalTimeSwitchInfluence));
-        //color = Saturation(color, saturation);
+        //color = Tint(color, lerp(1.0f.rrr, float3(0.0f, 0.0f, 1.0f), totalTimeSwitchInfluence));
+        color = Brightness(color, lerp(brightness, 1.0f, totalTimeSwitchInfluence));
+        color = Saturation(color, lerp(saturation, 0.0f, totalTimeSwitchInfluence));
         color = Contrast(color, contrast.x, contrast.y);
     }
     
     color = Vignette(color, texUV, vignette.x, vignette.y);
    
-    //color = pow(color, (1.0f / 2.2f)); // Gamma correction.
+    
     backBufferTexture[texPos.xy] = float4(color, 1.0f);
 }
