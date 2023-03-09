@@ -537,17 +537,17 @@ void Game::Init()
 
 	//Music
 	m_musicPresent = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_musicVol, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings.mp3"))->currentSound);
-	m_musicFuture = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Gecko.mp3"))->currentSound);
-	m_musicDetected = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Trespass.mp3"))->currentSound);
-	m_player->AddChild((GameObject*)m_musicPresent.get());
-	m_player->AddChild((GameObject*)m_musicFuture.get());
-	m_player->AddChild((GameObject*)m_musicDetected.get());
+	m_musicFuture = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings_Who_Left.mp3"))->currentSound);
+	m_musicDetected = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings_on_Your_Tail.mp3"))->currentSound);
 	m_musicPresent->loop = true;
 	m_musicFuture->loop = true;
 	m_musicDetected->loop = true;
+	m_musicPresent->mix2d3d = 0.0f;
+	m_musicFuture->mix2d3d = 0.0f;
+	m_musicDetected->mix2d3d = 0.0f;
 
-	m_enemyHorn = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_hornVol, 1.0f, 20.0f, 30.0f, (Resources::Get().GetSound("HornHeavyReverb.wav"))->currentSound);
-	m_player->AddChild((GameObject*)m_enemyHorn.get());
+	m_enemyHorn = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_hornVol, 0.8f, 20.0f, 30.0f, (Resources::Get().GetSound("HornHeavyReverb.wav"))->currentSound);
+	m_enemyHorn->mix2d3d = 0.0f;
 
 	// Lighting
 	dirLightOffset = Vec3( 0, 20, -20 ); // TODO: Investigate why other values here don't work. << CULLING ON THE SHADOWS WACKY
@@ -802,14 +802,14 @@ void Game::SoundUpdate(float deltaTime)
 		if (m_isInFuture)
 		{
 			m_musicPresent->SetVolume(0.0f);
-			m_musicFuture->SetVolume(m_musicVol);
+			m_musicFuture->SetVolume(m_musicVol * 0.7);
 			m_musicDetected->SetVolume(0.0f);
 		}
 		else
 		{
 			m_musicPresent->SetVolume(m_musicVol);
 			m_musicFuture->SetVolume(0.0f);
-			m_musicDetected->SetVolume(m_musicVol * m_detectionLevelGlobal * (m_timeUnseen <= m_timeBeforeDetectionLowers));
+			m_musicDetected->SetVolume(m_musicVol * m_detectionLevelGlobal /** ((m_timeUnseen <= m_timeBeforeDetectionLowers) ? (m_timeBeforeDetectionLowers - m_timeUnseen)/m_timeBeforeDetectionLowers : 0.0f)*/);
 		}
 	}
 }
