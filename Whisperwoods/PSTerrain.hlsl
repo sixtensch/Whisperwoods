@@ -199,15 +199,15 @@ PS_OUTPUT main(VSOutput input)
         lsUV, lsNDC.z - epsilon);
     float sDynamic = shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
         lsUV, lsNDC.z - epsilon);
-
+    float sMin = min(sDynamic, sStatic);
     float shadowAff = 0.0f;
-    if (sStatic < sDynamic)
+    if (sMin < sDynamic)
     {
         shadowAff = PCFShadows(shadowTextureStatic, sStatic, lsUV, lsNDC.z, epsilon, kernelWidth);
     }
     else
     {
-        shadowAff = PCFShadowsBoth(sDynamic, lsUV, lsNDC.z, epsilon, kernelWidth);
+        shadowAff = PCFShadowsBoth(sMin, lsUV, lsNDC.z, epsilon, kernelWidth);
     }
     
     // Simple lighting
