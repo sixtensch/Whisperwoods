@@ -859,7 +859,7 @@ void Game::LoadTutorial()
 {
 	UnLoadPrevious();
 	m_levelHandler->GenerateTutorial(&m_floor, m_envParams);
-	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
+	LoadRoom(m_floor.startRoom);
 
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update( 0 );
@@ -950,7 +950,6 @@ bool Game::IsInHubby()
 	return m_isHubby;
 }
 
-void Game::LoadRoom(Level* level)
 void Game::LoadRoom(uint levelIndex)
 {
 	Level& level = m_floor.rooms[levelIndex];
