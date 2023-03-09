@@ -263,26 +263,14 @@ void RenderHandler::ExecuteStaticShadowDraw()
 	for (uint i = 0; i < LevelAssetCount; i++)
 		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
-
 	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 
-	// Write to shadow map
+
+	// Write to static shadow map (Present)
 	m_renderCore->TargetStaticShadowMap();
-	
-	
 	for (int i = 0; i < m_shadowRenderables.Size(); i++)
 	{
-		shared_ptr<WorldRenderable> data = {};
-		switch (m_timelineState)
-		{
-		case TimelineStateCurrent:
-			data = m_worldRenderables[m_shadowRenderables[i]].first;
-			break;
-
-		case TimelineStateFuture:
-			data = m_worldRenderables[m_shadowRenderables[i]].second;
-			break;
-		}
+		shared_ptr<WorldRenderable> data = m_worldRenderables[m_shadowRenderables[i]].first;
 		if (data && data->enabled)
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
@@ -298,10 +286,25 @@ void RenderHandler::ExecuteStaticShadowDraw()
 			m_renderCore->DrawObject( data.get(), false );
 		}
 	}*/
-	DrawInstances(m_timelineState, true, true);
+	DrawInstances(0, true, true);
+
+
+	// Write to static shadow map (Future)
+	m_renderCore->TargetStaticShadowMapFuture();
+	for ( int i = 0; i < m_shadowRenderables.Size(); i++ )
+	{
+		shared_ptr<WorldRenderable> data = m_worldRenderables[m_shadowRenderables[i]].second;
+		if ( data && data->enabled )
+		{
+			m_renderCore->UpdateObjectInfo(data.get());
+			m_renderCore->DrawObject(data.get(), true, false);
+		}
+	}
+	DrawInstances(1, true, true);
+
 
 	// Set static shadow as readable
-	m_renderCore->BindStaticShadowMap();
+	m_renderCore->BindStaticShadowMap(false);
 }
 
 RenderCore* RenderHandler::GetCore() const
@@ -640,6 +643,11 @@ void RenderHandler::SetTimelineStateCurrent()
 void RenderHandler::SetTimelineStateFuture()
 {
 	m_timelineState = TimelineStateFuture;
+}
+
+void RenderHandler::UpdateStaticShadows(bool future)
+{
+	m_renderCore->BindStaticShadowMap(future);
 }
 
 shared_ptr<DirectionalLight> RenderHandler::GetDirectionalLight()
