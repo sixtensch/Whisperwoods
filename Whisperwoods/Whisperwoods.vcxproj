@@ -48,7 +48,6 @@
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="LevelHandler.cpp" />
     <ClCompile Include="LevelImporter.cpp" />
-    <ClCompile Include="LevelResource.cpp" />
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="LightHandler.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -210,9 +209,9 @@
     </FxCompile>
     <FxCompile Include="PSGUI.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
-      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="PSPrepass.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
@@ -261,10 +260,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\myfileb.spritefont" />
-    <None Include="BrightnessFilteringIncludes.hlsli" />
     <None Include="ComputeConstants.hlsli" />
     <None Include="Constants.hlsli" />
-    <None Include="EnemyConeVisIncludes.hlsli" />
     <None Include="FogFuncs.hlsli" />
     <None Include="PhongAlg.hlsli" />
     <None Include="PhongAlgLite.hlsli" />

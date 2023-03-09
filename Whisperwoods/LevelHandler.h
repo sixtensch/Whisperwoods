@@ -55,7 +55,7 @@ public:
 private:
 	struct RoomPrimer
 	{
-		cs::List<uint> connections;
+		cs::List<int> connections;
 		Vec2 position;
 		Vec2 push;
 
@@ -67,6 +67,8 @@ private:
 		float angleDeviationScore = 0.0f;
 		float angleOffset = 0.0f;
 		uint connectionOffset = 0;
+
+		bool essenceBloom = false;
 	};
 	struct TunnelPrimer
 	{
@@ -94,6 +96,8 @@ private:
 	void CreateNodes(FloorPrimer& f, uint roomCount, uint pushSteps);
 	bool TryConnecting(FloorPrimer& f, float dotThreshold);
 	bool TryLeveling(FloorPrimer& f, bool repeats, uint roomAttempts);
+	bool TryFinalizing(FloorPrimer& f);
+	void AngleRoom(FloorPrimer& f, RoomPrimer& r);
 	void AngleRooms(FloorPrimer& f);
 	void EvaluateRoom(FloorPrimer& f, uint index);
 	float EvaluateDeviation(RoomPrimer& r, const LevelResource* level);

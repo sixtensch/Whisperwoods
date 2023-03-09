@@ -49,7 +49,7 @@ public:
 
 	void LoadHubby();
 	void LoadTest();
-	void LoadGame(uint gameSeed);
+	void LoadGame(uint gameSeed, uint roomCount);
 	void UnLoadPrevious();
 
 	Player* GetPlayer();
@@ -74,15 +74,26 @@ private:
 	void UnloadRoom();
 	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
-	
+
+	void SoundUpdate(float deltaTime);
 
 public:
+	//Camera* m_camera;
 	std::unique_ptr<LevelHandler>	m_levelHandler;
 private:
 
+	Vec3 dirLightOffset;
 	shared_ptr<Player> m_player;
 	shared_ptr<AudioSource> m_audioSource;
 	shared_ptr<DirectionalLight> m_directionalLight;
+
+	float m_musicVol = 0.3;
+	shared_ptr<AudioSource> m_musicPresent;
+	shared_ptr<AudioSource> m_musicFuture;
+	shared_ptr<AudioSource> m_musicDetected;
+
+	float m_hornVol = 1.0f;
+	shared_ptr<AudioSource> m_enemyHorn;
 
 	cs::List<shared_ptr<MeshRenderableStatic>> m_testRenderables;
 	cs::List<MaterialResource> m_testMaterials;
@@ -121,6 +132,8 @@ private:
 	bool m_isSwitching; // Switching = is true during whole duration (start + end) of time switch.
 	bool m_finishedCharging; // Charging = only first part of whole duration (start)
 	float m_maxStamina;
+
+	bool m_testTunnel;
 
 	float m_detectionLevelGlobal; //how detected you currently are
 	float m_detectionLevelFloor; // minimum detection that detection goes down to

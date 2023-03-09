@@ -34,6 +34,9 @@ RenderHandler::RenderHandler()
 	{
 		boundingVolumes[i] = BananaPlant;
 	}
+
+	m_currentLevel = nullptr;
+	m_lightAmbientIntensity = 0.5f;
 }
 
 RenderHandler::~RenderHandler()
@@ -477,7 +480,7 @@ void RenderHandler::LoadEnvironment(const Level* level)
 	
 	uint instanceCount = 0;
 
-	m_envQuadTree.Reconstruct((float)level->resource->pixelHeight, (float)level->resource->pixelWidth);
+	m_envQuadTree.Reconstruct((float)level->resource->pixelHeight, (float)level->resource->pixelWidth, level->position);
 
 	for (uint i = 0; i < LevelAssetCount; i++)
 	{

@@ -132,8 +132,9 @@ PS_OUTPUT main(VSOutput input)
     //output.LuminanceTexture = 0.0f.rrrr;
     //return output;
     
-    //// Diffuse sample
-    float2 uv = input.outUV * tiling;  
+    // Diffuse sample
+    float2 uv = input.outUV.xy * tiling;  
+    float2 uv2 = input.outUV.xy * tiling * 1.5f;
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
     if (diffuseSample.a < 0.1f)
         discard;
@@ -141,10 +142,11 @@ PS_OUTPUT main(VSOutput input)
     
     // Mix the color depending on if it's the background or the ground (UV.z value)
     float4 colorAlbedoOpacity;
+    float4 colorAlbedoOpacity2;
     if (input.outUV.z > 0.0f)
     {
         // Compensate for the stretch
-        float2 uvNoTile = input.outUV;
+        float2 uvNoTile = input.outUV.xy;
         uvNoTile.x -= 0.5;
         uvNoTile.x *= 1.2;
         uvNoTile.x += 0.5;
@@ -153,9 +155,15 @@ PS_OUTPUT main(VSOutput input)
         uvNoTile.y -= 0.5;
         // Bitmap sample
         float4 bitmapSample = textureBitmap.Sample(textureSampler, uvNoTile);
-        float4 diffuseSample2 = textureDiffuse.Sample(textureSampler, uv * (1.0f - (bitmapSample.r * 0.05f)));
-        colorAlbedoOpacity = float4(diffuse * diffuseSample2.xyz * pow(bitmapSample.r, 2), alpha * diffuseSample.a);
-        //colorAlbedoOpacity = float4(bitmapSample.xyz, alpha * diffuseSample.a);
+        
+        float difference = abs(bitmapSample.r - bitmapSample.b);
+        float factor = bitmapSample.r * bitmapSample.b + (difference*0.9f);
+        float blendFactor = max(factor, 0.1f);
+        
+        float4 diffuseSample2 = textureDiffuse.Sample(textureSampler, uv * (1.0f - (factor * 0.01f)));
+        float4 diffuseSample3 = textureDiffuse.Sample(textureSampler, uv2); // Detail Texture
+        colorAlbedoOpacity = float4(diffuse * diffuseSample2.xyz * blendFactor, alpha * diffuseSample.a);
+        colorAlbedoOpacity2 = float4(diffuse * diffuseSample3.xyz * (1.0f-blendFactor)*1.1f, alpha * diffuseSample.a); // use the inverted factor for the dark areas
     }
     else
     {
@@ -215,11 +223,23 @@ PS_OUTPUT main(VSOutput input)
     float shadowAff = sum / 25.0f;
     
     // Simple lighting
-    color += shadowAff * phongLite(
+    if (input.outUV.z > 0.0f)
+    {
+        color += shadowAff * phongLite(
+		directionalLight.intensity,
+		1.0f,
+		colorAlbedoOpacity.xyz + (colorAlbedoOpacity2.xyz * 0.5f) // Combine the normal and detail samples
+	);
+    }
+    else
+    {
+        color += shadowAff * phongLite(
 		directionalLight.intensity,
 		1.0f,
 		colorAlbedoOpacity.xyz
-	);
+        );
+
+    }
     
     // Enemy cone effects.
     // Will not loop if the state is in the future.

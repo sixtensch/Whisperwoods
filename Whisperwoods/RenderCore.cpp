@@ -68,8 +68,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	m_viewport.Width = static_cast<float>(window->GetWidth());
 	m_viewport.Height = static_cast<float>(window->GetHeight());
 
-	UINT shadowMapHeight = 512;
-	UINT shadowMapWidth = 512;
+	UINT shadowMapHeight = 1024;
+	UINT shadowMapWidth = 1024;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.MinDepth = 0;

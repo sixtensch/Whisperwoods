@@ -3,7 +3,7 @@
 #include "Sound.h"
 
 
-class AudioSource : GameObject
+class AudioSource : public GameObject
 {
 	FMOD::Sound* m_currentSound;
 	FMOD::Channel* m_channel;
@@ -22,6 +22,8 @@ public:
 	void Stop();
 	bool IsPlaying();
 	void SetSound(FMOD::Sound* sound);
+	void SetVolume(float volume);
+	void SetPitch(float pitch);
 	
 	void Update(float delta_time) override;
 };
