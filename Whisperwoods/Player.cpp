@@ -198,6 +198,11 @@ Quaternion SlerpDX( Quaternion q0, Quaternion q1, float t )
 
 void Player::PlayerMovement(float delta_time, float movementMultiplier)
 {
+	if (delta_time > 0.1f)
+	{
+		return;
+	}
+
 	if (cameraIsLocked)
 	{
 		Vec3 inputVector;
@@ -432,35 +437,41 @@ void Player::UpdateSound(float delta_time)
 
 	// Sound management!
 
-	Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
-	LevelPixel bitMapPixel = currentRoom->m_levelResource->bitmap[mapPoint.x + mapPoint.y * currentRoom->m_levelResource->pixelWidth];
-	float realNotWhackDensityWhichActuallyIsAccurate = 1.0f - bitMapPixel.density;
-	if (realNotWhackDensityWhichActuallyIsAccurate > 0.2f && m_velocity.Length() > 0.05f && realNotWhackDensityWhichActuallyIsAccurate < 1.0f) // density
-	{
-		//change volume
-		float volPercent = m_velocity.Length() / m_runSpeed;
-		volPercent = pow(volPercent, 2.0f);
-		if (volPercent < 0.01f)
-		{
-			volPercent = 0.1f;
-		}
-		if (volPercent > 0.8f)
-		{
-			volPercent = 0.8f;
-		}
-		realNotWhackDensityWhichActuallyIsAccurate = powf(realNotWhackDensityWhichActuallyIsAccurate, 0.6f);
-		m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate * (!playerInFuture);
+	cs::Box2i bounds(0, 0, currentRoom->m_levelResource->pixelWidth - 1, currentRoom->m_levelResource->pixelHeight - 1);
 
-		if (!m_vegetationSound->IsPlaying()) //repeat sound? (looping kind of)
-		{
-			m_vegetationSound->Play();
-		}
-	}
-	else if (m_vegetationSound->IsPlaying()) // execute order 66
+	Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
+	if (bounds.Contains(mapPoint))
 	{
-		m_vegetationSound->Stop();
+		LevelPixel bitMapPixel = currentRoom->m_levelResource->bitmap[mapPoint.x + mapPoint.y * currentRoom->m_levelResource->pixelWidth];
+
+		float realNotWhackDensityWhichActuallyIsAccurate = 1.0f - bitMapPixel.density;
+		if (realNotWhackDensityWhichActuallyIsAccurate > 0.2f && m_velocity.Length() > 0.05f && realNotWhackDensityWhichActuallyIsAccurate < 1.0f) // density
+		{
+			//change volume
+			float volPercent = m_velocity.Length() / m_runSpeed;
+			volPercent = pow(volPercent, 2.0f);
+			if (volPercent < 0.01f)
+			{
+				volPercent = 0.1f;
+			}
+			if (volPercent > 0.8f)
+			{
+				volPercent = 0.8f;
+			}
+			realNotWhackDensityWhichActuallyIsAccurate = powf(realNotWhackDensityWhichActuallyIsAccurate, 0.6f);
+			m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate * (!playerInFuture);
+
+			if (!m_vegetationSound->IsPlaying()) //repeat sound? (looping kind of)
+			{
+				m_vegetationSound->Play();
+			}
+		}
+		else if (m_vegetationSound->IsPlaying()) // execute order 66
+		{
+			m_vegetationSound->Stop();
+		}
+		m_vegetationSound->SetVolume(m_vegetationSound->volume * (!playerInFuture));
 	}
-	m_vegetationSound->SetVolume(m_vegetationSound->volume * (!playerInFuture));
 
 	if (m_velocity.Length() > 0.05f)
 	{

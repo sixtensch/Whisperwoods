@@ -197,9 +197,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 	if (m_loadNewFloor)
 	{
 		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
-		UnLoadPrevious();
 		LoadGame(1, 9);
-		m_player->ReloadPlayer();
 		m_player->hasPickedUpEssenceBloom = false;
 		tutorial = false;
 		m_loadNewFloor = false;
@@ -384,8 +382,6 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		{
 			m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
 			LoadHubby();
-			m_player->ReloadPlayer();
-			m_grafiki->Reload();
 			m_loadingHubby = false;
 		}
 		else if (m_loadingTutorial == true)
@@ -394,7 +390,6 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			m_loadingTutorial = false;
 			m_player->hasPickedUpEssenceBloom = false;
 			LoadTutorial();
-			m_player->ReloadPlayer();
 			tutorial = true;
 			activeTutorialLevel = 1;
 		}
@@ -789,6 +784,7 @@ void Game::LoadHubby()
 	m_player->transform.position = Vec3(0, 0, -9.0f);
 	Renderer::ExecuteShadowRender();
 
+	m_grafiki->Reload();
 	m_grafiki->enabled = true;
 	m_grafiki->transform.SetRotationEuler(Vec3(0.0f, DEG2RAD * 180.0f, 0.0f));
 	m_currentRoom->AddChild((GameObject*)m_grafiki.get());
@@ -805,6 +801,7 @@ void Game::LoadTest()
 
 void Game::LoadTutorial()
 {
+	UnLoadPrevious();
 	m_levelHandler->GenerateTutorial(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
 
@@ -812,7 +809,6 @@ void Game::LoadTutorial()
 	m_directionalLight->Update( 0 );
 	MovePlayer(m_floor.startPosition, m_floor.startDirection);
 	m_currentRoom->transform.CalculateWorldMatrix();
-
 
 	m_player->ReloadPlayer();
 
@@ -831,6 +827,7 @@ void Game::LoadGame(uint gameSeed, uint roomCount)
 	UnLoadPrevious();
 	m_levelHandler->GenerateFloor(&m_floor, params, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
+	m_currentRoom->transform.CalculateWorldMatrix();
 
 	MovePlayer(m_floor.startPosition, m_floor.startDirection);
 	m_player->ReloadPlayer();
@@ -910,7 +907,6 @@ void Game::LoadRoom(Level* level)
 	m_directionalLight->Update(0);
 
 	Renderer::SetFogParameters(level->position, level->resource->worldWidth * 0.55f);
-
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
 	m_player->currentRoom = m_currentRoom.get();
@@ -1080,14 +1076,11 @@ void Game::EndRun(Renderer* renderer)
 
 	ResetGameplayValues();
 	ChangeToPresentTimeline(renderer);
-
-	UnLoadPrevious();
+	
 	LoadHubby();
 
 	// Has to happen after loading hubby for some reason?
 	m_player->ResetStaminaToMax(MAX_STAMINA_STARTING_VALUE);
-	m_player->ReloadPlayer();
-	m_grafiki->Reload();
 }
 
 void Game::EndRunDueToEnemy(Renderer* renderer)
