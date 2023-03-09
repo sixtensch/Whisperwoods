@@ -314,6 +314,19 @@ void Whisperwoods::Run()
 	cs::Timer deltaTimer;
 	for (bool running = true; running; frames++)
 	{
+
+		if (m_game->youWin)
+		{
+			testGui.GetElement(0)->uiRenderable->enabled = false;
+			testGui.GetElement(1)->uiRenderable->enabled = false;
+			testGui.GetElement(3)->uiRenderable->enabled = false;
+		}
+		else
+		{
+			testGui.GetElement(0)->uiRenderable->enabled = true;
+			testGui.GetElement(1)->uiRenderable->enabled = true;
+			testGui.GetElement(3)->uiRenderable->enabled = true;
+		}
 		// Init frame
 		m_renderer->BeginGui();
 		m_debug->ClearFrameTrace();

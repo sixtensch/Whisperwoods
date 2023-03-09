@@ -324,6 +324,8 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						m_player->ReloadPlayer();
 
 						Renderer::ExecuteShadowRender();
+
+						
 						break;
 					}
 
@@ -333,7 +335,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						
 					}
 					
-					// Floor exit for tutorial
+					// Floor exit 
 					if (r.targetRoom == -2)  
 					{
 						if (m_player->hasPickedUpEssenceBloom && tutorial)
@@ -350,6 +352,8 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						else if (m_player->hasPickedUpEssenceBloom && !tutorial)
 						{
 							// you win!
+							m_loadScreen->GetElement(1)->uiRenderable->enabled = true;
+							youWin = true;
 						}
 						
 					}
@@ -560,6 +564,24 @@ void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_deltaTime = deltaTime;
 
+	if (youWin)
+	{
+		
+		if (Input::Get().IsDXKeyPressed(DXKey::Space))
+		{
+			//player pressed spacebar when outside while loop
+			m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
+			youWin = false;
+			UnLoadPrevious();
+			LoadHubby();
+			m_player->ReloadPlayer();
+		}
+		else
+		{
+			return;
+		}
+	}
+
 	if (!m_isCutScene)
 	{
 		UpdateGameObjects();
@@ -602,6 +624,15 @@ void Game::Init()
 	m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
 	m_loadScreen->GetElement(0)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
 	m_loadScreen->GetElement(0)->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
+
+
+	//winning screen 
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(1)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(1)->alpha = 1.0f;
+	m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(1)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(1)->firstTexture = Resources::Get().GetTexture("winScreen.png");
 
 
 	// Audio test startup

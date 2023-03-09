@@ -97,7 +97,7 @@ public:
 	int activeTutorialLevel = 1;
 	bool tutorial = false;
 	bool showTextForPickupBloom = false;
-
+	bool youWin = false;
 
 private:
 
@@ -186,6 +186,7 @@ private:
 	bool m_deathPoison = false;
 	bool m_deathEnemy = false; 
 	bool m_loadNewFloor = false;
+	
 	 
 	TimeSwitchValues m_switchVals;
 };
