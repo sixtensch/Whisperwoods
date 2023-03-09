@@ -1778,7 +1778,8 @@ void RenderCore::InitDefaultMaterials()
 void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
 	const shared_ptr<DirectionalLight>& lightDirectional,
 	const cs::List<shared_ptr<PointLight>>& lightsPoint,
-	const cs::List<shared_ptr<SpotLight>>& lightsSpot)
+	const cs::List<shared_ptr<SpotLight>>& lightsSpot,
+	Vec3 fogFocus, float fogRadius)
 {
 	CB::ShadingInfo si = 
 	{
@@ -1787,7 +1788,9 @@ void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, c
 		(Vec3)ambientColor * ambientIntensity,
 		0,
 		mainCamera.GetPosition(),
-		0
+		0,
+		fogFocus,
+		fogRadius
 	};
 
 	int dirCount = /*cs::imin(LIGHT_CAPACITY_DIR, lightsDirectional.Size())*/ 1;

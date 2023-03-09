@@ -261,10 +261,12 @@ PS_OUTPUT main(VSOutput input)
     // Fog effects
     {
         float posToCamDist = distance(input.wPosition.xyz, cameraPosition);
+        float posToFocalDist = distance(input.wPosition.xyz, fogFocusPosition);
+        float focalModifier = 1.0f + (max(fogFocusRadius, posToFocalDist) - fogFocusRadius) * 0.25f;
         uint stateIndex = uint(isInFuture);
         color.rgb = ApplyExpFog(
             color.rgb, 
-            STATE_FOG_DENSITIES[stateIndex], 
+            STATE_FOG_DENSITIES[stateIndex] * focalModifier, 
             posToCamDist, 
             STATE_FOG_COLORS[stateIndex],
             STATE_FOG_STRENGTHS[stateIndex]

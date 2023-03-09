@@ -33,9 +33,10 @@ Game::~Game() {}
 // Stamina, pickups, detection etc
 void Game::UpdateGameplayVars( Renderer* renderer )
 {
-	m_coolDownCounter += m_deltaTime;
+	m_coolDownCounter += m_deltaTime * (m_godMode ? 5.0f : 1.0f);
 
 	// Player vars
+	m_player->SetGodMode(m_godMode);
 	m_player->playerInFuture = m_isInFuture;
 	m_player->UpdateStamina( m_maxStamina );
 	m_currentStamina = m_player->GetCurrentStamina();
@@ -56,7 +57,9 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	}
 
 	// Stamina Logic
-	m_maxStamina -= m_deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging; // (duplicated code thing)
+	m_maxStamina -= 
+		m_deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging * 
+		(m_godMode ? 0.05f : 1.0f); // (duplicated code thing)
 	if (m_maxStamina < 1.0f) // DO NOT CHANGE THIS
 	{
 		m_maxStamina = 1.0f; // DO NOT CHANGE THIS
@@ -94,7 +97,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		{
 			m_timeUnseen = 0.0f;
 
-			if (IsDetected(m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance()))
+			if (!m_godMode && IsDetected(m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance()))
 			{
 				if (m_isSwitching)
 				{
@@ -381,9 +384,17 @@ void Game::DrawIMGUIWindows()
 		ImGui::Checkbox( "Future", &m_isInFuture );
 		
 		ImGui::Separator();
+		ImGui::Checkbox("God Mode", &m_godMode);
 		ImGui::InputFloat3("Player Position", (float*)&m_player->transform.position);
-
 		ImGui::Text("Transition: %s", m_testTunnel ? "YES" : "NO");
+
+		if (m_isHubby)
+		{
+			ImGui::Separator();
+			ImGui::InputFloat3("Fog Focus", (float*)&m_fogFocus);
+			ImGui::DragFloat("Fog Radius", &m_fogRadius, 0.1f, 0.1f, 100.0f);
+			Renderer::SetFogParameters(m_fogFocus, m_fogRadius);
+		}
 	}
 	ImGui::End();
 
@@ -537,6 +548,10 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 void Game::Init()
 {
+	m_godMode = false;
+
+
+
 	// Audio test startup
 	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
@@ -563,6 +578,10 @@ void Game::Init()
 	m_envParams.edgeSampleDistanceTrunks = 10;
 	m_envParams.edgeSampleDistanceTrees = 8;
 	m_envParams.edgeSampleDistanceStones = 2;
+
+	m_fogFocus = Vec3(0, 0, 0);
+	m_fogRadius = 10.0f;
+	Renderer::SetFogParameters(m_fogFocus, m_fogRadius);
 
 	// Level handling
 	m_levelHandler = std::make_unique<LevelHandler>();
@@ -694,6 +713,11 @@ float Game::GetMaxStamina()
 	return m_maxStamina;
 }
 
+void Game::GodMode(bool godMode)
+{
+	m_godMode = godMode;
+}
+
 void Game::LoadRoom(Level* level)
 {
 	Mat4 roomOffset =
@@ -702,11 +726,13 @@ void Game::LoadRoom(Level* level)
 
 	Mat4 cylinderOffset =
 		Mat::translation3( 0, -0.02f, 0 ) *
-		Mat::scale3(level->resource->worldWidth * 1.2f, 1.0f, level->resource->worldHeight * 1.2f);
+		Mat::scale3(level->resource->worldWidth * 1.3f, 1.0f, level->resource->worldHeight * 1.3f);
 
 	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
 	m_currentRoom->transform.position = level->position;
 	m_currentRoom->transform.rotation = level->rotation;
+
+	Renderer::SetFogParameters(level->position, level->resource->worldWidth * 0.55f);
 
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 

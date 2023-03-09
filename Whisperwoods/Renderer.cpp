@@ -179,6 +179,11 @@ bool Renderer::RegisterLight(shared_ptr<SpotLight> spotLight)
 	return s_singleton->m_renderHandler->RegisterSpotLight(spotLight);
 }
 
+void Renderer::SetFogParameters(Vec3 focus, float radius)
+{
+	s_singleton->m_renderHandler->SetFogParameters(focus, radius);
+}
+
 Camera& Renderer::GetCamera()
 {
 	return s_singleton->m_renderHandler->GetCamera();

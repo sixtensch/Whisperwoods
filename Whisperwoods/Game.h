@@ -60,6 +60,7 @@ public:
 	float GetMaxPowerCooldown();
 	float GetMaxStamina();
 
+	void GodMode(bool godMode);
 
 private:
 	void ChangeTimeline(Renderer* renderer);
@@ -152,9 +153,11 @@ private:
 	const float m_timeAbilityCooldown = 3.0f; // time in seconds
 	float m_coolDownCounter; 
 
+	Vec3 m_fogFocus;
+	float m_fogRadius;
 
+	bool m_godMode;
 	 
-
 	TimeSwitchValues m_switchVals;
 };
 
