@@ -23,6 +23,7 @@ struct LevelTunnelRef;
 
 struct Level
 {
+	// World position.
 	Vec3 position;
 	Quaternion rotation;
 	float scale;
@@ -58,6 +59,8 @@ struct LevelFloor
 	Vec3 startPosition;
 
 	uint startRoom;
+
+	// Add variable to say which index shadii is in.
 
 	cs::List<Level> rooms;
 	cs::List<LevelTunnel> tunnels;

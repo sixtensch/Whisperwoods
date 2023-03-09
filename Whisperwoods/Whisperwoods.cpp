@@ -144,18 +144,19 @@ void Whisperwoods::Run()
 	m_game->LoadHubby();
 
 	//// Test generate a floor
-	//LevelFloor tempFloor;
-	//FloorParameters fParams;
-	//fParams.seed = 123;
-	//fParams.angleSteps = 0;
-	//fParams.pushSteps = 3;
-	//fParams.roomCount = 8;
-	//EnvironmentalizeParameters eParams = { 0 };
-	//m_game->m_levelHandler->GenerateFloor(&tempFloor, fParams, eParams );
+	LevelFloor tempFloor;
+	FloorParameters fParams;
+	fParams.seed = 123;
+	fParams.angleSteps = 0;
+	fParams.pushSteps = 3;
+	fParams.roomCount = 8;
+	EnvironmentalizeParameters eParams = { 0 };
+	m_game->m_levelHandler->GenerateFloor(&tempFloor, fParams, eParams );
 
 	//// Generate a image from the floor data
-	//shared_ptr<uint8_t> imageData = m_game->m_levelHandler->GenerateFloorImage(1024, 1024, tempFloor);
-	//TextureResource* newTexture = Resources::Get().CreateTexture(m_renderer->GetRenderCore(), "Test", imageData.get(), 1024 * 1024);
+	shared_ptr<uint8_t> imageData = m_game->m_levelHandler->GenerateFloorImage(&tempFloor);
+	// TODO: Change width and height not to be hard coded.
+	TextureResource* newTexture = Resources::Get().CreateTextureUnorm(m_renderer->GetRenderCore(), "Test", imageData.get(), 100u, 100u);
 
 	// Test GUI
 	// Stamina bar
@@ -174,8 +175,8 @@ void Whisperwoods::Run()
 	testGui.GetElement( 1 )->colorTint = Vec3(1, 1, 1);
 	testGui.GetElement( 1 )->alpha = 0.6f;
 	testGui.GetElement( 1 )->intData = Point4( 1, 0, 0, 0 ); // makes it transform with the playermatrix
-	testGui.GetElement( 1 )->firstTexture = Resources::Get().GetTexture( "Hubby.png" );
-	testGui.GetElement( 1 )->secondTexture = Resources::Get().GetTexture("HudMask2.png");
+	testGui.GetElement( 1 )->firstTexture = newTexture;
+	testGui.GetElement( 1 )->secondTexture = nullptr; //Resources::Get().GetTexture("HudMask2.png");
 
 	// Duck
 	testGui.AddGUIElement( { -0.5f,-0.5f }, { 1.0f,1.0f }, nullptr, nullptr );

@@ -5,6 +5,11 @@
 
 #include <filesystem>
 
+#define LEVEL_MAP_PIXEL_WIDTH 100u
+#define LEVEL_MAP_PIXEL_HEIGHT 100u
+#define PIXEL_PADDING 10u // TODO: Define and use this better.
+#define BYTES_PER_TEXEL 4u
+
 bool Intersect(Vec2 p1a, Vec2 p1b, Vec2 p2a, Vec2 p2b)
 {
 	// Line AB represented as a1x + b1y = c1
@@ -42,32 +47,70 @@ LevelHandler::LevelHandler()
 {
 }
 
-shared_ptr<uint8_t> LevelHandler::GenerateFloorImage(int sizeX, int sizeY, LevelFloor floorRef)
+int LevelHandler::Get1DChannelPos(const float minWidth, const float maxWidth, const float minHeight, const float maxHeight, Vec2 position)
 {
-	for (int i = 0; i < floorRef.rooms.Size(); i++)
+	float xUVPos = (position.x - minWidth) / (maxWidth - minWidth);
+	float yUVPos = (position.y - minHeight) / (maxHeight - minHeight);
+
+	// Simple UV mapping of coordinates.
+	return (cs::floor(yUVPos * LEVEL_MAP_PIXEL_HEIGHT) * LEVEL_MAP_PIXEL_WIDTH + cs::floor(xUVPos * LEVEL_MAP_PIXEL_WIDTH)) * BYTES_PER_TEXEL;
+}
+
+shared_ptr<uint8_t> LevelHandler::GenerateFloorImage(LevelFloor* floorRef)
+{
+	// Height is assumed to be z dimension.
+	float minMaxHeight[2] = { FLT_MAX, -FLT_MAX };
+	// Width is assumed to be x dimension.
+	float minMaxWidth[2] = { FLT_MAX, -FLT_MAX };
+
+	cs::List<Vec2> roomPositions = {};
+	for (int i = 0; i < floorRef->rooms.Size(); i++)
 	{
-		Vec3 p = floorRef.rooms[i].position;
-		LOG_TRACE("%d - Room pos: %.2f %.2f %.2f", i, p.x, p.y, p.z);
+		Vec3 roomPos = floorRef->rooms[i].position;
+		Vec2 roomFlatPos = Vec2(roomPos.x, roomPos.z);
+
+		minMaxHeight[0] = cs::fmin(minMaxHeight[0], roomFlatPos.y);
+		minMaxHeight[1] = cs::fmax(minMaxHeight[1], roomFlatPos.y);
+
+		minMaxWidth[0] = cs::fmin(minMaxWidth[0], roomFlatPos.x);
+		minMaxWidth[1] = cs::fmax(minMaxWidth[1], roomFlatPos.x);
+
+		roomPositions.Add(roomFlatPos);
+		LOG_TRACE("%d - Room pos: %.2f %.2f %.2f", i, roomPos.x, roomPos.y, roomPos.z);
 	}
 
-	shared_ptr<uint8_t> returnVal(new uint8_t[sizeX * sizeY * 4]);
-	for (int y = 0; y < sizeY; y++)
+	shared_ptr<uint8_t> returnData = shared_ptr<uint8_t>(new uint8_t[LEVEL_MAP_PIXEL_WIDTH * LEVEL_MAP_PIXEL_HEIGHT * BYTES_PER_TEXEL]);
+	uint8_t* pixelData = returnData.get();
+	for (Vec2 roomPos : roomPositions)
 	{
-		for (int x = 0; x < sizeX; x++)
-		{
-			float xF = (float)x / (float)sizeX;
-			float yF = (float)y / (float)sizeY;
+		int channelPos = Get1DChannelPos(minMaxWidth[0], minMaxWidth[1], minMaxHeight[0], minMaxHeight[1], roomPos);
 
-			
-			
-
-			returnVal.get()[(y * sizeX) + (x * 4) + 0 ] = 255;
-			returnVal.get()[(y * sizeX) + (x * 4) + 1 ] = 0;
-			returnVal.get()[(y * sizeX) + (x * 4) + 2 ] = 0;
-			returnVal.get()[(y * sizeX) + (x * 4) + 3 ] = 255;
-		}
+		pixelData[channelPos + 0] = 255u;
+		pixelData[channelPos + 1] = 0u;
+		pixelData[channelPos + 2] = 0u;
+		pixelData[channelPos + 3] = 255u;
 	}
-	return returnVal;
+
+	//for (int y = 0; y < sizeY; y++)
+	//{
+	//	int yPos = y * sizeX;
+	//
+	//	for (int x = 0; x < sizeX * bytesPerPixel; x += bytesPerPixel)
+	//	{
+	//		int channelPos = yPos + x;
+	//
+	//		float xF = (float)x / (float)sizeX;
+	//		float yF = (float)y / (float)sizeY;
+	//
+	//		
+	//		pixelData[channelPos + 0 ] = 255;
+	//		pixelData[channelPos + 1 ] = 0;
+	//		pixelData[channelPos + 2 ] = 0;
+	//		pixelData[channelPos + 3 ] = 255;
+	//	}
+	//}
+
+	return returnData;
 }
 
 
@@ -1186,3 +1229,5 @@ float LevelHandler::EvaluateDeviation(RoomPrimer& r, const LevelResource* level)
 
 	return result;
 }
+
+

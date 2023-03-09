@@ -234,10 +234,10 @@ void Resources::LoadTextures(const RenderCore* const renderCore)
 	}
 }
 
-TextureResource* Resources::CreateTexture(RenderCore* renderCore, std::string name, uint8_t* data, size_t size)
+TextureResource* Resources::CreateTextureUnorm(RenderCore* renderCore, std::string name, uint8_t* data, uint width, uint height)
 {
 	TextureResource* textureResource = (TextureResource*)AllocateResource(ResourceTypeTexture, name, name);
-	renderCore->CreateImageTexture(data, size, textureResource->texture2D, textureResource->shaderResourceView);
+	renderCore->CreateImageTextureUnorm(data, width, height, textureResource->texture2D, textureResource->shaderResourceView);
 	return textureResource;
 }
 

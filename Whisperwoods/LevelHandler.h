@@ -5,6 +5,8 @@
 
 #include <unordered_map>
 
+
+
 struct EnvironmentalizeParameters
 {
 	int spawnSeed;
@@ -45,7 +47,7 @@ public:
 	LevelHandler(const LevelHandler&) = delete;
 	LevelHandler(LevelHandler&&) = delete;
 
-	shared_ptr<uint8_t> GenerateFloorImage(int sizeX, int sizeY, LevelFloor floorRef);
+	shared_ptr<uint8_t> GenerateFloorImage(LevelFloor* floorRef);
 
 	void LoadFloors();
 	void GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, EnvironmentalizeParameters eParams);
@@ -88,6 +90,14 @@ private:
 		cs::List<RoomPrimer> rooms;
 	};
 
+	int Get1DChannelPos(
+		const float minWidth,
+		const float maxWidth,
+		const float minHeight,
+		const float maxHeight,
+		Vec2 position
+	);
+
 	void Environmentalize(Level& l, EnvironmentalizeParameters parameters);
 	void AddLevelName(LevelFloor& f, string name);
 
@@ -101,6 +111,8 @@ private:
 	void AngleRooms(FloorPrimer& f);
 	void EvaluateRoom(FloorPrimer& f, uint index);
 	float EvaluateDeviation(RoomPrimer& r, const LevelResource* level);
+
+	
 
 private:
 	static LevelHandler* s_handler;

@@ -439,7 +439,26 @@ void Game::DrawIMGUIWindows()
 			{
 				Level& l = f.rooms[i];
 				m_testRenderables.Add( Renderer::CreateMeshStatic( "room_plane.wwm" ) );
-				m_testRenderables.Back()->worldMatrix = Mat::translation3( l.position.x * distance, 3.2f, l.position.z * distance ) * l.rotation.Matrix() * Mat::scale3( 0.8f );
+				const Vec3 levelPos = Vec3(l.position.x * distance, 3.2f, l.position.z * distance);
+				m_testRenderables.Back()->worldMatrix = Mat::translation3(levelPos) * l.rotation.Matrix() * Mat::scale3( 0.8f );
+
+				// TODO: Temporary check with i value just for testing.
+				if (m_player->currentRoom->m_level == &l || i == 3)
+				{
+					shared_ptr<PointLight> pointLight = make_shared<PointLight>();
+					pointLight->bufferData = {
+						levelPos + Vec3(0.0f, 1.0f, 0.0f),
+						0.3f,
+						Vec3(1.0f, 1.0f, 1.0f)
+					};
+
+					pointLight->intensity = 1.0f;
+					pointLight->color = cs::Color3f(1.0f, 0.0f, 0.0f);
+					pointLight->transform.position = pointLight->bufferData.position;
+					pointLight->transform.CalculateWorldMatrix();
+
+					Renderer::RegisterLight(pointLight);
+				}
 
 				m_testMaterials[i].specular = Vec3( 0.5f, 0.5f, 0.5f );
 				m_testMaterials[i].textureDiffuse = l.resource->source;

@@ -59,7 +59,7 @@ public:
 	ModelRiggedResource* GetModelRigged(std::string filename);
 	AnimationResource* GetAnimation(std::string filename);
 
-	TextureResource* CreateTexture(RenderCore* renderCore, std::string name, uint8_t* data, size_t size);
+	TextureResource* CreateTextureUnorm(RenderCore* renderCore, std::string name, uint8_t* data, uint width, uint height);
 
 private:
 	void InitMapList();
