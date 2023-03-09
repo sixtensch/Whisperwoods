@@ -53,6 +53,8 @@ cbuffer ShadingInfo : REGISTER_CBV_SHADING_INFO
     uint pointCount;
     float3 cameraPosition;
     uint spotCount;
+    float3 fogFocusPosition;
+    float fogFocusRadius;
 };
 
 cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
@@ -124,9 +126,6 @@ PS_OUTPUT main(VSOutput input)
     float2 uv = input.outUV * tiling;
 	
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
-	
-    //if (diffuseSample.a < 0.1f)
-    //    discard;
 	
     float4 specularSample = textureSpecular.Sample(textureSampler, uv);
     float4 emissiveSample = textureEmissive.Sample(textureSampler, uv);
