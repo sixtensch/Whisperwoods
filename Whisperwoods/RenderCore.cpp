@@ -1099,24 +1099,6 @@ void RenderCore::DrawPositionalEffects()
 
 void RenderCore::DrawToBackBuffer()
 {
-
-	static Vec2 vignette = Vec2(0.5f, 1.0f);
-	static Vec2 contrast = Vec2(1.0f, 0.4f);
-	static float brightness = 0.0f;
-	static float saturation = 1.1f;
-
-	if (ImGui::Begin("Color Settings"))
-	{
-		float speed = 0.01f;
-		ImGui::DragFloat2("Vignette Radius & Strength", (float*)&vignette, speed, 0.0f, FLT_MAX);
-		ImGui::DragFloat2("Contrast Amount & Midpoint", (float*)&contrast, speed, 0.0f);
-		ImGui::DragFloat("Brightness", &brightness, speed, 0.0f, FLT_MAX);
-		ImGui::DragFloat("Saturation", &saturation, speed, 0.0f, FLT_MAX);
-	}
-	ImGui::End();
-
-	WritePPFXColorgradeInfo(vignette, contrast, brightness, saturation);
-
 	// Color grade and final back buffer write.
 	{
 		EXC_COMINFO(m_context->CSSetShader(m_colorGradeCompute.Get(), nullptr, 0u));

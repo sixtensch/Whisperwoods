@@ -611,6 +611,11 @@ Vec3 EulerAngles( Quaternion q )
 
 void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutSceneController)
 {
+	if (dTime > 0.2f)
+	{
+		dTime = 0.001f;
+	}
+
 	static bool cameraLock = false;
 	static bool cameraPlayer = true;
 	Camera& camera = Renderer::GetCamera();

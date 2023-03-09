@@ -258,17 +258,7 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 	cs::NoiseSimplex simplexerRotate(parameters.rotationSeed);
 	cs::NoiseSimplex simplexerDiversity(parameters.diversitySeed);
 
-	auto sample = [&](int x, int y)
-	{
-		if (x < 0 || y < 0 || x >= l.resource->pixelWidth || y >= l.resource->pixelHeight)
-		{
-			return LevelPixel{ LevelPixelFlagImpassable, 1.0f };
-		}
-
-		return l.resource->bitmap[x + l.resource->pixelWidth * y];
-	};
-
-	float pushOutFactor = 1.0f;
+	float pushOutFactor = 1.3f;
 	float radiusFactor = std::sqrtf(2.0f) * pushOutFactor;
 	int maxSize = std::max(l.resource->pixelWidth, l.resource->pixelHeight);
 	int extraRadius = (int)((radiusFactor - 1.0f) * 0.5f * maxSize);
@@ -276,7 +266,58 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 	float distanceBoundary = maxSize * 0.5f + extraRadius - 3.0f * BM_PIXELS_PER_UNIT;
 	distanceBoundary *= distanceBoundary;
 
+	float innerPushOutFactor = 1.1f;
+	float innerRadiusFactor = std::sqrtf(2.0f) * innerPushOutFactor;
+	int innerMaxSize = std::max(l.resource->pixelWidth, l.resource->pixelHeight);
+	float innerDistanceBoundary = (int)((innerRadiusFactor) * 0.5f * innerMaxSize) - 3.0f * BM_PIXELS_PER_UNIT;
+	innerDistanceBoundary *= innerDistanceBoundary;
+
 	Vec2 center(l.resource->pixelWidth * 0.5f, l.resource->pixelHeight * 0.5f);
+
+	bool outside = false;
+
+	auto sample = [&](int x, int y)
+	{
+		outside = false;
+
+		Vec3 pos = l.position + l.rotation * Vec3(x * BM_PIXEL_SIZE - l.resource->worldWidth * 0.5f, -0.2f, -y * BM_PIXEL_SIZE + l.resource->worldHeight * 0.5f);
+		bool tunnelEdge = false;
+
+		for (const LevelTunnelRef& r : l.connections)
+		{
+			Vec3 sideDir = Vec3(r.direction.z, 0.0f, -r.direction.x);
+			Vec3 relative = pos - r.position;
+
+			float distance = relative * r.direction;
+			float sideDistance = abs(relative * sideDir);
+
+			if (distance > -0.5f)
+			{
+				if (sideDistance < r.width * 4.0f)
+				{
+					if (sideDistance < r.width * 0.7f)
+					{
+						return LevelPixel{ LevelPixelFlagPassable, 0.0f };
+					}
+
+					return LevelPixel{ LevelPixelFlagImpassable, 1.0f };
+				}
+			}
+		}
+
+		if ((Vec2(x, y) - center).LengthSq() > innerDistanceBoundary)
+		{
+			outside = true;
+			return LevelPixel{ LevelPixelFlagPassable, 0.0f };
+		}
+
+		if (x < 0 || y < 0 || x >= l.resource->pixelWidth || y >= l.resource->pixelHeight)
+		{
+			return LevelPixel{ LevelPixelFlagImpassable, 0.3f };
+		}
+
+		return l.resource->bitmap[x + l.resource->pixelWidth * y];
+	};
 	
 	for (int x = 0 - extraRadius; x < (int)l.resource->pixelWidth + extraRadius; x++)
 	{
@@ -287,9 +328,16 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 				continue;
 			}
 
+			LevelPixel currentSample = sample(x, y);
+			LevelPixelFlag current = currentSample.flags;
+
+			if (outside)
+			{
+				continue;
+			}
+
 			Vec3 newPosition = l.position + l.rotation * Vec3(x * BM_PIXEL_SIZE - l.resource->worldWidth * 0.5f, -0.2f, -y * BM_PIXEL_SIZE + l.resource->worldHeight * 0.5f);
 
-			LevelPixelFlag current = sample(x, y).flags;
 			int xP = cs::iclamp(x + parameters.edgeSampleDistanceStones, 0, (int)l.resource->pixelWidth - 1);
 			int xM = cs::iclamp(x - parameters.edgeSampleDistanceStones, 0, (int)l.resource->pixelWidth - 1);
 			int yP = cs::iclamp(y + parameters.edgeSampleDistanceStones, 0, (int)l.resource->pixelHeight - 1);
@@ -299,7 +347,6 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 			LevelPixelFlag yPF = sample(x, yP).flags;
 			LevelPixelFlag yMF = sample(x, yM).flags;
 			bool edgeStones = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
-
 
 			float noiseVal = simplexerSpawn.Gen2D(x*parameters.xMult, y * parameters.yMult);
 			float rotateVal = (cs::c_pi * 2) * simplexerRotate.Gen2D(x * parameters.xMult, y * parameters.yMult)*parameters.rotateMult;
@@ -321,27 +368,25 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 				Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
 				Mat::scale3( cs::fclamp(scaleVal * parameters.scaleMultiplierTrees*0.25f,0.01, 1.0f));
 
-			if ((sample(x, y).flags & LevelPixelFlagTerrainInner & ~LevelPixelFlagTerrainOuter))
+			if ((currentSample.flags & LevelPixelFlagTerrainInner & ~LevelPixelFlagTerrainOuter))
 			{
-
-				xP = cs::iclamp(x + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
-				xM = cs::iclamp(x - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
-				yP = cs::iclamp(y + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
-				yM = cs::iclamp(y - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
-				xPF = sample(xP, y).flags;
-				xMF = sample(xM, y).flags;
-				yPF = sample(x, yP).flags;
-				yMF = sample(x, yM).flags;
-				bool edgeTree = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
-
-
-				Mat4 foliageMatrix =
-					Mat::translation3(newPosition) *
-					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-					Mat::scale3(scaleVal * parameters.scaleMultiplierFoliage);
-
-				if (noiseVal < parameters.densityUnwalkableInner)
+				if (noiseVal * currentSample.density < parameters.densityUnwalkableInner)
 				{
+					xP = cs::iclamp(x + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
+					xM = cs::iclamp(x - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
+					yP = cs::iclamp(y + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
+					yM = cs::iclamp(y - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
+					xPF = sample(xP, y).flags;
+					xMF = sample(xM, y).flags;
+					yPF = sample(x, yP).flags;
+					yMF = sample(x, yM).flags;
+					bool edgeTree = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
+
+					Mat4 foliageMatrix =
+						Mat::translation3(newPosition) *
+						Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
+						Mat::scale3(scaleVal * parameters.scaleMultiplierFoliage);
+
 					if (diversityVal < 0.33f && !edgeStones)
 					{
 						l.instances[LevelAssetStone1].Add(stoneMatrix);
@@ -368,30 +413,12 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 					}
 				}
 			}
-			else if ((sample(x, y).flags & LevelPixelFlagImpassable))
+			else if ((current & LevelPixelFlagImpassable))
 			{
-				Mat4 foliageMatrixHuge =
-					Mat::translation3( newPosition ) *
-					Mat::rotation3( cs::c_pi * -0.5f, rotateVal, 0.0f ) *
-					Mat::scale3( cs::fclamp( scaleVal * parameters.scaleMultiplierFoliage * 2.5, 0.1f, 2.2f ) );
-
 				Mat4 foliageMatrix =
 					Mat::translation3(newPosition) *
 					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-					Mat::scale3( cs::fclamp(scaleVal * parameters.scaleMultiplierFoliage * 1.5f,0.05f, 2.0f));
-				Mat4 foliageMatrix2 =
-					Mat::translation3( newPosition ) *
-					Mat::rotation3( cs::c_pi * -0.5f, rotateVal, 0.0f ) *
-					Mat::scale3( cs::fclamp( scaleVal * parameters.scaleMultiplierFoliage * 1.2f, 0.1, 1.5f));
-				xP = cs::iclamp(x + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
-				xM = cs::iclamp(x - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
-				yP = cs::iclamp(y + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
-				yM = cs::iclamp(y - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
-				xPF = sample(xP, y).flags;
-				xMF = sample(xM, y).flags;
-				yPF = sample(x, yP).flags;
-				yMF = sample(x, yM).flags;
-				bool edgeTrunk = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
+					Mat::scale3(cs::fclamp(scaleVal * parameters.scaleMultiplierFoliage * 1.5f, 0.05f, 2.0f));
 
 				xP = cs::iclamp(x + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
 				xM = cs::iclamp(x - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
@@ -402,9 +429,18 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 				yPF = sample(x, yP).flags;
 				yMF = sample(x, yM).flags;
 				bool edgeTree = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
-				if (noiseVal < parameters.densityUnwalkableOuter)
-				{
 
+				if (noiseVal < parameters.densityUnwalkableOuter * currentSample.density)
+				{
+					xP = cs::iclamp(x + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
+					xM = cs::iclamp(x - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
+					yP = cs::iclamp(y + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
+					yM = cs::iclamp(y - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
+					xPF = sample(xP, y).flags;
+					xMF = sample(xM, y).flags;
+					yPF = sample(x, yP).flags;
+					yMF = sample(x, yM).flags;
+					bool edgeTrunk = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
 
 					if (diversityVal < 0.1f && !edgeStones)
 					{
@@ -420,6 +456,11 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 					}
 					else if (diversityVal < 0.6f)
 					{
+						Mat4 foliageMatrix =
+							Mat::translation3(newPosition) *
+							Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
+							Mat::scale3(cs::fclamp(scaleVal * parameters.scaleMultiplierFoliage * 1.5f, 0.05f, 2.0f));
+
 						l.instances[LevelAssetBush1].Add(foliageMatrix);
 					}
 					else if (diversityVal < 0.7f && !edgeTree)
@@ -454,6 +495,11 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 
 				if (noiseVal < parameters.densityWalkable * 0.5f && !edgeTree)
 				{
+					Mat4 foliageMatrixHuge =
+						Mat::translation3(newPosition) *
+						Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
+						Mat::scale3(cs::fclamp(scaleVal * parameters.scaleMultiplierFoliage * 2.5, 0.1f, 2.2f));
+
 					l.instances[LevelAssetBush1].Add( foliageMatrixHuge );
 				}
 				else if (noiseVal < parameters.densityWalkable * 0.5f && !edgeStones)
@@ -462,6 +508,11 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 				}
 				else if (noiseVal < parameters.densityWalkable * 0.5f)
 				{
+					Mat4 foliageMatrix2 =
+						Mat::translation3(newPosition) *
+						Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
+						Mat::scale3(cs::fclamp(scaleVal * parameters.scaleMultiplierFoliage * 1.2f, 0.1, 1.5f));
+
 					l.instances[LevelAssetBush1].Add(foliageMatrix2);
 				}
 			}
@@ -471,93 +522,13 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 				Mat4 foliageMatrix =
 					Mat::translation3(newPosition) *
 					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
-					Mat::scale3(cs::fclamp(scaleVal * parameters.scaleMultiplierFoliage * (density * (1.0f - parameters.scaleEffectDensity)),0.1f, 2.0f ));
+					Mat::scale3(cs::fclamp(scaleVal * parameters.scaleMultiplierFoliage * (density * (1.0f - parameters.scaleEffectDensity)), 0.1f, 2.0f));
 
 				if (density > parameters.minDensity && noiseVal < parameters.densityWalkable)
 				{
 					l.instances[LevelAssetBush1].Add(foliageMatrix);
 				}
 			}
-
-			//if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagTerrainInner & ~LevelPixelFlagTerrainOuter))
-			//{
-			//	if (r.Get( 10 ) == 0)
-			//	{
-			//		Mat4 instanceMatrix =
-			//			Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, -0.2, y * BM_PIXEL_SIZE ) ) *
-			//			Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) *
-			//			Mat::scale3( 0.1f );
-			//		Mat4 stoneMatrix =
-			//			Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) *
-			//			Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) *
-			//			Mat::scale3( 0.2f + r.Getf() * 0.2f );
-			//		Mat4 banana =
-			//			Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) *
-			//			Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) *
-			//			Mat::scale3( 0.25f + r.Getf() * 0.25f );
-			//		//l.instances[LevelAssetBush1].Add(instanceMatrix);
-			//		int rand = r.Get( 100 );
-			//		if (rand < 25)
-			//		{
-			//			l.instances[LevelAssetMediumStone2].Add( stoneMatrix );
-			//		}
-			//		else if (rand < 75)
-			//		{
-			//			l.instances[LevelAssetBush1].Add( banana );
-			//		}
-			//		else
-			//		{
-			//			l.instances[LevelAssetMediumStone1].Add( stoneMatrix );
-			//		}
-			//	}
-			//}
-			//else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable) && r.Get(50) == 0)
-			//{
-			//	Mat4 instanceMatrix = 
-			//		Mat::translation3(offset + Vec3(-x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE)) * 
-			//		Mat::rotation3(cs::c_pi * -0.5f, r.Getf(0, cs::c_pi * 2), 0.0f) * 
-			//		Mat::scale3(0.1f, 0.1f, 0.1f );
-			//	Mat4 trunkMatrix =
-			//		Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) *
-			//		Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) *
-			//		Mat::scale3( 0.03f, 0.03f, 0.1f );
-			//	int rand = r.Get( 100 );
-
-			//	if (rand < 25)
-			//	{
-			//		l.instances[LevelAssetMediumStone1].Add( instanceMatrix );
-			//	}
-			//	else if (rand < 30)
-			//	{
-			//		l.instances[LevelAssetMediumTree3].Add( instanceMatrix );
-			//	}
-			//	else if (rand < 40)
-			//	{
-			//		l.instances[LevelAssetMediumTree2].Add( instanceMatrix );
-			//	}
-			//	else if (rand < 50)
-			//	{
-			//		l.instances[LevelAssetMediumBigTrunk2].Add( instanceMatrix );
-			//	}
-			//	else if (rand < 60)
-			//	{
-			//		l.instances[LevelAssetMediumTree1].Add( instanceMatrix );
-			//	}
-			//	else if (rand < 75)
-			//	{
-			//		l.instances[LevelAssetMediumBigTrunk1].Add( trunkMatrix );
-			//	}
-			//	else
-			//	{
-			//		l.instances[LevelAssetMediumBigTrunk2].Add( trunkMatrix );
-			//	}
-			//}
-			//else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].density < (float)r.Get( 100 )/100.0f) && (l.resource->bitmap[x + l.resource->pixelWidth * y].density != 0) && r.Get( 20 ) == 0)
-			//{
-			//	Mat4 instanceMatrix = Mat::translation3( offset + Vec3( -x * BM_PIXEL_SIZE, 0, y * BM_PIXEL_SIZE ) ) * Mat::rotation3( cs::c_pi * -0.5f, r.Getf( 0, cs::c_pi * 2 ), 0.0f ) * Mat::scale3( 0.1f+ (0.3f-(l.resource->bitmap[x + l.resource->pixelWidth * y].density*0.3f)));
-			//	l.instances[LevelAssetBush1].Add( instanceMatrix );	
-			//}
-		
 		}
 	}
 }
@@ -1224,6 +1195,7 @@ void LevelHandler::Unprime(FloorPrimer& primer, LevelFloor& f, EnvironmentalizeP
 
 				if (target == -1)
 				{
+					f.startDirection = -exitDirection3;
 					f.startPosition = exitPosition3 - exitDirection3 * TUNNEL_SPAWN_DISTANCE;
 					f.startRoom = room;
 				}
