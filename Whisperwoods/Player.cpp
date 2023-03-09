@@ -237,7 +237,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 				m_targetVelocity *= m_walkSpeed;
 			}
 		}
-		m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * 2.0f * delta_time);
+		//m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * 2.0f * delta_time);
 
 
 		//if (walkRunMultiplier == m_walkSpeed) // not sprinting

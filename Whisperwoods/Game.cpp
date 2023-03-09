@@ -79,6 +79,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 			UnLoadPrevious();
 			LoadHubby();
 			m_player->ReloadPlayer();
+			activeTutorialLevel = 8;
 		}
 	}
 	if (!m_isInFuture)
@@ -117,6 +118,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 				m_isSeen = false;
 				m_detectionLevelGlobal = 0.0f;
 				m_detectionLevelFloor = 0.0f;
+				activeTutorialLevel = 8;
 
 				m_enemyHorn->Play();
 			}
@@ -206,10 +208,17 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		
 		if (Input::Get().IsKeyPressed( KeybindPower ) && IsAllowedToSwitch())
 		{
-			m_isSwitching = true;
-			m_finishedCharging = false;
-			m_initialCamFov = renderer->GetCamera().GetFov();
-			m_player->m_switchSource->Play();
+			if (tutorial && activeTutorialLevel < 6)
+			{
+				// no power yet lmao
+			}
+			else
+			{
+				m_isSwitching = true;
+				m_finishedCharging = false;
+				m_initialCamFov = renderer->GetCamera().GetFov();
+				m_player->m_switchSource->Play();
+			}
 		}
 
 		if (m_isSwitching)
@@ -302,6 +311,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 					// Go to next room
 					if (r.targetRoom >= 0)
 					{
+						activeTutorialLevel = r.targetRoom + 1;
 						uint targetIndex = (r.tunnelSubIndex + 1) % 2;
 						const LevelTunnel& t = m_floor.tunnels[r.tunnel];
 
@@ -322,16 +332,29 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 					// Floor entrance
 					if (r.targetRoom == -1)
 					{
-
+						
 					}
 
-					// Floor exit
-					if (r.targetRoom == -2 && m_player->hasPickedUpEssenceBloom)  
+					// Floor exit for tutorial
+					if (r.targetRoom == -2)  
 					{
-						UnLoadPrevious();
-						LoadGame(1, 9);
-						m_player->ReloadPlayer();
-						m_player->hasPickedUpEssenceBloom = false;
+						if (m_player->hasPickedUpEssenceBloom && tutorial)
+						{
+							UnLoadPrevious();
+							LoadGame(1, 9);
+							m_player->ReloadPlayer();
+							m_player->hasPickedUpEssenceBloom = false;
+							tutorial = false;
+						}
+						else if (!m_player->hasPickedUpEssenceBloom)
+						{
+							//show text for not picking up essence bloom yet
+						}
+						else if (m_player->hasPickedUpEssenceBloom && !tutorial)
+						{
+							// you win!
+						}
+						
 					}
 				}
 			}
@@ -353,9 +376,11 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		if (Input::Get().IsDXKeyPressed( DXKey::L ))
 		{
 			UnLoadPrevious();
-			//LoadGame(1, 9);
+			m_player->hasPickedUpEssenceBloom = false;
 			LoadTutorial();
 			m_player->ReloadPlayer();
+			tutorial = true;
+			activeTutorialLevel = 1;
 		}
 		if (Input::Get().IsDXKeyPressed( DXKey::H ))
 		{

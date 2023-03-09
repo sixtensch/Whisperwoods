@@ -81,6 +81,9 @@ private:
 public:
 	//Camera* m_camera;
 	std::unique_ptr<LevelHandler>	m_levelHandler;
+	int activeTutorialLevel = 1;
+	bool tutorial = false;
+
 private:
 
 	Vec3 dirLightOffset;
