@@ -66,6 +66,8 @@ public:
 
 	void GodMode(bool godMode);
 
+	bool IsInHubby();
+
 private:
 	// Applies current timeline state to all relevant units.
 	void ApplyTimelineState(Renderer* renderer);
