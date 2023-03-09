@@ -688,10 +688,6 @@ void Game::LoadHubby()
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
 	LoadRoom( &m_floor.rooms[0] );
 
-	m_currentRoom->transform.CalculateWorldMatrix();
-	m_directionalLight->transform.parent = &m_currentRoom->transform;
-	m_directionalLight->Update( 0 );
-
 	m_isHubby = true;
 	m_player->transform.position = Vec3(0, 0, 0);
 	Renderer::ExecuteShadowRender();
@@ -702,18 +698,12 @@ void Game::LoadTest()
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[0]);
 
-	m_currentRoom->transform.CalculateWorldMatrix();
-	m_directionalLight->transform.parent = &m_currentRoom->transform;
-	m_directionalLight->Update( 0 );
-
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
 }
 
 void Game::LoadTutorial()
 {
-	
-
 	m_levelHandler->GenerateTutorial(&m_floor, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
 
@@ -731,17 +721,10 @@ void Game::LoadGame(uint gameSeed, uint roomCount)
 	params.angleSteps = 0;
 	params.pushSteps = 3;
 
-	
-
-
 	m_levelHandler->GenerateFloor(&m_floor, params, m_envParams);
 	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
 
 	m_player->transform.position = m_floor.startPosition;
-
-	m_currentRoom->transform.CalculateWorldMatrix();
-	m_directionalLight->transform.parent = &m_currentRoom->transform;
-	m_directionalLight->Update(0);
 
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
@@ -801,6 +784,10 @@ void Game::LoadRoom(Level* level)
 	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
 	m_currentRoom->transform.position = level->position;
 	m_currentRoom->transform.rotation = level->rotation;
+
+	m_currentRoom->transform.CalculateWorldMatrix();
+	m_directionalLight->transform.parent = &m_currentRoom->transform;
+	m_directionalLight->Update(0);
 
 	Renderer::SetFogParameters(level->position, level->resource->worldWidth * 0.55f);
 
