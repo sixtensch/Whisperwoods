@@ -397,12 +397,6 @@ void Player::Update(float delta_time)
 	CalculateCompassMatrix();
 	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
 
-
-
-
-
-
-
 	UpdateSound(delta_time);
 }
 
