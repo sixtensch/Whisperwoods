@@ -73,10 +73,17 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImage(int sizeX, int sizeY, Level
 
 void LevelHandler::LoadFloors()
 {
-	const uint blacklistCount = 1;
+	const uint blacklistCount = 8;
 	string blacklist[blacklistCount] =
 	{
-		"Hubby"
+		"Hubby",
+		"tutorial1",
+		"tutorial2",
+		"tutorial3",
+		"tutorial4",
+		"tutorial5",
+		"tutorial6",
+		"tutorial7"
 	};
 
 	for (const auto& item : std::filesystem::directory_iterator(DIR_LEVELS))
@@ -105,6 +112,68 @@ void LevelHandler::LoadFloors()
 		}
 	}
 }
+
+void LevelHandler::GenerateTutorial(LevelFloor* outFloor, EnvironmentalizeParameters params)
+{
+	LevelFloor& f = *outFloor;
+	f = LevelFloor{};
+	f.startRoom = 0;
+	f.startPosition = Vec3(0, 0, 0);
+
+	string nameStart = "tutorial";
+	int first = 1;
+	int last = 7;
+
+	FloorPrimer primer =
+	{
+		{},
+		{},
+		{}
+	};
+
+	primer.networks.Add({});
+
+	float distance = 1.2f/* * 150 * BM_PIXEL_SIZE*/;
+
+	for (int i = first; i <= last; i++)
+	{
+		primer.rooms.Add({});
+		RoomPrimer& r = primer.rooms.Back();
+
+		r.levelIndex = GetLevelByName(nameStart + std::to_string(i));
+		r.position = Vec2(0, (i - 1) * distance);
+		r.networkIndex = 0;
+
+		if (i == 7)
+		{
+			r.essenceBloom = true;
+		}
+
+		if (i == first)
+		{
+			r.connections.Add(-1);
+			r.connections.Add(i);
+		}
+		else
+		{
+			primer.networks[0].tunnels.Add({ (uint)i - 2, (uint)i - 1 });
+			r.connections.Add(i - 2);
+
+			if (i == last)
+			{
+				r.connections.Add(-2);
+			}
+			else
+			{
+				r.connections.Add(i);
+			}
+		}
+	}
+
+	Unprime(primer, f, params);
+}
+
+
 
 void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, EnvironmentalizeParameters eParams)
 {
@@ -153,93 +222,7 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, 
 
 	LOG("Generated map network. Attempts: %i", (int)attempts);
 
-
-
-	// Create level objects
-
-	float positionModifier = 1.0f;
-
-	for (const TunnelPrimerNetwork& network : primer.networks)
-	{
-		if (network.merged)
-		{
-			continue;
-		}
-
-		for (const TunnelPrimer& tunnel : network.tunnels)
-		{
-			f.tunnels.Add({ tunnel.start, tunnel.end });
-		}
-	}
-
-	for (uint room = 0; room < (uint)primer.rooms.Size(); room++)
-	{
-		const RoomPrimer& p = primer.rooms[room];
-
-		f.rooms.Add({});
-		Level& l = f.rooms.Back();
-
-		l.position = Vec3(p.position.x, 0, p.position.y) * positionModifier * (BM_MAX_SIZE / BM_PIXELS_PER_UNIT);
-		l.rotation = Quaternion::GetEuler(0.0f, p.angleOffset, 0.0f);
-		l.resource = m_resources[p.levelIndex].get();
-
-		for (uint i = 0; i < (uint)p.connections.Size(); i++)
-		{
-			int target = p.connections[(i + p.connections.Size() - p.connectionOffset) % p.connections.Size()];
-
-			Mat2 rotMatrix = Mat::rotation2(-p.angleOffset);
-
-			Vec2 exitPixelPosition = l.resource->exits[i].position - Vec2((float)l.resource->pixelWidth, (float)l.resource->pixelHeight) * 0.5f;
-			Vec2 exitPixelDirection = l.resource->exits[i].direction;
-			exitPixelPosition.y *= -1;
-			float width = l.resource->exits[i].width * BM_PIXEL_SIZE;
-
-			Vec2 exitPosition = rotMatrix * exitPixelPosition * BM_PIXEL_SIZE;
-			Vec2 exitDirection = rotMatrix * exitPixelDirection;
-
-			Vec2 exitRelativePosition = exitPosition - exitDirection * TUNNEL_SPAWN_DISTANCE;
-
-			Vec3 exitPosition3 = l.position + Vec3(exitPosition.x, 0.0f, exitPosition.y);
-			Vec3 exitDirection3 = Vec3(exitDirection.x, 0.0f, exitDirection.y);
-
-			if (target < 0)
-			{
-				l.connections.Add({ target, 0, 0, exitPosition3, exitDirection3, width });
-
-				if (target == -1)
-				{
-					f.startDirection = -exitDirection3;
-					f.startPosition = exitPosition3 - exitDirection3 * TUNNEL_SPAWN_DISTANCE;
-					f.startRoom = room;
-				}
-
-				continue;
-			}
-
-			for (uint j = 0; j < (uint)f.tunnels.Size(); j++)
-			{
-				LevelTunnel& t = f.tunnels[j];
-				if (room == t.startRoom && target == (int)t.endRoom)
-				{
-					t.exits[0] = l.resource->exits[i];
-					t.positions[0] = exitPosition3;
-					t.directions[0] = exitDirection3;
-					l.connections.Add({ target, j, 0, exitPosition3, exitDirection3, width });
-					break;
-				}
-				if (room == t.endRoom && target == (int)t.startRoom)
-				{
-					t.exits[1] = l.resource->exits[i];
-					t.positions[1] = exitPosition3;
-					t.directions[1] = exitDirection3;
-					l.connections.Add({ target, j, 1, exitPosition3, exitDirection3, width });
-					break;
-				}
-			}
-		}
-
-		Environmentalize(l, eParams);
-	}
+	Unprime(primer, f, eParams);
 }
 
 void LevelHandler::GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParameters params)
@@ -1157,4 +1140,91 @@ float LevelHandler::EvaluateDeviation(RoomPrimer& r, const LevelResource* level)
 	}
 
 	return result;
+}
+
+void LevelHandler::Unprime(FloorPrimer& primer, LevelFloor& f, EnvironmentalizeParameters parameters)
+{
+	float positionModifier = 1.0f;
+
+	for (const TunnelPrimerNetwork& network : primer.networks)
+	{
+		if (network.merged)
+		{
+			continue;
+		}
+
+		for (const TunnelPrimer& tunnel : network.tunnels)
+		{
+			f.tunnels.Add({ tunnel.start, tunnel.end });
+		}
+	}
+
+	for (uint room = 0; room < (uint)primer.rooms.Size(); room++)
+	{
+		const RoomPrimer& p = primer.rooms[room];
+
+		f.rooms.Add({});
+		Level& l = f.rooms.Back();
+
+		l.position = Vec3(p.position.x, 0, p.position.y) * positionModifier * (BM_MAX_SIZE / BM_PIXELS_PER_UNIT);
+		l.rotation = Quaternion::GetEuler(0.0f, p.angleOffset, 0.0f);
+		l.resource = m_resources[p.levelIndex].get();
+
+		for (uint i = 0; i < (uint)p.connections.Size(); i++)
+		{
+			int target = p.connections[(i + p.connections.Size() - p.connectionOffset) % p.connections.Size()];
+
+			Mat2 rotMatrix = Mat::rotation2(-p.angleOffset);
+
+			Vec2 exitPixelPosition = l.resource->exits[i].position - Vec2((float)l.resource->pixelWidth, (float)l.resource->pixelHeight) * 0.5f;
+			Vec2 exitPixelDirection = l.resource->exits[i].direction;
+			exitPixelPosition.y *= -1;
+			float width = l.resource->exits[i].width * BM_PIXEL_SIZE;
+
+			Vec2 exitPosition = rotMatrix * exitPixelPosition * BM_PIXEL_SIZE;
+			Vec2 exitDirection = rotMatrix * exitPixelDirection;
+
+			Vec2 exitRelativePosition = exitPosition - exitDirection * TUNNEL_SPAWN_DISTANCE;
+
+			Vec3 exitPosition3 = l.position + Vec3(exitPosition.x, 0.0f, exitPosition.y);
+			Vec3 exitDirection3 = Vec3(exitDirection.x, 0.0f, exitDirection.y);
+
+			if (target < 0)
+			{
+				l.connections.Add({ target, 0, 0, exitPosition3, exitDirection3, width });
+
+				if (target == -1)
+				{
+					f.startDirection = -exitDirection3;
+					f.startPosition = exitPosition3 - exitDirection3 * TUNNEL_SPAWN_DISTANCE;
+					f.startRoom = room;
+				}
+
+				continue;
+			}
+
+			for (uint j = 0; j < (uint)f.tunnels.Size(); j++)
+			{
+				LevelTunnel& t = f.tunnels[j];
+				if (room == t.startRoom && target == (int)t.endRoom)
+				{
+					t.exits[0] = l.resource->exits[i];
+					t.positions[0] = exitPosition3;
+					t.directions[0] = exitDirection3;
+					l.connections.Add({ target, j, 0, exitPosition3, exitDirection3, width });
+					break;
+				}
+				if (room == t.endRoom && target == (int)t.startRoom)
+				{
+					t.exits[1] = l.resource->exits[i];
+					t.positions[1] = exitPosition3;
+					t.directions[1] = exitDirection3;
+					l.connections.Add({ target, j, 1, exitPosition3, exitDirection3, width });
+					break;
+				}
+			}
+		}
+
+		Environmentalize(l, parameters);
+	}
 }

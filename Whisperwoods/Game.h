@@ -9,8 +9,10 @@
 #include "SoundResource.h"
 #include "LevelHandler.h"
 #include "TextRenderable.h"
+#include "GUI.h"
+#include "Grafiki.h"
 
-constexpr float STAMINA_DECAY_MULTIPLIER = 0.27f;
+constexpr float STAMINA_DECAY_MULTIPLIER = 0.2f;
 constexpr float MAX_STAMINA_STARTING_VALUE = 10.0f;
 
 class LevelHandler;
@@ -32,7 +34,7 @@ class Game sealed
 
 	void UpdateEnemies( Renderer* renderer );
 
-	void UpdateRoomAndTimeSwappingLogic( Renderer* renderer );
+	void UpdateRoomAndTimeSwappingLogic( Renderer* renderer);
 
 	void DrawIMGUIWindows();
 
@@ -49,6 +51,7 @@ public:
 
 	void LoadHubby();
 	void LoadTest();
+	void LoadTutorial();
 	void LoadGame(uint gameSeed, uint roomCount);
 	void UnLoadPrevious();
 
@@ -93,6 +96,11 @@ private:
 public:
 	//Camera* m_camera;
 	std::unique_ptr<LevelHandler>	m_levelHandler;
+	int activeTutorialLevel = 1;
+	bool tutorial = false;
+	bool showTextForPickupBloom = false;
+	bool youWin = false;
+
 private:
 
 	Vec3 dirLightOffset;
@@ -109,6 +117,8 @@ private:
 	float m_futureDirectionalIntensity;
 
 	float m_musicVol = 0.3f;
+	shared_ptr<Grafiki> m_grafiki;
+
 	shared_ptr<AudioSource> m_musicPresent;
 	shared_ptr<AudioSource> m_musicFuture;
 	shared_ptr<AudioSource> m_musicDetected;
@@ -132,6 +142,8 @@ private:
 	// Current floor data
 	LevelFloor m_floor;
 	shared_ptr<Room> m_currentRoom;
+
+	shared_ptr<GUI> m_loadScreen;
 
 
 	// TODO: Might benefit of becoming more of a CLASS that HANDLES time switching.
@@ -159,7 +171,7 @@ private:
 	bool m_reachedLowestStamina;
 	float m_camFovChangeSpeed;
 
-	const float m_detectionRate = 0.4f;
+	const float m_detectionRate = 0.35f;
 	const float m_detCrouchMultiplier = 0.6f;
 	const float m_detSprintMultiplier = 1.3f;
 	const float m_detDistMultiplier = 1.5f;
@@ -177,6 +189,14 @@ private:
 	float m_fogRadius;
 
 	bool m_godMode;
+
+	bool m_loadingHubby = false;
+	bool m_loadingTutorial = false;
+	bool m_loadingGame = false;
+	bool m_deathPoison = false;
+	bool m_deathEnemy = false; 
+	bool m_loadNewFloor = false;
+	
 	 
 	TimeSwitchValues m_switchVals;
 };

@@ -100,8 +100,8 @@ struct AnimatorAnimation // Holds the middleman data for the various playback ti
 	}
 	
 	// Helper functions.
-	Vec3 GetInterpolatedValue( cs::List<Vec3KeyFrame> keys, float time, float duration );
-	Quaternion GetInterpolatedValue( cs::List<QuatKeyFrame> keys, float time, float duration );
+	Vec3 GetInterpolatedValue( cs::List<Vec3KeyFrame>& keys, float time, float duration );
+	Quaternion GetInterpolatedValue( cs::List<QuatKeyFrame>& keys, float time, float duration );
 };
 
 // TODO: This class might be threadable.

@@ -242,7 +242,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 				m_targetVelocity *= m_walkSpeed;
 			}
 		}
-		m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * 2.0f * staminaModifier * delta_time);
+		//m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * 2.0f * delta_time);
 
 
 		//if (walkRunMultiplier == m_walkSpeed) // not sprinting
@@ -468,7 +468,7 @@ void Player::UpdateSound(float delta_time)
 		float volPercent = m_velocity.Length() / m_runSpeed;
 		volPercent = pow(volPercent, 0.7f);
 		//volPercent *= volPercent;
-		m_stepsSound->volume = 0.25f * volPercent * (1.0f - 0.8f * playerInFuture);
+		m_stepsSound->volume = 0.15f * volPercent * (1.0f - 0.5f * playerInFuture);
 		//trigger when character sets foot on ground
 		if (((characterAnimator->globalTime > 0.2f && characterAnimator->globalTime < 0.3f) || (characterAnimator->globalTime > 0.66f && characterAnimator->globalTime < 0.76f)) /*&& !m_stepsSound->IsPlaying()*/)
 		{

@@ -85,6 +85,8 @@ public:
 	void SetTimelineStateCurrent();
 	void SetTimelineStateFuture();
 
+	void UpdateStaticShadows(bool future);
+
 	void SetAmbientLight(cs::Color3f color, float intensity);
 	shared_ptr<DirectionalLight> GetDirectionalLight();
 	bool RegisterPointLight(shared_ptr<PointLight> pointLight);

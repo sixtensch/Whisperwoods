@@ -40,6 +40,7 @@
     <ClCompile Include="FBXImporter.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GPUProfiler.cpp" />
+    <ClCompile Include="Grafiki.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="GUIElement.cpp" />
     <ClCompile Include="GUIRenderable.cpp" />
@@ -103,6 +104,7 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="GPUProfiler.h" />
+    <ClInclude Include="Grafiki.h" />
     <ClInclude Include="GUI.h" />
     <ClInclude Include="GUIElement.h" />
     <ClInclude Include="GUIRenderable.h" />
