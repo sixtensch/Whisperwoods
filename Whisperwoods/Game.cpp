@@ -408,6 +408,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			m_loadingHubby = true;
 			activeTutorialLevel = 8;
 			tutorial = false;
+			return;
 		}
 	}
 }
@@ -917,6 +918,11 @@ float Game::GetMaxStamina()
 void Game::GodMode(bool godMode)
 {
 	m_godMode = godMode;
+}
+
+bool Game::IsInHubby()
+{
+	return m_isHubby;
 }
 
 void Game::LoadRoom(Level* level)

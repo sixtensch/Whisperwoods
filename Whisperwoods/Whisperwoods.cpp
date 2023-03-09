@@ -315,7 +315,7 @@ void Whisperwoods::Run()
 	for (bool running = true; running; frames++)
 	{
 
-		if (m_game->youWin)
+		if (m_game->youWin || m_game->IsInHubby())
 		{
 			testGui.GetElement(0)->uiRenderable->enabled = false;
 			testGui.GetElement(1)->uiRenderable->enabled = false;
@@ -402,7 +402,7 @@ void Whisperwoods::Run()
 			testGui.GetElement(2)->uiRenderable->enabled = true;
 		}
 
-
+		
 		
 		
 		
