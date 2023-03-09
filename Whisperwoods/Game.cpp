@@ -279,7 +279,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						const LevelTunnel& t = m_floor.tunnels[r.tunnel];
 
 						UnLoadPrevious();
-						LoadRoom(&m_floor.rooms[r.targetRoom]);
+						LoadRoom(r.targetRoom);
 
 						m_currentRoom->transform.CalculateWorldMatrix();
 						m_directionalLight->transform.parent = &m_currentRoom->transform;
@@ -431,8 +431,10 @@ void Game::DrawIMGUIWindows()
 				m_testMaterials.Add( MaterialResource() );
 			}
 
+			// Distance is in world units.
 			float distance = 0.5f / (BM_MAX_SIZE / BM_PIXELS_PER_UNIT);
 
+			m_player->currentRoom;
 			for (int i = 0; i < f.rooms.Size(); i++)
 			{
 				Level& l = f.rooms[i];
@@ -596,7 +598,8 @@ void Game::DeInit()
 void Game::LoadHubby()
 {
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
-	LoadRoom( &m_floor.rooms[0] );
+	uint roomIndex = 0;
+	LoadRoom(roomIndex);
 
 	m_currentRoom->transform.CalculateWorldMatrix();
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
@@ -610,7 +613,8 @@ void Game::LoadHubby()
 void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
-	LoadRoom(&m_floor.rooms[0]);
+	uint roomIndex = 0;
+	LoadRoom(roomIndex);
 
 	m_currentRoom->transform.CalculateWorldMatrix();
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
@@ -629,7 +633,7 @@ void Game::LoadGame(uint gameSeed, uint roomCount)
 	params.pushSteps = 3;
 
 	m_levelHandler->GenerateFloor(&m_floor, params, m_envParams);
-	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
+	LoadRoom(m_floor.startRoom);
 
 	m_player->transform.position = m_floor.startPosition;
 
@@ -682,34 +686,36 @@ void Game::GodMode(bool godMode)
 	m_godMode = godMode;
 }
 
-void Game::LoadRoom(Level* level)
+void Game::LoadRoom(uint levelIndex)
 {
+	Level& level = m_floor.rooms[levelIndex];
+
 	Mat4 roomOffset =
 		Mat::translation3(0, -0.01f, 0) *
-		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight);
+		Mat::scale3(level.resource->worldWidth, 1.0f, level.resource->worldHeight);
 
 	Mat4 cylinderOffset =
 		Mat::translation3( 0, -0.02f, 0 ) *
-		Mat::scale3(level->resource->worldWidth * 1.3f, 1.0f, level->resource->worldHeight * 1.3f);
+		Mat::scale3(level.resource->worldWidth * 1.3f, 1.0f, level.resource->worldHeight * 1.3f);
 
-	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
-	m_currentRoom->transform.position = level->position;
-	m_currentRoom->transform.rotation = level->rotation;
+	m_currentRoom = shared_ptr<Room>(new Room(&level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
+	m_currentRoom->transform.position = level.position;
+	m_currentRoom->transform.rotation = level.rotation;
 
-	Renderer::SetFogParameters(level->position, level->resource->worldWidth * 0.55f);
+	Renderer::SetFogParameters(level.position, level.resource->worldWidth * 0.55f);
 
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
 	m_player->currentRoom = m_currentRoom.get();
 	
-	for ( LevelPickup& pickup : level->resource->pickups )
+	for ( LevelPickup& pickup : level.resource->pickups )
 	{
 		Vec3 worldpos = m_player->currentRoom->bitMapToWorldPos(static_cast<Point2>(pickup.position));
 		shared_ptr<Pickup> item = make_shared<EssenceBloom>(m_player.get(), Vec2(worldpos.x, worldpos.z));
 		m_pickups.Add(item);
 	}
 
-	for (LevelPatrol& p : level->resource->patrolsClosed)
+	for (LevelPatrol& p : level.resource->patrolsClosed)
 	{
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
 			"Carcinian_Animated.wwm", 
@@ -726,7 +732,7 @@ void Game::LoadRoom(Level* level)
 		}
 	}
 
-	for (LevelPatrol& p : level->resource->patrolsOpen)
+	for (LevelPatrol& p : level.resource->patrolsOpen)
 	{
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
 			"Carcinian_Animated.wwm",
