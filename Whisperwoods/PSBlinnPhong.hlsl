@@ -118,6 +118,8 @@ struct PS_OUTPUT
     float4 LuminanceTexture : SV_TARGET1;
 };
 
+float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float depthCMP, float epsilon);
+
 PS_OUTPUT main(VSOutput input)
 {
 	// Output struct for both main texture target and positional target.
@@ -147,41 +149,31 @@ PS_OUTPUT main(VSOutput input)
 	// Cumulative color
     float4 color = float4(colorAlbedoOpacity.xyz * ambient, colorAlbedoOpacity.w);
 	
-	// Check shadow
+    
+    // Check shadow
     float4 lsPos = mul(input.wPosition, directionalLight.clip);
     float4 lsNDC = lsPos / lsPos.w; // U, V, Depth
     float2 lsUV = float2(lsNDC.x * 0.5f + 0.5f, lsNDC.y * -0.5f + 0.5f);
 	
     float dirNDotL = dot(normal, directionalLight.direction);
     float epsilon = 0.00005 / acos(saturate(dirNDotL));
- //   bool shadowAff = max(
-	//	shadowTextureStatic.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x,
-	//	shadowTextureDynamic.SampleCmp(shadowSampler, lsUV, lsNDC.z + epsilon).x
-	//);
-	
-	
-    float sum = 0;
-    float x, y;
-
-	// PCF filtering (Smooth shadows)
-	[unroll]
-    for (y = -smoothing; y <= smoothing; y += 1.0f)
-    {
-		[unroll]
-        for (x = -smoothing; x <= smoothing; x += 1.0f)
-        {
-            sum += min(
-			shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
-						lsUV.xy + texOffset(x, y, 0), lsNDC.z - epsilon),
-			shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
-						lsUV.xy + texOffset(x, y, 0), lsNDC.z - epsilon)
-			);
-        }
-    }
-    float shadowAff = sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f));
-
     
     // Directional lighting
+    float sStatic = shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
+						lsUV, lsNDC.z - epsilon);
+    float sDynamic = shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
+						lsUV, lsNDC.z - epsilon);
+    
+    float shadowAff = 0.0f;
+    if (sStatic < sDynamic)
+    {
+        shadowAff = PCFShadows(shadowTextureStatic, sStatic, lsUV, lsNDC.z, epsilon);
+    }
+    else
+    {
+        shadowAff = PCFShadows(shadowTextureDynamic, sDynamic, lsUV, lsNDC.z, epsilon);
+    }
+
     color += shadowAff * phong(
 		input.wPosition.xyz,
 		normal,
@@ -325,4 +317,23 @@ PS_OUTPUT main(VSOutput input)
     output.LuminanceTexture = float4(lumColor, color.a);
 
     return output;
+}
+
+
+float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float depthCMP, float epsilon)
+{
+    float sum = startValue;
+
+	// PCF filtering (Smooth shadows)
+	[unroll]
+    for (uint y = -smoothing; y <= smoothing; ++y)
+    {
+		[unroll]
+        for (uint x = -smoothing + 1; x <= smoothing; ++x)
+        {
+            sum += textureToSample.SampleCmpLevelZero(shadowSampler,
+						UV + texOffset(x, y, 0), depthCMP - epsilon);
+        }
+    }
+    return (sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f)));
 }

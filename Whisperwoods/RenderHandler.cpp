@@ -53,7 +53,7 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	m_lightDirectional->intensity = 0.0f;
 	m_lightDirectional->color = cs::Color3f(0xFFFFFF);
 
-	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.01f, 1000.0f );
+	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.86f, 1000.0f );
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_mainCamera.Update();
 
