@@ -25,6 +25,8 @@ namespace CB
 		uint pointCount;
 		Vec3 cameraPosition;
 		uint spotCount;
+		Vec3 fogFocus;
+		float fogRadius;
 	};
 
 	struct MaterialInfo

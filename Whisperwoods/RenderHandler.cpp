@@ -86,8 +86,16 @@ void RenderHandler::Draw()
 	}
 	m_lightDirectional->Update(0); // TODO: DELTA TIME
 
-	m_renderCore->WriteLights(m_lightAmbient, m_lightAmbientIntensity, m_mainCamera, m_lightDirectional, m_lightsPoint, m_lightsSpot);
-	//m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
+	m_renderCore->WriteLights(
+		m_lightAmbient, 
+		m_lightAmbientIntensity, 
+		m_mainCamera, 
+		m_lightDirectional, 
+		m_lightsPoint, 
+		m_lightsSpot, 
+		m_fogFocus, m_fogRadius);
+
+	m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
 
 	// ShadowPass
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
@@ -664,6 +672,12 @@ bool RenderHandler::RegisterSpotLight(shared_ptr<SpotLight> spotLight)
 void RenderHandler::SetPlayerMatrix(const Mat4& matrix)
 {
 	m_playerMatrix = matrix;
+}
+
+void RenderHandler::SetFogParameters(Vec3 focus, float radius)
+{
+	m_fogFocus = focus;
+	m_fogRadius = radius;
 }
 
 void RenderHandler::ClearShadowRenderables()

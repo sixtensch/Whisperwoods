@@ -89,16 +89,15 @@ public:
 	bool RegisterSpotLight(shared_ptr<SpotLight> spotLight);
 
 	void SetPlayerMatrix(const Mat4& matrix);
+	void SetFogParameters(Vec3 focus, float radius);
 
 	void ClearShadowRenderables();
 	void RegisterLastRenderableAsShadow();
 	void ExecuteStaticShadowDraw();
 
-
 private:
 	void QuadCull(const Camera& camPOV);
 	void DrawInstances(uint state, bool shadows, bool discardPipeline);
-
 
 private:
 	struct EnvMaterial
@@ -133,6 +132,8 @@ private:
 	shared_ptr<DirectionalLight> m_lightDirectional;
 	cs::List<shared_ptr<PointLight>> m_lightsPoint;
 	cs::List<shared_ptr<SpotLight>> m_lightsSpot;
+	Vec3 m_fogFocus;
+	float m_fogRadius;
 
 	Mat4 m_playerMatrix;
 
