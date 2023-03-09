@@ -137,7 +137,6 @@ void Whisperwoods::Run()
 	m_game->Init();
 	m_game->LoadHubby();
 
-
 	//// Test generate a floor
 	//LevelFloor tempFloor;
 	//FloorParameters fParams;

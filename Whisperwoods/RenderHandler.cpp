@@ -34,6 +34,9 @@ RenderHandler::RenderHandler()
 	{
 		boundingVolumes[i] = BananaPlant;
 	}
+
+	m_currentLevel = nullptr;
+	m_lightAmbientIntensity = 0.5f;
 }
 
 RenderHandler::~RenderHandler()
@@ -249,8 +252,9 @@ void RenderHandler::ZPrepass(TimelineState state)
 
 void RenderHandler::ExecuteStaticShadowDraw()
 {
-	QuadCull(m_mainCamera);
+	//m_renderCore->UpdateViewInfo( m_mainCamera );
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
+	QuadCull(m_lightDirectional->camera);
 	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 	m_renderCore->TargetStaticShadowMap();
 	for (int i = 0; i < m_shadowRenderables.Size(); i++)

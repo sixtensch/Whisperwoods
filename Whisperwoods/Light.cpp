@@ -6,12 +6,16 @@
 
 void DirectionalLight::Update(float delta_time)
 {
-	camera.CopyTransform(transform);
+	transform.CalculateWorldMatrix();
+	camera.SetPosition( transform.GetWorldPosition() );
+	camera.SetRotation( transform.GetWorldRotation() );
+	//camera.CopyTransform(transform);
+	//camera.m_transform.parent = &transform;
+
 	camera.SetValues(dx::XM_PI, 1, LIGHT_NEAR, 3000);
 	camera.CalculateOrthoProjection(diameter, diameter);
 	camera.Update();
 
-	transform.CalculateWorldMatrix();
 	bufferData.intensity = (Vec3)color * intensity;
 	bufferData.clipMatrix = camera.GetProjectionMatrix().Transpose() * camera.GetViewMatrix();
 	//Vec4 temp = transform.worldMatrix/*.Conjugate()*/ * Vec4(0.0f, 1.0f, 0.0f, 0.0f);
