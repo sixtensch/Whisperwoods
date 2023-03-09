@@ -61,11 +61,20 @@ public:
 	float GetMaxPowerCooldown();
 	float GetMaxStamina();
 
+	void GodMode(bool godMode);
 
 private:
-	void ChangeTimeline(Renderer* renderer);
+	// Applies current timeline state to all relevant units.
+	void ApplyTimelineState(Renderer* renderer);
+
+	void SwapTimeline(Renderer* renderer);
+	void ChangeToFutureTimeline(Renderer* renderer);
+	void ChangeToPresentTimeline(Renderer* renderer);
+	
 	void UpdateTimeSwitchBuffers(Renderer* renderer);
 	void UpdateEnemyConeBuffers(Renderer* renderer);
+
+	void SoundUpdate(float deltaTime);
 
 	// Time switch functions
 	bool IsAllowedToSwitch();
@@ -76,7 +85,10 @@ private:
 	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
 
-	void SoundUpdate(float deltaTime);
+	void ResetGameplayValues();
+	void EndRun(Renderer* renderer);
+	void EndRunDueToEnemy(Renderer* renderer);
+	void EndRunDueToPoison(Renderer* renderer);
 
 public:
 	//Camera* m_camera;
@@ -157,9 +169,13 @@ private:
 	const float m_timeAbilityCooldown = 3.0f; // time in seconds
 	float m_coolDownCounter; 
 
+	const float m_timeSwitchTargetFov = cs::c_pi * 0.9f;
 
+	Vec3 m_fogFocus;
+	float m_fogRadius;
+
+	bool m_godMode;
 	 
-
 	TimeSwitchValues m_switchVals;
 };
 

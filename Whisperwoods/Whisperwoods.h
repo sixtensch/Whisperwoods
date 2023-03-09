@@ -19,8 +19,13 @@ public:
 	void Run();
 
 	void Move(float dTime, Player* player, CutsceneController* cutSceneController);
+	
+	static void GodMode(void*, void*);
+	static void PeasantMode(void*, void*);
 
 private:
+	static Whisperwoods* s_whisperwoods;
+
 	std::unique_ptr<Debug>			m_debug;
 	std::unique_ptr<Resources>		m_resources;
 	std::unique_ptr<Sound>			m_sound;

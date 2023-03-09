@@ -33,9 +33,10 @@ Game::~Game() {}
 // Stamina, pickups, detection etc
 void Game::UpdateGameplayVars( Renderer* renderer )
 {
-	m_coolDownCounter += m_deltaTime;
+	m_coolDownCounter += m_deltaTime * (m_godMode ? 5.0f : 1.0f);
 	showTextForPickupBloom = false;
 	// Player vars
+	m_player->SetGodMode(m_godMode);
 	m_player->playerInFuture = m_isInFuture;
 	m_player->UpdateStamina( m_maxStamina );
 	m_currentStamina = m_player->GetCurrentStamina();
@@ -56,7 +57,9 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	}
 
 	// Stamina Logic
-	m_maxStamina -= m_deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging; // (duplicated code thing)
+	m_maxStamina -= 
+		m_deltaTime * STAMINA_DECAY_MULTIPLIER * m_isInFuture * m_finishedCharging * 
+		(m_godMode ? 0.05f : 1.0f); // (duplicated code thing)
 	if (m_maxStamina < 1.0f) // DO NOT CHANGE THIS
 	{
 		m_maxStamina = 1.0f; // DO NOT CHANGE THIS
@@ -73,12 +76,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		/// D E A T H ///
 		if (m_dangerousTimeInFuture >= m_timeYouSurviveInFuture) // how long you can survive in future with 0 stamina (seconds)
 		{
-			ChangeTimeline( renderer );
-			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
-			m_player->ResetStaminaToMax( m_maxStamina );
-			UnLoadPrevious();
-			LoadHubby();
-			m_player->ReloadPlayer();
+			EndRunDueToPoison(renderer);
 			activeTutorialLevel = 8;
 		}
 	}
@@ -95,32 +93,11 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		{
 			m_timeUnseen = 0.0f;
 
-			if (IsDetected(m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance()))
+			if (!m_godMode && IsDetected(m_deltaTime, m_closestDistance, m_enemies[0]->GetMaxDistance()))
 			{
-				if (m_isSwitching)
-				{
-					m_switchVals.timeSinceSwitch = 2.0f;
-					m_isInFuture = true;
-					renderer->GetCamera().SetFov(m_initialCamFov);
-					ChangeTimeline(renderer);
-					m_switchVals.timeSinceSwitch = 0.0f;
-					m_isSwitching = false;
-					m_totalFovDelta = 0.0f;
-				}
-
 				// D E A T H
-				m_maxStamina = MAX_STAMINA_STARTING_VALUE;
-				//m_coolDownCounter = m_timeAbilityCooldown;
-				m_player->ResetStaminaToMax(m_maxStamina);
-				UnLoadPrevious();
-				LoadHubby();
-				m_player->ReloadPlayer();
-				m_isSeen = false;
-				m_detectionLevelGlobal = 0.0f;
-				m_detectionLevelFloor = 0.0f;
+				EndRunDueToEnemy(renderer);
 				activeTutorialLevel = 8;
-
-				m_enemyHorn->Play();
 			}
 		}
 		else
@@ -182,7 +159,7 @@ void Game::UpdateEnemies( Renderer* renderer )
 	//}	*/
 
 	m_isSeen = false;
-	m_closestDistance = 100000.0f; // large start value to fix the above thing instead of branching.
+	m_closestDistance = FLT_MAX; // large start value to fix the above thing instead of branching.
 	for (int i = 0; i < m_enemies.Size(); i++)
 	{
 		m_enemies[i]->Update( m_deltaTime ); // Would ideally want to put this in UpdateGameObjects(), but this makes one less loop
@@ -226,25 +203,21 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			
 			if (!ChargeIsDone())
 			{
-				m_totalFovDelta += m_camFovChangeSpeed * m_deltaTime;
-				float newFov = m_initialCamFov + m_totalFovDelta;
-
-				// Max total fov cant exceed half circle.
-				if (newFov > cs::c_pi)
+				float fovSpeed = (m_timeSwitchTargetFov - m_initialCamFov) / m_switchVals.chargeDuration;
+				// Makes sure that the difference results in a positive speed.
+				if (fovSpeed >= 0.0f)
 				{
-					newFov = cs::c_pi;
-				}
-
-				renderer->GetCamera().SetFov( newFov );
+					Camera& cam = renderer->GetCamera();
+					cam.SetFov(cam.GetFov() + fovSpeed * m_deltaTime);
+				}			
 			}
 			else
 			{
 				if (!m_finishedCharging)
 				{
-					ChangeTimeline( renderer );
+					SwapTimeline( renderer );
 					m_finishedCharging = true;
 					renderer->GetCamera().SetFov( m_initialCamFov );
-					m_totalFovDelta = 0.0f;
 
 					if (!m_isInFuture) // time to cooldown
 					{
@@ -361,15 +334,9 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			}
 		}
 
-		if (Input::Get().IsDXKeyPressed( DXKey::H ) && !m_isInFuture)
+		if (Input::Get().IsDXKeyPressed( DXKey::H ))
 		{
-			UnLoadPrevious();
-			LoadHubby();
-			m_player->ReloadPlayer();
-			m_detectionLevelGlobal = 0.0f;
-			m_detectionLevelFloor = 0.0f;
-			m_coolDownCounter = m_timeAbilityCooldown;
-			m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+			EndRun(renderer);
 		}
 	}
 	else // If in hubby
@@ -409,9 +376,17 @@ void Game::DrawIMGUIWindows()
 		ImGui::Checkbox( "Future", &m_isInFuture );
 		
 		ImGui::Separator();
+		ImGui::Checkbox("God Mode", &m_godMode);
 		ImGui::InputFloat3("Player Position", (float*)&m_player->transform.position);
-
 		ImGui::Text("Transition: %s", m_testTunnel ? "YES" : "NO");
+
+		if (m_isHubby)
+		{
+			ImGui::Separator();
+			ImGui::InputFloat3("Fog Focus", (float*)&m_fogFocus);
+			ImGui::DragFloat("Fog Radius", &m_fogRadius, 0.1f, 0.1f, 100.0f);
+			Renderer::SetFogParameters(m_fogFocus, m_fogRadius);
+		}
 	}
 	ImGui::End();
 
@@ -565,6 +540,10 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 void Game::Init()
 {
+	m_godMode = false;
+
+
+
 	// Audio test startup
 	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
 	m_audioSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.2f, 1.1f, 0.0f, 10.0f, soundPtr);
@@ -592,6 +571,10 @@ void Game::Init()
 	m_envParams.edgeSampleDistanceTrees = 8;
 	m_envParams.edgeSampleDistanceStones = 2;
 
+	m_fogFocus = Vec3(0, 0, 0);
+	m_fogRadius = 10.0f;
+	Renderer::SetFogParameters(m_fogFocus, m_fogRadius);
+
 	// Level handling
 	m_levelHandler = std::make_unique<LevelHandler>();
 	m_levelHandler->LoadFloors();
@@ -602,24 +585,24 @@ void Game::Init()
 
 	//Music
 	m_musicPresent = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_musicVol, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings.mp3"))->currentSound);
-	m_musicFuture = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Gecko.mp3"))->currentSound);
-	m_musicDetected = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Trespass.mp3"))->currentSound);
-	m_player->AddChild((GameObject*)m_musicPresent.get());
-	m_player->AddChild((GameObject*)m_musicFuture.get());
-	m_player->AddChild((GameObject*)m_musicDetected.get());
+	m_musicFuture = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings_Who_Left.mp3"))->currentSound);
+	m_musicDetected = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 15.0f, 20.0f, (Resources::Get().GetSound("Strange_Beings_on_Your_Tail.mp3"))->currentSound);
 	m_musicPresent->loop = true;
 	m_musicFuture->loop = true;
 	m_musicDetected->loop = true;
+	m_musicPresent->mix2d3d = 0.0f;
+	m_musicFuture->mix2d3d = 0.0f;
+	m_musicDetected->mix2d3d = 0.0f;
 
-	m_enemyHorn = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_hornVol, 1.0f, 20.0f, 30.0f, (Resources::Get().GetSound("HornHeavyReverb.wav"))->currentSound);
-	m_player->AddChild((GameObject*)m_enemyHorn.get());
+	m_enemyHorn = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_hornVol, 0.8f, 20.0f, 30.0f, (Resources::Get().GetSound("HornHeavyReverb.wav"))->currentSound);
+	m_enemyHorn->mix2d3d = 0.0f;
 
 	// Lighting
 	dirLightOffset = Vec3( 0, 20, -20 ); // TODO: Investigate why other values here don't work. << CULLING ON THE SHADOWS WACKY
 	m_directionalLight = Renderer::GetDirectionalLight();
 	m_directionalLight->transform.position = dirLightOffset; 
 	m_directionalLight->transform.SetRotationEuler({ dx::XM_PIDIV4, 0.0f, 0.0f }); // Opposite direction of how the light should be directed
-	m_directionalLight->diameter = 50.0f;
+	m_directionalLight->diameter = 45.0f;
 	m_directionalLight->intensity = 2.0f;
 	m_directionalLight->color = cs::Color3f(0xFFFFD0);
 
@@ -734,6 +717,11 @@ float Game::GetMaxStamina()
 	return m_maxStamina;
 }
 
+void Game::GodMode(bool godMode)
+{
+	m_godMode = godMode;
+}
+
 void Game::LoadRoom(Level* level)
 {
 	Mat4 roomOffset =
@@ -742,11 +730,13 @@ void Game::LoadRoom(Level* level)
 
 	Mat4 cylinderOffset =
 		Mat::translation3( 0, -0.02f, 0 ) *
-		Mat::scale3(level->resource->worldWidth * 1.2f, 1.0f, level->resource->worldHeight * 1.2f);
+		Mat::scale3(level->resource->worldWidth * 1.3f, 1.0f, level->resource->worldHeight * 1.3f);
 
 	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
 	m_currentRoom->transform.position = level->position;
 	m_currentRoom->transform.rotation = level->rotation;
+
+	Renderer::SetFogParameters(level->position, level->resource->worldWidth * 0.55f);
 
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
@@ -832,12 +822,7 @@ bool Game::IsDetected(float deltaTime, float enemyDistance, float maximalDistanc
 	m_detectionLevelGlobal += rate * deltaTime;
 	m_detectionLevelFloor += (rate / 3) * deltaTime;
 
-	if (m_detectionLevelGlobal >= 1.0f)
-	{
-		return true; //game over
-	}
-
-	return false; // game is not over
+	return m_detectionLevelGlobal >= 1.0f;
 }
 
 void Game::LowerToFloor(float deltaTime)
@@ -883,23 +868,78 @@ void Game::SoundUpdate(float deltaTime)
 		if (m_isInFuture)
 		{
 			m_musicPresent->SetVolume(0.0f);
-			m_musicFuture->SetVolume(m_musicVol);
+			m_musicFuture->SetVolume(m_musicVol * 0.7);
 			m_musicDetected->SetVolume(0.0f);
 		}
 		else
 		{
 			m_musicPresent->SetVolume(m_musicVol);
 			m_musicFuture->SetVolume(0.0f);
-			m_musicDetected->SetVolume(m_musicVol * m_detectionLevelGlobal * (m_timeUnseen <= m_timeBeforeDetectionLowers));
+			m_musicDetected->SetVolume(m_musicVol * m_detectionLevelGlobal /** ((m_timeUnseen <= m_timeBeforeDetectionLowers) ? (m_timeBeforeDetectionLowers - m_timeUnseen)/m_timeBeforeDetectionLowers : 0.0f)*/);
 		}
 	}
 }
 
+void Game::ResetGameplayValues()
+{
+	m_isInFuture = false;
+	m_isSwitching = false;
+	m_isSeen = false;
+	m_reachedLowestStamina = false;
 
+	m_switchVals.timeSinceSwitch = 0.0f;
+	m_timeUnseen = 0.0f;
+	m_detectionLevelGlobal = 0.0f;
+	m_detectionLevelFloor = 0.0f;
+	m_dangerousTimeInFuture = 0.0f;
+	
+	m_maxStamina = MAX_STAMINA_STARTING_VALUE;
+	m_coolDownCounter = m_timeAbilityCooldown;
+}
 
-void Game::ChangeTimeline(Renderer* renderer)
+void Game::EndRun(Renderer* renderer)
+{
+	if (m_isSwitching)
+	{
+		renderer->GetCamera().SetFov(m_initialCamFov);
+	}
+
+	ResetGameplayValues();
+	ChangeToPresentTimeline(renderer);
+
+	UnLoadPrevious();
+	LoadHubby();
+
+	// Has to happen after loading hubby for some reason?
+	m_player->ResetStaminaToMax(MAX_STAMINA_STARTING_VALUE);
+	m_player->ReloadPlayer();
+}
+
+void Game::EndRunDueToEnemy(Renderer* renderer)
+{
+	m_enemyHorn->Play();
+
+	// More logic for dying from enemy here.
+
+	EndRun(renderer);
+}
+
+void Game::EndRunDueToPoison(Renderer* renderer)
+{
+	// Logic for dying from future poison here.
+
+	EndRun(renderer);
+}
+
+void Game::SwapTimeline(Renderer* renderer)
 {
 	m_isInFuture = !m_isInFuture;
+
+	ApplyTimelineState(renderer);
+}
+
+void Game::ApplyTimelineState(Renderer* renderer)
+{
 	renderer->SetTimelineState(m_isInFuture);
 	m_currentRoom->SetTimeline(m_isInFuture);
 
@@ -910,7 +950,20 @@ void Game::ChangeTimeline(Renderer* renderer)
 			m_enemies[i]->ChangeTimelineState(m_isInFuture);
 		}
 	}
+
 	UpdateTimeSwitchBuffers(renderer);
+}
+
+void Game::ChangeToFutureTimeline(Renderer* renderer)
+{
+	m_isInFuture = true;
+	ApplyTimelineState(renderer);
+}
+
+void Game::ChangeToPresentTimeline(Renderer* renderer)
+{
+	m_isInFuture = false;
+	ApplyTimelineState(renderer);
 }
 
 void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
@@ -922,7 +975,6 @@ void Game::UpdateTimeSwitchBuffers(Renderer* renderer)
 		m_isInFuture,
 		m_detectionLevelGlobal
 	);
-	
 }
 
 void Game::UpdateEnemyConeBuffers(Renderer* renderer)

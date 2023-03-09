@@ -78,22 +78,22 @@ Enemy::Enemy(std::string modelResource, std::string animationsPath, Mat4 modelOf
 	m_theHorror = (Resources::Get().GetSound("Thehorror.mp3"))->currentSound;
 	m_bigStep = (Resources::Get().GetSound("BigStep.mp3"))->currentSound;
 
-	m_walkingSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_walkingVol, 1.0f, 3.0f, 10.0f, m_bigStep);
+	m_walkingSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_walkingVol, 1.0f, 3.0f, 15.0f, m_bigStep);
 	this->AddChild((GameObject*) m_walkingSource.get());
 	
-	m_ambientCloseSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_closeAmbientVol, 1.0f, 0.0f, 7.0f, m_crabClick);
+	m_ambientCloseSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_closeAmbientVol, 1.0f, 0.0f, 8.0f, m_crabClick);
 	this->AddChild((GameObject*) m_ambientCloseSource.get());
 	
-	m_ambientFarSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_farAmbientVol, 1.0f, 0.0f, 8.0f, nullptr);
+	m_ambientFarSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_farAmbientVol, 1.0f, 0.0f, 15.0f, nullptr);
 	this->AddChild((GameObject*)m_ambientFarSource.get());
 
-	m_actionSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_actionVol, 1.0f, 0.0f, 8.0f, nullptr);
+	m_actionSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_actionVol, 1.0f, 0.0f, 15.0f, nullptr);
 	this->AddChild((GameObject*) m_actionSource.get());
 
-	m_futureSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 5.0f, 7.0f, m_softerIdle);
+	m_futureSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 8.0f, 10.0f, m_softerIdle);
 	this->AddChild((GameObject*)m_futureSource.get());
 
-	m_screamSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 5.0f, 20.0f, m_smallScreetch);
+	m_screamSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 0.0f, 30.0f, m_smallScreetch);
 	this->AddChild((GameObject*)m_screamSource.get());
 
 	m_detectedSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.0f, 1.0f, 5.0f, 20.0f, m_theHorror);
@@ -703,7 +703,7 @@ void Enemy::EnemySoundUpdate(float dTime, Vec2 playerPosition, float detectLevel
 	if (m_carcinian->enabled)
 	{
 		m_ambientCloseSource->SetVolume(m_closeAmbientVol / (distance + 1.0f));
-		m_screamSource->SetVolume(m_screamVol / (distance * 2 + 1.0f));
+		m_screamSource->SetVolume(m_screamVol);
 		m_detectedSource->SetVolume(m_detectedVol * detectLevel * m_seesPlayer);
 		m_detectedSource->SetPitch(1.0f + 2.0f * detectLevel);
 	}
@@ -734,7 +734,7 @@ void Enemy::EnemySoundUpdate(float dTime, Vec2 playerPosition, float detectLevel
 			}
 			else
 			{
-				m_ambientWaitTime = m_randGen->Getf(0.0f, 5.0f);
+				m_ambientWaitTime = m_randGen->Getf(0.5f, 8.0f);
 				
 				switch (m_randGen->Get(5))
 				{

@@ -75,6 +75,8 @@ cbuffer ShadingInfo : REGISTER_CBV_SHADING_INFO
     uint pointCount;
     float3 cameraPosition;
     uint spotCount;
+    float3 fogFocusPosition;
+    float fogFocusRadius;
 };
 
 cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
@@ -114,13 +116,18 @@ Texture2D textureDiffuse : REGISTER_SRV_TEX_DIFFUSE;
 Texture2D textureSpecular : REGISTER_SRV_TEX_SPECULAR;
 Texture2D textureEmissive : REGISTER_SRV_TEX_EMISSIVE;
 Texture2D textureNormal : REGISTER_SRV_TEX_NORMAL;
-Texture2D shadowTexture : REGISTER_SRV_SHADOW_DEPTH;
+
+Texture2D shadowTextureStatic : REGUSTER_SRV_SHADOW_STATIC;
+Texture2D shadowTextureDynamic : REGISTER_SRV_SHADOW_DEPTH;
 
 struct PS_OUTPUT
 {
     float4 MainTarget : SV_TARGET0;
     float4 LuminanceTexture : SV_TARGET1;
 };
+
+float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float depthCMP, float epsilon, float kernelWidth);
+float PCFShadowsBoth(float startValue, float2 UV, float depthCMP, float epsilon, float kernelWidth);
 
 PS_OUTPUT main(VSOutput input)
 {
@@ -145,12 +152,12 @@ PS_OUTPUT main(VSOutput input)
     {
         // Compensate for the stretch
         float2 uvNoTile = input.outUV.xy;
-        uvNoTile.x -= 0.5;
-        uvNoTile.x *= 1.2;
-        uvNoTile.x += 0.5;
-        uvNoTile.y += 0.5;
-        uvNoTile.y *= 1.2;
-        uvNoTile.y -= 0.5;
+        uvNoTile.x -= 0.5f;
+        uvNoTile.x *= 1.3f;
+        uvNoTile.x += 0.5f;
+        uvNoTile.y += 0.5f;
+        uvNoTile.y *= 1.3f;
+        uvNoTile.y -= 0.5f;
         // Bitmap sample
         float4 bitmapSample = textureBitmap.Sample(textureSampler, uvNoTile);
         
@@ -182,34 +189,28 @@ PS_OUTPUT main(VSOutput input)
     float epsilon = 0.00005 / acos(saturate(dirNDotL));    
     
     // Distance based smoothing (comment out for minor peformance boost possibly)
-    float shadowSample = shadowTexture.Sample(textureSampler, lsUV).x;
-    float shadowDiff = (shadowSample * 10 - saturate((lsNDC.z - epsilon) * 10));
-    float3 color2 = abs(saturate(shadowDiff * shadowDiff * 20000.0f));
-    float3 shadowSmoothVal = max(saturate(color2), 0.01f);   
-    float kernelWidth = 0.5f + (shadowSmoothVal.r*2);
-    //float kernelWidth = 1.0f; // Comment in
+    //float shadowSample = shadowTexture.Sample(textureSampler, lsUV).x;
+    //float shadowDiff = (shadowSample * 10 - saturate((lsNDC.z - epsilon) * 10));
+    //float3 color2 = abs(saturate(shadowDiff * shadowDiff * 20000.0f));
+    //float3 shadowSmoothVal = max(saturate(color2), 0.01f);   
+    //float kernelWidth = 0.5f + (shadowSmoothVal.r*2);
+    float kernelWidth = 1.0f; // Comment in
     
 	// PCF filtering (Smooth shadows)
-    float sum = 0;
-    float x, y;
-    int indexer = 0; // Used for some randomness to the sampling
-	[unroll]
-    for (y = -smoothing; y <= smoothing; y += 1.0f)
+    float sStatic = shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
+        lsUV, lsNDC.z - epsilon);
+    float sDynamic = shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
+        lsUV, lsNDC.z - epsilon);
+    float sMin = min(sDynamic, sStatic);
+    float shadowAff = 0.0f;
+    if (sMin < sDynamic)
     {
-		[unroll]
-        for (x = -smoothing; x <= smoothing; x += 1.0f)
-        {   
-            sum += shadowTexture.SampleCmpLevelZero(shadowSampler,
-				lsUV.xy + texOffset(
-            (x + (-1 + ((indexer + 1) % 2) * 2)) * kernelWidth, 
-            (y + (-1 + (indexer % 2) * 2)) * kernelWidth, 0),
-            lsNDC.z - epsilon);
-            indexer++;
-    
-        }
+        shadowAff = PCFShadows(shadowTextureStatic, sStatic, lsUV, lsNDC.z, epsilon, kernelWidth);
     }
-    // adjust
-    float shadowAff = sum / 25.0f;
+    else
+    {
+        shadowAff = PCFShadowsBoth(sMin, lsUV, lsNDC.z, epsilon, kernelWidth);
+    }
     
     // Simple lighting
     if (input.outUV.z > 0.0f)
@@ -261,10 +262,12 @@ PS_OUTPUT main(VSOutput input)
     // Fog effects
     {
         float posToCamDist = distance(input.wPosition.xyz, cameraPosition);
+        float posToFocalDist = distance(input.wPosition.xyz, fogFocusPosition);
+        float focalModifier = 1.0f + (max(fogFocusRadius, posToFocalDist) - fogFocusRadius) * 0.25f;
         uint stateIndex = uint(isInFuture);
         color.rgb = ApplyExpFog(
             color.rgb,
-            STATE_FOG_DENSITIES[stateIndex],
+            STATE_FOG_DENSITIES[stateIndex] * focalModifier,
             posToCamDist,
             STATE_FOG_COLORS[stateIndex],
             STATE_FOG_STRENGTHS[stateIndex]
@@ -292,8 +295,57 @@ PS_OUTPUT main(VSOutput input)
 	
     return output;
 }
+float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float depthCMP, float epsilon, float kernelWidth)
+{
+    float sum = startValue;
+    //int indexer = 0;
 
+    [unroll]
+    for (uint y = -smoothing; y <= smoothing; ++y)
+    {
+        [unroll]
+        for (uint x = -smoothing + 1; x <= smoothing; ++x)
+        {
+            sum += textureToSample.SampleCmpLevelZero(shadowSampler,
+                UV + texOffset(
+                    (x/* + (-1 + ((indexer + 1) % 2) * 2))*/ * kernelWidth),
+                    (y/* + (-1 + (indexer % 2) * 2)) * kernelWidth*/), 0),
+                    depthCMP - epsilon);
 
+                //indexer++;
+        }
+    }
+    return (sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f)))/* / 25.0f*/;
+}
+float PCFShadowsBoth(float startValue, float2 UV, float depthCMP, float epsilon, float kernelWidth)
+{
+    float sum = startValue;
+    //int indexer = 0;
+
+    [unroll]
+    for (uint y = -smoothing; y <= smoothing; ++y)
+    {
+        [unroll]
+        for (uint x = -smoothing + 1; x <= smoothing; ++x)
+        {
+            sum += min (
+                shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
+                UV + texOffset(
+                    (x/* + (-1 + ((indexer + 1) % 2) * 2))*/ * kernelWidth),
+                    (y/* + (-1 + (indexer % 2) * 2)) * kernelWidth*/), 0),
+                depthCMP - epsilon), 
+                shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
+                    UV + texOffset(
+                        (x/* + (-1 + ((indexer + 1) % 2) * 2))*/ * kernelWidth),
+                        (y/* + (-1 + (indexer % 2) * 2)) * kernelWidth*/), 0),
+                    depthCMP - epsilon)
+                );
+
+            //indexer++;
+        }
+    }
+    return (sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f)))/* / 25.0f*/;
+}
 // Old shader stuff
 
 

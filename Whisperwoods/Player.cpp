@@ -90,7 +90,7 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 
 	FMOD::Sound* switchSoundPtr = (Resources::Get().GetSound("TimeSwitch.wav"))->currentSound;
 	m_switchSource = make_shared<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), 0.5f, 1.5f, 10.0f, 20.0f, switchSoundPtr);
-	this->AddChild((GameObject*)m_switchSource.get());
+	m_switchSource->mix2d3d = 0.0f;
 }
 
 void Player::ReloadPlayer()
@@ -211,22 +211,27 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		if (Input::Get().IsKeybindDown( KeybindBackward ))	inputVector -= forward;
 		if (Input::Get().IsKeybindDown( KeybindRight ))		inputVector += right;
 		if (Input::Get().IsKeybindDown( KeybindLeft ))		inputVector -= right;
-		float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !Input::Get().IsKeybindDown(KeybindCrouch) && !m_ranOutOfSprint && !playerInFuture) ? m_runSpeed : m_walkSpeed);
+
+		float runSpeed = m_runSpeed * (m_godMode ? 2.0f : 1.0f);
+
+		float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !Input::Get().IsKeybindDown(KeybindCrouch) && !m_ranOutOfSprint && !playerInFuture) ? (runSpeed) : m_walkSpeed);
 		//float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !m_ranOutOfSprint && !Input::Get().IsKeybindDown(KeybindCrouch) && !playerInFuture) ? m_runSpeed : m_walkSpeed);
 		m_targetVelocity = Vec3( inputVector.x, inputVector.y, inputVector.z );
 		if (m_targetVelocity.Length() > 0)
 			m_targetVelocity.Normalize();
 		m_targetVelocity = m_targetVelocity * walkRunMultiplier;
 
-		if (m_targetVelocity.Length() > m_runSpeed)
+		if (m_targetVelocity.Length() > runSpeed)
 		{
 			m_targetVelocity = m_targetVelocity.Normalize();
-			m_targetVelocity *= m_runSpeed;
+			m_targetVelocity *= runSpeed;
 		}
+
+		float staminaModifier = m_godMode ? 0.05f : 1.0f;
 
 		if (m_velocity.Length() > m_walkSpeed)
 		{
-			m_stamina = m_stamina - ((cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * delta_time) * RUNNING_STAMINA_DECAY);
+			m_stamina = m_stamina - ((cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * delta_time * staminaModifier) * RUNNING_STAMINA_DECAY);
 		}
 
 		if (!Input::Get().IsKeybindDown(KeybindSprint)) // not sprinting
@@ -289,19 +294,19 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 		
 
 		Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
-		if (m_velocity.Length() > m_runSpeed)
+		if (m_velocity.Length() > runSpeed)
 		{
-			m_velocity = m_velocity.Normalize() * m_runSpeed;
+			m_velocity = m_velocity.Normalize() * runSpeed;
 		}
 		
 		sampleVector = -currentRoom->sampleBitMapCollision(transform.GetWorldPosition());
 		Vec3 converted(( - (sampleVector.x * sampleVector.x * sampleVector.x))*0.05f, 0,
 			(sampleVector.y * sampleVector.y * sampleVector.y )*0.05f);
 
-		if (converted.Length() > m_runSpeed * 1.1f)
+		if (converted.Length() > runSpeed * 1.1f)
 		{
 			converted.Normalize();
-			converted *= m_runSpeed * 1.1f;
+			converted *= runSpeed * 1.1f;
 		}
 
 		Vec3 targetWithCollision = m_targetVelocity - converted;
@@ -377,7 +382,7 @@ void Player::Update(float delta_time)
 	//regain stamina
 	if ((!Input::Get().IsKeybindDown(KeybindSprint) || m_ranOutOfSprint == true || m_velocity.Length() <= 0.2f) || playerInFuture || IsCrouching())
 	{
-		m_stamina = cs::fclamp(m_stamina + (2.5f * delta_time), 0.0f, m_maxStamina); //or 0.0f rather than 0
+		m_stamina = cs::fclamp(m_stamina + (2.5f * delta_time * (m_godMode ? 5.0f : 1.0f)), 0.0f, m_maxStamina); //or 0.0f rather than 0
 	}
 
 
@@ -451,7 +456,7 @@ void Player::UpdateSound(float delta_time)
 		float volPercent = m_velocity.Length() / m_runSpeed;
 		volPercent = pow(volPercent, 0.7f);
 		//volPercent *= volPercent;
-		m_stepsSound->volume = 0.25f * volPercent;
+		m_stepsSound->volume = 0.25f * volPercent * (1.0f - 0.8f * playerInFuture);
 		//trigger when character sets foot on ground
 		if (((characterAnimator->globalTime > 0.2f && characterAnimator->globalTime < 0.3f) || (characterAnimator->globalTime > 0.66f && characterAnimator->globalTime < 0.76f)) /*&& !m_stepsSound->IsPlaying()*/)
 		{
@@ -472,4 +477,9 @@ void Player::UpdateSound(float delta_time)
 	{
 		m_coughSound->Stop();
 	}
+}
+
+void Player::SetGodMode(bool godMode)
+{
+	m_godMode = godMode;
 }

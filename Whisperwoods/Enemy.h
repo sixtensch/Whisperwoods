@@ -82,17 +82,17 @@ private:
 	int currentAction = -1;
 	bool m_stepAlternation = true;
 
-	float m_walkingVol = 1.0f;
+	float m_walkingVol = 0.7f;
 	unique_ptr<AudioSource> m_walkingSource; //use for walking sounds
 	float m_closeAmbientVol = 0.2f;
 	unique_ptr<AudioSource> m_ambientCloseSource; //use for ambient and idle noises
-	float m_farAmbientVol = 0.8f;
+	float m_farAmbientVol = 0.7f;
 	unique_ptr<AudioSource> m_ambientFarSource; //use for ambient and idle noises
-	float m_actionVol = 1.0;
+	float m_actionVol = 0.7;
 	unique_ptr<AudioSource> m_actionSource; //use for more specific reactions and actions. turn, detect, loss.
-	float m_futureVol = 0.2f;
+	float m_futureVol = 0.3f;
 	unique_ptr<AudioSource> m_futureSource; //Use for future sound
-	float m_screamVol = 2.0f;
+	float m_screamVol = 0.5f;
 	unique_ptr<AudioSource> m_screamSource; //Use for scream sound
 	float m_detectedVol = 1.5f;
 	unique_ptr<AudioSource> m_detectedSource; //Use for detection sound
