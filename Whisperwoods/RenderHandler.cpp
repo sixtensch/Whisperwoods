@@ -242,7 +242,7 @@ void RenderHandler::ZPrepass(TimelineState state)
 		if ( data && data->enabled )
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), true, true);
+			m_renderCore->DrawObject(data.get(), true, false);
 		}
 	}
 }
@@ -275,7 +275,7 @@ void RenderHandler::ExecuteStaticShadowDraw()
 		if (data && data->enabled)
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), true, true);
+			m_renderCore->DrawObject(data.get(), true, false);
 		}
 	}
 	/*for (int i = 0; i < m_worldTerrainRenderables.Size(); i++)
