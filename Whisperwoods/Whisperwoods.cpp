@@ -26,6 +26,8 @@
 // TODO: Dudd include. Only used for getting test sound.
 #include "SoundResource.h"
 
+Whisperwoods* Whisperwoods::s_whisperwoods = nullptr;
+
 void TestPlay(void*, void*)
 {
 	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
@@ -36,6 +38,8 @@ void TestPlay(void*, void*)
 
 Whisperwoods::Whisperwoods(HINSTANCE instance)
 {
+	s_whisperwoods = this;
+
 	m_debug = std::make_unique<Debug>();			// Debug initialization should be kept first
 	m_debug->CaptureStreams(true, true, true);
 
@@ -133,6 +137,8 @@ float LerpFloat( float a, float b, float t )
 void Whisperwoods::Run()
 {
 	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
+	Debug::RegisterCommand(GodMode, "godmode", "Enable god mode.");
+	Debug::RegisterCommand(PeasantMode, "peasantmode", "Disable god mode.");
 	
 	m_game->Init();
 	m_game->LoadHubby();
@@ -551,4 +557,14 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 	}
 
 	camera.Update();
+}
+
+void Whisperwoods::GodMode(void*, void*)
+{
+	s_whisperwoods->m_game->GodMode(true);
+}
+
+void Whisperwoods::PeasantMode(void*, void*)
+{
+	s_whisperwoods->m_game->GodMode(false);
 }

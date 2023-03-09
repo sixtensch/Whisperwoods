@@ -68,8 +68,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	m_viewport.Width = static_cast<float>(window->GetWidth());
 	m_viewport.Height = static_cast<float>(window->GetHeight());
 
-	UINT shadowMapHeight = 2048;
-	UINT shadowMapWidth = 2048;
+	UINT shadowMapHeight = 1024;
+	UINT shadowMapWidth = 1024;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.MinDepth = 0;
@@ -111,7 +111,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	rttd.Height = window->GetHeight();
 	rttd.MipLevels = 1u;
 	rttd.ArraySize = 1u;
-	rttd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	rttd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	rttd.SampleDesc = { 1u, 0u };
 	rttd.Usage = D3D11_USAGE_DEFAULT;
 	rttd.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
@@ -122,21 +122,21 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateTexture2D(&rttd, nullptr, m_renderTextureCopy.GetAddressOf()));
 
 	rtvd = {};
-	rtvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	rtvd.Texture2D = { 0u };
 
 	EXC_COMCHECK(m_device->CreateRenderTargetView(m_renderTexture.Get(), &rtvd, m_renderTextureRTV.GetAddressOf()));
 	
 	uavd = {};
-	uavd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	uavd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	uavd.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 	uavd.Texture2D = { 0 };
 
 	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_renderTexture.Get(), &uavd, m_renderTextureUAV.GetAddressOf()));
 	
 	srvd = {};
-	srvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvd.Texture2D = { 0, 1 };
 
@@ -154,7 +154,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateTexture2D(&bloomtd, nullptr, m_ppfxLumTexture.GetAddressOf()));
 
 	srvd = {};
-	srvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvd.Texture2D = { 0, (UINT)-1 }; // Get all mips.
 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_ppfxLumTexture.Get(), &srvd, m_ppfxLumSRV.GetAddressOf()));
@@ -173,30 +173,11 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateTexture2D(&bloomtd, nullptr, m_ppfxLumSumTexture.GetAddressOf()));
 
 	srvd = {};
-	srvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvd.Texture2D = { 0, 1u }; // Keep all mips as this will be used in compute.
 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_ppfxLumSumTexture.Get(), &srvd, m_ppfxLumSumSRV.GetAddressOf()));
 	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_ppfxLumSumTexture.Get(), nullptr, m_ppfxLumSumUAV.GetAddressOf()));
-
-	// Position texture
-	D3D11_TEXTURE2D_DESC postd;
-	postd.Width = window->GetWidth();
-	postd.Height = window->GetHeight();
-	postd.MipLevels = 1u;
-	postd.ArraySize = 1u;
-	postd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	postd.Usage = D3D11_USAGE_DEFAULT;
-	postd.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-	postd.SampleDesc = { 1u, 0u };
-	postd.CPUAccessFlags = 0;
-	postd.MiscFlags = 0u;
-	
-	EXC_COMCHECK(m_device->CreateTexture2D(&postd, nullptr, m_positionTexture.GetAddressOf()));
-	
-	// Create views for position texture.
- 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_positionTexture.Get(), nullptr, m_positionTextureSRV.GetAddressOf()));
-	EXC_COMCHECK(m_device->CreateRenderTargetView(m_positionTexture.Get(), nullptr, m_positionTextureRTV.GetAddressOf()));
 
 	// Depth stencil
 
@@ -414,7 +395,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	shadowSDesc.MaxLOD = D3D11_FLOAT32_MAX;
 	shadowSDesc.MipLODBias = 0.0f;
 	shadowSDesc.MaxAnisotropy = 0;
-	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	shadowSDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
 	shadowSDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 
 	EXC_COMCHECK(m_device->CreateSamplerState(
@@ -495,7 +476,8 @@ void RenderCore::TargetShadowMap()
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
 	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 
-	EXC_COMINFO(m_context->CopyResource(m_shadowTexture.Get(), m_shadowStaticTexture.Get()));
+	//EXC_COMINFO(m_context->CopyResource(m_shadowTexture.Get(), m_shadowStaticTexture.Get()));
+	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
 
 	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, m_shadowDSV.Get()));
 	EXC_COMINFO(m_context->RSSetState(m_shadowRenderState.Get())); // Frontface culling
@@ -507,7 +489,7 @@ void RenderCore::TargetStaticShadowMap()
 	EXC_COMINFO(m_context->OMSetDepthStencilState(m_ppDSS.Get(), 1));
 
 	ID3D11ShaderResourceView* nullSRV = nullptr;
-	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepth, 1, &nullSRV)); // Unbind SRV to use as RTV
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepthStatic, 1, &nullSRV)); // Unbind SRV to use as RTV
 	//EXC_COMINFO(m_context->ClearRenderTargetView(m_renderTextureRTV.Get(), (float*)&m_bbClearColor));
 
 	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowStaticDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
@@ -515,6 +497,15 @@ void RenderCore::TargetStaticShadowMap()
 	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, m_shadowStaticDSV.Get()));
 	EXC_COMINFO(m_context->RSSetState(m_shadowRenderState.Get())); // Frontface culling
 	EXC_COMINFO(m_context->RSSetViewports(1, &m_shadowViewport));
+}
+
+void RenderCore::BindStaticShadowMap()
+{
+	// Unbind DSV from RTV 
+	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, nullptr));
+
+	// Bind SRV for ps
+	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepthStatic, 1, m_shadowStaticSRV.GetAddressOf()));
 }
 
 void RenderCore::TargetRenderTexture()
@@ -1778,7 +1769,8 @@ void RenderCore::InitDefaultMaterials()
 void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
 	const shared_ptr<DirectionalLight>& lightDirectional,
 	const cs::List<shared_ptr<PointLight>>& lightsPoint,
-	const cs::List<shared_ptr<SpotLight>>& lightsSpot)
+	const cs::List<shared_ptr<SpotLight>>& lightsSpot,
+	Vec3 fogFocus, float fogRadius)
 {
 	CB::ShadingInfo si = 
 	{
@@ -1787,7 +1779,9 @@ void RenderCore::WriteLights(cs::Color3f ambientColor, float ambientIntensity, c
 		(Vec3)ambientColor * ambientIntensity,
 		0,
 		mainCamera.GetPosition(),
-		0
+		0,
+		fogFocus,
+		fogRadius
 	};
 
 	int dirCount = /*cs::imin(LIGHT_CAPACITY_DIR, lightsDirectional.Size())*/ 1;

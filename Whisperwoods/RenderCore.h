@@ -28,6 +28,7 @@ public:
 	void UnbindRenderTexture();
 	void TargetShadowMap();
 	void TargetStaticShadowMap();
+	void BindStaticShadowMap();
 	//void TargetBackBuffer(); // Use target render texture if you want to render anything to the scene.
 	void EndFrame();
 
@@ -74,7 +75,8 @@ public:
 	void WriteLights(cs::Color3f ambientColor, float ambientIntensity, const Camera& mainCamera,
 		const shared_ptr<DirectionalLight>& lightDirectional,
 		const cs::List<shared_ptr<PointLight>>& lightsPoint,
-		const cs::List<shared_ptr<SpotLight>>& lightsSpot);
+		const cs::List<shared_ptr<SpotLight>>& lightsSpot,
+		Vec3 fogFocus, float fogRadius);
 
 	void WritePPFXThresholdInfo(
 		const float luminanceThreshold, 
@@ -217,6 +219,7 @@ private:
 	ComPtr<ID3D11Buffer> m_lightBufferSpot;
 	ComPtr<ID3D11Buffer> m_lightBufferDir;
 	ComPtr<ID3D11Buffer> m_lightBufferStaging;
+
 
 	// Shadow resources
 	ComPtr<ID3D11Texture2D> m_shadowStaticTexture;

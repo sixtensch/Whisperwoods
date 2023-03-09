@@ -273,22 +273,47 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 	cs::NoiseSimplex simplexerScale(parameters.scaleSeed);
 	cs::NoiseSimplex simplexerRotate(parameters.rotationSeed);
 	cs::NoiseSimplex simplexerDiversity(parameters.diversitySeed);
-	
-	for (int x = 0; x < (int)l.resource->pixelWidth; x++)
+
+	auto sample = [&](int x, int y)
 	{
-		for (int y = 0; y < (int)l.resource->pixelHeight; y++)
+		if (x < 0 || y < 0 || x >= l.resource->pixelWidth || y >= l.resource->pixelHeight)
 		{
+			return LevelPixel{ LevelPixelFlagImpassable, 1.0f };
+		}
+
+		return l.resource->bitmap[x + l.resource->pixelWidth * y];
+	};
+
+	float pushOutFactor = 1.0f;
+	float radiusFactor = std::sqrtf(2.0f) * pushOutFactor;
+	int maxSize = std::max(l.resource->pixelWidth, l.resource->pixelHeight);
+	int extraRadius = (int)((radiusFactor - 1.0f) * 0.5f * maxSize);
+
+	float distanceBoundary = maxSize * 0.5f + extraRadius - 3.0f * BM_PIXELS_PER_UNIT;
+	distanceBoundary *= distanceBoundary;
+
+	Vec2 center(l.resource->pixelWidth * 0.5f, l.resource->pixelHeight * 0.5f);
+	
+	for (int x = 0 - extraRadius; x < (int)l.resource->pixelWidth + extraRadius; x++)
+	{
+		for (int y = 0 - extraRadius; y < (int)l.resource->pixelHeight + extraRadius; y++)
+		{
+			if ((Vec2(x, y) - center).LengthSq() > distanceBoundary)
+			{
+				continue;
+			}
+
 			Vec3 newPosition = l.position + l.rotation * Vec3(x * BM_PIXEL_SIZE - l.resource->worldWidth * 0.5f, -0.2f, -y * BM_PIXEL_SIZE + l.resource->worldHeight * 0.5f);
 
-			LevelPixelFlag current = l.resource->bitmap[x + l.resource->pixelWidth * y].flags;
+			LevelPixelFlag current = sample(x, y).flags;
 			int xP = cs::iclamp(x + parameters.edgeSampleDistanceStones, 0, (int)l.resource->pixelWidth - 1);
 			int xM = cs::iclamp(x - parameters.edgeSampleDistanceStones, 0, (int)l.resource->pixelWidth - 1);
 			int yP = cs::iclamp(y + parameters.edgeSampleDistanceStones, 0, (int)l.resource->pixelHeight - 1);
 			int yM = cs::iclamp(y - parameters.edgeSampleDistanceStones, 0, (int)l.resource->pixelHeight - 1);
-			LevelPixelFlag xPF = l.resource->bitmap[xP + l.resource->pixelWidth * y].flags;
-			LevelPixelFlag xMF = l.resource->bitmap[xM + l.resource->pixelWidth * y].flags;
-			LevelPixelFlag yPF = l.resource->bitmap[x + l.resource->pixelWidth * yP].flags;
-			LevelPixelFlag yMF = l.resource->bitmap[x + l.resource->pixelWidth * yM].flags;
+			LevelPixelFlag xPF = sample(xP, y).flags;
+			LevelPixelFlag xMF = sample(xM, y).flags;
+			LevelPixelFlag yPF = sample(x, yP).flags;
+			LevelPixelFlag yMF = sample(x, yM).flags;
 			bool edgeStones = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
 
 
@@ -312,17 +337,17 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 				Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *
 				Mat::scale3( cs::fclamp(scaleVal * parameters.scaleMultiplierTrees*0.25f,0.01, 1.0f));
 
-			if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagTerrainInner & ~LevelPixelFlagTerrainOuter))
+			if ((sample(x, y).flags & LevelPixelFlagTerrainInner & ~LevelPixelFlagTerrainOuter))
 			{
 
 				xP = cs::iclamp(x + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
 				xM = cs::iclamp(x - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
 				yP = cs::iclamp(y + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
 				yM = cs::iclamp(y - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
-				xPF = l.resource->bitmap[xP + l.resource->pixelWidth * y].flags;
-				xMF = l.resource->bitmap[xM + l.resource->pixelWidth * y].flags;
-				yPF = l.resource->bitmap[x + l.resource->pixelWidth * yP].flags;
-				yMF = l.resource->bitmap[x + l.resource->pixelWidth * yM].flags;
+				xPF = sample(xP, y).flags;
+				xMF = sample(xM, y).flags;
+				yPF = sample(x, yP).flags;
+				yMF = sample(x, yM).flags;
 				bool edgeTree = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
 
 
@@ -359,7 +384,7 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 					}
 				}
 			}
-			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].flags & LevelPixelFlagImpassable))
+			else if ((sample(x, y).flags & LevelPixelFlagImpassable))
 			{
 				Mat4 foliageMatrixHuge =
 					Mat::translation3( newPosition ) *
@@ -378,20 +403,20 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 				xM = cs::iclamp(x - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelWidth - 1);
 				yP = cs::iclamp(y + parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
 				yM = cs::iclamp(y - parameters.edgeSampleDistanceTrunks, 0, (int)l.resource->pixelHeight - 1);
-				xPF = l.resource->bitmap[xP + l.resource->pixelWidth * y].flags;
-				xMF = l.resource->bitmap[xM + l.resource->pixelWidth * y].flags;
-				yPF = l.resource->bitmap[x + l.resource->pixelWidth * yP].flags;
-				yMF = l.resource->bitmap[x + l.resource->pixelWidth * yM].flags;
+				xPF = sample(xP, y).flags;
+				xMF = sample(xM, y).flags;
+				yPF = sample(x, yP).flags;
+				yMF = sample(x, yM).flags;
 				bool edgeTrunk = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
 
 				xP = cs::iclamp(x + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
 				xM = cs::iclamp(x - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelWidth - 1);
 				yP = cs::iclamp(y + parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
 				yM = cs::iclamp(y - parameters.edgeSampleDistanceTrees, 0, (int)l.resource->pixelHeight - 1);
-				xPF = l.resource->bitmap[xP + l.resource->pixelWidth * y].flags;
-				xMF = l.resource->bitmap[xM + l.resource->pixelWidth * y].flags;
-				yPF = l.resource->bitmap[x + l.resource->pixelWidth * yP].flags;
-				yMF = l.resource->bitmap[x + l.resource->pixelWidth * yM].flags;
+				xPF = sample(xP, y).flags;
+				xMF = sample(xM, y).flags;
+				yPF = sample(x, yP).flags;
+				yMF = sample(x, yM).flags;
 				bool edgeTree = !((current == xPF) && (current == xMF) && (current == yPF) && (current == yPF));
 				if (noiseVal < parameters.densityUnwalkableOuter)
 				{
@@ -456,9 +481,9 @@ void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters paramet
 					l.instances[LevelAssetBush1].Add(foliageMatrix2);
 				}
 			}
-			else if ((l.resource->bitmap[x + l.resource->pixelWidth * y].density != 0))
+			else if ((sample(x, y).density != 0))
 			{
-				float density = 1.0f - l.resource->bitmap[x + l.resource->pixelWidth * y].density;
+				float density = 1.0f - sample(x, y).density;
 				Mat4 foliageMatrix =
 					Mat::translation3(newPosition) *
 					Mat::rotation3(cs::c_pi * -0.5f, rotateVal, 0.0f) *

@@ -61,7 +61,7 @@ public:
 	shared_ptr<AudioSource> m_switchSource;
 	shared_ptr<AudioSource> m_coughSound;
 
-
+	bool m_godMode;
 
 
 	Player() = default;
@@ -80,5 +80,7 @@ public:
 	void CinematicUpdate( float delta_time );
 
 	void UpdateSound(float delta_time);
+
+	void SetGodMode(bool godMode);
 
 };
