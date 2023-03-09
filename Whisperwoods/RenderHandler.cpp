@@ -95,7 +95,6 @@ void RenderHandler::Draw()
 		m_lightsSpot, 
 		m_fogFocus, m_fogRadius);
 
-	m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
 
 	// ShadowPass
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
@@ -104,12 +103,15 @@ void RenderHandler::Draw()
 
 	// Main scene rendering
 	m_renderCore->UpdateViewInfo(m_mainCamera);
+	m_renderCore->SetFuture(m_timelineState);
 	QuadCull(m_mainCamera);
 
 	static std::string zPrepassProfileName = "Z Prepass Draw";
 	static std::string terrainProfileName = "Terrain Draw";
 	static std::string mainSceneProfileName = "Main Scene Draw";
+	m_renderCore->TargetRenderTexture();
 	PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
+	m_renderCore->TargetRenderTexture();
 	PROFILE_JOB( terrainProfileName, RenderTerrain() );
 	PROFILE_JOB( mainSceneProfileName, ExecuteDraw(m_timelineState, false) );
 	m_renderCore->UnbindRenderTexture();
@@ -218,7 +220,6 @@ void RenderHandler::RenderGUI()
 
 void RenderHandler::RenderTerrain()
 {
-	m_renderCore->TargetRenderTexture();
 	for (int i = 0; i < m_worldTerrainRenderables.Size(); i++)
 	{
 		auto data = m_worldTerrainRenderables[i];

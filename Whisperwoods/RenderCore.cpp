@@ -1166,6 +1166,16 @@ void RenderCore::UpdateGPUProfiler()
 	m_gpuProfiler.FinilizeAndPresent();
 }
 
+void RenderCore::SetFuture(bool future)
+{
+	m_drawFuture = future;
+}
+
+bool RenderCore::IsInFuture() const
+{
+	return m_drawFuture;
+}
+
 void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing, bool discardPipeline)
 {
 	const Pipeline& n = m_pipelines[pipeline];  // New pipeline

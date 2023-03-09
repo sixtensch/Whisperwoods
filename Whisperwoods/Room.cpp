@@ -113,10 +113,10 @@ Room::Room( const Level* level, std::string modelResource, std::string modelReso
 	Renderer::UpdateBitMapBind( level->resource->source );
 
 	m_wallsAndFloorRenderable->worldMatrix = modelOffset2;
-	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("BackgroundTrees.wwmt"));
-	m_wallsAndFloorRenderable->Materials().AddMaterial(resources.GetMaterial("TestSceneGround.wwmt"));
-	
-
+	m_wallsAndFloorRenderable->PresentMaterials().AddMaterial(resources.GetMaterial("BackgroundTrees.wwmt"));
+	m_wallsAndFloorRenderable->PresentMaterials().AddMaterial(resources.GetMaterial("TestSceneGround.wwmt"));
+	m_wallsAndFloorRenderable->FutureMaterials().AddMaterial(resources.GetMaterial("BackgroundTrees.wwmt"));
+	m_wallsAndFloorRenderable->FutureMaterials().AddMaterial(resources.GetMaterial("GroundSand.wwmt"));
 	
 	//GenerateRoomShadowMap();
 }

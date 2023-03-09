@@ -55,8 +55,6 @@ public:
 	void ExecuteDraw(TimelineState state, bool shadows);
 	void ZPrepass(TimelineState state);
 
-	void ExecuteDraw(const Camera& povCamera, TimelineState state, bool shadows);
-
 	void RenderGUI();
 
 	void RenderTerrain();

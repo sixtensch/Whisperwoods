@@ -119,6 +119,9 @@ public:
 	void ProfileEnd(const std::string& profileName);
 	void UpdateGPUProfiler();
 
+	void SetFuture(bool future);
+	bool IsInFuture() const;
+
 	bool m_bindShadowPS;
 
 private:
@@ -246,4 +249,6 @@ private:
 	std::unique_ptr<dx::SpriteBatch> m_spriteBatch;
 
 	GPUProfiler m_gpuProfiler;
+
+	bool m_drawFuture;
 };
