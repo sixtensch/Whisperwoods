@@ -416,6 +416,12 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 // Debug stuff
 void Game::DrawIMGUIWindows()
 {
+	static Vec2 vignette = Vec2(0.5f, 1.0f);
+	static Vec2 contrast = Vec2(1.0f, 0.4f);
+	static float brightness = 0.0f;
+	static float saturation = 1.25f;
+	static bool firstSet = true;
+
 #if WW_DEBUG
 
 	// Gameplay variables window
@@ -452,12 +458,6 @@ void Game::DrawIMGUIWindows()
 	}
 	ImGui::End();
 
-	static Vec2 vignette = Vec2(0.5f, 1.0f);
-	static Vec2 contrast = Vec2(1.0f, 0.4f);
-	static float brightness = 0.0f;
-	static float saturation = 1.25f;
-	static bool firstSet = true;
-
 	if (ImGui::Begin("Color Settings"))
 	{
 		float speed = 0.01f;
@@ -467,11 +467,11 @@ void Game::DrawIMGUIWindows()
 		changed |= ImGui::DragFloat("Brightness", &brightness, speed, 0.0f, FLT_MAX);
 		changed |= ImGui::DragFloat("Saturation", &saturation, speed, 0.0f, FLT_MAX);
 
-		if (changed || firstSet)
+		/*if (changed || firstSet)
 		{
 			firstSet = false;
 			Renderer::UpdatePPFXInfo(vignette, contrast, brightness, saturation);
-		}
+		}*/
 
 		ImGui::Separator();
 		ImGui::ColorEdit3("Ambient Color", (float*)&m_ambientColor);
@@ -580,6 +580,8 @@ void Game::DrawIMGUIWindows()
 
 
 #endif
+
+	Renderer::UpdatePPFXInfo(vignette, contrast, brightness, saturation);
 }
 
 
