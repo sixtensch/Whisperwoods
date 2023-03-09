@@ -358,14 +358,10 @@ void Whisperwoods::Run()
 		dTimeAcc += dTime;
 		
 		// Test of cinematics
-		cutsceneController->Update();
+		cutsceneController->Update(dTime);
 		if (cutsceneController->CutsceneActive())
 		{
 			m_game->m_isCutScene = true;
-			for (int i = 0; i < cutsceneController->activeCutscene->channels.Size(); i++)
-			{
-				cutsceneController->activeCutscene->channels[i]->Update((float)cutsceneController->currentFrame / (float)cutsceneController->endFrame, cutsceneController->endFrame);
-			}
 		}
 		else
 		{

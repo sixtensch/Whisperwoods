@@ -8,6 +8,7 @@ public:
 
 	CutsceneController();
 
+	bool m_isPlaying;
 	// Test vars for the timeline
 	int selected = 0;
 	int keyTime = 0;
@@ -38,6 +39,6 @@ public:
 
 	void ActivateCutscene( int index );
 
-	void Update();
+	void Update(float deltaTime);
 
 };

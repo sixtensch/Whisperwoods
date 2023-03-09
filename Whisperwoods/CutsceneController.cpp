@@ -40,27 +40,27 @@ bool CompareTime(CutsceneKey i, CutsceneKey j)
     return (i.time < j.time);
 }
 
-void CutsceneController::Update()
+void CutsceneController::Update(float deltaTime)
 {
     // IMGUI timeline things.
 
 
     CutsceneCameraChannel* cameraChannel = nullptr;
-   // CutsceneAnimatorChannel* animatorChannel1 = nullptr;
-   // CutsceneAnimatorChannel* animatorChannel2 = nullptr;
+    // CutsceneAnimatorChannel* animatorChannel1 = nullptr;
+    // CutsceneAnimatorChannel* animatorChannel2 = nullptr;
 
     cs::List<CutsceneAnimatorChannel*> animatorChannels;
 
     int camIndex = -1;
-   // int animIndex1 = -1;
-   // int animIndex2 = -1;
+    // int animIndex1 = -1;
+    // int animIndex2 = -1;
 
     if (activeCutscene)
     {
         for (int i = 0; i < activeCutscene->channels.Size(); i++)
         {
             if (dynamic_cast<CutsceneCameraChannel*>(activeCutscene->channels[i].get()))
-            //if (activeCutscene->channels[i].get()->channelType == CutsceneTypeCamera)
+                //if (activeCutscene->channels[i].get()->channelType == CutsceneTypeCamera)
             {
                 cameraChannel = (CutsceneCameraChannel*)(activeCutscene->channels[i].get());
                 camIndex = i;
@@ -71,7 +71,7 @@ void CutsceneController::Update()
         for (int i = 0; i < activeCutscene->channels.Size(); i++)
         {
             if (dynamic_cast<CutsceneAnimatorChannel*>(activeCutscene->channels[i].get()))
-            //if (activeCutscene->channels[i].get()->channelType == CutsceneTypeAnimator)
+                //if (activeCutscene->channels[i].get()->channelType == CutsceneTypeAnimator)
             {
                 animatorChannels.Add((CutsceneAnimatorChannel*)activeCutscene->channels[i].get());
 
@@ -92,9 +92,31 @@ void CutsceneController::Update()
         }
     }
 
+    if (m_cutSceneActive && activeCutscene)
+    {
+       
+        for (int i = 0; i < activeCutscene->channels.Size(); i++)
+        {
+            activeCutscene->channels[i]->Update(m_time, endFrame);
+        }
+    }
+    if (m_isPlaying)
+    {
+        m_time += deltaTime *0.25f;
+        if (m_time > 0.99f) m_time = 0;
+        currentFrame = m_time * endFrame;
+    }
+    else
+    {
+        m_time = (float)currentFrame / (float)endFrame;
+    }
+
+
+
 	if (ImGui::Begin( "Cutscene controller" ))
 	{
         ImGui::Checkbox("Cutscene Active", &m_cutSceneActive);
+        ImGui::Checkbox("Cutscene Playing", &m_isPlaying);
         ImGui::Text( "Current frame: %d \n Start Frame: %d \n End Frame: %d \n Transform open: %d \n selected %d", currentFrame, startFrame, endFrame, transformOpen, selected );
 
         /*ImGui::Text( "KeyFrames: " );
