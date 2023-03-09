@@ -57,6 +57,7 @@ struct LevelFloor
 {
 	// In world space
 	Vec3 startPosition;
+	Vec3 startDirection;
 
 	uint startRoom;
 

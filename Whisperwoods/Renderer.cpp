@@ -46,7 +46,7 @@ void Renderer::Init(uint width, uint height)
 	//m_renderHandler->CreateTextRenderable(L"  You cannot stay in the future indefinitely as \n         it drains your maximum stamina! \n  If your maximum stamina reaches its floor you \ncan only stay in the future briefly before dying!", dx::SimpleMath::Vector2(300, height - 500), FontDefault, cs::Color4f(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 0.0f });
 	//m_renderHandler->CreateTextRenderable(L"    To restore your maximum stamina you can pick upp an essence bloom!", dx::SimpleMath::Vector2(0, height - 500), FontDefault, cs::Color4f(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 0.0f });
 	// add text about not run in future
-	
+	//Dont use this system for text. We found a better way with GUI systemw
 	m_window->Show(true);
 }
 
@@ -164,6 +164,16 @@ shared_ptr<TextRenderable> Renderer::CreateTextRenderable(const wchar_t* text, d
 	return s_singleton->m_renderHandler->CreateTextRenderable(text, fontPos, font, color, origin);
 }
 
+void Renderer::UpdatePPFXInfo(Vec2 vignette, Vec2 contrast, float brightness, float saturation)
+{
+	s_singleton->m_renderHandler->UpdatePPFXInfo(vignette, contrast, brightness, saturation);
+}
+
+void Renderer::SetAmbientLight(cs::Color3f color, float intensity)
+{
+	s_singleton->m_renderHandler->SetAmbientLight(color, intensity);
+}
+
 shared_ptr<DirectionalLight> Renderer::GetDirectionalLight()
 {
 	return s_singleton->m_renderHandler->GetDirectionalLight();
@@ -204,11 +214,13 @@ void Renderer::SetTimelineState(bool future)
 	switch ( future )
 	{
 		case false: 
-			m_renderHandler.get()->SetTimelineStateCurrent(); 
+			s_singleton->m_renderHandler.get()->SetTimelineStateCurrent();
+			s_singleton->m_renderHandler->UpdateStaticShadows(false);
 			break;
 
 		case true:
-			m_renderHandler.get()->SetTimelineStateFuture(); 
+			s_singleton->m_renderHandler.get()->SetTimelineStateFuture();
+			s_singleton->m_renderHandler->UpdateStaticShadows(true);
 			break;
 	}
 }

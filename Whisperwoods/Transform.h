@@ -39,7 +39,7 @@ public:
 	Transform& operator=(Transform&& other) = default;
 
 	// Core functionality
-	Mat4 CalculateMatrix(Vec3 p_pos, Quaternion p_rotation, Vec3 p_scale);
+	static Mat4 CalculateMatrix(Vec3 p_pos, Quaternion p_rotation, Vec3 p_scale);
 	void CalculateLocalMatrix();
 	void CalculateLocalMatrix(Vec3 p_pos, Quaternion p_rotation, Vec3 p_scale);
 	void CalculateWorldMatrix();

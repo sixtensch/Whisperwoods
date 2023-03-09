@@ -45,8 +45,8 @@ RenderHandler::~RenderHandler()
 
 void RenderHandler::InitCore(shared_ptr<Window> window)
 {
-	m_lightAmbient = cs::Color3f(0xD0D0FF);
-	m_lightAmbientIntensity = 0.15f;
+	m_lightAmbient = cs::Color3f(0xC0C0FF);
+	m_lightAmbientIntensity = 0.25f;
 
 	m_lightDirectional = make_unique<DirectionalLight>();
 	m_lightDirectional->diameter = 1000.0f;
@@ -95,7 +95,6 @@ void RenderHandler::Draw()
 		m_lightsSpot, 
 		m_fogFocus, m_fogRadius);
 
-	m_renderCore->TargetRenderTexture(); // TODO: This doesnt seem to be needed? No change when commenting out. ExecuteDraw() does this call either way.
 
 	// ShadowPass
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
@@ -104,12 +103,15 @@ void RenderHandler::Draw()
 
 	// Main scene rendering
 	m_renderCore->UpdateViewInfo(m_mainCamera);
+	m_renderCore->SetFuture(m_timelineState);
 	QuadCull(m_mainCamera);
 
 	static std::string zPrepassProfileName = "Z Prepass Draw";
 	static std::string terrainProfileName = "Terrain Draw";
 	static std::string mainSceneProfileName = "Main Scene Draw";
+	m_renderCore->TargetRenderTexture();
 	PROFILE_JOB(zPrepassProfileName, ZPrepass(m_timelineState));
+	m_renderCore->TargetRenderTexture();
 	PROFILE_JOB( terrainProfileName, RenderTerrain() );
 	PROFILE_JOB( mainSceneProfileName, ExecuteDraw(m_timelineState, false) );
 	m_renderCore->UnbindRenderTexture();
@@ -218,7 +220,6 @@ void RenderHandler::RenderGUI()
 
 void RenderHandler::RenderTerrain()
 {
-	m_renderCore->TargetRenderTexture();
 	for (int i = 0; i < m_worldTerrainRenderables.Size(); i++)
 	{
 		auto data = m_worldTerrainRenderables[i];
@@ -263,26 +264,14 @@ void RenderHandler::ExecuteStaticShadowDraw()
 	for (uint i = 0; i < LevelAssetCount; i++)
 		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
-
 	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
 
-	// Write to shadow map
+
+	// Write to static shadow map (Present)
 	m_renderCore->TargetStaticShadowMap();
-	
-	
 	for (int i = 0; i < m_shadowRenderables.Size(); i++)
 	{
-		shared_ptr<WorldRenderable> data = {};
-		switch (m_timelineState)
-		{
-		case TimelineStateCurrent:
-			data = m_worldRenderables[m_shadowRenderables[i]].first;
-			break;
-
-		case TimelineStateFuture:
-			data = m_worldRenderables[m_shadowRenderables[i]].second;
-			break;
-		}
+		shared_ptr<WorldRenderable> data = m_worldRenderables[m_shadowRenderables[i]].first;
 		if (data && data->enabled)
 		{
 			m_renderCore->UpdateObjectInfo(data.get());
@@ -298,10 +287,25 @@ void RenderHandler::ExecuteStaticShadowDraw()
 			m_renderCore->DrawObject( data.get(), false );
 		}
 	}*/
-	DrawInstances(m_timelineState, true, true);
+	DrawInstances(0, true, true);
+
+
+	// Write to static shadow map (Future)
+	m_renderCore->TargetStaticShadowMapFuture();
+	for ( int i = 0; i < m_shadowRenderables.Size(); i++ )
+	{
+		shared_ptr<WorldRenderable> data = m_worldRenderables[m_shadowRenderables[i]].second;
+		if ( data && data->enabled )
+		{
+			m_renderCore->UpdateObjectInfo(data.get());
+			m_renderCore->DrawObject(data.get(), true, false);
+		}
+	}
+	DrawInstances(1, true, true);
+
 
 	// Set static shadow as readable
-	m_renderCore->BindStaticShadowMap();
+	m_renderCore->BindStaticShadowMap(false);
 }
 
 RenderCore* RenderHandler::GetCore() const
@@ -344,7 +348,7 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	load(LevelAssetBush1, 
 		"BananaPlant.wwm", { "TestSceneBanana.wwmt" },
-		"BananaPlant.wwm", { "Tree_Charred_Tiled.wwmt" });
+		"BananaPlant.wwm", { });
 
 	load(LevelAssetBush2, 
 		 "ShadiiTest.wwm", { "ShadiiBody.wwmt", "ShadiiWhite.wwmt", "ShadiiPupil.wwmt" },
@@ -526,6 +530,11 @@ void RenderHandler::UnLoadEnvironment()
 	m_worldTerrainRenderables.Clear();
 }
 
+void RenderHandler::UpdatePPFXInfo(Vec2 vignette, Vec2 contrast, float brightness, float saturation)
+{
+	m_renderCore->WritePPFXColorgradeInfo(vignette, contrast, brightness, saturation);
+}
+
 shared_ptr<MeshRenderableStatic> RenderHandler::CreateMeshStatic(const string& subpath)
 {
 	Resources& resources = Resources::Get();
@@ -640,6 +649,17 @@ void RenderHandler::SetTimelineStateCurrent()
 void RenderHandler::SetTimelineStateFuture()
 {
 	m_timelineState = TimelineStateFuture;
+}
+
+void RenderHandler::UpdateStaticShadows(bool future)
+{
+	m_renderCore->BindStaticShadowMap(future);
+}
+
+void RenderHandler::SetAmbientLight(cs::Color3f color, float intensity)
+{
+	m_lightAmbient = color;
+	m_lightAmbientIntensity = intensity;
 }
 
 shared_ptr<DirectionalLight> RenderHandler::GetDirectionalLight()

@@ -49,7 +49,7 @@ cbuffer ShadingInfo : REGISTER_CBV_SHADING_INFO
 	LightPoint			pointLights[LIGHT_CAPACITY_POINT];
 	LightSpot			spotLights[LIGHT_CAPACITY_SPOT];
 	
-	float3 ambient;
+	float3 ambientLight;
     uint pointCount;
     float3 cameraPosition;
     uint spotCount;
@@ -65,7 +65,7 @@ cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
     float glossiness;
     float3 emissive;
     float height;
-    float3 pad;
+    float3 ambient;
     float tiling;
 };
 
@@ -121,6 +121,7 @@ struct PS_OUTPUT
 };
 
 float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float depthCMP, float epsilon);
+float PCFShadowsBoth(float startValue, float2 UV, float depthCMP, float epsilon);
 
 PS_OUTPUT main(VSOutput input)
 {
@@ -130,6 +131,12 @@ PS_OUTPUT main(VSOutput input)
     float2 uv = input.outUV * tiling;
 	
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
+    float4 colorAlbedoOpacity = float4(diffuse * diffuseSample.xyz, alpha * diffuseSample.a);
+    
+    //if (diffuseSample.a < 0.1f)
+    //{
+    //    discard;
+    //}
 	
     if (diffuseSample.a < 0.1f)
         discard;
@@ -139,7 +146,6 @@ PS_OUTPUT main(VSOutput input)
     float4 normalSample = textureNormal.Sample(textureSampler, uv);
     normalSample.g = 1.0f - normalSample.g;
 	
-    float4 colorAlbedoOpacity = float4(diffuse * diffuseSample.xyz, alpha * diffuseSample.a);
     float4 colorSpecularSpecularity = float4(specular, glossiness) * specularSample;
     float3 colorEmissive = emissive * emissiveSample.xyz;
 	
@@ -149,7 +155,7 @@ PS_OUTPUT main(VSOutput input)
     float3 normal = normalize(mul(2.0f * normalSample.xyz - float3(1.0f, 1.0f, 1.0f), texSpace));
 	
 	// Cumulative color
-    float4 color = float4(colorAlbedoOpacity.xyz * ambient, colorAlbedoOpacity.w);
+    float4 color = float4(colorAlbedoOpacity.xyz * ambientLight * ambient, colorAlbedoOpacity.w);
 	
     
     // Check shadow
@@ -164,15 +170,16 @@ PS_OUTPUT main(VSOutput input)
 						lsUV, lsNDC.z - epsilon);
     float sDynamic = shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
 						lsUV, lsNDC.z - epsilon);
+    float sMin = min(sStatic, sDynamic);
     
     float shadowAff = 0.0f;
-    if (sStatic < sDynamic)
+    if (sMin < sDynamic)
     {
         shadowAff = PCFShadows(shadowTextureStatic, sStatic, lsUV, lsNDC.z, epsilon);
     }
     else
     {
-        shadowAff = PCFShadows(shadowTextureDynamic, sDynamic, lsUV, lsNDC.z, epsilon);
+        shadowAff = PCFShadowsBoth(sMin, lsUV, lsNDC.z, epsilon);
     }
 
     // Directional lighting
@@ -337,6 +344,26 @@ float PCFShadows(Texture2D textureToSample, float startValue, float2 UV, float d
         {
             sum += textureToSample.SampleCmpLevelZero(shadowSampler,
 						UV + texOffset(x, y, 0), depthCMP - epsilon);
+        }
+    }
+    return (sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f)));
+}
+float PCFShadowsBoth(float startValue, float2 UV, float depthCMP, float epsilon)
+{
+    float sum = startValue;
+
+    [unroll]
+    for (int y = -smoothing; y <= smoothing; ++y)
+    {
+        [unroll]
+        for (int x = -smoothing + 1; x <= smoothing; ++x)
+        {
+            sum += min(
+                shadowTextureStatic.SampleCmpLevelZero(shadowSampler,
+                    UV + texOffset(x, y, 0), depthCMP - epsilon),
+                shadowTextureDynamic.SampleCmpLevelZero(shadowSampler,
+                    UV + texOffset(x, y, 0), depthCMP - epsilon)
+                );
         }
     }
     return (sum / ((smoothing + smoothing + 1.0f) * (smoothing + smoothing + 1.0f)));

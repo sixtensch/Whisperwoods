@@ -17,7 +17,6 @@ private:
 	const ModelStaticResource* m_model;
 };
 
-
 class MeshRenderableRigged : public WorldRenderable
 {
 public:
@@ -33,7 +32,6 @@ private:
 	const ModelRiggedResource* m_model;
 };
 
-
 class MeshRenderableTerrain : public WorldRenderable
 {
 public:
@@ -42,9 +40,11 @@ public:
 	//const TextureResource* m_BitMap;
 
 	void Draw( const DrawInfo& drawInfo ) const override;
-	MaterialBundle& Materials();
+	MaterialBundle& PresentMaterials();
+	MaterialBundle& FutureMaterials();
 
 private:
-	MaterialBundle m_materials;
+	MaterialBundle m_presentMaterials;
+	MaterialBundle m_futureMaterials;
 	const ModelStaticResource* m_model;
 };

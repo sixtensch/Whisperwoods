@@ -138,6 +138,11 @@ bool MaterialImporter::ImportWWMT(string filepath, MaterialResource* const outMa
 			ReadOne(outMaterial->glossiness);
 			break;
 
+		case 'm':
+			LOG_TRACE("[%i] Ambient modifier", lineNumber);
+			ReadThree(outMaterial->ambient);
+			break;
+
 		case 'a':
 			LOG_TRACE("[%i] Alpha modifier", lineNumber);
 			ReadOne(outMaterial->alpha);

@@ -10,7 +10,7 @@
 
 void Player::CalculateCompassMatrix()
 {
-	compassMatrix = transform.CalculateMatrix( transform.position, cameraCompassRotation, transform.scale );
+	compassMatrix = Transform::CalculateMatrix( transform.position, cameraCompassRotation, transform.scale );
 }
 
 Player::Player(std::string modelResource, std::string animationsPath, Mat4 modelOffset)
@@ -198,6 +198,11 @@ Quaternion SlerpDX( Quaternion q0, Quaternion q1, float t )
 
 void Player::PlayerMovement(float delta_time, float movementMultiplier)
 {
+	if (delta_time > 0.1f)
+	{
+		return;
+	}
+
 	if (cameraIsLocked)
 	{
 		Vec3 inputVector;
@@ -214,7 +219,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 
 		float runSpeed = m_runSpeed * (m_godMode ? 2.0f : 1.0f);
 
-		float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !Input::Get().IsKeybindDown(KeybindCrouch) && !m_ranOutOfSprint && !playerInFuture) ? (runSpeed) : m_walkSpeed);
+		float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !Input::Get().IsKeybindDown(KeybindCrouch) && !m_ranOutOfSprint && (!playerInFuture || m_godMode)) ? (runSpeed) : m_walkSpeed);
 		//float walkRunMultiplier = ((Input::Get().IsKeybindDown(KeybindSprint) && !m_ranOutOfSprint && !Input::Get().IsKeybindDown(KeybindCrouch) && !playerInFuture) ? m_runSpeed : m_walkSpeed);
 		m_targetVelocity = Vec3( inputVector.x, inputVector.y, inputVector.z );
 		if (m_targetVelocity.Length() > 0)
@@ -242,7 +247,7 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 				m_targetVelocity *= m_walkSpeed;
 			}
 		}
-		m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * 2.0f * staminaModifier * delta_time);
+		//m_stamina = m_stamina - (cs::fclamp(m_targetVelocity.Length() - m_walkSpeed, 0.0f, 2.0f) * 2.0f * delta_time);
 
 
 		//if (walkRunMultiplier == m_walkSpeed) // not sprinting
@@ -392,13 +397,19 @@ void Player::Update(float delta_time)
 	CalculateCompassMatrix();
 	characterModel->worldMatrix = transform.worldMatrix * m_modelOffset;
 
-
-
-
-
-
-
 	UpdateSound(delta_time);
+}
+
+void Player::ResetCamera(Vec3 direction)
+{
+	cameraCompassRotation = Quaternion::GetDirection(direction);
+	Vec3 followPoint = -(cameraCompassRotation * (Quaternion::GetAxis(Vec3(1, 0, 0), cameraFollowTilt) * Vec3(0, 0, 1)) * cameraFollowDistance);
+	cameraFollowTarget = followPoint;
+	Vec3 currentPos = transform.GetWorldPosition();
+	cameraFollowTarget = currentPos + cameraFollowTarget;
+	Vec3 lookDir = currentPos - (cameraFollowTarget + cameraLookTargetOffset);
+	lookDir.Normalize();
+	cameraLookRotationTarget = Quaternion::GetDirection(lookDir);
 }
 
 // Only the essentials.
@@ -420,35 +431,41 @@ void Player::UpdateSound(float delta_time)
 
 	// Sound management!
 
-	Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
-	LevelPixel bitMapPixel = currentRoom->m_levelResource->bitmap[mapPoint.x + mapPoint.y * currentRoom->m_levelResource->pixelWidth];
-	float realNotWhackDensityWhichActuallyIsAccurate = 1.0f - bitMapPixel.density;
-	if (realNotWhackDensityWhichActuallyIsAccurate > 0.2f && m_velocity.Length() > 0.05f && realNotWhackDensityWhichActuallyIsAccurate < 1.0f) // density
-	{
-		//change volume
-		float volPercent = m_velocity.Length() / m_runSpeed;
-		volPercent = pow(volPercent, 2.0f);
-		if (volPercent < 0.01f)
-		{
-			volPercent = 0.1f;
-		}
-		if (volPercent > 0.8f)
-		{
-			volPercent = 0.8f;
-		}
-		realNotWhackDensityWhichActuallyIsAccurate = powf(realNotWhackDensityWhichActuallyIsAccurate, 0.6f);
-		m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate * (!playerInFuture);
+	cs::Box2i bounds(0, 0, currentRoom->m_levelResource->pixelWidth - 1, currentRoom->m_levelResource->pixelHeight - 1);
 
-		if (!m_vegetationSound->IsPlaying()) //repeat sound? (looping kind of)
-		{
-			m_vegetationSound->Play();
-		}
-	}
-	else if (m_vegetationSound->IsPlaying()) // execute order 66
+	Point2 mapPoint = currentRoom->worldToBitmapPoint(transform.GetWorldPosition());
+	if (bounds.Contains(mapPoint))
 	{
-		m_vegetationSound->Stop();
+		LevelPixel bitMapPixel = currentRoom->m_levelResource->bitmap[mapPoint.x + mapPoint.y * currentRoom->m_levelResource->pixelWidth];
+
+		float realNotWhackDensityWhichActuallyIsAccurate = 1.0f - bitMapPixel.density;
+		if (realNotWhackDensityWhichActuallyIsAccurate > 0.2f && m_velocity.Length() > 0.05f && realNotWhackDensityWhichActuallyIsAccurate < 1.0f) // density
+		{
+			//change volume
+			float volPercent = m_velocity.Length() / m_runSpeed;
+			volPercent = pow(volPercent, 2.0f);
+			if (volPercent < 0.01f)
+			{
+				volPercent = 0.1f;
+			}
+			if (volPercent > 0.8f)
+			{
+				volPercent = 0.8f;
+			}
+			realNotWhackDensityWhichActuallyIsAccurate = powf(realNotWhackDensityWhichActuallyIsAccurate, 0.6f);
+			m_vegetationSound->volume = volPercent * 0.22f * realNotWhackDensityWhichActuallyIsAccurate * (!playerInFuture);
+
+			if (!m_vegetationSound->IsPlaying()) //repeat sound? (looping kind of)
+			{
+				m_vegetationSound->Play();
+			}
+		}
+		else if (m_vegetationSound->IsPlaying()) // execute order 66
+		{
+			m_vegetationSound->Stop();
+		}
+		m_vegetationSound->SetVolume(m_vegetationSound->volume * (!playerInFuture));
 	}
-	m_vegetationSound->SetVolume(m_vegetationSound->volume * (!playerInFuture));
 
 	if (m_velocity.Length() > 0.05f)
 	{

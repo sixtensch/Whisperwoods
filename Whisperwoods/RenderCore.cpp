@@ -249,6 +249,13 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 		m_shadowStaticTexture.GetAddressOf()
 	));
 
+	// Static Future Texture
+	EXC_COMCHECK(m_device->CreateTexture2D(
+		&shadowMapDesc,
+		nullptr,
+		m_shadowFutureTexture.GetAddressOf()
+	));
+
 	D3D11_DEPTH_STENCIL_VIEW_DESC shadowDSVDesc = {};
 	shadowDSVDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	shadowDSVDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
@@ -280,6 +287,18 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 		m_shadowStaticTexture.Get(),
 		&shadowSRVDesc,
 		m_shadowStaticSRV.GetAddressOf()
+	));
+
+	// Static Future Textures 
+	EXC_COMCHECK(m_device->CreateDepthStencilView(
+		m_shadowFutureTexture.Get(),
+		&shadowDSVDesc,
+		m_shadowFutureDSV.GetAddressOf()
+	));
+	EXC_COMCHECK(m_device->CreateShaderResourceView(
+		m_shadowFutureTexture.Get(),
+		&shadowSRVDesc,
+		m_shadowFutureSRV.GetAddressOf()
 	));
 
 	// Depth stencil state
@@ -498,14 +517,26 @@ void RenderCore::TargetStaticShadowMap()
 	EXC_COMINFO(m_context->RSSetState(m_shadowRenderState.Get())); // Frontface culling
 	EXC_COMINFO(m_context->RSSetViewports(1, &m_shadowViewport));
 }
+void RenderCore::TargetStaticShadowMapFuture()
+{
+	EXC_COMINFO(m_context->ClearDepthStencilView(m_shadowFutureDSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0));
+	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, m_shadowFutureDSV.Get()));
+}
 
-void RenderCore::BindStaticShadowMap()
+void RenderCore::BindStaticShadowMap(bool future)
 {
 	// Unbind DSV from RTV 
 	EXC_COMINFO(m_context->OMSetRenderTargets(0u, nullptr, nullptr));
 
 	// Bind SRV for ps
-	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepthStatic, 1, m_shadowStaticSRV.GetAddressOf()));
+	if ( future )
+	{
+		EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepthStatic, 1, m_shadowFutureSRV.GetAddressOf()));
+	}
+	else
+	{
+		EXC_COMINFO(m_context->PSSetShaderResources(RegSRVShadowDepthStatic, 1, m_shadowStaticSRV.GetAddressOf()));
+	}
 }
 
 void RenderCore::TargetRenderTexture()
@@ -1032,24 +1063,6 @@ void RenderCore::DrawPositionalEffects()
 
 void RenderCore::DrawToBackBuffer()
 {
-
-	static Vec2 vignette = Vec2(0.5f, 1.0f);
-	static Vec2 contrast = Vec2(1.0f, 0.4f);
-	static float brightness = 0.0f;
-	static float saturation = 1.1f;
-
-	if (ImGui::Begin("Color Settings"))
-	{
-		float speed = 0.01f;
-		ImGui::DragFloat2("Vignette Radius & Strength", (float*)&vignette, speed, 0.0f, FLT_MAX);
-		ImGui::DragFloat2("Contrast Amount & Midpoint", (float*)&contrast, speed, 0.0f);
-		ImGui::DragFloat("Brightness", &brightness, speed, 0.0f, FLT_MAX);
-		ImGui::DragFloat("Saturation", &saturation, speed, 0.0f, FLT_MAX);
-	}
-	ImGui::End();
-
-	WritePPFXColorgradeInfo(vignette, contrast, brightness, saturation);
-
 	// Color grade and final back buffer write.
 	{
 		EXC_COMINFO(m_context->CSSetShader(m_colorGradeCompute.Get(), nullptr, 0u));
@@ -1115,6 +1128,16 @@ void RenderCore::ProfileEnd(const std::string& profileName)
 void RenderCore::UpdateGPUProfiler()
 {
 	m_gpuProfiler.FinilizeAndPresent();
+}
+
+void RenderCore::SetFuture(bool future)
+{
+	m_drawFuture = future;
+}
+
+bool RenderCore::IsInFuture() const
+{
+	return m_drawFuture;
 }
 
 void RenderCore::BindPipeline(PipelineType pipeline, bool shadowing, bool discardPipeline)

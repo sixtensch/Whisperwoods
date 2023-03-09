@@ -99,7 +99,14 @@ void MeshRenderableTerrain::Draw( const DrawInfo& drawInfo ) const
 
 	for (int i = 0; i < m_model->startIndicies.Size(); i++)
 	{
-		m_materials.BindIndex( drawInfo.core, i );
+		if (drawInfo.core->IsInFuture())
+		{
+			m_futureMaterials.BindIndex(drawInfo.core, i);
+		}
+		else
+		{
+			m_presentMaterials.BindIndex(drawInfo.core, i);
+		}
 
 		int currentSize = m_model->indexCounts[i];
 		int currentStart = (uint)m_model->startIndicies[i];
@@ -107,7 +114,12 @@ void MeshRenderableTerrain::Draw( const DrawInfo& drawInfo ) const
 	}
 }
 
-MaterialBundle& MeshRenderableTerrain::Materials()
+MaterialBundle& MeshRenderableTerrain::PresentMaterials()
 {
-	return m_materials;
+	return m_presentMaterials;
+}
+
+MaterialBundle& MeshRenderableTerrain::FutureMaterials()
+{
+	return m_futureMaterials;
 }

@@ -27,8 +27,12 @@ public:
 	void TargetRenderTexture();
 	void UnbindRenderTexture();
 	void TargetShadowMap();
+
 	void TargetStaticShadowMap();
-	void BindStaticShadowMap();
+	void TargetStaticShadowMapFuture();
+
+	void BindStaticShadowMap(bool future);
+
 	//void TargetBackBuffer(); // Use target render texture if you want to render anything to the scene.
 	void EndFrame();
 
@@ -114,6 +118,9 @@ public:
 	void ProfileBegin(const std::string& profileName);
 	void ProfileEnd(const std::string& profileName);
 	void UpdateGPUProfiler();
+
+	void SetFuture(bool future);
+	bool IsInFuture() const;
 
 	bool m_bindShadowPS;
 
@@ -221,10 +228,15 @@ private:
 	ComPtr<ID3D11Buffer> m_lightBufferStaging;
 
 
-	// Shadow resources
+	// Shadow Resources Present
 	ComPtr<ID3D11Texture2D> m_shadowStaticTexture;
 	ComPtr<ID3D11DepthStencilView> m_shadowStaticDSV;
 	ComPtr<ID3D11ShaderResourceView> m_shadowStaticSRV;
+	// Shadow Resources Future
+	ComPtr<ID3D11Texture2D> m_shadowFutureTexture;
+	ComPtr<ID3D11DepthStencilView> m_shadowFutureDSV;
+	ComPtr<ID3D11ShaderResourceView> m_shadowFutureSRV;
+
 
 	ComPtr<ID3D11Texture2D> m_shadowTexture;
 	ComPtr<ID3D11DepthStencilView> m_shadowDSV;
@@ -237,4 +249,6 @@ private:
 	std::unique_ptr<dx::SpriteBatch> m_spriteBatch;
 
 	GPUProfiler m_gpuProfiler;
+
+	bool m_drawFuture;
 };

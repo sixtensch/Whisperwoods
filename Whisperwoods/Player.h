@@ -6,7 +6,7 @@
 #include "AnimationResource.h"
 #include "Room.h"
 
-constexpr float RUNNING_STAMINA_DECAY = 2.0f;
+constexpr float RUNNING_STAMINA_DECAY = 1.2f;
 
 
 class Player : public GameObject
@@ -76,6 +76,8 @@ public:
 
 	void PlayerMovement(float delta_time, float movementMultiplier);
 	void Update(float delta_time) override;
+
+	void ResetCamera(Vec3 direction);
 
 	void CinematicUpdate( float delta_time );
 
