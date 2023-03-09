@@ -53,6 +53,8 @@ cbuffer ShadingInfo : REGISTER_CBV_SHADING_INFO
     uint pointCount;
     float3 cameraPosition;
     uint spotCount;
+    float3 fogFocusPosition;
+    float fogFocusRadius;
 };
 
 cbuffer MaterialInfo : REGISTER_CBV_MATERIAL_INFO
@@ -124,9 +126,6 @@ PS_OUTPUT main(VSOutput input)
     float2 uv = input.outUV * tiling;
 	
     float4 diffuseSample = textureDiffuse.Sample(textureSampler, uv);
-	
-    //if (diffuseSample.a < 0.1f)
-    //    discard;
 	
     float4 specularSample = textureSpecular.Sample(textureSampler, uv);
     float4 emissiveSample = textureEmissive.Sample(textureSampler, uv);
@@ -262,10 +261,12 @@ PS_OUTPUT main(VSOutput input)
     // Fog effects
     {
         float posToCamDist = distance(input.wPosition.xyz, cameraPosition);
+        float posToFocalDist = distance(input.wPosition.xyz, fogFocusPosition);
+        float focalModifier = 1.0f + (max(fogFocusRadius, posToFocalDist) - fogFocusRadius) * 0.25f;
         uint stateIndex = uint(isInFuture);
         color.rgb = ApplyExpFog(
             color.rgb, 
-            STATE_FOG_DENSITIES[stateIndex], 
+            STATE_FOG_DENSITIES[stateIndex] * focalModifier, 
             posToCamDist, 
             STATE_FOG_COLORS[stateIndex],
             STATE_FOG_STRENGTHS[stateIndex]

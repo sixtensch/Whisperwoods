@@ -53,6 +53,8 @@ public:
 	static bool RegisterLight(shared_ptr<PointLight> pointLight);
 	static bool RegisterLight(shared_ptr<SpotLight> spotLight);
 
+	static void SetFogParameters(Vec3 focus, float radius);
+
 	static Camera& GetCamera();
 	static Window& GetWindow();
 	//static Renderer& Get();

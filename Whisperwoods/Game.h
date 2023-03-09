@@ -60,6 +60,7 @@ public:
 	float GetMaxPowerCooldown();
 	float GetMaxStamina();
 
+	void GodMode(bool godMode);
 
 private:
 	// Applies current timeline state to all relevant units.
@@ -164,8 +165,12 @@ private:
 	float m_coolDownCounter; 
 
 	const float m_timeSwitchTargetFov = cs::c_pi * 0.9f;
-	 
 
+	Vec3 m_fogFocus;
+	float m_fogRadius;
+
+	bool m_godMode;
+	 
 	TimeSwitchValues m_switchVals;
 };
 
