@@ -2,6 +2,7 @@
 #include "EssenceBloom.h"
 #include "Renderer.h"
 #include "Resources.h"
+#include "SoundResource.h"
 
 EssenceBloom::EssenceBloom(Player* player, Vec2 mapCoordPos)
 	: Pickup(player, mapCoordPos),
@@ -19,6 +20,9 @@ EssenceBloom::EssenceBloom(Player* player, Vec2 mapCoordPos)
 
 	m_renderable->Materials().AddMaterial(Resources::Get().GetMaterial("EssenseBloom.wwmt"));
 	m_pickupRadius = 0.5f;
+
+	m_soundSource = make_unique<AudioSource>(Vec3(0.0f, 0.0f, 0.0f), m_Vol, 1.5f, 5.0f, 20.0f, (Resources::Get().GetSound("EssenceBloom.mp3"))->currentSound);
+	m_soundSource->mix2d3d = 0.0f;
 }
 
 EssenceBloom::~EssenceBloom()
@@ -32,6 +36,8 @@ void EssenceBloom::OnPickup(float deltatime)
 	m_player->hasPickedUpEssenceBloom = true;
 	m_isAlive = false;
 	// Play animation
+
+	m_soundSource->Play();
 }
 
 bool EssenceBloom::IsRemovable()

@@ -111,7 +111,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	rttd.Height = window->GetHeight();
 	rttd.MipLevels = 1u;
 	rttd.ArraySize = 1u;
-	rttd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	rttd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	rttd.SampleDesc = { 1u, 0u };
 	rttd.Usage = D3D11_USAGE_DEFAULT;
 	rttd.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
@@ -122,21 +122,21 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateTexture2D(&rttd, nullptr, m_renderTextureCopy.GetAddressOf()));
 
 	rtvd = {};
-	rtvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	rtvd.Texture2D = { 0u };
 
 	EXC_COMCHECK(m_device->CreateRenderTargetView(m_renderTexture.Get(), &rtvd, m_renderTextureRTV.GetAddressOf()));
 	
 	uavd = {};
-	uavd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	uavd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	uavd.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 	uavd.Texture2D = { 0 };
 
 	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_renderTexture.Get(), &uavd, m_renderTextureUAV.GetAddressOf()));
 	
 	srvd = {};
-	srvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvd.Texture2D = { 0, 1 };
 
@@ -154,7 +154,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateTexture2D(&bloomtd, nullptr, m_ppfxLumTexture.GetAddressOf()));
 
 	srvd = {};
-	srvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvd.Texture2D = { 0, (UINT)-1 }; // Get all mips.
 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_ppfxLumTexture.Get(), &srvd, m_ppfxLumSRV.GetAddressOf()));
@@ -173,30 +173,11 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	EXC_COMCHECK(m_device->CreateTexture2D(&bloomtd, nullptr, m_ppfxLumSumTexture.GetAddressOf()));
 
 	srvd = {};
-	srvd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+	srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvd.Texture2D = { 0, 1u }; // Keep all mips as this will be used in compute.
 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_ppfxLumSumTexture.Get(), &srvd, m_ppfxLumSumSRV.GetAddressOf()));
 	EXC_COMCHECK(m_device->CreateUnorderedAccessView(m_ppfxLumSumTexture.Get(), nullptr, m_ppfxLumSumUAV.GetAddressOf()));
-
-	// Position texture
-	D3D11_TEXTURE2D_DESC postd;
-	postd.Width = window->GetWidth();
-	postd.Height = window->GetHeight();
-	postd.MipLevels = 1u;
-	postd.ArraySize = 1u;
-	postd.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	postd.Usage = D3D11_USAGE_DEFAULT;
-	postd.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-	postd.SampleDesc = { 1u, 0u };
-	postd.CPUAccessFlags = 0;
-	postd.MiscFlags = 0u;
-	
-	EXC_COMCHECK(m_device->CreateTexture2D(&postd, nullptr, m_positionTexture.GetAddressOf()));
-	
-	// Create views for position texture.
- 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_positionTexture.Get(), nullptr, m_positionTextureSRV.GetAddressOf()));
-	EXC_COMCHECK(m_device->CreateRenderTargetView(m_positionTexture.Get(), nullptr, m_positionTextureRTV.GetAddressOf()));
 
 	// Depth stencil
 
