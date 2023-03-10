@@ -118,6 +118,13 @@ private:
 	cs::Color3f m_futureDirectionalColor;
 	float m_futureDirectionalIntensity;
 
+	Vec2 m_vignetteStrengthAndRadius;
+	Vec2 m_contrastStrengthAndMidpoint;
+	float m_finalBrightness;
+	float m_finalSaturation;
+
+	bool firstSet = true;
+
 	float m_musicVol = 0.3f;
 	shared_ptr<Grafiki> m_grafiki;
 
