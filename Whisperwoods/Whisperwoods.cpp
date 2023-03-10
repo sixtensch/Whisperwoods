@@ -278,12 +278,19 @@ void Whisperwoods::Run()
 	testGui.GetElement(12)->firstTexture = Resources::Get().GetTexture("getDaBloom.png");
 	testGui.GetElement(12)->secondTexture = Resources::Get().GetTexture("getDaBloom.png");
 
-
+	// Cutscene element 1
 	testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
 	testGui.GetElement( 13 )->colorTint = Vec3( 0, 0, 0 );
-	testGui.GetElement( 13 )->alpha = 1.0;
+	testGui.GetElement( 13 )->alpha = 0.0;
 	testGui.GetElement( 13 )->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
 	testGui.GetElement( 13 )->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
+
+	// Cutscene element 2
+	testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
+	testGui.GetElement( 14 )->colorTint = Vec3( 0, 0, 0 );
+	testGui.GetElement( 14 )->alpha = 0.0;
+	testGui.GetElement( 14 )->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
+	testGui.GetElement( 14 )->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
 	//testGui.GetElement( 13 )->secondTexture = Resources::Get().GetTexture( "tut1Text.png" );
 
 	//// loading screen
@@ -311,7 +318,7 @@ void Whisperwoods::Run()
 	//testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Grafiki Animator", m_game->m_grafiki->characterAnimator.get() ) ) );
 	//testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Player Transform", &m_game->GetPlayer()->transform )));
 	//testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Grafiki Transform", &m_game->m_grafiki->transform ) ) );
-	//testCutScene->AddChannel( std::shared_ptr<CutsceneGUIChannel>( new CutsceneGUIChannel( "GUI Channel", &testGui )));
+	testCutScene->AddChannel( std::shared_ptr<CutsceneGUIChannel>( new CutsceneGUIChannel( "GUI Channel 2", &testGui )));
 	cutsceneController->m_cutscenes.Add( testCutScene );
 	cutsceneController->ActivateCutscene( 0 );
 
@@ -329,6 +336,10 @@ void Whisperwoods::Run()
 	CutsceneGUIChannel* guiChannel = (CutsceneGUIChannel*)cutsceneController->m_cutscenes[0]->channels[5].get(); // GUI 1
 	guiChannel->targetGUI = &testGui;
 	guiChannel->targetGUIElement = 13; // Index
+
+	CutsceneGUIChannel* guiChannel2 = (CutsceneGUIChannel*)cutsceneController->m_cutscenes[0]->channels[5].get(); // GUI 1
+	guiChannel2->targetGUI = &testGui;
+	guiChannel2->targetGUIElement = 14; // Index
 
 	// Main frame loop
 	int frames = 0;

@@ -14,7 +14,7 @@ public:
 	int keyTime = 0;
 	int32_t currentFrame = 0;
 	int32_t startFrame = 0;
-	int32_t endFrame = 100;
+	int32_t endFrame = 200;
 	bool transformOpen = false;
 	std::vector<int> keys;
 	bool doDelete = false;

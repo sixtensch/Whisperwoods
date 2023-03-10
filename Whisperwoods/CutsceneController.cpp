@@ -9,7 +9,7 @@ CutsceneController::CutsceneController()
     activeCutscene = nullptr;
     transformOpen = true;
     m_time = 0;
-    m_playbackRate = 1.0f;
+    m_playbackRate = 0.2f;
 }
 
 void CutsceneController::AddCutscene( shared_ptr<Cutscene> cutscene )
@@ -118,7 +118,11 @@ void CutsceneController::Update(float deltaTime)
         ImGui::Text( "Current frame: %d \n Start Frame: %d \n End Frame: %d \n Transform open: %d \n selected %d", currentFrame, startFrame, endFrame, transformOpen, selected );
 
 
-        
+        bool removeSelected = false;
+        if (ImGui::Button( "Remove Selected Keyframe" ))
+        {
+            removeSelected = true;
+        }
         /*ImGui::Text( "KeyFrames: " );
         for (int i = 0; i < keys.size(); i++)
         {
@@ -298,8 +302,9 @@ void CutsceneController::Update(float deltaTime)
                                     {
                                         selected = v.frame;
                                         //LOG_TRACE( "Animator key" );
-                                        if( Input::Get().IsDXKeyPressed( DXKey::Delete ))
+                                        if( Input::Get().IsDXKeyPressed( DXKey::Delete ) || removeSelected)
                                         {
+                                            removeSelected = false;
                                             int indexToRemove;
                                             for (int i = 0; i < channel->keys.Size(); i++)
                                             {
@@ -326,8 +331,9 @@ void CutsceneController::Update(float deltaTime)
                                     if (ImGui::IsNeoKeyframeSelected())
                                     {
                                         selected = v.frame;
-                                        if (Input::Get().IsDXKeyPressed( DXKey::Delete ))
+                                        if (Input::Get().IsDXKeyPressed( DXKey::Delete ) || removeSelected)
                                         {
+                                            removeSelected = false;
                                             int indexToRemove;
                                             for (int i = 0; i < channel->keys.Size(); i++)
                                             {
@@ -353,8 +359,9 @@ void CutsceneController::Update(float deltaTime)
                                     if (ImGui::IsNeoKeyframeSelected())
                                     {
                                         selected = v.frame;
-                                        if (Input::Get().IsDXKeyPressed( DXKey::Delete ))
+                                        if (Input::Get().IsDXKeyPressed( DXKey::Delete ) || removeSelected)
                                         {
+                                            removeSelected = false;
                                             int indexToRemove;
                                             for (int i = 0; i < channel->keys.Size(); i++)
                                             {
@@ -380,8 +387,9 @@ void CutsceneController::Update(float deltaTime)
                                     if (ImGui::IsNeoKeyframeSelected())
                                     {
                                         selected = v.frame;
-                                        if (Input::Get().IsDXKeyPressed( DXKey::Delete ))
+                                        if (Input::Get().IsDXKeyPressed( DXKey::Delete ) || removeSelected)
                                         {
+                                            removeSelected = false;
                                             int indexToRemove;
                                             for (int i = 0; i < channel->keys.Size(); i++)
                                             {
@@ -407,8 +415,9 @@ void CutsceneController::Update(float deltaTime)
                                     if (ImGui::IsNeoKeyframeSelected())
                                     {
                                         selected = v.frame;
-                                        if (Input::Get().IsDXKeyPressed( DXKey::Delete ))
+                                        if (Input::Get().IsDXKeyPressed( DXKey::Delete ) || removeSelected)
                                         {
+                                            removeSelected = false;
                                             int indexToRemove;
                                             for (int i = 0; i < channel->keys.Size(); i++)
                                             {

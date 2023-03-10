@@ -24,6 +24,8 @@ public:
 
 	bool enabled = true;
 
+	Mat4 modelSpecialMatrix;
+
 	shared_ptr<Animator> characterAnimator;
 private:
 	shared_ptr<MeshRenderableRigged> characterModel;
