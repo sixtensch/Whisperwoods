@@ -6,6 +6,7 @@
 #include "Animator.h"
 #include "Room.h"
 #include "AudioSource.h"
+#include "GUI.h"
 
 class Grafiki : public GameObject
 {
@@ -20,7 +21,7 @@ public:
 
 	void CinematicUpdate( float delta_time );
 
-	bool InteractPlayer(Vec2 playerPosition);
+	bool InteractPlayer(Vec2 playerPosition, GUI* gui);
 
 	bool enabled = true;
 

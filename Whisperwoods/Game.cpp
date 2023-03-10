@@ -410,7 +410,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 
 
 
-		if (m_grafiki->InteractPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z)))
+		if (m_grafiki->InteractPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), m_gui))
 		{
 			m_grafiki->enabled = false;
 			m_loadScreen->GetElement(2)->uiRenderable->enabled = true;
@@ -599,7 +599,7 @@ void Game::DrawIMGUIWindows()
 
 void Game::CinematicUpdate()
 {
-
+	m_gui->GetElement(15)->alpha = 0.0f;
 	// Test of cinematics // TODO: IMPORTANT: LATER DON'T DO THIS WHEN THE GAME IS RUNNING, ITS PROBABLY FATASS-HEAVY ON THE CPU.
 	//m_cutsceneController->Update(m_deltaTime);
 	if (m_cutsceneController->CutsceneActive())
@@ -641,6 +641,8 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		m_cutsceneController->m_isPlaying = true;
 	}
 	m_cutsceneController->Update(m_deltaTime);
+	m_gui->GetElement(14)->alpha = 0;
+	m_gui->GetElement(14)->uiRenderable->enabled = false;
 
 	if (!m_cutsceneController->m_cutSceneActive)
 	{
@@ -708,6 +710,15 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 	if (!m_cutsceneController->m_cutSceneActive)
 	{
+		if (secondFrame)
+		{
+			m_gui->GetElement(12)->alpha = 0.0f;
+			m_gui->GetElement(13)->alpha = 0.0f;
+			m_gui->GetElement(12)->uiRenderable->enabled = false;
+			m_gui->GetElement(13)->uiRenderable->enabled = false;
+
+		}
+
 		UpdateGameObjects();
 
 		UpdateGameplayVars( renderer );
@@ -980,11 +991,12 @@ void Game::InitCutscene()
 	transformChannel2->targetTransform = &m_grafiki->transform;
 	CutsceneGUIChannel* guiChannel = (CutsceneGUIChannel*)m_cutsceneController->m_cutscenes[0]->channels[5].get(); // GUI 1
 	guiChannel->targetGUI = m_gui;
-	guiChannel->targetGUIElement = 13; // Index
+	m_gui->GetElement(14)->uiRenderable->enabled = false;
+	guiChannel->targetGUIElement = 12; // Index
 
 	CutsceneGUIChannel* guiChannel2 = (CutsceneGUIChannel*)m_cutsceneController->m_cutscenes[0]->channels[6].get(); // GUI 1
 	guiChannel2->targetGUI = m_gui;
-	guiChannel2->targetGUIElement = 14; // Index
+	guiChannel2->targetGUIElement = 13; // Index
 
 	m_cutsceneController->m_cutSceneActive = false;
 	m_cutsceneController->m_isPlaying = false;
