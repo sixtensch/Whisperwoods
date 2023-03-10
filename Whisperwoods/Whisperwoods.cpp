@@ -271,6 +271,17 @@ void Whisperwoods::Run()
 	testGui.GetElement( 14 )->alpha = 0.0;
 	testGui.GetElement( 14 )->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
 	testGui.GetElement( 14 )->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
+	testGui.GetElement(14)->alternativeImages.Add(Resources::Get().GetTexture("convo1.png"));
+	testGui.GetElement(14)->alternativeImages.Add(Resources::Get().GetTexture("convo2.png"));
+	testGui.GetElement(14)->alternativeImages.Add(Resources::Get().GetTexture("convo3.png"));
+	testGui.GetElement(14)->alternativeImages.Add(Resources::Get().GetTexture("convo4.png"));
+	testGui.GetElement(14)->alternativeImages.Add(Resources::Get().GetTexture("convo5.png"));
+	testGui.GetElement(14)->alternativeImages.Add(Resources::Get().GetTexture("convo6.png"));
+	testGui.GetElement(14)->alternativeImages.Add(Resources::Get().GetTexture("convo7.png"));
+
+
+
+
 	//testGui.GetElement( 13 )->secondTexture = Resources::Get().GetTexture( "tut1Text.png" );
 
 	//// loading screen

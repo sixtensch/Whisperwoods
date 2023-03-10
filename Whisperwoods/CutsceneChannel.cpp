@@ -273,7 +273,8 @@ void CutsceneGUIChannel::Update( float animationTime, float durationRef )
 			if (targetGUI->GetElement(targetGUIElement)->indexValue != keys[i].active)
 			{
 				targetGUI->GetElement(targetGUIElement)->indexValue = keys[i].active;
-				targetGUI->GetElement(targetGUIElement)->secondTexture = targetGUI->GetElement(targetGUIElement)->alternativeImages[(int)keys[i].active];
+				if (targetGUI->GetElement(targetGUIElement)->alternativeImages.Size() > (int)keys[i].active)
+					targetGUI->GetElement(targetGUIElement)->secondTexture = targetGUI->GetElement(targetGUIElement)->alternativeImages[(int)keys[i].active];
 			}
 			
 		}
