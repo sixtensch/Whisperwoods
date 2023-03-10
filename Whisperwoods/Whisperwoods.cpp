@@ -22,6 +22,7 @@
 #include "LevelImporter.h"
 #include "WWMBuilder.h"
 #include "WWABuilder.h"
+#include "WWCBuilder.h"
 
 // TODO: Dudd include. Only used for getting test sound.
 #include "SoundResource.h"
@@ -67,11 +68,11 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
 	//BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false, 1.0f );
 	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false, 1.5f);
 	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Present.fbx", false, 1.5f );
 	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Present.fbx", false, 1.5f );
 	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Future.fbx", false);
 	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Present.fbx", false);
 	//BuildWWM("Assets/Models/FBX/Static/Stone_2_Future.fbx", false);
@@ -203,78 +204,94 @@ void Whisperwoods::Run()
 
 	// time for tutorial text. Change alpha to make them active or not
 
+	float textAlpha = 0.7f;
 	//tutorial 1
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(4)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(4)->alpha = 1.0f;
+	testGui.GetElement(4)->alpha = textAlpha;
 	testGui.GetElement(4)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(4)->firstTexture = Resources::Get().GetTexture("tut1Text.png");
+	testGui.GetElement(4)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(4)->secondTexture = Resources::Get().GetTexture("tut1Text.png");
 
 	//tutorial 2
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(5)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(5)->alpha = 1.0f;
+	testGui.GetElement(5)->alpha = textAlpha;
 	testGui.GetElement(5)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(5)->firstTexture = Resources::Get().GetTexture("tut2Text.png");
+	testGui.GetElement(5)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(5)->secondTexture = Resources::Get().GetTexture("tut2Text.png");
 
 	//tutorial 3
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(6)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(6)->alpha = 1.0f;
+	testGui.GetElement(6)->alpha = textAlpha;
 	testGui.GetElement(6)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(6)->firstTexture = Resources::Get().GetTexture("tut3Text.png");
+	testGui.GetElement(6)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(6)->secondTexture = Resources::Get().GetTexture("tut3Text.png");
 
 	//tutorial 4
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(7)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(7)->alpha = 1.0f;
+	testGui.GetElement(7)->alpha = textAlpha;
 	testGui.GetElement(7)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(7)->firstTexture = Resources::Get().GetTexture("tut4Text.png");
+	testGui.GetElement(7)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(7)->secondTexture = Resources::Get().GetTexture("tut4Text.png");
 
 	//tutorial 5
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(8)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(8)->alpha = 1.0f;
+	testGui.GetElement(8)->alpha = textAlpha;
 	testGui.GetElement(8)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(8)->firstTexture = Resources::Get().GetTexture("tut5Text.png");
+	testGui.GetElement(8)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(8)->secondTexture = Resources::Get().GetTexture("tut5Text.png");
 
 	//tutorial 6 present
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(9)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(9)->alpha = 1.0f;
+	testGui.GetElement(9)->alpha = textAlpha;
 	testGui.GetElement(9)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(9)->firstTexture = Resources::Get().GetTexture("tut61Text.png");
+	testGui.GetElement(9)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(9)->secondTexture = Resources::Get().GetTexture("tut61Text.png");
 
 	//tutorial 6 future
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(10)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(10)->alpha = 1.0f;
+	testGui.GetElement(10)->alpha = textAlpha;
 	testGui.GetElement(10)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(10)->firstTexture = Resources::Get().GetTexture("tut62Text.png");
+	testGui.GetElement(10)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(10)->secondTexture = Resources::Get().GetTexture("tut62Text.png");
 
 	//tutorial 7
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(11)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(11)->alpha = 1.0f;
+	testGui.GetElement(11)->alpha = textAlpha;
 	testGui.GetElement(11)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(11)->firstTexture = Resources::Get().GetTexture("tut7Text.png");
+	testGui.GetElement(11)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(11)->secondTexture = Resources::Get().GetTexture("tut7Text.png");
 
 
 	//get da bloom
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(12)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(12)->alpha = 1.0f;
+	testGui.GetElement(12)->alpha = textAlpha;
 	testGui.GetElement(12)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
 	testGui.GetElement(12)->firstTexture = Resources::Get().GetTexture("getDaBloom.png");
 	testGui.GetElement(12)->secondTexture = Resources::Get().GetTexture("getDaBloom.png");
+
+	// Cutscene element 1
+	testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
+	testGui.GetElement( 13 )->colorTint = Vec3( 0, 0, 0 );
+	testGui.GetElement( 13 )->alpha = 0.0;
+	testGui.GetElement( 13 )->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
+	testGui.GetElement( 13 )->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
+
+	// Cutscene element 2
+	testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
+	testGui.GetElement( 14 )->colorTint = Vec3( 0, 0, 0 );
+	testGui.GetElement( 14 )->alpha = 0.0;
+	testGui.GetElement( 14 )->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
+	testGui.GetElement( 14 )->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
+	//testGui.GetElement( 13 )->secondTexture = Resources::Get().GetTexture( "tut1Text.png" );
 
 	//// loading screen
 	//testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
@@ -286,28 +303,43 @@ void Whisperwoods::Run()
 
 	// 
 	// Test of the cutscene system.
-	CutsceneController cutsceneController;
-	shared_ptr<Cutscene> testCutScene(new Cutscene("Test scene"));
-	testCutScene->AddChannel( std::shared_ptr<CutsceneCameraChannel>( new CutsceneCameraChannel( "Main camera", &Renderer::GetCamera())));
-	testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Player Animator", m_game->GetPlayer()->characterAnimator.get())));
-	testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Player Transform", &m_game->GetPlayer()->transform )));
-	cutsceneController.m_cutscenes.Add( testCutScene );
-	cutsceneController.ActivateCutscene( 0 );
 
-	CutsceneCameraChannel* channel = (CutsceneCameraChannel*)cutsceneController.m_cutscenes[0]->channels[0].get();
-	channel->targetCamera = &Renderer::GetCamera();
-	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, {0,0,-20}, Quaternion::GetEuler( { 0,0,0} ), 90, 1)));
-	channel->keys[0]->frame = 0;
 
-	//channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,5,-5 }, Quaternion::GetEuler( { 1.0f,cs::c_pi,0 } ), 90, 1)));
-	//channel->keys[1]->frame = 30;
 
-	//channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,1,5 }, Quaternion::GetEuler( { 1.0f,0,0 } ), 90, 1)));
-	//channel->keys[2]->frame = 60;
+	shared_ptr<CutsceneController> cutsceneController (new CutsceneController());
 	
-	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,1,10 }, Quaternion::GetEuler({ 0,cs::c_pi,0 }), 90, 1)));
-	channel->keys[1]->frame = 99;
-	//testCutScene.AddKey( std::shared_ptr< CutsceneTransformKey >(new CutsceneTransformKey( 0.5f, m_game->GetPlayer(), {0,0,0}, Quaternion::GetEuler({0,0,0}), {1,1,1})));
+	//Cutscene loadedCutscene;
+	shared_ptr<Cutscene> testCutScene(new Cutscene("Intro Cutscene"));
+	LoadWWC(testCutScene.get(), "Assets/Cutscenes/Intro Cutscene.wwc");
+
+	// Setup channels for creation, comment out when loading later.
+	//testCutScene->AddChannel( std::shared_ptr<CutsceneCameraChannel>( new CutsceneCameraChannel( "Main camera", &Renderer::GetCamera())));
+	//testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Player Animator", m_game->GetPlayer()->characterAnimator.get())));
+	//testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Grafiki Animator", m_game->m_grafiki->characterAnimator.get() ) ) );
+	//testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Player Transform", &m_game->GetPlayer()->transform )));
+	//testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Grafiki Transform", &m_game->m_grafiki->transform ) ) );
+	testCutScene->AddChannel( std::shared_ptr<CutsceneGUIChannel>( new CutsceneGUIChannel( "GUI Channel 2", &testGui )));
+	cutsceneController->m_cutscenes.Add( testCutScene );
+	cutsceneController->ActivateCutscene( 0 );
+
+	// Setup for cutscene playback.
+	CutsceneCameraChannel* channel = (CutsceneCameraChannel*)cutsceneController->m_cutscenes[0]->channels[0].get();
+	channel->targetCamera = &Renderer::GetCamera();
+	CutsceneAnimatorChannel* animatorChannel = (CutsceneAnimatorChannel*)cutsceneController->m_cutscenes[0]->channels[1].get(); // Player
+	animatorChannel->targetAnimator = m_game->GetPlayer()->characterAnimator.get();
+	CutsceneAnimatorChannel* animatorChannel2 = (CutsceneAnimatorChannel*)cutsceneController->m_cutscenes[0]->channels[2].get(); // Grafiki
+	animatorChannel2->targetAnimator = m_game->m_grafiki->characterAnimator.get();
+	CutsceneTransformChannel* transformChannel = (CutsceneTransformChannel*)cutsceneController->m_cutscenes[0]->channels[3].get(); // Player
+	transformChannel->targetTransform = &m_game->GetPlayer()->transform;
+	CutsceneTransformChannel* transformChannel2 = (CutsceneTransformChannel*)cutsceneController->m_cutscenes[0]->channels[4].get(); // Grafiki
+	transformChannel2->targetTransform = &m_game->m_grafiki->transform;
+	CutsceneGUIChannel* guiChannel = (CutsceneGUIChannel*)cutsceneController->m_cutscenes[0]->channels[5].get(); // GUI 1
+	guiChannel->targetGUI = &testGui;
+	guiChannel->targetGUIElement = 13; // Index
+
+	CutsceneGUIChannel* guiChannel2 = (CutsceneGUIChannel*)cutsceneController->m_cutscenes[0]->channels[5].get(); // GUI 1
+	guiChannel2->targetGUI = &testGui;
+	guiChannel2->targetGUIElement = 14; // Index
 
 	// Main frame loop
 	int frames = 0;
@@ -341,12 +373,15 @@ void Whisperwoods::Run()
 		static float dTimeAcc = 0.0f;
 		dTimeAcc += dTime;
 		
-		// Test of cinematics
-		cutsceneController.Update();
-		if (cutsceneController.CutsceneActive())
+		// Test of cinematics // TODO: IMPORTANT: LATER DON'T DO THIS WHEN THE GAME IS RUNNING, ITS PROBABLY FATASS-HEAVY ON THE CPU.
+		cutsceneController->Update(dTime);
+		if (cutsceneController->CutsceneActive())
 		{
-			static_cast<CutsceneCameraChannel*>(cutsceneController.m_cutscenes[0]->channels[0].get())->Update(
-				(float)cutsceneController.currentFrame/(float)cutsceneController.endFrame, cutsceneController.endFrame);
+			m_game->m_isCutScene = true;
+		}
+		else
+		{
+			m_game->m_isCutScene = false;
 		}
 
 		// Update the test gui with the stamina.
@@ -496,7 +531,7 @@ void Whisperwoods::Run()
 		m_renderer->Draw();
 
 		// Camera update
-		Move(dTime, m_game->GetPlayer(), &cutsceneController);
+		Move(dTime, m_game->GetPlayer(), cutsceneController.get());
 
 		// Draw console
 		m_debug->DrawConsole();

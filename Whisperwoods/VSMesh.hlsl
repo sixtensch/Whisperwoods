@@ -34,6 +34,8 @@ cbuffer ObjectInfo : REGISTER_CBV_OBJECT_INFO
 cbuffer PlayerInfo : REGISTER_CBV_PLAYER_INFO
 {
     matrix playerMatrix;
+    float4 worldInfo1;
+    float4 worldInfo2;
 };
 
 VSOutput main(VSInput input)
@@ -75,7 +77,7 @@ VSOutput main(VSInput input)
         clamp( toFromPlayer.x,-1.0f,1.0f) * (dotVert * 4.0f),
         (toFromPlayer.y*0.2f)-(0.7f * clamp((0.90f - distFromPlayer),0,0.90f)),
         clamp( toFromPlayer.z,-1.0f,1.0f) * (dotVert * 4.0f), 0.0f);
-
+    
     // WIP
     /* float4 relativeVector = playerForward * toFromPlayer.z;
     relativeVector.y = toFromPlayer.y;*/

@@ -10,22 +10,23 @@
 
 Game::Game() :
 	m_floor(),
-	m_isHubby(false),
-	m_currentRoom(nullptr),
-	m_isInFuture(false),
-	m_isSwitching(false),
-	m_finishedCharging(false),
-	m_maxStamina(MAX_STAMINA_STARTING_VALUE),
-	m_switchVals({ 0.3f, 0.5f, 3.0f, 0.0f }),
-	m_detectionLevelGlobal(0.0f),
-	m_detectionLevelFloor(0.0f),
-	m_camFovChangeSpeed(cs::c_pi / 2.0f),
-	m_envParams({}),
-	m_reachedLowestStamina(false),
-	m_coolDownCounter(m_timeAbilityCooldown),
-	m_isCutscene(false),
-	m_isSeen(false)
-
+	m_isHubby( false ),
+	m_currentRoom( nullptr ),
+	m_isInFuture( false ),
+	m_isSwitching( false ),
+	m_finishedCharging( false ),
+	m_maxStamina( MAX_STAMINA_STARTING_VALUE ),
+	m_switchVals( { 0.3f, 0.5f, 3.0f, 0.0f } ),
+	m_detectionLevelGlobal( 0.0f ),
+	m_detectionLevelFloor( 0.0f ),
+	m_camFovChangeSpeed( cs::c_pi / 2.0f ),
+	m_envParams( {} ),
+	m_reachedLowestStamina( false ),
+	m_coolDownCounter( m_timeAbilityCooldown ),
+	m_isCutscene( false ),
+	m_isSeen( false ),
+	noiseVal1( 0, 0, 0 ),
+	noiseVal2( 1, 1, 1 )
 {
 }
 
@@ -57,6 +58,27 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	m_player->UpdateStamina( m_maxStamina );
 	m_currentStamina = m_player->GetCurrentStamina();
 	Renderer::SetPlayerMatrix( m_player->compassMatrix );
+
+	cs::NoiseSimplex noise1( 2 );
+	cs::NoiseSimplex noise2( 123 );
+	// Noise Generation for breathing glows and vegetation wind TODO: Check performance on this, possibly remove if bad.
+	float scanMultiplier = 0.1f;
+	noiseVal1 += Vec3( m_deltaTime * scanMultiplier*5, -m_deltaTime* scanMultiplier, m_deltaTime * scanMultiplier );
+	noiseVal2 += Vec3( m_deltaTime * scanMultiplier*2, m_deltaTime * scanMultiplier, m_deltaTime * scanMultiplier*3);
+	Vec4 noiseVector = Vec4(
+		noise1.Gen1D( noiseVal1.x ), 
+		noise2.Gen1D( noiseVal1.x ), 
+		noise1.Gen2D( noiseVal1.y, noiseVal1.x ), 
+		noise1.Gen2D( noiseVal1.z, noiseVal1.y ));
+	Renderer::SetWorldParameters( noiseVector, Vec4( noiseVal2, 0));
+
+	//if (ImGui::Begin( "Noise Debug" ))
+	//{
+	//	ImGui::Text( "NoiseVector: %f %f %f %f", noiseVector.x, noiseVector.y, noiseVector.z, noiseVector.w );
+	//	ImGui::Text( "NoiseVal1: %f %f %f", noiseVal1.x, noiseVal1.y, noiseVal1.z );
+	//	ImGui::Text( "NoiseVal2: %f %f %f", noiseVal2.x, noiseVal2.y, noiseVal2.z );
+	//}
+	//ImGui::End();
 
 	// Pickups
 	for (int i = 0; i < m_pickups.Size(); ++i)
@@ -589,7 +611,8 @@ void Game::DrawIMGUIWindows()
 void Game::CinematicUpdate()
 {
 	// More later
-	m_player->CinematicUpdate( m_deltaTime ); // Only updates the matrix, allowing for cutscenecontroller control.
+	m_player->CinematicUpdate( m_deltaTime ); // Only updates the matrix and animator, allowing for cutscenecontroller control.
+	m_grafiki->CinematicUpdate( m_deltaTime ); // Only updates the matrix and animator, allowing for cutscenecontroller control.
 	m_currentRoom->Update( m_deltaTime );
 	for (int i = 0; i < m_staticObjects.Size(); i++)
 	{
@@ -685,6 +708,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 void Game::Init()
 {
 	m_godMode = false;
+
 
 	m_loadScreen = shared_ptr<GUI> (new GUI());
 
