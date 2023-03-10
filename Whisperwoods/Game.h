@@ -204,6 +204,9 @@ private:
 	bool m_deathEnemy = false; 
 	bool m_loadNewFloor = false;
 	bool m_skipTutorialQuestion = false;
+
+	float m_winTimer = 0.0f;
+	float m_timePerEndSlideShow = 7.0f;
 	
 	 
 	TimeSwitchValues m_switchVals;

@@ -275,7 +275,7 @@ void Whisperwoods::Run()
 	testGui.GetElement(12)->colorTint = Vec3(1, 1, 1);
 	testGui.GetElement(12)->alpha = textAlpha;
 	testGui.GetElement(12)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(12)->firstTexture = Resources::Get().GetTexture("getDaBloom.png");
+	testGui.GetElement(12)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(12)->secondTexture = Resources::Get().GetTexture("getDaBloom.png");
 
 	// Cutscene element 1
@@ -378,10 +378,14 @@ void Whisperwoods::Run()
 		if (cutsceneController->CutsceneActive())
 		{
 			m_game->m_isCutScene = true;
+			testGui.GetElement(13)->uiRenderable->enabled = true;
+			testGui.GetElement(14)->uiRenderable->enabled = true;
 		}
 		else
 		{
 			m_game->m_isCutScene = false;
+			testGui.GetElement(13)->uiRenderable->enabled = false;
+			testGui.GetElement(14)->uiRenderable->enabled = false;
 		}
 
 		// Update the test gui with the stamina.
