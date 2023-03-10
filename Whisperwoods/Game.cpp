@@ -73,7 +73,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		noise1.Gen2D( noiseVal1.y, noiseVal1.x ), 
 		noise1.Gen2D( noiseVal1.z, noiseVal1.y ));
 	Renderer::SetWorldParameters( noiseVector, Vec4( noiseVal2, 0));
-
+#if WW_IMGUI 1
 	//if (ImGui::Begin( "Noise Debug" ))
 	//{
 	//	ImGui::Text( "NoiseVector: %f %f %f %f", noiseVector.x, noiseVector.y, noiseVector.z, noiseVector.w );
@@ -81,7 +81,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	//	ImGui::Text( "NoiseVal2: %f %f %f", noiseVal2.x, noiseVal2.y, noiseVal2.z );
 	//}
 	//ImGui::End();
-
+#endif
 	// Pickups
 	for (int i = 0; i < m_pickups.Size(); ++i)
 	{
@@ -1275,7 +1275,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 				cs::Vec3 delta = Vec3((float)mouseState.y, (float)mouseState.x, 0.0f);
 				rotationVec -= delta * dTime * 2.0f;
 				camera.SetRotation(Quaternion::GetEuler({ rotationVec.x, rotationVec.y, rotationVec.z }).Conjugate());
-
+#if WW_IMGUI 1
 				if (ImGui::Begin("Camera rotation dev"))
 				{
 					ImGui::Text("Rot Vec: %f, %f, %f", rotationVec.x, rotationVec.y, rotationVec.z);
@@ -1285,6 +1285,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 
 				}
 				ImGui::End();
+#endif
 				//camera.SetRotation(Quaternion::GetEuler(rotationVec));
 			}
 			camera.SetPosition(camera.GetPosition() + movement * dTime);
@@ -1305,6 +1306,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 				slerped.NormalizeThis();
 				camera.SetRotation(slerped);
 			}
+#if WW_IMGUI 1
 			if (ImGui::Begin("Camera rotation player"))
 			{
 				Vec3 playPos = player->transform.GetWorldPosition();
@@ -1320,6 +1322,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 				ImGui::DragFloat3("Camera lookAt offset", (float*)&player->cameraLookTargetOffset, 0.1f);
 			}
 			ImGui::End();
+#endif
 		}
 	}
 

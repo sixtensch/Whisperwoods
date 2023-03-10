@@ -405,12 +405,13 @@ void Whisperwoods::Run()
 		}
 
 
-
+#if WW_IMGUI 1
 		if (ImGui::Begin( "Shadow PS Test" ))
 		{
 			ImGui::Checkbox( "Use shadow PS", &m_renderer->GetRenderCore()->m_bindShadowPS );
 		}
 		ImGui::End();
+#endif
 
 		// Main game update
 		if (m_firstIntroPic == false)
