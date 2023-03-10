@@ -8,7 +8,6 @@
 #include "Debug.h"
 #include "Player.h"
 #include "Enemy.h"
-#include "CutsceneController.h"
 
 class Whisperwoods sealed
 {
@@ -17,8 +16,6 @@ public:
 	~Whisperwoods();
 
 	void Run();
-
-	void Move(float dTime, Player* player, CutsceneController* cutSceneController);
 	
 	static void GodMode(void*, void*);
 	static void PeasantMode(void*, void*);
