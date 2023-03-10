@@ -9,8 +9,8 @@
 
 #include <filesystem>
 
-constexpr uint LEVEL_MAP_PIXEL_WIDTH = 250u;
-constexpr uint LEVEL_MAP_PIXEL_HEIGHT = 250u;
+constexpr uint LEVEL_MAP_PIXEL_WIDTH = 350u;
+constexpr uint LEVEL_MAP_PIXEL_HEIGHT = 350u;
 constexpr uint BYTES_PER_TEXEL = 4u;
 constexpr uint DATA_SIZE = LEVEL_MAP_PIXEL_WIDTH * LEVEL_MAP_PIXEL_HEIGHT * BYTES_PER_TEXEL;
 
@@ -60,7 +60,7 @@ LevelHandler::LevelHandler()
 
 	shared_ptr<GUIElement> minimapElement = m_floorMinimapGUI->AddGUIElement({ -0.9f, 0.3f }, { 0.4f * 0.9f, 0.4f * 1.6f }, nullptr, nullptr);
 	minimapElement->colorTint = cs::Color3f(0xA7A158);
-	minimapElement->alpha = 0.5f;
+	minimapElement->alpha = 0.7f;
 	minimapElement->intData = Point4(0, 0, 1, 0); // Makes it zoom in around a given uv point.
 
 	TextureResource* minimapTexture = Resources::Get().CreateTextureUnorm(
@@ -108,6 +108,14 @@ Vec2 LevelHandler::GetFloorUVFromPos(Vec2 position)
 Vec2 LevelHandler::GetRoomFlatenedPos(Vec3 roomPosition)
 {
 	return Vec2(roomPosition.x, roomPosition.z);
+}
+
+void LevelHandler::LoadPixel(uint8_t* data, uint pixelPos, uint8_t r, uint8_t g, uint8_t b)
+{
+	data[pixelPos + 0] = r;
+	data[pixelPos + 1] = g;
+	data[pixelPos + 2] = b;
+	data[pixelPos + 3] = 255u;
 }
 
 shared_ptr<uint8_t> LevelHandler::GenerateFloorImage(LevelFloor* floorRef)
@@ -171,17 +179,13 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImage(LevelFloor* floorRef)
 				Vec2 offset = uvDirectionNormal * minStepLength * widthStep * 0.3f; // Magic number scaler.
 				int channelPos = GetSafe1DPixelPosFromUV(texelPos + offset);
 
-				// Should be a function.
-				pixelData[channelPos + 0] = 32u;
-				pixelData[channelPos + 1] = 91u;
-				pixelData[channelPos + 2] = 223u;
-				pixelData[channelPos + 3] = 255u;
+				LoadPixel(pixelData, channelPos, 32u, 91u, 223u);
 			}
 		}
 	}
 
 	// Draw nodes as cubes.
-	int cubeWidth = 14;
+	int cubeWidth = 20;
 	int halfCube = cubeWidth / 2;
 	for (Vec2 roomPos : roomPositions)
 	{
@@ -194,15 +198,9 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImage(LevelFloor* floorRef)
 				Vec2 cubeOffset = Vec2(x, y) * minStepLength;
 				int channelPos = GetSafe1DPixelPosFromUV(cubeOffset + roomUVPos);
 
-				// Should be a function.
-				pixelData[channelPos + 0] = 32u;
-				pixelData[channelPos + 1] = 91u;
-				pixelData[channelPos + 2] = 223u;
-				pixelData[channelPos + 3] = 255u;
+				LoadPixel(pixelData, channelPos, 32u, 91u, 223u);
 			}
 		}
-
-		
 	}
 
 	return returnData;

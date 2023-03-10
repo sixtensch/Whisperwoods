@@ -99,6 +99,8 @@ private:
 	Vec2 GetFloorUVFromPos(Vec2 position);
 	Vec2 GetRoomFlatenedPos(Vec3 roomPosition);
 
+	void LoadPixel(uint8_t* data, uint pixelPos, uint8_t r, uint8_t g, uint8_t b);
+
 	void Environmentalize(Level& l, EnvironmentalizeParameters parameters);
 	void AddLevelName(LevelFloor& f, string name);
 
