@@ -234,7 +234,7 @@ void CutsceneController::Update(float deltaTime)
 
         //static int targetIDVal;
         static float alphaVal;
-        static bool activeVal;
+        static int imageIndexVal;
         static Vec3 colorVal(1,1,1);
         if (ImGui::CollapsingHeader( "GUI Key Adding", m_uiKeyOpen ))
         {
@@ -248,14 +248,15 @@ void CutsceneController::Update(float deltaTime)
                     //ImGui::Text("Animator channel: %s ", channel->name.c_str());
                     //ImGui::DragInt( "Key alpha", &targetIDVal, 0.1f );
                     ImGui::DragFloat( "Key alpha", &alphaVal, 0.1f );
-                    ImGui::Checkbox( "Key element active", & activeVal );
+                    ImGui::DragInt( "Key element active", &imageIndexVal);
                     ImGui::DragFloat3( "Key Color", (float*)&colorVal, 0.1f );
                     if (ImGui::Button( "Add GUI Keyframe" ))
                     {
+                        char indexChar = (char)imageIndexVal;
                         channel->AddKey( CutsceneGUITriggerKey(
                             (float)currentFrame / (float)endFrame, 
                             alphaVal,
-                            activeVal,
+                            indexChar,
                             colorVal ) );
                         channel->keys[channel->keys.Size() - 1].frame = currentFrame;
                         std::sort( &channel->keys.Front(), &channel->keys.Back() + 1, CompareFrame );

@@ -276,6 +276,14 @@ void Whisperwoods::Run()
 	cutsceneElement2GUI->alpha = 0.0;
 	cutsceneElement2GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
 	cutsceneElement2GUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo1.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo2.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo3.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo4.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo5.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo6.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo7.png"));
+
 
 	std::shared_ptr<GUIElement> introScreenGUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	introScreenGUI->colorTint = Vec3(1, 1, 1);
