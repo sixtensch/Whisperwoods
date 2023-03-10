@@ -26,7 +26,8 @@ Game::Game() :
 	m_isCutscene( false ),
 	m_isSeen( false ),
 	noiseVal1( 0, 0, 0 ),
-	noiseVal2( 1, 1, 1 )
+	noiseVal2( 1, 1, 1 ),
+	m_initialCamFov(0.0f)
 {
 }
 
@@ -35,14 +36,14 @@ Game::~Game() {}
 // Stamina, pickups, detection etc
 void Game::UpdateGameplayVars( Renderer* renderer )
 {
-	if (m_deathEnemy == true)
+	if (m_deathEnemy == true && m_deathTransition == false)
 	{
 		m_deathEnemy = false;
 		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
 		EndRunDueToEnemy(renderer);
 		activeTutorialLevel = 8;
 	}
-	else if (m_deathPoison == true)
+	else if (m_deathPoison == true && m_deathTransition == false)
 	{
 		m_deathPoison = false;
 		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
@@ -241,6 +242,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 				m_isSwitching = true;
 				m_finishedCharging = false;
 				m_initialCamFov = renderer->GetCamera().GetFov();
+				m_player->m_switchSource->SetPitch(1.5f);
 				m_player->m_switchSource->Play();
 			}
 		}
@@ -262,13 +264,20 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			{
 				if (!m_finishedCharging)
 				{
-					SwapTimeline( renderer );
-					m_finishedCharging = true;
-					renderer->GetCamera().SetFov( m_initialCamFov );
-
-					if (!m_isInFuture) // time to cooldown
+					if (m_deathTransition)
 					{
-						m_coolDownCounter = 0.0f;
+						EndRun(renderer);
+					}
+					else
+					{
+						SwapTimeline(renderer);
+						m_finishedCharging = true;
+						renderer->GetCamera().SetFov(m_initialCamFov);
+
+						if (!m_isInFuture) // time to cooldown
+						{
+							m_coolDownCounter = 0.0f;
+						}
 					}
 				}
 			}
@@ -1142,10 +1151,11 @@ void Game::ResetGameplayValues()
 
 void Game::EndRun(Renderer* renderer)
 {
-	if (m_isSwitching)
-	{
-		Renderer::GetCamera().SetFov(m_initialCamFov);
-	}
+	m_deathTransition = false;
+	m_deathEnemy = false;
+	m_deathPoison = false;
+	m_isSwitching = false;
+	Renderer::GetCamera().SetFov(m_initialCamFov);
 
 	ResetGameplayValues();
 	ChangeToPresentTimeline(renderer);
@@ -1162,14 +1172,23 @@ void Game::EndRunDueToEnemy(Renderer* renderer)
 
 	// More logic for dying from enemy here.
 
-	EndRun(renderer);
+	m_isSwitching = true;
+	m_deathTransition = true;
+	m_finishedCharging = false;
+	if (m_initialCamFov == 0.0f)
+		m_initialCamFov = renderer->GetCamera().GetFov();
 }
 
 void Game::EndRunDueToPoison(Renderer* renderer)
 {
 	// Logic for dying from future poison here.
 
-	EndRun(renderer);
+	m_isSwitching = true;
+	m_deathTransition = true;
+	m_finishedCharging = false;
+	m_player->m_switchSource->Play();
+	if (m_initialCamFov == 0.0f)
+		m_initialCamFov = renderer->GetCamera().GetFov();
 }
 
 void Game::SwapTimeline(Renderer* renderer)

@@ -171,6 +171,8 @@ private:
 	bool m_finishedCharging; // Charging = only first part of whole duration (start)
 	float m_maxStamina;
 
+	bool m_deathTransition = false;
+
 	bool m_testTunnel;
 
 	float m_detectionLevelGlobal; //how detected you currently are
