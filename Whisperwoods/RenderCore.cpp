@@ -865,16 +865,18 @@ void RenderCore::UpdateObjectInfo(const WorldRenderable* worldRenderable)
 	EXC_COMINFO(m_context->Unmap(m_constantBuffers.objectInfo.Get(), 0u));
 }
 
-void RenderCore::UpdatePlayerInfo( Mat4 matrix )
+void RenderCore::UpdatePlayerInfo( Mat4 matrix, Vec4 worldInfo1, Vec4 worldInfo2 )
 {
-	CB::ObjectInfo oi =
+	CB::PlayerAndWorldInfo oi =
 	{
-		matrix
+		matrix,
+		worldInfo1,
+		worldInfo2
 	};
 
 	D3D11_MAPPED_SUBRESOURCE msr = {};
 	EXC_COMCHECK( m_context->Map( m_constantBuffers.playerInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr ) );
-	memcpy( msr.pData, &oi, sizeof( CB::ObjectInfo ) );
+	memcpy( msr.pData, &oi, sizeof( CB::PlayerAndWorldInfo ) );
 	EXC_COMINFO( m_context->Unmap( m_constantBuffers.playerInfo.Get(), 0u ) );
 }
 
@@ -1577,7 +1579,7 @@ void RenderCore::InitConstantBuffers()
 
 
 	// Player info
-	desc.ByteWidth = sizeof( CB::ObjectInfo );
+	desc.ByteWidth = sizeof( CB::PlayerAndWorldInfo );
 
 	EXC_COMCHECK( m_device->CreateBuffer(
 		&desc,

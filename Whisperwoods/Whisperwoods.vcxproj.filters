@@ -205,6 +205,9 @@
     <Filter Include="%2a Code\%2a Core\%2a Cinematics\CutsceneChannel">
       <UniqueIdentifier>{c00771fa-194b-436d-8291-50a9b9b1863f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="%2a Code\%2a Core\%2a Importing\WWC Builder">
+      <UniqueIdentifier>{adc96a9f-e5b3-4dff-b835-e687a36071ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core.cpp">
@@ -306,9 +309,6 @@
     <ClCompile Include="Vertex.cpp">
       <Filter>%2a Code\%2a Core\%2a Importing\Vertex</Filter>
     </ClCompile>
-    <ClCompile Include="LevelResource.cpp">
-      <Filter>%2a Code\%2a Resources\LevelResource</Filter>
-    </ClCompile>
     <ClCompile Include="LevelImporter.cpp">
       <Filter>%2a Code\%2a Core\%2a Importing\Level Importer</Filter>
     </ClCompile>
@@ -354,6 +354,9 @@
     </ClCompile>
     <ClCompile Include="CutsceneChannel.cpp">
       <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneChannel</Filter>
+    </ClCompile>
+    <ClCompile Include="WWCBuilder.cpp">
+      <Filter>%2a Code\%2a Core\%2a Importing\WWC Builder</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -541,6 +544,9 @@
     <ClInclude Include="CutsceneChannel.h">
       <Filter>%2a Code\%2a Core\%2a Cinematics\CutsceneChannel</Filter>
     </ClInclude>
+    <ClInclude Include="WWCBuilder.h">
+      <Filter>%2a Code\%2a Core\%2a Importing\WWC Builder</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="VSMesh.hlsl">
@@ -582,6 +588,7 @@
     <FxCompile Include="PSShadow.hlsl">
       <Filter>%2a Code\%2a Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="PSPrepass.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Constants.hlsli">

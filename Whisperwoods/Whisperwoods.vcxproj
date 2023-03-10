@@ -68,6 +68,7 @@
     <ClCompile Include="Cutscene.cpp" />
     <ClCompile Include="CutsceneKey.cpp" />
     <ClCompile Include="WWABuilder.cpp" />
+    <ClCompile Include="WWCBuilder.cpp" />
     <ClCompile Include="WWMBuilder.cpp" />
     <ClCompile Include="StaticObject.cpp" />
     <ClCompile Include="TextRenderable.cpp" />
@@ -144,6 +145,7 @@
     <ClInclude Include="Window.h" />
     <ClInclude Include="MaterialImporter.h" />
     <ClInclude Include="WWABuilder.h" />
+    <ClInclude Include="WWCBuilder.h" />
     <ClInclude Include="WWMBuilder.h" />
   </ItemGroup>
   <ItemGroup>
