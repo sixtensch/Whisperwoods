@@ -9,8 +9,8 @@
 
 #include <filesystem>
 
-constexpr uint LEVEL_MAP_PIXEL_WIDTH = 350u;
-constexpr uint LEVEL_MAP_PIXEL_HEIGHT = 350u;
+constexpr uint LEVEL_MAP_PIXEL_WIDTH = 400u;
+constexpr uint LEVEL_MAP_PIXEL_HEIGHT = 400u;
 constexpr uint BYTES_PER_TEXEL = 4u;
 constexpr uint DATA_SIZE = LEVEL_MAP_PIXEL_WIDTH * LEVEL_MAP_PIXEL_HEIGHT * BYTES_PER_TEXEL;
 
@@ -196,7 +196,7 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 	}
 
 	// Draw nodes as cubes.
-	int cubeWidth = 20;
+	int cubeWidth = 22;
 	int halfCube = cubeWidth / 2;
 	for (Vec2 roomPos : roomPositions)
 	{
