@@ -560,24 +560,6 @@ void Game::DrawIMGUIWindows()
 				const Vec3 levelPos = Vec3(l.position.x * distance, 3.2f, l.position.z * distance);
 				m_testRenderables.Back()->worldMatrix = Mat::translation3(levelPos) * l.rotation.Matrix() * Mat::scale3( 0.8f );
 
-				// TODO: Temporary check with i value just for testing.
-				if (m_player->currentRoom->m_level == &l || i == 3)
-				{
-					shared_ptr<PointLight> pointLight = make_shared<PointLight>();
-					pointLight->bufferData = {
-						levelPos + Vec3(0.0f, 1.0f, 0.0f),
-						0.3f,
-						Vec3(1.0f, 1.0f, 1.0f)
-					};
-
-					pointLight->intensity = 1.0f;
-					pointLight->color = cs::Color3f(1.0f, 0.0f, 0.0f);
-					pointLight->transform.position = pointLight->bufferData.position;
-					pointLight->transform.CalculateWorldMatrix();
-
-					Renderer::RegisterLight(pointLight);
-				}
-
 				m_testMaterials[i].specular = Vec3( 0.5f, 0.5f, 0.5f );
 				m_testMaterials[i].textureDiffuse = l.resource->source;
 				m_testRenderables.Back()->Materials().AddMaterial( &m_testMaterials[i] );
@@ -709,30 +691,30 @@ void Game::Init()
 	m_loadScreen = shared_ptr<GUI> (new GUI());
 
 	// loading screen
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(0)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(0)->alpha = 1.0f;
-	m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(0)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(0)->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
+	std::shared_ptr<GUIElement> loadingScreenGUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	loadingScreenGUI->colorTint = Vec3(1, 1, 1);
+	loadingScreenGUI->alpha = 1.0f;
+	loadingScreenGUI->uiRenderable->enabled = false;
+	loadingScreenGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	loadingScreenGUI->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
 
 
 	//winning screen 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(1)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(1)->alpha = 1.0f;
-	m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(1)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(1)->firstTexture = Resources::Get().GetTexture("winScreen.png");
+	std::shared_ptr<GUIElement> winningScreenGUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	winningScreenGUI->colorTint = Vec3(1, 1, 1);
+	winningScreenGUI->alpha = 1.0f;
+	winningScreenGUI->uiRenderable->enabled = false;
+	winningScreenGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	winningScreenGUI->firstTexture = Resources::Get().GetTexture("winScreen.png");
 
 
 	//skip tutorial screen 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(2)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(2)->alpha = 1.0f;
-	m_loadScreen->GetElement(2)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(2)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(2)->firstTexture = Resources::Get().GetTexture("skipTutorial.png");
+	std::shared_ptr<GUIElement> skipTutorialScreenGUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	skipTutorialScreenGUI->colorTint = Vec3(1, 1, 1);
+	skipTutorialScreenGUI->alpha = 1.0f;
+	skipTutorialScreenGUI->uiRenderable->enabled = false;
+	skipTutorialScreenGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	skipTutorialScreenGUI->firstTexture = Resources::Get().GetTexture("skipTutorial.png");
 
 
 	// Audio test startup
@@ -953,6 +935,8 @@ bool Game::IsInHubby()
 void Game::LoadRoom(uint levelIndex)
 {
 	Level& level = m_floor.rooms[levelIndex];
+
+	m_levelHandler->SetFloormapFocusRoom(&level);
 
 	Mat4 roomOffset =
 		Mat::translation3(0, -0.01f, 0) *

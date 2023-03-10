@@ -57,9 +57,13 @@ public:
 
 	static void SetFogParameters(Vec3 focus, float radius);
 
+	static void UpdateTexture2DData(ComPtr<ID3D11Texture2D> texture2D, uint8_t* data, uint textureWidth, uint textureHeight);
+
 	static Camera& GetCamera();
 	static Window& GetWindow();
-	//static Renderer& Get();
+
+	// Added back because GetRenderCore was needed in minimap creation and is the ONLY function that is not static.
+	static Renderer& Get();
 
 	// TODO: Check if there is a better way of gaining access to the render core.
 	RenderCore* GetRenderCore();

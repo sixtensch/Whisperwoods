@@ -51,6 +51,9 @@ namespace CB
 		Vec3 vectorData;
 		float floatData;
 		Point4 intData;
+		Vec2 minimapRoomPos;
+		
+		Vec2 PADDING;
 	};
 
 	struct PPFXThresholdInfo 
