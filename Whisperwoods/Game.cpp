@@ -365,7 +365,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						else if (m_player->hasPickedUpEssenceBloom && !tutorial)
 						{
 							// you win!
-							m_loadScreen->GetElement(1)->uiRenderable->enabled = true;
+							//m_loadScreen->GetElement(1)->uiRenderable->enabled = true; // this old win screen
 							youWin = true;
 						}
 						
@@ -641,23 +641,47 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 		}
 
-		if (youWin)
+	if (youWin)
+	{
+		m_winTimer += deltaTime; // for slideshow
+		int slideShowIndex = std::floor(m_winTimer / m_timePerEndSlideShow);
+		if (slideShowIndex > 4)
 		{
-
-			if (Input::Get().IsDXKeyPressed(DXKey::Space))
-			{
-				//player pressed spacebar when outside while loop
-				m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
-				youWin = false;
-				EndRun(renderer);
-			}
-			else
-			{
-				return;
-			}
+			m_winTimer -= deltaTime / 2;
 		}
 
+		if (slideShowIndex >= 5)
+		{
+			m_loadScreen->GetElement(8)->uiRenderable->enabled = false;
+			m_loadScreen->GetElement(9)->uiRenderable->enabled = true;
+		}
+		if (Input::Get().IsDXKeyPressed(DXKey::Space) && slideShowIndex >= 5)
+		{
+			//player pressed spacebar when outside while loop
+			//m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
+			m_loadScreen->GetElement(9)->uiRenderable->enabled = false;
+			youWin = false;
+			m_winTimer = 0.0f;
+			EndRun(renderer);
+		}
+		else if (slideShowIndex == 0)
+		{
+			m_loadScreen->GetElement(4)->uiRenderable->enabled = true;
+		}
+		else if (slideShowIndex > 0 && slideShowIndex < 5)
+		{
+			m_loadScreen->GetElement(slideShowIndex + 3 )->uiRenderable->enabled = false;
+			m_loadScreen->GetElement(slideShowIndex + 4)->uiRenderable->enabled = true;
+			return;
+		}
+		else
+		{
+			return;
+		}
+	}
 
+	if (!m_isCutScene)
+	{
 		UpdateGameObjects();
 
 		UpdateGameplayVars( renderer );
@@ -726,7 +750,7 @@ void Game::Init()
 	m_loadScreen->GetElement(0)->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
 
 
-	//winning screen 
+	//winning screen (old)
 	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	m_loadScreen->GetElement(1)->colorTint = Vec3(1, 1, 1);
 	m_loadScreen->GetElement(1)->alpha = 1.0f;
@@ -750,8 +774,54 @@ void Game::Init()
 	m_loadScreen->GetElement(3)->alpha = 1.0f;
 	m_loadScreen->GetElement(3)->uiRenderable->enabled = false;
 	m_loadScreen->GetElement(3)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(3)->firstTexture = Resources::Get().GetTexture("coward.png");
+	m_loadScreen->GetElement(3)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	m_loadScreen->GetElement(3)->secondTexture = Resources::Get().GetTexture("coward.png");
+
+
+	// THIS IS NEW WIN SCREENS
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(4)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(4)->alpha = 1.0f;
+	m_loadScreen->GetElement(4)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(4)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(4)->firstTexture = Resources::Get().GetTexture("endClip1.png");
+
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(5)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(5)->alpha = 1.0f;
+	m_loadScreen->GetElement(5)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(5)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(5)->firstTexture = Resources::Get().GetTexture("endClip2.png");
+
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(6)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(6)->alpha = 1.0f;
+	m_loadScreen->GetElement(6)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(6)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(6)->firstTexture = Resources::Get().GetTexture("endClip3.png");
+
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(7)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(7)->alpha = 1.0f;
+	m_loadScreen->GetElement(7)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(7)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(7)->firstTexture = Resources::Get().GetTexture("endClip4.png");
+
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(8)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(8)->alpha = 1.0f;
+	m_loadScreen->GetElement(8)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(8)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(8)->firstTexture = Resources::Get().GetTexture("endClip5.png");
+
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(9)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(9)->alpha = 1.0f;
+	m_loadScreen->GetElement(9)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(9)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(9)->firstTexture = Resources::Get().GetTexture("endClip6.png");
+
+	//****
 
 	// Audio test startup
 	/*FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;

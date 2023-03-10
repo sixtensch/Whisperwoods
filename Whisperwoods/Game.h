@@ -232,6 +232,9 @@ private:
 	void TransitionUpdate(float deltaTime);
 	void ExecuteLoad(uint targetRoom, Vec3 position, Vec3 direction);
 
+	float m_winTimer = 0.0f;
+	float m_timePerEndSlideShow = 7.0f;
+	 
 	TimeSwitchValues m_switchVals;
 
 	Vec3 m_targetFogFocus;
