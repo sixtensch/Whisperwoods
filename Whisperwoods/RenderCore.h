@@ -52,7 +52,7 @@ public:
 	void UpdateViewInfo(const Camera& camera);
 	void UpdateObjectInfo(const WorldRenderable* worldRenderable);
 
-	void UpdatePlayerInfo( Mat4 matrix );
+	void UpdatePlayerInfo( Mat4 matrix, Vec4 worldInfo1, Vec4 worldInfo2 );
 
 	void UpdateGUIInfo(const GUIElement* guiElement) const;
 

@@ -12,6 +12,8 @@ struct GUIElement
 	Vec2 position;
 	Vec2 size;
 
+	bool isActive;
+
 	Vec3 colorTint;
 	float alpha;
 	Vec3 vectorData;

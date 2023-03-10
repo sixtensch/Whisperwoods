@@ -67,11 +67,11 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
 	//BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false, 1.0f );
 	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false, 1.5f);
 	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Present.fbx", false, 1.5f );
 	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Present.fbx", false, 1.5f );
 	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Future.fbx", false);
 	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Present.fbx", false);
 	//BuildWWM("Assets/Models/FBX/Static/Stone_2_Future.fbx", false);
@@ -143,20 +143,6 @@ void Whisperwoods::Run()
 	m_game->Init();
 	m_game->LoadHubby();
 
-	//// Test generate a floor
-	//LevelFloor tempFloor;
-	//FloorParameters fParams;
-	//fParams.seed = 123;
-	//fParams.angleSteps = 0;
-	//fParams.pushSteps = 3;
-	//fParams.roomCount = 8;
-	//EnvironmentalizeParameters eParams = { 0 };
-	//m_game->m_levelHandler->GenerateFloor(&tempFloor, fParams, eParams );
-
-	//// Generate a image from the floor data
-	//shared_ptr<uint8_t> imageData = m_game->m_levelHandler->GenerateFloorImage(1024, 1024, tempFloor);
-	//TextureResource* newTexture = Resources::Get().CreateTexture(m_renderer->GetRenderCore(), "Test", imageData.get(), 1024 * 1024);
-
 	// Test GUI
 	// Stamina bar
 	GUI testGui;
@@ -186,10 +172,7 @@ void Whisperwoods::Run()
 	testGui.GetElement( 2 )->secondTexture = Resources::Get().GetTexture( "StaminaBarMask09.png" );
 	float targetAlpha = 0.0f;
 
-
-
-
-	//************* power cooldown
+	// Power cooldown
 	testGui.AddGUIElement({ 0.475f,-0.82f }, { 0.5f,0.1f }, nullptr, nullptr);
 	testGui.GetElement(3)->colorTint = Vec3(0.08f, 0.18f, 0.8f);
 	testGui.GetElement(3)->alpha = 0.6f;
@@ -198,83 +181,97 @@ void Whisperwoods::Run()
 	testGui.GetElement(3)->intData = Point4(0, 1, 0, 0); // Makes it follow the float value.
 	testGui.GetElement(3)->firstTexture = nullptr;
 	testGui.GetElement(3)->secondTexture = Resources::Get().GetTexture("StaminaBarMask09.png");
-	//**********
-
 
 	// time for tutorial text. Change alpha to make them active or not
+	float textAlpha = 0.7f;
 
 	//tutorial 1
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(4)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(4)->alpha = 1.0f;
+	testGui.GetElement(4)->alpha = textAlpha;
 	testGui.GetElement(4)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(4)->firstTexture = Resources::Get().GetTexture("tut1Text.png");
+	testGui.GetElement(4)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(4)->secondTexture = Resources::Get().GetTexture("tut1Text.png");
 
 	//tutorial 2
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(5)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(5)->alpha = 1.0f;
+	testGui.GetElement(5)->alpha = textAlpha;
 	testGui.GetElement(5)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(5)->firstTexture = Resources::Get().GetTexture("tut2Text.png");
+	testGui.GetElement(5)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(5)->secondTexture = Resources::Get().GetTexture("tut2Text.png");
 
 	//tutorial 3
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(6)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(6)->alpha = 1.0f;
+	testGui.GetElement(6)->alpha = textAlpha;
 	testGui.GetElement(6)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(6)->firstTexture = Resources::Get().GetTexture("tut3Text.png");
+	testGui.GetElement(6)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(6)->secondTexture = Resources::Get().GetTexture("tut3Text.png");
 
 	//tutorial 4
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(7)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(7)->alpha = 1.0f;
+	testGui.GetElement(7)->alpha = textAlpha;
 	testGui.GetElement(7)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(7)->firstTexture = Resources::Get().GetTexture("tut4Text.png");
+	testGui.GetElement(7)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(7)->secondTexture = Resources::Get().GetTexture("tut4Text.png");
 
 	//tutorial 5
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(8)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(8)->alpha = 1.0f;
+	testGui.GetElement(8)->alpha = textAlpha;
 	testGui.GetElement(8)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(8)->firstTexture = Resources::Get().GetTexture("tut5Text.png");
+	testGui.GetElement(8)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(8)->secondTexture = Resources::Get().GetTexture("tut5Text.png");
 
 	//tutorial 6 present
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(9)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(9)->alpha = 1.0f;
+	testGui.GetElement(9)->alpha = textAlpha;
 	testGui.GetElement(9)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(9)->firstTexture = Resources::Get().GetTexture("tut61Text.png");
+	testGui.GetElement(9)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(9)->secondTexture = Resources::Get().GetTexture("tut61Text.png");
 
 	//tutorial 6 future
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(10)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(10)->alpha = 1.0f;
+	testGui.GetElement(10)->alpha = textAlpha;
 	testGui.GetElement(10)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(10)->firstTexture = Resources::Get().GetTexture("tut62Text.png");
+	testGui.GetElement(10)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(10)->secondTexture = Resources::Get().GetTexture("tut62Text.png");
 
 	//tutorial 7
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(11)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(11)->alpha = 1.0f;
+	testGui.GetElement(11)->alpha = textAlpha;
 	testGui.GetElement(11)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(11)->firstTexture = Resources::Get().GetTexture("tut7Text.png");
+	testGui.GetElement(11)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(11)->secondTexture = Resources::Get().GetTexture("tut7Text.png");
 
 
 	//get da bloom
 	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	testGui.GetElement(12)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(12)->alpha = 1.0f;
+	testGui.GetElement(12)->alpha = textAlpha;
 	testGui.GetElement(12)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
 	testGui.GetElement(12)->firstTexture = Resources::Get().GetTexture("getDaBloom.png");
 	testGui.GetElement(12)->secondTexture = Resources::Get().GetTexture("getDaBloom.png");
+
+	// Cutscene element 1
+	testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
+	testGui.GetElement( 13 )->colorTint = Vec3( 0, 0, 0 );
+	testGui.GetElement( 13 )->alpha = 0.0;
+	testGui.GetElement( 13 )->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
+	testGui.GetElement( 13 )->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
+
+	// Cutscene element 2
+	testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
+	testGui.GetElement( 14 )->colorTint = Vec3( 0, 0, 0 );
+	testGui.GetElement( 14 )->alpha = 0.0;
+	testGui.GetElement( 14 )->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
+	testGui.GetElement( 14 )->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
+	//testGui.GetElement( 13 )->secondTexture = Resources::Get().GetTexture( "tut1Text.png" );
 
 	//// loading screen
 	//testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
@@ -283,31 +280,9 @@ void Whisperwoods::Run()
 	//testGui.GetElement(13)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
 	//testGui.GetElement(13)->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
 
+	m_game->SetGUI(&testGui);
+	m_game->InitCutscene();
 
-	// 
-	// Test of the cutscene system.
-	CutsceneController cutsceneController;
-	shared_ptr<Cutscene> testCutScene(new Cutscene("Test scene"));
-	testCutScene->AddChannel( std::shared_ptr<CutsceneCameraChannel>( new CutsceneCameraChannel( "Main camera", &Renderer::GetCamera())));
-	testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Player Animator", m_game->GetPlayer()->characterAnimator.get())));
-	testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Player Transform", &m_game->GetPlayer()->transform )));
-	cutsceneController.m_cutscenes.Add( testCutScene );
-	cutsceneController.ActivateCutscene( 0 );
-
-	CutsceneCameraChannel* channel = (CutsceneCameraChannel*)cutsceneController.m_cutscenes[0]->channels[0].get();
-	channel->targetCamera = &Renderer::GetCamera();
-	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, {0,0,-20}, Quaternion::GetEuler( { 0,0,0} ), 90, 1)));
-	channel->keys[0]->frame = 0;
-
-	//channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,5,-5 }, Quaternion::GetEuler( { 1.0f,cs::c_pi,0 } ), 90, 1)));
-	//channel->keys[1]->frame = 30;
-
-	//channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,1,5 }, Quaternion::GetEuler( { 1.0f,0,0 } ), 90, 1)));
-	//channel->keys[2]->frame = 60;
-	
-	channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,1,10 }, Quaternion::GetEuler({ 0,cs::c_pi,0 }), 90, 1)));
-	channel->keys[1]->frame = 99;
-	//testCutScene.AddKey( std::shared_ptr< CutsceneTransformKey >(new CutsceneTransformKey( 0.5f, m_game->GetPlayer(), {0,0,0}, Quaternion::GetEuler({0,0,0}), {1,1,1})));
 
 	// Main frame loop
 	int frames = 0;
@@ -340,14 +315,6 @@ void Whisperwoods::Run()
 		m_debug->CalculateFps(dTime);
 		static float dTimeAcc = 0.0f;
 		dTimeAcc += dTime;
-		
-		// Test of cinematics
-		cutsceneController.Update();
-		if (cutsceneController.CutsceneActive())
-		{
-			static_cast<CutsceneCameraChannel*>(cutsceneController.m_cutscenes[0]->channels[0].get())->Update(
-				(float)cutsceneController.currentFrame/(float)cutsceneController.endFrame, cutsceneController.endFrame);
-		}
 
 		// Update the test gui with the stamina.
 		testGui.GetElement( 0 )->floatData = m_game->GetPlayer()->GetCurrentStamina()/10.0f;
@@ -402,34 +369,7 @@ void Whisperwoods::Run()
 			testGui.GetElement(2)->uiRenderable->enabled = true;
 		}
 
-		
-		
-		
-		
 
-
-		// Button/Interaction Test
-		//if (Input::Get().GetMouseState().leftButton && !Input::Get().GetLastMouseState().leftButton)
-		//{
-		//	//bool isInside = testGui.GetElement( 2 )->TestMouse();
-		//	//LOG_TRACE( "Inside: %d ", isInside );
-		//	if (testGui.GetElement( 2 )->TestMouse())
-		//	{
-		//		Debug::ExecuteCommand( "Duck", "play" );
-		//		targetAlpha = !targetAlpha;
-		//	}
-		//}
-		//else if (!Input::Get().GetMouseState().leftButton)
-		//{
-		//	if( testGui.GetElement( 2 )->TestMouse() )
-		//	{
-		//		testGui.GetElement( 2 )->colorTint = Vec3( 0.5, 1.0f, 0.5 );
-		//	}
-		//	else
-		//	{
-		//		testGui.GetElement( 2 )->colorTint = Vec3( 1, 1, 1 );
-		//	}
-		//}
 
 		if (ImGui::Begin( "Shadow PS Test" ))
 		{
@@ -495,9 +435,6 @@ void Whisperwoods::Run()
 		// Draw step
 		m_renderer->Draw();
 
-		// Camera update
-		Move(dTime, m_game->GetPlayer(), &cutsceneController);
-
 		// Draw console
 		m_debug->DrawConsole();
 
@@ -510,213 +447,6 @@ void Whisperwoods::Run()
 	}
 
 	m_game->DeInit();
-}
-
-Vec3 Lerp(Vec3 a, Vec3 b, float t)
-{
-	return a * (1.0f - t) + b * t;
-}
-
-Quaternion QuaternionLookRotation(Vec3 forward, Vec3 up)
-{
-	forward.Normalize();
-
-	Vec3 vector = forward.Normalize();
-	Vec3 vector2 = up.Cross(vector).Normalize();
-	Vec3 vector3 = vector.Cross(vector2);
-	float m00 = vector2.x;
-	float m01 = vector2.y;
-	float m02 = vector2.z;
-	float m10 = vector3.x;
-	float m11 = vector3.y;
-	float m12 = vector3.z;
-	float m20 = vector.x;
-	float m21 = vector.y;
-	float m22 = vector.z;
-
-
-	float num8 = (m00 + m11) + m22;
-	Quaternion quaternion;
-	if (num8 > 0.0f)
-	{
-		float num = (float)std::sqrt(num8 + 1.0f);
-		quaternion.w = num * 0.5f;
-		num = 0.5f / num;
-		quaternion.x = (m12 - m21) * num;
-		quaternion.y = (m20 - m02) * num;
-		quaternion.z = (m01 - m10) * num;
-		return quaternion;
-	}
-	if ((m00 >= m11) && (m00 >= m22))
-	{
-		float num7 = (float)std::sqrt(((1.0f + m00) - m11) - m22);
-		float num4 = 0.5f / num7;
-		quaternion.x = 0.5f * num7;
-		quaternion.y = (m01 + m10) * num4;
-		quaternion.z = (m02 + m20) * num4;
-		quaternion.w = (m12 - m21) * num4;
-		return quaternion;
-	}
-	if (m11 > m22)
-	{
-		float num6 = (float)std::sqrt(((1.0f + m11) - m00) - m22);
-		float num3 = 0.5f / num6;
-		quaternion.x = (m10 + m01) * num3;
-		quaternion.y = 0.5f * num6;
-		quaternion.z = (m21 + m12) * num3;
-		quaternion.w = (m20 - m02) * num3;
-		return quaternion;
-	}
-	float num5 = (float)std::sqrt(((1.0f + m22) - m00) - m11);
-	float num2 = 0.5f / num5;
-	quaternion.x = (m20 + m02) * num2;
-	quaternion.y = (m21 + m12) * num2;
-	quaternion.z = 0.5f * num5;
-	quaternion.w = (m01 - m10) * num2;
-	return quaternion;
-}
-
-Quaternion Lerp(Quaternion q0, Quaternion q1, float t)
-{
-	DirectX::XMVECTOR Q0 = DirectX::XMVectorSet((float)q0.x, (float)q0.y, (float)q0.z, (float)q0.w);
-	DirectX::XMVECTOR Q1 = DirectX::XMVectorSet((float)q1.x, (float)q1.y, (float)q1.z, (float)q1.w);
-	DirectX::XMVECTOR OUTPUT = DirectX::XMQuaternionSlerp(Q0, Q1, t);
-	DirectX::XMFLOAT4 FL4;
-	DirectX::XMStoreFloat4(&FL4, OUTPUT);
-	return Quaternion(FL4.x, FL4.y, FL4.z, FL4.w);
-}
-
-Vec3 EulerAngles( Quaternion q )
-{
-	Vec3 returnValue;
-	// roll (x-axis rotation)
-	float sinr_cosp = 2.0f * (q.w * q.x + q.y * q.z);
-	float cosr_cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
-	returnValue.x = std::atan2f( sinr_cosp, cosr_cosp );
-
-	// pitch (z-axis rotation)
-	float sinp = 2 * (q.w * q.y - q.z * q.x);
-	if (std::abs( sinp ) >= 1)
-		returnValue.y = std::copysignf( DirectX::XM_PI / 2, sinp ); // use 90 degrees if out of range
-	else
-		returnValue.y = std::asinf( sinp );
-
-	// yaw (y-axis rotation)
-	float siny_cosp = 2.0f * (q.w * q.z + q.x * q.y);
-	float cosy_cosp = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
-	returnValue.z = std::atan2f( siny_cosp, cosy_cosp );
-
-	return returnValue;
-}
-
-void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutSceneController)
-{
-	if (dTime > 0.2f)
-	{
-		dTime = 0.001f;
-	}
-
-	static bool cameraLock = false;
-	static bool cameraPlayer = true;
-	Camera& camera = Renderer::GetCamera();
-	Input& inputRef = Input::Get();
-
-	if (!cutSceneController->CutsceneActive())
-	{
-		MouseState mouseState = inputRef.GetMouseState();
-
-		if (inputRef.IsDXKeyPressed(DXKey::R))
-		{
-			if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
-			{
-				inputRef.SetMouseMode(dx::Mouse::MODE_ABSOLUTE);
-			}
-			else
-			{
-				inputRef.SetMouseMode(dx::Mouse::MODE_RELATIVE);
-			}
-		}
-
-		if (inputRef.IsDXKeyPressed(DXKey::P))
-		{
-			cameraPlayer = !cameraPlayer;
-			player->cameraIsLocked = cameraPlayer;
-		}
-		
-		if (!cameraPlayer)
-		{
-			// Debug Camera Movement
-			Vec3 movement = Vec3(0, 0, 0);
-			Vec3 forwardDirection = camera.GetDirection();
-			forwardDirection.y = 0;
-			forwardDirection.Normalize();
-			Vec3 rightDirection = camera.GetRight();
-			Vec3 upDirection = Vec3(0.0f, 1.0f, 0.0f);
-			if (inputRef.IsKeybindDown(KeybindForward))		movement += forwardDirection;
-			if (inputRef.IsKeybindDown(KeybindBackward))	movement -= forwardDirection;
-			if (inputRef.IsKeybindDown(KeybindRight))		movement += rightDirection;
-			if (inputRef.IsKeybindDown(KeybindLeft))		movement -= rightDirection;
-			if (inputRef.IsKeybindDown(KeybindUp))			movement += upDirection;
-			if (inputRef.IsKeybindDown(KeybindDown))		movement -= upDirection;
-			if (inputRef.IsKeybindDown(KeybindSprint))
-			{
-				movement *= 5.0f;
-			}
-			static Vec3 rotationVec = {};
-			if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
-			{
-				cs::Vec3 delta = Vec3( (float)mouseState.y, (float)mouseState.x, 0.0f );
-				rotationVec -= delta * dTime * 2.0f;
-				camera.SetRotation( Quaternion::GetEuler( { rotationVec.x, rotationVec.y, rotationVec.z } ).Conjugate() );
-
-				if (ImGui::Begin( "Camera rotation dev" ))
-				{
-					ImGui::Text( "Rot Vec: %f, %f, %f", rotationVec.x, rotationVec.y, rotationVec.z );
-					ImGui::Text( "Rot: %f, %f, %f, %f", camera.GetRotation().x, camera.GetRotation().y, camera.GetRotation().z, camera.GetRotation().w );
-					ImGui::Text( "Dir: %f, %f, %f", camera.GetDirection().x, camera.GetDirection().y, camera.GetDirection().z );
-					ImGui::Text( "Delta: %f, %f, %f", delta.x, delta.y, delta.z );
-
-				}
-				ImGui::End();
-				//camera.SetRotation(Quaternion::GetEuler(rotationVec));
-			}
-			camera.SetPosition(camera.GetPosition() + movement * dTime);
-		}
-		else
-		{
-			Vec3 cameraCurrentPos = camera.GetPosition();
-			Vec3 cameraTargetPos = player->cameraFollowTarget;
-			Quaternion cameraCurrentRot = camera.GetRotation();
-			Quaternion cameraTargetRot = player->cameraLookRotationTarget;
-
-			Vec3 lerped = Lerp(cameraCurrentPos, cameraTargetPos, dTime * 5);
-			camera.SetPosition(lerped);
-			if (!(std::isnan( cameraTargetRot.x) || std::isnan( cameraTargetRot.y) || std::isnan( cameraTargetRot.z) || std::isnan( cameraTargetRot.w)))
-			{
-				Quaternion slerped;
-				slerped = Lerp(cameraCurrentRot, cameraTargetRot, cs::fclamp( dTime * 5.0f, 0.0001f, 1.0f ) );
-				slerped.NormalizeThis();
-				camera.SetRotation(slerped);
-			}
-			if (ImGui::Begin("Camera rotation player"))
-			{
-				Vec3 playPos = player->transform.GetWorldPosition();
-				Quaternion playerRot = player->transform.GetWorldRotation();
-				Vec3 playerRotEuler = EulerAngles( playerRot );
-				ImGui::Text( "Player Pos: %f, %f, %f", playPos.x, playPos.y, playPos.z );
-				ImGui::Text( "Player Rot: %f, %f, %f, %f", playerRot.x, playerRot.y, playerRot.z, playerRot.w );
-				ImGui::Text( "Player Rot Euler deg: %f, %f, %f", playerRotEuler.x * RAD2DEG, playerRotEuler.y * RAD2DEG, playerRotEuler.z * RAD2DEG );
-				//ImGui::Text("Dir: %f, %f, %f", direction.x, direction.y, direction.z);
-				ImGui::Text("RotP: %f, %f, %f, %f", cameraTargetRot.x, cameraTargetRot.y, cameraTargetRot.z, cameraTargetRot.w);
-				ImGui::DragFloat("Camera Follow Distance", &player->cameraFollowDistance, 0.05f, 0.1f, 10.0f);
-				ImGui::DragFloat("Camera Follow Tilt", &player->cameraFollowTilt, 0.05f, 0.1f, cs::c_pi / 2 - 0.1f);
-				ImGui::DragFloat3("Camera lookAt offset", (float*)&player->cameraLookTargetOffset, 0.1f);
-			}
-			ImGui::End();
-		}
-	}
-
-	camera.Update();
 }
 
 void Whisperwoods::GodMode(void*, void*)
