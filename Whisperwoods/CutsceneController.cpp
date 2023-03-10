@@ -48,6 +48,11 @@ void CutsceneController::Update(float deltaTime)
 {
     // IMGUI timeline things.
 
+    if (m_time > 0.98f && m_cutSceneActive)
+    {
+        m_isPlaying = false;
+        m_cutSceneActive = false;
+    }
 
     CutsceneCameraChannel* cameraChannel = nullptr;
     // CutsceneAnimatorChannel* animatorChannel1 = nullptr;
