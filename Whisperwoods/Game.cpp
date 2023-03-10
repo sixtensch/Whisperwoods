@@ -1432,6 +1432,8 @@ void Game::EndRunDueToPoison(Renderer* renderer)
 void Game::TransitionStart(Vec3 exitPosition, Vec3 exitDirection, uint targetRoom, Vec3 targetPosition, Vec3 targetDirection)
 {
 	m_transitionTarget = TransitionTargetLoadRoom;
+	m_transitionTime = 0.0f;
+	m_transitionTimeTarget = 0.2f;
 
 	m_targetCameraPosition = exitPosition + exitDirection * 3.0f + Vec3(0.0f, 1.0f, 0.0f);
 	m_targetCameraDirection = Quaternion::GetDirection((exitDirection + Vec3(0.0f, -0.2f, 0.0f)).Normalized());
@@ -1457,7 +1459,7 @@ void Game::ExecuteLoad(uint targetRoom, Vec3 position, Vec3 direction)
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update(0);
 
-	MovePlayer(direction - direction * TUNNEL_SPAWN_DISTANCE, -direction);
+	MovePlayer(position - direction * TUNNEL_SPAWN_DISTANCE, -direction);
 	m_player->ReloadPlayer();
 
 	Renderer::ExecuteShadowRender();

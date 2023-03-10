@@ -234,6 +234,8 @@ private:
 	Vec3 m_targetSpawnDirection;
 	Vec3 m_targetCameraPosition;
 	Quaternion m_targetCameraDirection;
+	float m_transitionTime;
+	float m_transitionTimeTarget;
 	enum TransitionTarget
 	{
 		TransitionTargetNone,
