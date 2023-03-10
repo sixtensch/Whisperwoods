@@ -159,6 +159,7 @@ void GPUProfiler::SynthesizeSummary()
 
 void GPUProfiler::DrawImGui()
 {
+#if WW_IMGUI 1
 	if (ImGui::Begin("GPU Profiler"))
 	{
 		ImGui::Checkbox("Profiler toggle", &m_isOn);
@@ -182,6 +183,7 @@ void GPUProfiler::DrawImGui()
 	{
 		m_waitFramesPerUpdate = s_maxFrameWait;
 	}
+#endif
 }
 
 bool GPUProfiler::IsAllowedToUpdate()

@@ -117,7 +117,7 @@ void CutsceneController::Update(float deltaTime)
     }
 
 
-
+#if WW_IMGUI 1
 	if (ImGui::Begin( "Cutscene controller" ))
 	{
         ImGui::Checkbox("Cutscene Active", &m_cutSceneActive);
@@ -494,4 +494,5 @@ void CutsceneController::Update(float deltaTime)
         }
 	}
 	ImGui::End();
+#endif
 }

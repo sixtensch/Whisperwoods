@@ -120,6 +120,7 @@ void Debug::DestroyConsole()
 
 void Debug::DrawConsole()
 {
+#if WW_IMGUI 1
 	if (ImGui::Begin("FPS counter"))
 	{
 		ImGui::Text("Last 16 frames average FPS: %f", m_fpsAverage16);
@@ -244,6 +245,7 @@ void Debug::DrawConsole()
 		}
 	}
 	ImGui::End();
+#endif
 }
 
 void Debug::ClearFrameTrace()
