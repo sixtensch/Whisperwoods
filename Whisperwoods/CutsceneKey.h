@@ -56,10 +56,10 @@ struct CutsceneTransformKey : CutsceneKey
 struct CutsceneGUITriggerKey : CutsceneKey
 {
 	float alpha;
-	bool active;
+	char active;
 	Vec3 color;
 	CutsceneGUITriggerKey() = default;
-	CutsceneGUITriggerKey( float time, float alpha, bool active, Vec3 color)
+	CutsceneGUITriggerKey( float time, float alpha, char active, Vec3 color)
 		: alpha( alpha ), active( active ), color( color ) {
 		this->time = time;
 	}

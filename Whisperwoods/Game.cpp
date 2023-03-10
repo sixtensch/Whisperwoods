@@ -602,7 +602,7 @@ void Game::CinematicUpdate()
 {
 
 	// Test of cinematics // TODO: IMPORTANT: LATER DON'T DO THIS WHEN THE GAME IS RUNNING, ITS PROBABLY FATASS-HEAVY ON THE CPU.
-	m_cutsceneController->Update(m_deltaTime);
+	//m_cutsceneController->Update(m_deltaTime);
 	if (m_cutsceneController->CutsceneActive())
 	{
 		m_gui->GetElement(13)->uiRenderable->enabled = true;
@@ -624,12 +624,25 @@ void Game::CinematicUpdate()
 	}
 }
 
+static bool firstFrame = false;
+static bool secondFrame = false;
 // Main update function.
 void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_deltaTime = deltaTime;
-	
-	
+
+	if (!firstFrame)
+	{
+		firstFrame = true;
+	}
+	else if (!secondFrame)
+	{
+		secondFrame = true;
+		m_cutsceneController->m_cutSceneActive = true;
+		m_cutsceneController->m_isPlaying = true;
+	}
+	m_cutsceneController->Update(m_deltaTime);
+
 	if (!m_cutsceneController->m_cutSceneActive)
 	{
 		if (m_skipTutorialQuestion)
@@ -968,7 +981,7 @@ void Game::InitCutscene()
 	//m_testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Grafiki Animator", m_game->m_grafiki->characterAnimator.get() ) ) );
 	//m_testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Player Transform", &m_game->GetPlayer()->transform )));
 	//m_testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Grafiki Transform", &m_game->m_grafiki->transform ) ) );
-	m_testCutScene->AddChannel(std::shared_ptr<CutsceneGUIChannel>(new CutsceneGUIChannel("GUI Channel 2", m_gui)));
+	//m_testCutScene->AddChannel(std::shared_ptr<CutsceneGUIChannel>(new CutsceneGUIChannel("GUI Channel 2", m_gui)));
 	m_cutsceneController->m_cutscenes.Add(m_testCutScene);
 	m_cutsceneController->ActivateCutscene(0);
 
@@ -987,12 +1000,12 @@ void Game::InitCutscene()
 	guiChannel->targetGUI = m_gui;
 	guiChannel->targetGUIElement = 13; // Index
 
-	CutsceneGUIChannel* guiChannel2 = (CutsceneGUIChannel*)m_cutsceneController->m_cutscenes[0]->channels[5].get(); // GUI 1
+	CutsceneGUIChannel* guiChannel2 = (CutsceneGUIChannel*)m_cutsceneController->m_cutscenes[0]->channels[6].get(); // GUI 1
 	guiChannel2->targetGUI = m_gui;
 	guiChannel2->targetGUIElement = 14; // Index
 
-	//m_cutsceneController->m_cutSceneActive = true;
-	//m_cutsceneController->m_isPlaying = true;
+	m_cutsceneController->m_cutSceneActive = false;
+	m_cutsceneController->m_isPlaying = false;
 }
 
 void Game::LoadHubby()
