@@ -356,6 +356,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 							activeTutorialLevel = 8;
 							m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
 							
+							
 						}
 						else if (!m_player->hasPickedUpEssenceBloom)
 						{
@@ -597,8 +598,16 @@ void Game::CinematicUpdate()
 
 	// Test of cinematics // TODO: IMPORTANT: LATER DON'T DO THIS WHEN THE GAME IS RUNNING, ITS PROBABLY FATASS-HEAVY ON THE CPU.
 	m_cutsceneController->Update(m_deltaTime);
-
-
+	if (m_cutsceneController->CutsceneActive())
+	{
+		m_gui->GetElement(13)->uiRenderable->enabled = true;
+		m_gui->GetElement(14)->uiRenderable->enabled = true;
+	}
+	else
+	{
+		m_gui->GetElement(13)->uiRenderable->enabled = false;
+		m_gui->GetElement(14)->uiRenderable->enabled = false;
+	}
 
 	// More later
 	m_player->CinematicUpdate( m_deltaTime ); // Only updates the matrix and animator, allowing for cutscenecontroller control.
@@ -640,6 +649,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			return;
 
 		}
+	}
 
 	if (youWin)
 	{
@@ -680,7 +690,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		}
 	}
 
-	if (!m_isCutScene)
+	if (!m_cutsceneController->m_cutSceneActive)
 	{
 		UpdateGameObjects();
 
