@@ -336,7 +336,8 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						activeTutorialLevel = r.targetRoom + 1;
 						uint targetIndex = (r.tunnelSubIndex + 1) % 2;
 						const LevelTunnel& t = m_floor.tunnels[r.tunnel];
-						ExecuteLoad(r.targetRoom, t.positions[targetIndex], t.directions[targetIndex]);
+						//ExecuteLoad(r.targetRoom, t.positions[targetIndex], t.directions[targetIndex]);
+						TransitionStart(r.position, r.direction, r.targetRoom, t.positions[targetIndex], t.directions[targetIndex]);
 						break;
 					}
 
@@ -456,7 +457,7 @@ void Game::DrawIMGUIWindows()
 		{
 			ImGui::Separator();
 			ImGui::InputFloat3("Fog Focus", (float*)&m_fogFocus);
-			ImGui::DragFloat("Fog Radius", &m_fogRadius, 0.1f, 0.1f, 100.0f);
+			ImGui::DragFloat("Fog Radius", &m_fogRadius, 0.1f, -100.0f, 100.0f);
 		}
 	}
 	ImGui::End();
@@ -618,9 +619,8 @@ void Game::CinematicUpdate()
 void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_deltaTime = deltaTime;
-
-
-
+	
+	
 	if (!m_cutsceneController->m_cutSceneActive)
 	{
 		if (m_skipTutorialQuestion)
@@ -661,14 +661,18 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			}
 		}
 
+		if (m_transitionTarget != TransitionTargetNone)
+		{
+			TransitionUpdate(deltaTime);
+		}
+		else
+		{
+			UpdateRoomAndTimeSwappingLogic(renderer);
+		}
 
+		UpdateEnemies(renderer);
 		UpdateGameObjects();
-
-		UpdateGameplayVars( renderer );
-
-		UpdateEnemies( renderer );
-
-		UpdateRoomAndTimeSwappingLogic( renderer);
+		UpdateGameplayVars(renderer);
 
 		// Final steps
 		UpdateTimeSwitchBuffers( renderer );
@@ -678,6 +682,13 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		CinematicUpdate();
 	}
+
+	Renderer::UpdatePPFXInfo(
+		m_vignetteStrengthAndRadius,
+		m_contrastStrengthAndMidpoint,
+		m_finalBrightness,
+		m_finalSaturation
+	);
 
 	Move(deltaTime, m_player.get(), m_cutsceneController.get());
 
@@ -829,6 +840,17 @@ void Game::Init()
 
 	m_futureAmbientColor = cs::Color3f(0xFFFFC0);
 	m_futureAmbientIntensity = 0.35f;
+
+	m_vignetteStrengthAndRadius = Vec2(0.5f, 1.0f);
+	m_contrastStrengthAndMidpoint = Vec2(1.0f, 0.4f);
+	m_finalBrightness = 0.0f;
+	m_finalSaturation = 1.25f;
+	firstSet = true;
+
+
+
+	m_timeSwooshIn = 0.5f;
+	m_timeSwooshOut = 0.5f;
 }
 
 void Game::DeInit()
@@ -1083,7 +1105,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 	Camera& camera = Renderer::GetCamera();
 	Input& inputRef = Input::Get();
 
-	if (!cutSceneController->CutsceneActive())
+	if (m_transitionTarget == TransitionTargetNone && !cutSceneController->CutsceneActive())
 	{
 		MouseState mouseState = inputRef.GetMouseState();
 
@@ -1431,21 +1453,106 @@ void Game::EndRunDueToPoison(Renderer* renderer)
 
 void Game::TransitionStart(Vec3 exitPosition, Vec3 exitDirection, uint targetRoom, Vec3 targetPosition, Vec3 targetDirection)
 {
-	m_transitionTarget = TransitionTargetLoadRoom;
+	Camera& c = Renderer::GetCamera();
 
-	m_targetCameraPosition = exitPosition + exitDirection * 3.0f + Vec3(0.0f, 1.0f, 0.0f);
-	m_targetCameraDirection = Quaternion::GetDirection((exitDirection + Vec3(0.0f, -0.2f, 0.0f)).Normalized());
+	m_transitionTarget = TransitionTargetLoadRoom;
+	m_transitionTimeTarget = 0.3f;
+
+	m_initialFogFocus = m_fogFocus;
+	m_initialFogRadius = m_fogRadius;
+	m_initialCameraPosition = c.GetPosition();
+	m_initialCameraRotation = c.GetRotation();
+
+	m_targetFogFocus = exitPosition + exitDirection * 4.0f;
+	m_targetFogRadius = -30.0f;
+	m_targetCameraPosition = exitPosition + exitDirection * 5.0f + Vec3(0.0f, 2.0f, 0.0f);
+	m_targetCameraRotation = Quaternion::GetDirection((exitDirection + Vec3(0.0f, -0.2f, 0.0f)).Normalized());
 	m_targetRoom = targetRoom;
+
 	m_targetSpawnPosition = targetPosition;
 	m_targetSpawnDirection = targetDirection;
 
-	m_targetFogFocus = exitPosition + exitDirection * 1.5f;
-	m_targetFogRadius = -0.5f;
+	m_transitionTimer.Lap();
+
+	//m_player->SetMovementLock(true);
 }
 
 void Game::TransitionLoad()
 {
+	ExecuteLoad(m_targetRoom, m_targetSpawnPosition, m_targetSpawnDirection);
+	m_transitionTarget = TransitionTargetFree;
+	m_transitionTimeTarget = 0.8f;
 
+	m_initialFogFocus = m_targetSpawnPosition + m_targetSpawnDirection * 3.0f;
+	m_initialFogRadius = -30.0f;
+	m_initialCameraPosition = m_targetSpawnPosition + m_targetSpawnDirection * 1.5f + Vec3(0.0f, 2.0f, 0.0f);
+	m_initialCameraRotation = Quaternion::GetDirection((-m_targetSpawnDirection + Vec3(0.0f, -0.2f, 0.0f)).Normalized());
+
+	m_targetFogFocus = m_fogFocus;
+	m_targetFogRadius = m_fogRadius;
+	m_targetCameraPosition = m_player->cameraFollowTarget;
+	m_targetCameraRotation = m_player->cameraLookRotationTarget;
+
+	m_transitionTimer.Lap();
+}
+
+void Game::TransitionEnd()
+{
+	//m_player->SetMovementLock(false);
+	m_transitionTarget = TransitionTargetNone;
+}
+
+void Game::TransitionUpdate(float deltaTime)
+{
+	Camera& c = Renderer::GetCamera();
+
+	float lapsed = m_transitionTimer.Peek();
+	float lerp = cs::fclamp(lapsed, 0.0f, m_transitionTimeTarget) / m_transitionTimeTarget;
+	float ease = m_transitionTarget == TransitionTargetLoadRoom ?
+		cs::ease::in(lerp) :
+		cs::ease::outCubic(lerp);
+
+	if (m_transitionTarget == TransitionTargetFree)
+	{
+		m_player->UpdateCameraVars();
+		m_targetCameraPosition = m_player->cameraFollowTarget;
+		m_targetCameraRotation = m_player->cameraLookRotationTarget;
+	}
+
+	m_fogFocus = m_initialFogFocus + (m_targetFogFocus - m_initialFogFocus) * ease;
+	m_fogRadius = m_initialFogRadius + (m_targetFogRadius - m_initialFogRadius) * ease;
+
+	c.SetPosition(m_initialCameraPosition + (m_targetCameraPosition - m_initialCameraPosition) * ease);
+
+	Vec3 fromDirection = m_initialCameraRotation * Vec3(0.0f, 0.0f, 1.0f);
+	Vec3 toDirection = m_targetCameraRotation * Vec3(0.0f, 0.0f, 1.0f);
+	Vec3 lerpDirection = fromDirection + (toDirection - fromDirection) * ease;
+
+	Vec3 fromUp = (fromDirection % Vec3(0.0f, 0.0f, 1.0f)) % fromDirection;
+	Vec3 toUp = (toDirection % Vec3(0.0f, 0.0f, 1.0f)) % toDirection;
+	Vec3 lerpUp = fromUp + (toUp - fromUp) * ease;
+
+	Vec3 val = (lerpUp % lerpDirection) % lerpUp;
+
+	c.SetRotation(Quaternion::GetDirection(val.Normalized()));
+
+	if (lapsed > m_transitionTimeTarget)
+	{
+		switch (m_transitionTarget) 
+		{
+		case TransitionTargetFree:
+			TransitionEnd();
+			break;
+
+		case TransitionTargetLoadRoom:
+			TransitionLoad();
+			TransitionUpdate(deltaTime);
+			break;
+
+		case TransitionTargetExit:
+			break;
+		}
+	}
 }
 
 void Game::ExecuteLoad(uint targetRoom, Vec3 position, Vec3 direction)
