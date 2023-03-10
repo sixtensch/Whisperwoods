@@ -411,7 +411,7 @@ void Whisperwoods::Run()
 			if (m_game->activeTutorialLevel < 6)
 			{
 				// How does this work?
-				testGui.GetElement(m_game->activeTutorialLevel + 3)->uiRenderable->enabled = true;
+				testGui.GetElement(m_game->activeTutorialLevel + 2)->uiRenderable->enabled = true;
 			}
 			else if (m_game->activeTutorialLevel == 6)
 			{
