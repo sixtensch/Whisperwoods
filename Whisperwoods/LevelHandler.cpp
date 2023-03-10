@@ -98,8 +98,19 @@ int LevelHandler::GetSafe1DPixelPosFromUV(Vec2 uv)
 
 Vec2 LevelHandler::GetFloorUVFromPos(Vec2 position)
 {
-	float xUVPos = (position.x - m_minimapWorldMinWidth) / (m_minimapWorldMaxWidth - m_minimapWorldMinWidth);
-	float yUVPos = (position.y - m_minimapWorldMinHeight) / (m_minimapWorldMaxHeight - m_minimapWorldMinHeight);
+	// Default value of 0.5f for special cases.
+	float xUVPos = 0.5f;
+	float yUVPos = 0.5f;
+
+	if ((m_minimapWorldMaxWidth - m_minimapWorldMinWidth) != 0.0f)
+	{
+		xUVPos = (position.x - m_minimapWorldMinWidth) / (m_minimapWorldMaxWidth - m_minimapWorldMinWidth);
+	}
+
+	if ((m_minimapWorldMaxHeight - m_minimapWorldMinHeight) != 0.0f)
+	{
+		yUVPos = (position.y - m_minimapWorldMinHeight) / (m_minimapWorldMaxHeight - m_minimapWorldMinHeight);
+	}
 
 	// Offset to center of number line. Shrink interval towards 0. Offset back to original interval.
 	return (Vec2(xUVPos, yUVPos) - Vec2(0.5f, 0.5f)) * UV_POS_PADDING_FACTOR + Vec2(0.5f, 0.5f);
@@ -315,8 +326,13 @@ void LevelHandler::GenerateTutorial(LevelFloor* outFloor, EnvironmentalizeParame
 	Unprime(primer, f, params);
 
 	// After creating floor structure, create its image.
-	GenerateFloorImage(&f);
 	m_floorMinimapGUIElement->uiRenderable->enabled = true;
+	Renderer::UpdateTexture2DData(
+		m_floorMinimapGUIElement->firstTexture->texture2D,
+		GenerateFloorImage(outFloor).get(),
+		LEVEL_MAP_PIXEL_WIDTH,
+		LEVEL_MAP_PIXEL_HEIGHT
+	);
 }
 
 

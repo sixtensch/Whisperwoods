@@ -782,57 +782,57 @@ void Game::Init()
 
 
 	// text for not running backwards
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(3)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(3)->alpha = 1.0f;
-	m_loadScreen->GetElement(3)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(3)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(3)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
-	m_loadScreen->GetElement(3)->secondTexture = Resources::Get().GetTexture("coward.png");
+	std::shared_ptr<GUIElement> runningBackwardsTextGUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	runningBackwardsTextGUI->colorTint = Vec3(1, 1, 1);
+	runningBackwardsTextGUI->alpha = 1.0f;
+	runningBackwardsTextGUI->uiRenderable->enabled = false;
+	runningBackwardsTextGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	runningBackwardsTextGUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	runningBackwardsTextGUI->secondTexture = Resources::Get().GetTexture("coward.png");
 
 
 	// THIS IS NEW WIN SCREENS
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(4)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(4)->alpha = 1.0f;
-	m_loadScreen->GetElement(4)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(4)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(4)->firstTexture = Resources::Get().GetTexture("endClip1.png");
+	std::shared_ptr<GUIElement> endClip1GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip1GUI->colorTint = Vec3(1, 1, 1);
+	endClip1GUI->alpha = 1.0f;
+	endClip1GUI->uiRenderable->enabled = false;
+	endClip1GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip1GUI->firstTexture = Resources::Get().GetTexture("endClip1.png");
 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(5)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(5)->alpha = 1.0f;
-	m_loadScreen->GetElement(5)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(5)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(5)->firstTexture = Resources::Get().GetTexture("endClip2.png");
+	std::shared_ptr<GUIElement> endClip2GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip2GUI->colorTint = Vec3(1, 1, 1);
+	endClip2GUI->alpha = 1.0f;
+	endClip2GUI->uiRenderable->enabled = false;
+	endClip2GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip2GUI->firstTexture = Resources::Get().GetTexture("endClip2.png");
 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(6)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(6)->alpha = 1.0f;
-	m_loadScreen->GetElement(6)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(6)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(6)->firstTexture = Resources::Get().GetTexture("endClip3.png");
+	std::shared_ptr<GUIElement> endClip3GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip3GUI->colorTint = Vec3(1, 1, 1);
+	endClip3GUI->alpha = 1.0f;
+	endClip3GUI->uiRenderable->enabled = false;
+	endClip3GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip3GUI->firstTexture = Resources::Get().GetTexture("endClip3.png");
 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(7)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(7)->alpha = 1.0f;
-	m_loadScreen->GetElement(7)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(7)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(7)->firstTexture = Resources::Get().GetTexture("endClip4.png");
+	std::shared_ptr<GUIElement> endClip4GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip4GUI->colorTint = Vec3(1, 1, 1);
+	endClip4GUI->alpha = 1.0f;
+	endClip4GUI->uiRenderable->enabled = false;
+	endClip4GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip4GUI->firstTexture = Resources::Get().GetTexture("endClip4.png");
 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(8)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(8)->alpha = 1.0f;
-	m_loadScreen->GetElement(8)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(8)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(8)->firstTexture = Resources::Get().GetTexture("endClip5.png");
+	std::shared_ptr<GUIElement> endClip5GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip5GUI->colorTint = Vec3(1, 1, 1);
+	endClip5GUI->alpha = 1.0f;
+	endClip5GUI->uiRenderable->enabled = false;
+	endClip5GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip5GUI->firstTexture = Resources::Get().GetTexture("endClip5.png");
 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(9)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(9)->alpha = 1.0f;
-	m_loadScreen->GetElement(9)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(9)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(9)->firstTexture = Resources::Get().GetTexture("endClip6.png");
+	std::shared_ptr<GUIElement> endClip6GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip6GUI->colorTint = Vec3(1, 1, 1);
+	endClip6GUI->alpha = 1.0f;
+	endClip6GUI->uiRenderable->enabled = false;
+	endClip6GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip6GUI->firstTexture = Resources::Get().GetTexture("endClip6.png");
 
 	//****
 
@@ -1332,8 +1332,8 @@ void Game::LoadRoom(uint levelIndex)
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update(0);
 
-	m_fogFocus = level->position;
-	m_fogRadius = level->resource->worldWidth * 0.55f;
+	m_fogFocus = level.position;
+	m_fogRadius = level.resource->worldWidth * 0.55f;
 
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
@@ -1551,7 +1551,8 @@ void Game::TransitionLoad()
 void Game::ExecuteLoad(uint targetRoom, Vec3 position, Vec3 direction)
 {
 	UnLoadPrevious();
-	LoadRoom(&m_floor.rooms[targetRoom]);
+	// TODO: Check this
+	LoadRoom(targetRoom);
 
 	m_currentRoom->transform.CalculateWorldMatrix();
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
