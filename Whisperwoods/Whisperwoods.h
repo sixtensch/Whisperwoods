@@ -31,5 +31,7 @@ private:
 	std::unique_ptr<Renderer>		m_renderer;
 
 	std::unique_ptr<Game>		m_game;
+
+	bool m_firstIntroPic = true;
 };
 

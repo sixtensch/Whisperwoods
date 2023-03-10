@@ -27,7 +27,8 @@ Game::Game() :
 	m_isCutscene( false ),
 	m_isSeen( false ),
 	noiseVal1( 0, 0, 0 ),
-	noiseVal2( 1, 1, 1 )
+	noiseVal2( 1, 1, 1 ),
+	m_initialCamFov(0.0f)
 {
 }
 
@@ -36,14 +37,14 @@ Game::~Game() {}
 // Stamina, pickups, detection etc
 void Game::UpdateGameplayVars( Renderer* renderer )
 {
-	if (m_deathEnemy == true)
+	if (m_deathEnemy == true && m_deathTransition == false)
 	{
 		m_deathEnemy = false;
 		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
 		EndRunDueToEnemy(renderer);
 		activeTutorialLevel = 8;
 	}
-	else if (m_deathPoison == true)
+	else if (m_deathPoison == true && m_deathTransition == false)
 	{
 		m_deathPoison = false;
 		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
@@ -242,6 +243,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 				m_isSwitching = true;
 				m_finishedCharging = false;
 				m_initialCamFov = renderer->GetCamera().GetFov();
+				m_player->m_switchSource->SetPitch(1.5f);
 				m_player->m_switchSource->Play();
 			}
 		}
@@ -263,13 +265,20 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			{
 				if (!m_finishedCharging)
 				{
-					SwapTimeline( renderer );
-					m_finishedCharging = true;
-					renderer->GetCamera().SetFov( m_initialCamFov );
-
-					if (!m_isInFuture) // time to cooldown
+					if (m_deathTransition)
 					{
-						m_coolDownCounter = 0.0f;
+						EndRun(renderer);
+					}
+					else
+					{
+						SwapTimeline(renderer);
+						m_finishedCharging = true;
+						renderer->GetCamera().SetFov(m_initialCamFov);
+
+						if (!m_isInFuture) // time to cooldown
+						{
+							m_coolDownCounter = 0.0f;
+						}
 					}
 				}
 			}
@@ -336,7 +345,8 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						activeTutorialLevel = r.targetRoom + 1;
 						uint targetIndex = (r.tunnelSubIndex + 1) % 2;
 						const LevelTunnel& t = m_floor.tunnels[r.tunnel];
-						ExecuteLoad(r.targetRoom, t.positions[targetIndex], t.directions[targetIndex]);
+						//ExecuteLoad(r.targetRoom, t.positions[targetIndex], t.directions[targetIndex]);
+						TransitionStart(r.position, r.direction, r.targetRoom, t.positions[targetIndex], t.directions[targetIndex]);
 						break;
 					}
 
@@ -381,6 +391,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			m_loadingHubby = false;
 			m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
 		}
+		
 		if (Input::Get().IsDXKeyPressed( DXKey::H ))
 		{
 			m_loadingHubby = true;
@@ -409,7 +420,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 
 
 
-		if (m_grafiki->InteractPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z)))
+		if (m_grafiki->InteractPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), m_gui))
 		{
 			m_grafiki->enabled = false;
 			m_loadScreen->GetElement(2)->uiRenderable->enabled = true;
@@ -452,7 +463,7 @@ void Game::DrawIMGUIWindows()
 		{
 			ImGui::Separator();
 			ImGui::InputFloat3("Fog Focus", (float*)&m_fogFocus);
-			ImGui::DragFloat("Fog Radius", &m_fogRadius, 0.1f, 0.1f, 100.0f);
+			ImGui::DragFloat("Fog Radius", &m_fogRadius, 0.1f, -100.0f, 100.0f);
 		}
 	}
 	ImGui::End();
@@ -557,13 +568,16 @@ void Game::DrawIMGUIWindows()
 				m_testMaterials.Add( MaterialResource() );
 			}
 
+			// Distance is in world units.
 			float distance = 0.5f / (BM_MAX_SIZE / BM_PIXELS_PER_UNIT);
 
+			m_player->currentRoom;
 			for (int i = 0; i < f.rooms.Size(); i++)
 			{
 				Level& l = f.rooms[i];
 				m_testRenderables.Add( Renderer::CreateMeshStatic( "room_plane.wwm" ) );
-				m_testRenderables.Back()->worldMatrix = Mat::translation3( l.position.x * distance, 3.2f, l.position.z * distance ) * l.rotation.Matrix() * Mat::scale3( 0.8f );
+				const Vec3 levelPos = Vec3(l.position.x * distance, 3.2f, l.position.z * distance);
+				m_testRenderables.Back()->worldMatrix = Mat::translation3(levelPos) * l.rotation.Matrix() * Mat::scale3( 0.8f );
 
 				m_testMaterials[i].specular = Vec3( 0.5f, 0.5f, 0.5f );
 				m_testMaterials[i].textureDiffuse = l.resource->source;
@@ -595,9 +609,9 @@ void Game::DrawIMGUIWindows()
 
 void Game::CinematicUpdate()
 {
-
+	m_gui->GetElement(15)->alpha = 0.0f;
 	// Test of cinematics // TODO: IMPORTANT: LATER DON'T DO THIS WHEN THE GAME IS RUNNING, ITS PROBABLY FATASS-HEAVY ON THE CPU.
-	m_cutsceneController->Update(m_deltaTime);
+	//m_cutsceneController->Update(m_deltaTime);
 	if (m_cutsceneController->CutsceneActive())
 	{
 		m_gui->GetElement(13)->uiRenderable->enabled = true;
@@ -619,12 +633,26 @@ void Game::CinematicUpdate()
 	}
 }
 
+static bool firstFrame = false;
+static bool secondFrame = false;
 // Main update function.
 void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_deltaTime = deltaTime;
 
-
+	if (!firstFrame)
+	{
+		firstFrame = true;
+	}
+	else if (!secondFrame)
+	{
+		secondFrame = true;
+		m_cutsceneController->m_cutSceneActive = true;
+		m_cutsceneController->m_isPlaying = true;
+	}
+	m_cutsceneController->Update(m_deltaTime);
+	m_gui->GetElement(14)->alpha = 0;
+	m_gui->GetElement(14)->uiRenderable->enabled = false;
 
 	if (!m_cutsceneController->m_cutSceneActive)
 	{
@@ -692,13 +720,27 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 	if (!m_cutsceneController->m_cutSceneActive)
 	{
+		if (secondFrame)
+		{
+			m_gui->GetElement(12)->alpha = 0.0f;
+			m_gui->GetElement(13)->alpha = 0.0f;
+			m_gui->GetElement(12)->uiRenderable->enabled = false;
+			m_gui->GetElement(13)->uiRenderable->enabled = false;
+
+		}
+
+		if (m_transitionTarget != TransitionTargetNone)
+		{
+			TransitionUpdate(deltaTime);
+		}
+		else
+		{
+			UpdateRoomAndTimeSwappingLogic(renderer);
+		}
+
+		UpdateEnemies(renderer);
 		UpdateGameObjects();
-
-		UpdateGameplayVars( renderer );
-
-		UpdateEnemies( renderer );
-
-		UpdateRoomAndTimeSwappingLogic( renderer);
+		UpdateGameplayVars(renderer);
 
 		// Final steps
 		UpdateTimeSwitchBuffers( renderer );
@@ -714,6 +756,13 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		CinematicUpdate();
 	}
+
+	Renderer::UpdatePPFXInfo(
+		m_vignetteStrengthAndRadius,
+		m_contrastStrengthAndMidpoint,
+		m_finalBrightness,
+		m_finalSaturation
+	);
 
 	Move(deltaTime, m_player.get(), m_cutsceneController.get());
 
@@ -752,84 +801,84 @@ void Game::Init()
 	m_loadScreen = shared_ptr<GUI> (new GUI());
 
 	// loading screen
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(0)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(0)->alpha = 1.0f;
-	m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(0)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(0)->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
+	std::shared_ptr<GUIElement> loadingScreenGUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	loadingScreenGUI->colorTint = Vec3(1, 1, 1);
+	loadingScreenGUI->alpha = 1.0f;
+	loadingScreenGUI->uiRenderable->enabled = false;
+	loadingScreenGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	loadingScreenGUI->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
 
 
-	//winning screen (old)
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(1)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(1)->alpha = 1.0f;
-	m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(1)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(1)->firstTexture = Resources::Get().GetTexture("winScreen.png");
+	//winning screen 
+	std::shared_ptr<GUIElement> winningScreenGUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	winningScreenGUI->colorTint = Vec3(1, 1, 1);
+	winningScreenGUI->alpha = 1.0f;
+	winningScreenGUI->uiRenderable->enabled = false;
+	winningScreenGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	winningScreenGUI->firstTexture = Resources::Get().GetTexture("winScreen.png");
 
 
 	//skip tutorial screen 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(2)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(2)->alpha = 1.0f;
-	m_loadScreen->GetElement(2)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(2)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(2)->firstTexture = Resources::Get().GetTexture("skipTutorial.png");
+	std::shared_ptr<GUIElement> skipTutorialScreenGUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	skipTutorialScreenGUI->colorTint = Vec3(1, 1, 1);
+	skipTutorialScreenGUI->alpha = 1.0f;
+	skipTutorialScreenGUI->uiRenderable->enabled = false;
+	skipTutorialScreenGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	skipTutorialScreenGUI->firstTexture = Resources::Get().GetTexture("skipTutorial.png");
 
 
 	// text for not running backwards
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(3)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(3)->alpha = 1.0f;
-	m_loadScreen->GetElement(3)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(3)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(3)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
-	m_loadScreen->GetElement(3)->secondTexture = Resources::Get().GetTexture("coward.png");
+	std::shared_ptr<GUIElement> runningBackwardsTextGUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	runningBackwardsTextGUI->colorTint = Vec3(1, 1, 1);
+	runningBackwardsTextGUI->alpha = 1.0f;
+	runningBackwardsTextGUI->uiRenderable->enabled = false;
+	runningBackwardsTextGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	runningBackwardsTextGUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	runningBackwardsTextGUI->secondTexture = Resources::Get().GetTexture("coward.png");
 
 
 	// THIS IS NEW WIN SCREENS
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(4)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(4)->alpha = 1.0f;
-	m_loadScreen->GetElement(4)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(4)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(4)->firstTexture = Resources::Get().GetTexture("endClip1.png");
+	std::shared_ptr<GUIElement> endClip1GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip1GUI->colorTint = Vec3(1, 1, 1);
+	endClip1GUI->alpha = 1.0f;
+	endClip1GUI->uiRenderable->enabled = false;
+	endClip1GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip1GUI->firstTexture = Resources::Get().GetTexture("endClip1.png");
 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(5)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(5)->alpha = 1.0f;
-	m_loadScreen->GetElement(5)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(5)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(5)->firstTexture = Resources::Get().GetTexture("endClip2.png");
+	std::shared_ptr<GUIElement> endClip2GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip2GUI->colorTint = Vec3(1, 1, 1);
+	endClip2GUI->alpha = 1.0f;
+	endClip2GUI->uiRenderable->enabled = false;
+	endClip2GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip2GUI->firstTexture = Resources::Get().GetTexture("endClip2.png");
 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(6)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(6)->alpha = 1.0f;
-	m_loadScreen->GetElement(6)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(6)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(6)->firstTexture = Resources::Get().GetTexture("endClip3.png");
+	std::shared_ptr<GUIElement> endClip3GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip3GUI->colorTint = Vec3(1, 1, 1);
+	endClip3GUI->alpha = 1.0f;
+	endClip3GUI->uiRenderable->enabled = false;
+	endClip3GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip3GUI->firstTexture = Resources::Get().GetTexture("endClip3.png");
 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(7)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(7)->alpha = 1.0f;
-	m_loadScreen->GetElement(7)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(7)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(7)->firstTexture = Resources::Get().GetTexture("endClip4.png");
+	std::shared_ptr<GUIElement> endClip4GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip4GUI->colorTint = Vec3(1, 1, 1);
+	endClip4GUI->alpha = 1.0f;
+	endClip4GUI->uiRenderable->enabled = false;
+	endClip4GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip4GUI->firstTexture = Resources::Get().GetTexture("endClip4.png");
 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(8)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(8)->alpha = 1.0f;
-	m_loadScreen->GetElement(8)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(8)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(8)->firstTexture = Resources::Get().GetTexture("endClip5.png");
+	std::shared_ptr<GUIElement> endClip5GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip5GUI->colorTint = Vec3(1, 1, 1);
+	endClip5GUI->alpha = 1.0f;
+	endClip5GUI->uiRenderable->enabled = false;
+	endClip5GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip5GUI->firstTexture = Resources::Get().GetTexture("endClip5.png");
 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(9)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(9)->alpha = 1.0f;
-	m_loadScreen->GetElement(9)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(9)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(9)->firstTexture = Resources::Get().GetTexture("endClip6.png");
+	std::shared_ptr<GUIElement> endClip6GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip6GUI->colorTint = Vec3(1, 1, 1);
+	endClip6GUI->alpha = 1.0f;
+	endClip6GUI->uiRenderable->enabled = false;
+	endClip6GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip6GUI->firstTexture = Resources::Get().GetTexture("endClip6.png");
 
 	//****
 
@@ -917,6 +966,11 @@ void Game::Init()
 	m_finalBrightness = 0.0f;
 	m_finalSaturation = 1.25f;
 	firstSet = true;
+
+
+
+	m_timeSwooshIn = 0.5f;
+	m_timeSwooshOut = 0.5f;
 }
 
 void Game::DeInit()
@@ -947,7 +1001,7 @@ void Game::InitCutscene()
 	//m_testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Grafiki Animator", m_game->m_grafiki->characterAnimator.get() ) ) );
 	//m_testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Player Transform", &m_game->GetPlayer()->transform )));
 	//m_testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Grafiki Transform", &m_game->m_grafiki->transform ) ) );
-	m_testCutScene->AddChannel(std::shared_ptr<CutsceneGUIChannel>(new CutsceneGUIChannel("GUI Channel 2", m_gui)));
+	//m_testCutScene->AddChannel(std::shared_ptr<CutsceneGUIChannel>(new CutsceneGUIChannel("GUI Channel 2", m_gui)));
 	m_cutsceneController->m_cutscenes.Add(m_testCutScene);
 	m_cutsceneController->ActivateCutscene(0);
 
@@ -964,22 +1018,23 @@ void Game::InitCutscene()
 	transformChannel2->targetTransform = &m_grafiki->transform;
 	CutsceneGUIChannel* guiChannel = (CutsceneGUIChannel*)m_cutsceneController->m_cutscenes[0]->channels[5].get(); // GUI 1
 	guiChannel->targetGUI = m_gui;
-	guiChannel->targetGUIElement = 13; // Index
+	m_gui->GetElement(14)->uiRenderable->enabled = false;
+	guiChannel->targetGUIElement = 12; // Index
 
-	CutsceneGUIChannel* guiChannel2 = (CutsceneGUIChannel*)m_cutsceneController->m_cutscenes[0]->channels[5].get(); // GUI 1
+	CutsceneGUIChannel* guiChannel2 = (CutsceneGUIChannel*)m_cutsceneController->m_cutscenes[0]->channels[6].get(); // GUI 1
 	guiChannel2->targetGUI = m_gui;
-	guiChannel2->targetGUIElement = 14; // Index
+	guiChannel2->targetGUIElement = 13; // Index
 
-	//m_cutsceneController->m_cutSceneActive = true;
-	//m_cutsceneController->m_isPlaying = true;
+	m_cutsceneController->m_cutSceneActive = false;
+	m_cutsceneController->m_isPlaying = false;
 }
 
 void Game::LoadHubby()
 {
 	UnLoadPrevious();
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
-	LoadRoom( &m_floor.rooms[0] );
-	m_detectionLevelFloor = 0.0f;
+	uint roomIndex = 0;
+	LoadRoom(roomIndex);
 
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update( 0 );
@@ -999,7 +1054,8 @@ void Game::LoadHubby()
 void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
-	LoadRoom(&m_floor.rooms[0]);
+	uint roomIndex = 0;
+	LoadRoom(roomIndex);
 
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
@@ -1009,7 +1065,7 @@ void Game::LoadTutorial()
 {
 	UnLoadPrevious();
 	m_levelHandler->GenerateTutorial(&m_floor, m_envParams);
-	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
+	LoadRoom(m_floor.startRoom);
 
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update( 0 );
@@ -1032,8 +1088,9 @@ void Game::LoadGame(uint gameSeed, uint roomCount)
 
 	UnLoadPrevious();
 	m_levelHandler->GenerateFloor(&m_floor, params, m_envParams);
-	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
-	m_currentRoom->transform.CalculateWorldMatrix();
+	LoadRoom(m_floor.startRoom);
+
+	m_player->transform.position = m_floor.startPosition;
 
 	MovePlayer(m_floor.startPosition, m_floor.startDirection);
 	m_player->ReloadPlayer();
@@ -1171,7 +1228,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 	Camera& camera = Renderer::GetCamera();
 	Input& inputRef = Input::Get();
 
-	if (!cutSceneController->CutsceneActive())
+	if (m_transitionTarget == TransitionTargetNone && !cutSceneController->CutsceneActive())
 	{
 		MouseState mouseState = inputRef.GetMouseState();
 
@@ -1304,39 +1361,44 @@ bool Game::IsInHubby()
 	return m_isHubby;
 }
 
-void Game::LoadRoom(Level* level)
+void Game::LoadRoom(uint levelIndex)
 {
+	Level& level = m_floor.rooms[levelIndex];
+
+	m_levelHandler->SetFloormapFocusRoom(&level);
+
 	Mat4 roomOffset =
 		Mat::translation3(0, -0.01f, 0) *
-		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight);
+		Mat::scale3(level.resource->worldWidth, 1.0f, level.resource->worldHeight);
 
 	Mat4 cylinderOffset =
 		Mat::translation3( 0, -0.02f, 0 ) *
-		Mat::scale3(level->resource->worldWidth * 1.3f, 1.0f, level->resource->worldHeight * 1.6f);
+		Mat::scale3(level.resource->worldWidth * 1.3f, 1.0f, level.resource->worldHeight * 1.3f);
 
-	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
-	m_currentRoom->transform.position = level->position;
-	m_currentRoom->transform.rotation = level->rotation;
+	m_currentRoom = shared_ptr<Room>(new Room(&level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
+	m_currentRoom->transform.position = level.position;
+	m_currentRoom->transform.rotation = level.rotation;
 
+	
 	m_currentRoom->transform.CalculateWorldMatrix();
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update(0);
 
-	m_fogFocus = level->position;
-	m_fogRadius = level->resource->worldWidth * 0.55f;
+	m_fogFocus = level.position;
+	m_fogRadius = level.resource->worldWidth * 0.55f;
 
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
 	m_player->currentRoom = m_currentRoom.get();
 	
-	for ( LevelPickup& pickup : level->resource->pickups )
+	for ( LevelPickup& pickup : level.resource->pickups )
 	{
 		Vec3 worldpos = m_player->currentRoom->bitMapToWorldPos(static_cast<Point2>(pickup.position));
 		shared_ptr<Pickup> item = make_shared<EssenceBloom>(m_player.get(), Vec2(worldpos.x, worldpos.z));
 		m_pickups.Add(item);
 	}
 
-	for (LevelPatrol& p : level->resource->patrolsClosed)
+	for (LevelPatrol& p : level.resource->patrolsClosed)
 	{
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
 			"Carcinian_Animated.wwm", 
@@ -1352,8 +1414,8 @@ void Game::LoadRoom(Level* level)
 			m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
 		}
 	}
-	
-	for (LevelPatrol& p : level->resource->patrolsOpen)
+
+	for (LevelPatrol& p : level.resource->patrolsOpen)
 	{
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
 			"Carcinian_Animated.wwm",
@@ -1487,10 +1549,11 @@ void Game::ResetGameplayValues()
 
 void Game::EndRun(Renderer* renderer)
 {
-	if (m_isSwitching)
-	{
-		Renderer::GetCamera().SetFov(m_initialCamFov);
-	}
+	m_deathTransition = false;
+	m_deathEnemy = false;
+	m_deathPoison = false;
+	m_isSwitching = false;
+	Renderer::GetCamera().SetFov(m_initialCamFov);
 
 	ResetGameplayValues();
 	ChangeToPresentTimeline(renderer);
@@ -1507,41 +1570,135 @@ void Game::EndRunDueToEnemy(Renderer* renderer)
 
 	// More logic for dying from enemy here.
 
-	EndRun(renderer);
+	m_isSwitching = true;
+	m_deathTransition = true;
+	m_finishedCharging = false;
+	if (m_initialCamFov == 0.0f)
+		m_initialCamFov = renderer->GetCamera().GetFov();
 }
 
 void Game::EndRunDueToPoison(Renderer* renderer)
 {
 	// Logic for dying from future poison here.
 
-	EndRun(renderer);
+	m_isSwitching = true;
+	m_deathTransition = true;
+	m_finishedCharging = false;
+	m_player->m_switchSource->Play();
+	if (m_initialCamFov == 0.0f)
+		m_initialCamFov = renderer->GetCamera().GetFov();
 }
+
 
 void Game::TransitionStart(Vec3 exitPosition, Vec3 exitDirection, uint targetRoom, Vec3 targetPosition, Vec3 targetDirection)
 {
-	m_transitionTarget = TransitionTargetLoadRoom;
-	m_transitionTime = 0.0f;
-	m_transitionTimeTarget = 0.2f;
+	Camera& c = Renderer::GetCamera();
 
-	m_targetCameraPosition = exitPosition + exitDirection * 3.0f + Vec3(0.0f, 1.0f, 0.0f);
-	m_targetCameraDirection = Quaternion::GetDirection((exitDirection + Vec3(0.0f, -0.2f, 0.0f)).Normalized());
+	m_transitionTarget = TransitionTargetLoadRoom;
+	m_transitionTimeTarget = 0.3f;
+
+	m_initialFogFocus = m_fogFocus;
+	m_initialFogRadius = m_fogRadius;
+	m_initialCameraPosition = c.GetPosition();
+	m_initialCameraRotation = c.GetRotation();
+
+	m_targetFogFocus = exitPosition + exitDirection * 4.0f;
+	m_targetFogRadius = -30.0f;
+	m_targetCameraPosition = exitPosition + exitDirection * 5.0f + Vec3(0.0f, 2.0f, 0.0f);
+	m_targetCameraRotation = Quaternion::GetDirection((exitDirection + Vec3(0.0f, -0.2f, 0.0f)).Normalized());
 	m_targetRoom = targetRoom;
+
 	m_targetSpawnPosition = targetPosition;
 	m_targetSpawnDirection = targetDirection;
 
-	m_targetFogFocus = exitPosition + exitDirection * 1.5f;
-	m_targetFogRadius = -0.5f;
+	m_transitionTimer.Lap();
+
+	//m_player->SetMovementLock(true);
 }
 
 void Game::TransitionLoad()
 {
+	ExecuteLoad(m_targetRoom, m_targetSpawnPosition, m_targetSpawnDirection);
+	m_transitionTarget = TransitionTargetFree;
+	m_transitionTimeTarget = 0.8f;
 
+	m_initialFogFocus = m_targetSpawnPosition + m_targetSpawnDirection * 3.0f;
+	m_initialFogRadius = -30.0f;
+	m_initialCameraPosition = m_targetSpawnPosition + m_targetSpawnDirection * 1.5f + Vec3(0.0f, 2.0f, 0.0f);
+	m_initialCameraRotation = Quaternion::GetDirection((-m_targetSpawnDirection + Vec3(0.0f, -0.2f, 0.0f)).Normalized());
+
+	m_targetFogFocus = m_fogFocus;
+	m_targetFogRadius = m_fogRadius;
+	m_targetCameraPosition = m_player->cameraFollowTarget;
+	m_targetCameraRotation = m_player->cameraLookRotationTarget;
+
+	m_transitionTimer.Lap();
+}
+
+void Game::TransitionEnd()
+{
+	//m_player->SetMovementLock(false);
+	m_transitionTarget = TransitionTargetNone;
+}
+
+void Game::TransitionUpdate(float deltaTime)
+{
+	Camera& c = Renderer::GetCamera();
+
+	float lapsed = m_transitionTimer.Peek();
+	float lerp = cs::fclamp(lapsed, 0.0f, m_transitionTimeTarget) / m_transitionTimeTarget;
+	float ease = m_transitionTarget == TransitionTargetLoadRoom ?
+		cs::ease::in(lerp) :
+		cs::ease::outCubic(lerp);
+
+	if (m_transitionTarget == TransitionTargetFree)
+	{
+		m_player->UpdateCameraVars();
+		m_targetCameraPosition = m_player->cameraFollowTarget;
+		m_targetCameraRotation = m_player->cameraLookRotationTarget;
+	}
+
+	m_fogFocus = m_initialFogFocus + (m_targetFogFocus - m_initialFogFocus) * ease;
+	m_fogRadius = m_initialFogRadius + (m_targetFogRadius - m_initialFogRadius) * ease;
+
+	c.SetPosition(m_initialCameraPosition + (m_targetCameraPosition - m_initialCameraPosition) * ease);
+
+	Vec3 fromDirection = m_initialCameraRotation * Vec3(0.0f, 0.0f, 1.0f);
+	Vec3 toDirection = m_targetCameraRotation * Vec3(0.0f, 0.0f, 1.0f);
+	Vec3 lerpDirection = fromDirection + (toDirection - fromDirection) * ease;
+
+	Vec3 fromUp = (fromDirection % Vec3(0.0f, 0.0f, 1.0f)) % fromDirection;
+	Vec3 toUp = (toDirection % Vec3(0.0f, 0.0f, 1.0f)) % toDirection;
+	Vec3 lerpUp = fromUp + (toUp - fromUp) * ease;
+
+	Vec3 val = (lerpUp % lerpDirection) % lerpUp;
+
+	c.SetRotation(Quaternion::GetDirection(val.Normalized()));
+
+	if (lapsed > m_transitionTimeTarget)
+	{
+		switch (m_transitionTarget) 
+		{
+		case TransitionTargetFree:
+			TransitionEnd();
+			break;
+
+		case TransitionTargetLoadRoom:
+			TransitionLoad();
+			TransitionUpdate(deltaTime);
+			break;
+
+		case TransitionTargetExit:
+			break;
+		}
+	}
 }
 
 void Game::ExecuteLoad(uint targetRoom, Vec3 position, Vec3 direction)
 {
 	UnLoadPrevious();
-	LoadRoom(&m_floor.rooms[targetRoom]);
+	// TODO: Check this
+	LoadRoom(targetRoom);
 
 	m_currentRoom->transform.CalculateWorldMatrix();
 	m_directionalLight->transform.parent = &m_currentRoom->transform;

@@ -28,6 +28,7 @@
 #define ENEMY_CONE_INFO_CAPACITY 8
 
 #define BM_PIXELS_PER_UNIT	5
+// Size is in number of pixels.
 #define BM_PIXEL_SIZE		(1.0f / BM_PIXELS_PER_UNIT)
 #define BM_MIN_SIZE			BM_PIXELS_PER_UNIT * 5
 #define BM_MAX_SIZE			BM_PIXELS_PER_UNIT * 60

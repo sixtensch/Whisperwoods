@@ -12,6 +12,9 @@ struct GUIElement
 	Vec2 position;
 	Vec2 size;
 
+	cs::List<TextureResource*> alternativeImages;
+	char indexValue;
+
 	bool isActive;
 
 	Vec3 colorTint;
@@ -19,10 +22,13 @@ struct GUIElement
 	Vec3 vectorData;
 	float floatData;
 	Point4 intData;
+	Vec2 minimapRoomPos; // Only used when intData set accordingly to z value.
+
 	TextureResource* firstTexture;
 	TextureResource* secondTexture;
 	GUIElement(Vec2 position, Vec2 size, TextureResource* spriteOne, TextureResource* spriteTwo) : position(position), size(size), firstTexture(spriteOne), secondTexture(spriteTwo)
 	{
+		indexValue = 0;
 		// Fetch the renderable
 		uiRenderable = Renderer::CreateGUIRenderable("ui_rect.wwm");
 		// Create matrix

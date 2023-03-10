@@ -40,6 +40,7 @@ VSOutput main( VSInput input )
 
     output.outNormal = mul(input.normal, (float3x3)WorldMatrix);
 
-    output.outUV = float2(input.UV.x, -input.UV.y);
+    // For some reason UV starts at V = 1.0f. With this compensation, (0, 0) will now be at top left.
+    output.outUV = float2(input.UV.x, 1.0f - input.UV.y);
 	return output;
 }

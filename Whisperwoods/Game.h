@@ -41,6 +41,8 @@ class Game sealed
 
 	void CinematicUpdate();
 
+	
+
 public:
 	Game();
 	~Game();
@@ -51,6 +53,8 @@ public:
 	void DeInit();
 
 	void InitCutscene();
+
+	
 
 	void LoadHubby();
 	void LoadTest();
@@ -90,7 +94,7 @@ private:
 	bool IsAllowedToSwitch();
 	bool ChargeIsDone();
 	bool SwitchIsDone();
-	void LoadRoom(Level* level);
+	void LoadRoom(uint levelIndex);
 	void UnloadRoom();
 	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
@@ -99,6 +103,7 @@ private:
 	void EndRun(Renderer* renderer);
 	void EndRunDueToEnemy(Renderer* renderer);
 	void EndRunDueToPoison(Renderer* renderer);
+	
 
 public:
 	//Camera* m_camera;
@@ -181,6 +186,8 @@ private:
 	bool m_finishedCharging; // Charging = only first part of whole duration (start)
 	float m_maxStamina;
 
+	bool m_deathTransition = false;
+
 	bool m_testTunnel;
 
 	float m_detectionLevelGlobal; //how detected you currently are
@@ -210,9 +217,10 @@ private:
 	bool m_loadingHubby = false;
 	bool m_loadingTutorial = false;
 	bool m_loadingGame = false;
+	bool m_loadNewFloor = false;
 	bool m_deathPoison = false;
 	bool m_deathEnemy = false; 
-	bool m_loadNewFloor = false;
+	
 	bool m_skipTutorialQuestion = false;
 
 	bool m_cameraPlayer;
@@ -237,15 +245,21 @@ private:
 	 
 	TimeSwitchValues m_switchVals;
 
+	Vec3 m_initialFogFocus;
+	float m_initialFogRadius;
+	Vec3 m_initialCameraPosition;
+	Quaternion m_initialCameraRotation;
 	Vec3 m_targetFogFocus;
 	float m_targetFogRadius;
+	Vec3 m_targetCameraPosition;
+	Quaternion m_targetCameraRotation;
 	uint m_targetRoom;
 	Vec3 m_targetSpawnPosition;
 	Vec3 m_targetSpawnDirection;
-	Vec3 m_targetCameraPosition;
-	Quaternion m_targetCameraDirection;
-	float m_transitionTime;
 	float m_transitionTimeTarget;
+	float m_timeSwooshIn;
+	float m_timeSwooshOut;
+	cs::Timer m_transitionTimer;
 	enum TransitionTarget
 	{
 		TransitionTargetNone,

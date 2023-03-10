@@ -383,18 +383,17 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 
 	// No wrap sampler
 	D3D11_SAMPLER_DESC sd2 = {};
-
 	sd2.Filter = D3D11_FILTER_ANISOTROPIC;
-	sd2.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-	sd2.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-	sd2.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	sd2.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd2.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sd2.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
 	sd2.MipLODBias = 0.0f;
 	sd2.MaxAnisotropy = 1u;
 	sd2.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	sd2.BorderColor[0] = 0.0f;
 	sd2.BorderColor[1] = 0.0f;
 	sd2.BorderColor[2] = 0.0f;
-	sd2.BorderColor[3] = 0.0f;
+	sd2.BorderColor[3] = 1.0f;
 	sd2.MinLOD = 0.0f;
 	sd2.MaxLOD = D3D11_FLOAT32_MAX;
 
@@ -628,7 +627,7 @@ void RenderCore::CreateIndexBuffer(const void* data, UINT byteWidth, ID3D11Buffe
 	EXC_COMCHECK(m_device->CreateBuffer(&bufferDesc, &subData, out_bufferPP));
 }
 
-void RenderCore::CreateImageTexture(char* image, UINT resHeight, UINT resWidth, UINT sysMemPitch, DXGI_FORMAT format, ID3D11Texture2D** out_texturePP)
+void RenderCore::CreateImageTextureUnorm(char* image, UINT resHeight, UINT resWidth, UINT sysMemPitch, DXGI_FORMAT format, ID3D11Texture2D** out_texturePP)
 {
 	HRESULT hr = {};
 	D3D11_TEXTURE2D_DESC textureDesc = {};
@@ -688,73 +687,43 @@ void RenderCore::LoadImageTexture(const std::wstring& filePath, ComPtr<ID3D11Tex
 	//EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &srvd, &srv));
 }
 
-void RenderCore::CreateImageTexture(uint8_t* data, size_t size, ComPtr<ID3D11Texture2D>& textureResource, ComPtr<ID3D11ShaderResourceView>& srv) const
+void RenderCore::CreateImageTextureUnorm(uint8_t* data, uint width, uint height, ComPtr<ID3D11Texture2D>& textureResource, ComPtr<ID3D11ShaderResourceView>& srv, bool isCPUWritable /*= false*/) const
 {
-	// Load texture using DXTK from filepath.
-
 	ComPtr<ID3D11Resource> resource;
-	//dx::CreateWICTextureFromMemoryEx(
-	//	m_device.Get(), 
-	//	data,
-	//	size, 
-	//	0,
-	//	D3D11_USAGE_DEFAULT,
-	//	D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
-	//	0, D3D11_RESOURCE_MISC_GENERATE_MIPS,
-	//	dx::WIC_LOADER_IGNORE_SRGB | dx::WIC_LOADER_DEFAULT,
-	//	&resource,
-	//	&srv
-	//);
-
-	//HRESULT h = dx::CreateWICTextureFromMemory(m_device.Get(),
-	//	m_context.Get(),
-	//	data, size,
-	//	&resource, &srv);
-
-	//if (h != 0)
-	//{
-	//	_com_error err(h);
-	//	LPCTSTR errMsg = err.ErrorMessage();
-	//	LOG_ERROR("%s", errMsg);
-	//}
 
 	D3D11_TEXTURE2D_DESC desc;
-	desc.Width = 1024;
-	desc.Height = 1024;
+	desc.Width = width;
+	desc.Height = height;
 	desc.MipLevels = 1;
 	desc.ArraySize = 1;
 	desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
-	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.Usage = isCPUWritable ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
 	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	desc.CPUAccessFlags = 0;
+	desc.CPUAccessFlags = isCPUWritable ? D3D11_CPU_ACCESS_WRITE : 0u;
 	desc.MiscFlags = 0;
 
-	D3D11_SUBRESOURCE_DATA initialData;
-	initialData.pSysMem = (void*)data;
-	initialData.SysMemPitch = 1024;
-	initialData.SysMemSlicePitch = 0;
+	if (data != nullptr)
+	{
+		D3D11_SUBRESOURCE_DATA initialData;
+		initialData.pSysMem = (void*)data;
+		initialData.SysMemPitch = 4u * width; // Four bytes per texel.
+		initialData.SysMemSlicePitch = 0;
 
-	//ID3D11Device* pd3dDevice; // Don't forget to initialize this
-	ID3D11Texture2D* pTexture = NULL;
-	m_device->CreateTexture2D(&desc, &initialData, textureResource.GetAddressOf());
+		EXC_COMCHECK(m_device->CreateTexture2D(&desc, &initialData, textureResource.GetAddressOf()));
+	}
+	else
+	{
+		EXC_COMCHECK(m_device->CreateTexture2D(&desc, nullptr, textureResource.GetAddressOf()));
+	}
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
-	memset(&SRVDesc, 0, sizeof(SRVDesc));
+	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc = {};
 	SRVDesc.Format = desc.Format;
 	SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	SRVDesc.Texture2D.MipLevels = 1;
 
-	m_device->CreateShaderResourceView(textureResource.Get(), &SRVDesc, srv.GetAddressOf());
-
-	//EXC_COMCHECK(resource->QueryInterface(IID_ID3D11Texture2D, (void**)textureResource.GetAddressOf()));
-	//D3D11_SHADER_RESOURCE_VIEW_DESC srvd;
-	//srvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	//srvd.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-	//srvd.Texture2D.MostDetailedMip = 0;
-	//srvd.Texture2D.MipLevels = 2;
-	//EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &srvd, &srv));
+	EXC_COMCHECK(m_device->CreateShaderResourceView(textureResource.Get(), &SRVDesc, srv.GetAddressOf()));
 }
 
 void RenderCore::DumpTexture(ID3D11Texture2D* texture, uint* outWidth, uint* outHeight, cs::Color4** newOutData) const
@@ -900,11 +869,13 @@ void RenderCore::UpdateGUIInfo(const GUIElement* guiElement) const
 	newInfo.vectorData = guiElement->vectorData;
 	newInfo.floatData = guiElement->floatData;
 	newInfo.intData = guiElement->intData;
+	newInfo.minimapRoomPos = guiElement->minimapRoomPos;
 
 	D3D11_MAPPED_SUBRESOURCE msr = {};
 	EXC_COMCHECK(m_context->Map(m_constantBuffers.guiInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));
 	memcpy(msr.pData, &newInfo, sizeof(CB::GUIInfo));
 	EXC_COMINFO(m_context->Unmap(m_constantBuffers.guiInfo.Get(), 0u));
+
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexDiffuse, 1, (guiElement->firstTexture ? guiElement->firstTexture->shaderResourceView : m_defaultDiffuseSRV).GetAddressOf()));
 	EXC_COMINFO(m_context->PSSetShaderResources(RegSRVTexSpecular, 1, (guiElement->secondTexture ? guiElement->secondTexture->shaderResourceView : m_defaultSpecularSRV).GetAddressOf()));
 }
@@ -916,6 +887,27 @@ void RenderCore::UpdateBitmapInfo( const TextureResource* bitmap ) const
 	//	return;
 	//}
 	EXC_COMINFO( m_context->PSSetShaderResources( RegSRVUser5, 1, (bitmap ? bitmap->shaderResourceView : m_defaultDiffuseSRV).GetAddressOf() ) );
+}
+
+void RenderCore::UpdateTexture2DUnormData(ComPtr<ID3D11Texture2D> texture2D, uint8_t* data, uint textureWidth, uint textureHeight)
+{
+	const uint assumedByteWidth = 4u;
+	const uint rowspan = textureWidth * assumedByteWidth;
+
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+	EXC_COMCHECK(m_context->Map(texture2D.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource));
+	BYTE* mappedData = reinterpret_cast<BYTE*>(mappedResource.pData);
+	for (UINT i = 0; i < textureHeight; ++i)
+	{
+		memcpy(mappedData, data, rowspan);
+
+		// Move mapped data pointer by its own rowpitch.
+		mappedData += mappedResource.RowPitch;
+
+		// Move data pointer by its own rowspan.
+		data += rowspan;
+	}
+	EXC_COMINFO(m_context->Unmap(texture2D.Get(), 0));
 }
 
 void RenderCore::UpdateMaterialInfo(const MaterialResource* material) const

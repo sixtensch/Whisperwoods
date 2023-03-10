@@ -146,139 +146,161 @@ void Whisperwoods::Run()
 	// Test GUI
 	// Stamina bar
 	GUI testGui;
-	testGui.AddGUIElement({ 0.28f,-0.90f }, { 0.7f,0.08f }, nullptr, nullptr);
-	testGui.GetElement( 0 )->colorTint = Vec3(1.0f, 0.72f, 0.0f);
-	testGui.GetElement( 0 )->alpha = 0.6f;
-	testGui.GetElement( 0 )->vectorData = Vec3( 1, 1, 1 );
-	testGui.GetElement( 0 )->floatData = 0.5f;
-	testGui.GetElement( 0 )->intData = Point4( 0, 1, 0, 0 ); // Makes it follow the float value.
-	testGui.GetElement( 0 )->firstTexture = nullptr;
-	testGui.GetElement( 0 )->secondTexture = Resources::Get().GetTexture("StaminaBarMask09.png");
-
-	// Minimap
-	testGui.AddGUIElement({ -1.0f,0.3f }, { 0.4f*0.9f,0.4f*1.6f }, nullptr, nullptr);
-	testGui.GetElement( 1 )->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement( 1 )->alpha = 0.6f;
-	testGui.GetElement( 1 )->intData = Point4( 1, 0, 0, 0 ); // makes it transform with the playermatrix
-	testGui.GetElement( 1 )->firstTexture = Resources::Get().GetTexture( "Hubby.png" );
-	testGui.GetElement( 1 )->secondTexture = Resources::Get().GetTexture("HudMask2.png");
+	std::shared_ptr<GUIElement> staminaBarGUI = testGui.AddGUIElement({ 0.28f,-0.90f }, { 0.7f,0.08f }, nullptr, nullptr);
+	staminaBarGUI->colorTint = Vec3(1.0f, 0.72f, 0.0f);
+	staminaBarGUI->alpha = 0.6f;
+	staminaBarGUI->vectorData = Vec3( 1, 1, 1 );
+	staminaBarGUI->floatData = 0.5f;
+	staminaBarGUI->intData = Point4( 0, 1, 0, 0 ); // Makes it follow the float value.
+	staminaBarGUI->firstTexture = nullptr;
+	staminaBarGUI->secondTexture = Resources::Get().GetTexture("StaminaBarMask09.png");
 
 	// Duck
-	testGui.AddGUIElement( { -0.5f,-0.5f }, { 1.0f,1.0f }, nullptr, nullptr );
-	testGui.GetElement( 2 )->colorTint = Vec3( 1, 1, 1 );
-	testGui.GetElement( 2 )->alpha = 1.0f;
-	testGui.GetElement( 2 )->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
-	testGui.GetElement( 2 )->firstTexture = Resources::Get().GetTexture( "duck.jpg" );
-	testGui.GetElement( 2 )->secondTexture = Resources::Get().GetTexture( "StaminaBarMask09.png" );
+	std::shared_ptr<GUIElement> duckGUI = testGui.AddGUIElement( { -0.5f,-0.5f }, { 1.0f,1.0f }, nullptr, nullptr );
+	duckGUI->colorTint = Vec3( 1, 1, 1 );
+	duckGUI->alpha = 1.0f;
+	duckGUI->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
+	duckGUI->firstTexture = Resources::Get().GetTexture( "duck.jpg" );
+	duckGUI->secondTexture = Resources::Get().GetTexture( "StaminaBarMask09.png" );
 	float targetAlpha = 0.0f;
 
-	// Power cooldown
-	testGui.AddGUIElement({ 0.475f,-0.82f }, { 0.5f,0.1f }, nullptr, nullptr);
-	testGui.GetElement(3)->colorTint = Vec3(0.08f, 0.18f, 0.8f);
-	testGui.GetElement(3)->alpha = 0.6f;
-	testGui.GetElement(3)->vectorData = Vec3(1, 1, 1);
-	testGui.GetElement(3)->floatData = 0.5f;
-	testGui.GetElement(3)->intData = Point4(0, 1, 0, 0); // Makes it follow the float value.
-	testGui.GetElement(3)->firstTexture = nullptr;
-	testGui.GetElement(3)->secondTexture = Resources::Get().GetTexture("StaminaBarMask09.png");
+
+	//************* power cooldown
+	std::shared_ptr<GUIElement> powerCooldownGUI = testGui.AddGUIElement({ 0.475f,-0.82f }, { 0.5f,0.1f }, nullptr, nullptr);
+	powerCooldownGUI->colorTint = Vec3(0.08f, 0.18f, 0.8f);
+	powerCooldownGUI->alpha = 0.6f;
+	powerCooldownGUI->vectorData = Vec3(1, 1, 1);
+	powerCooldownGUI->floatData = 0.5f;
+	powerCooldownGUI->intData = Point4(0, 1, 0, 0); // Makes it follow the float value.
+	powerCooldownGUI->firstTexture = nullptr;
+	powerCooldownGUI->secondTexture = Resources::Get().GetTexture("StaminaBarMask09.png");
+	//**********
 
 	// time for tutorial text. Change alpha to make them active or not
 	float textAlpha = 0.7f;
 
+	cs::List<shared_ptr<GUIElement>> tutorialTextGUIElements = {};
+	
 	//tutorial 1
-	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	testGui.GetElement(4)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(4)->alpha = textAlpha;
-	testGui.GetElement(4)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(4)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
-	testGui.GetElement(4)->secondTexture = Resources::Get().GetTexture("tut1Text.png");
+	std::shared_ptr<GUIElement> tutorialText1GUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	tutorialText1GUI->colorTint = Vec3(1, 1, 1);
+	tutorialText1GUI->alpha = textAlpha;
+	tutorialText1GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	tutorialText1GUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	tutorialText1GUI->secondTexture = Resources::Get().GetTexture("tut1Text.png");
+	tutorialTextGUIElements.Add(tutorialText1GUI);
 
 	//tutorial 2
-	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	testGui.GetElement(5)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(5)->alpha = textAlpha;
-	testGui.GetElement(5)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(5)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
-	testGui.GetElement(5)->secondTexture = Resources::Get().GetTexture("tut2Text.png");
+	std::shared_ptr<GUIElement> tutorialText2GUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	tutorialText2GUI->colorTint = Vec3(1, 1, 1);
+	tutorialText2GUI->alpha = textAlpha;
+	tutorialText2GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	tutorialText2GUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	tutorialText2GUI->secondTexture = Resources::Get().GetTexture("tut2Text.png");
+	tutorialTextGUIElements.Add(tutorialText2GUI);
 
 	//tutorial 3
-	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	testGui.GetElement(6)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(6)->alpha = textAlpha;
-	testGui.GetElement(6)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(6)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
-	testGui.GetElement(6)->secondTexture = Resources::Get().GetTexture("tut3Text.png");
+	std::shared_ptr<GUIElement> tutorialText3GUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	tutorialText3GUI->colorTint = Vec3(1, 1, 1);
+	tutorialText3GUI->alpha = textAlpha;
+	tutorialText3GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	tutorialText3GUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	tutorialText3GUI->secondTexture = Resources::Get().GetTexture("tut3Text.png");
+	tutorialTextGUIElements.Add(tutorialText3GUI);
 
 	//tutorial 4
-	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	testGui.GetElement(7)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(7)->alpha = textAlpha;
-	testGui.GetElement(7)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(7)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
-	testGui.GetElement(7)->secondTexture = Resources::Get().GetTexture("tut4Text.png");
+	std::shared_ptr<GUIElement> tutorialText4GUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	tutorialText4GUI->colorTint = Vec3(1, 1, 1);
+	tutorialText4GUI->alpha = textAlpha;
+	tutorialText4GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	tutorialText4GUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	tutorialText4GUI->secondTexture = Resources::Get().GetTexture("tut4Text.png");
+	tutorialTextGUIElements.Add(tutorialText4GUI);
 
 	//tutorial 5
-	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	testGui.GetElement(8)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(8)->alpha = textAlpha;
-	testGui.GetElement(8)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(8)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
-	testGui.GetElement(8)->secondTexture = Resources::Get().GetTexture("tut5Text.png");
+	std::shared_ptr<GUIElement> tutorialText5GUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	tutorialText5GUI->colorTint = Vec3(1, 1, 1);
+	tutorialText5GUI->alpha = textAlpha;
+	tutorialText5GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	tutorialText5GUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	tutorialText5GUI->secondTexture = Resources::Get().GetTexture("tut5Text.png");
+	tutorialTextGUIElements.Add(tutorialText5GUI);
 
 	//tutorial 6 present
-	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	testGui.GetElement(9)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(9)->alpha = textAlpha;
-	testGui.GetElement(9)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(9)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
-	testGui.GetElement(9)->secondTexture = Resources::Get().GetTexture("tut61Text.png");
+	std::shared_ptr<GUIElement> tutorialText6PresentGUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	tutorialText6PresentGUI->colorTint = Vec3(1, 1, 1);
+	tutorialText6PresentGUI->alpha = textAlpha;
+	tutorialText6PresentGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	tutorialText6PresentGUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	tutorialText6PresentGUI->secondTexture = Resources::Get().GetTexture("tut61Text.png");
+	tutorialTextGUIElements.Add(tutorialText6PresentGUI);
+
 
 	//tutorial 6 future
-	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	testGui.GetElement(10)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(10)->alpha = textAlpha;
-	testGui.GetElement(10)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(10)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
-	testGui.GetElement(10)->secondTexture = Resources::Get().GetTexture("tut62Text.png");
+	std::shared_ptr<GUIElement> tutorialText6FutureGUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	tutorialText6FutureGUI->colorTint = Vec3(1, 1, 1);
+	tutorialText6FutureGUI->alpha = textAlpha;
+	tutorialText6FutureGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	tutorialText6FutureGUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	tutorialText6FutureGUI->secondTexture = Resources::Get().GetTexture("tut62Text.png");
+	tutorialTextGUIElements.Add(tutorialText6FutureGUI);
 
 	//tutorial 7
-	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	testGui.GetElement(11)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(11)->alpha = textAlpha;
-	testGui.GetElement(11)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(11)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
-	testGui.GetElement(11)->secondTexture = Resources::Get().GetTexture("tut7Text.png");
-
+	std::shared_ptr<GUIElement> tutorialText7GUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	tutorialText7GUI->colorTint = Vec3(1, 1, 1);
+	tutorialText7GUI->alpha = textAlpha;
+	tutorialText7GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	tutorialText7GUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	tutorialText7GUI->secondTexture = Resources::Get().GetTexture("tut7Text.png");
+	tutorialTextGUIElements.Add(tutorialText7GUI);
 
 	//get da bloom
-	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	testGui.GetElement(12)->colorTint = Vec3(1, 1, 1);
-	testGui.GetElement(12)->alpha = textAlpha;
-	testGui.GetElement(12)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(12)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
-	testGui.GetElement(12)->secondTexture = Resources::Get().GetTexture("getDaBloom.png");
+	std::shared_ptr<GUIElement> tutorialTextBloomGUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	tutorialTextBloomGUI->colorTint = Vec3(1, 1, 1);
+	tutorialTextBloomGUI->alpha = textAlpha;
+	tutorialTextBloomGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	tutorialTextBloomGUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	tutorialTextBloomGUI->secondTexture = Resources::Get().GetTexture("getDaBloom.png");
+	tutorialTextGUIElements.Add(tutorialTextBloomGUI);
 
 	// Cutscene element 1
-	testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
-	testGui.GetElement( 13 )->colorTint = Vec3( 0, 0, 0 );
-	testGui.GetElement( 13 )->alpha = 0.0;
-	testGui.GetElement( 13 )->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
-	testGui.GetElement( 13 )->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
+	std::shared_ptr<GUIElement> cutsceneElement1GUI = testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
+	cutsceneElement1GUI->colorTint = Vec3( 0, 0, 0 );
+	cutsceneElement1GUI->alpha = 0.0;
+	cutsceneElement1GUI->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
+	cutsceneElement1GUI->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
+	cutsceneElement1GUI->uiRenderable->enabled = true;
 
 	// Cutscene element 2
-	testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
-	testGui.GetElement( 14 )->colorTint = Vec3( 0, 0, 0 );
-	testGui.GetElement( 14 )->alpha = 0.0;
-	testGui.GetElement( 14 )->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
-	testGui.GetElement( 14 )->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
-	//testGui.GetElement( 13 )->secondTexture = Resources::Get().GetTexture( "tut1Text.png" );
+	std::shared_ptr<GUIElement> cutsceneElement2GUI = testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
+	cutsceneElement2GUI->colorTint = Vec3(0, 0, 0);
+	cutsceneElement2GUI->alpha = 0.0;
+	cutsceneElement2GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	cutsceneElement2GUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo1.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo2.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo3.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo4.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo5.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo6.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo7.png"));
+	cutsceneElement2GUI->uiRenderable->enabled = true;
 
-	//// loading screen
-	//testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	//testGui.GetElement(13)->colorTint = Vec3(1, 1, 1);
-	//testGui.GetElement(13)->alpha = 0.0f;
-	//testGui.GetElement(13)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	//testGui.GetElement(13)->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
+	std::shared_ptr<GUIElement> introScreenGUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	introScreenGUI->colorTint = Vec3(1, 1, 1);
+	introScreenGUI->alpha = 1.0f;
+	introScreenGUI->uiRenderable->enabled = false;
+	introScreenGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	introScreenGUI->firstTexture = Resources::Get().GetTexture("introClip.png");
+
+	std::shared_ptr<GUIElement> introScreenGUI2 = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	introScreenGUI2->colorTint = Vec3(1, 1, 1);
+	introScreenGUI2->alpha = 0.0f;
+	introScreenGUI2->uiRenderable->enabled = false;
+	introScreenGUI2->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	introScreenGUI2->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	introScreenGUI2->secondTexture = Resources::Get().GetTexture("startPicText.png");
+
 
 	m_game->SetGUI(&testGui);
 	m_game->InitCutscene();
@@ -290,17 +312,30 @@ void Whisperwoods::Run()
 	for (bool running = true; running; frames++)
 	{
 
+		if (m_firstIntroPic == true)
+		{
+			introScreenGUI->uiRenderable->enabled = true;
+			if (Input::Get().IsDXKeyPressed(DXKey::Space))
+			{
+				introScreenGUI->uiRenderable->enabled = false;
+				//introScreenGUI->uiRenderable->a = false;
+				m_firstIntroPic = false;
+			}
+		}
+
 		if (m_game->youWin || m_game->IsInHubby())
 		{
-			testGui.GetElement(0)->uiRenderable->enabled = false;
-			testGui.GetElement(1)->uiRenderable->enabled = false;
-			testGui.GetElement(3)->uiRenderable->enabled = false;
+			staminaBarGUI->uiRenderable->enabled = false;
+			powerCooldownGUI->uiRenderable->enabled = false;
+			duckGUI->uiRenderable->enabled = false;
+			m_game->m_levelHandler->MinimapSetEnable(false);
 		}
 		else
 		{
-			testGui.GetElement(0)->uiRenderable->enabled = true;
-			testGui.GetElement(1)->uiRenderable->enabled = true;
-			testGui.GetElement(3)->uiRenderable->enabled = true;
+			staminaBarGUI->uiRenderable->enabled = true;
+			powerCooldownGUI->uiRenderable->enabled = true;
+			duckGUI->uiRenderable->enabled = true;
+			m_game->m_levelHandler->MinimapSetEnable(true);
 		}
 		// Init frame
 		m_renderer->BeginGui();
@@ -317,40 +352,40 @@ void Whisperwoods::Run()
 		dTimeAcc += dTime;
 
 		// Update the test gui with the stamina.
-		testGui.GetElement( 0 )->floatData = m_game->GetPlayer()->GetCurrentStamina()/10.0f;
+		staminaBarGUI->floatData = m_game->GetPlayer()->GetCurrentStamina()/10.0f;
 		if (m_game->GetMaxStamina() == 1.0f)
 		{
-			testGui.GetElement(0)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+			staminaBarGUI->colorTint = Vec3(0.93f, 0.0f, 0.12f);
 		}
 		else
 		{
-			testGui.GetElement(0)->colorTint = Vec3(1.0f, 0.72f, 0.0f);
+			staminaBarGUI->colorTint = Vec3(1.0f, 0.72f, 0.0f);
 		}
 
 		//update test gui with power cooldown
 		if (m_game->GetPlayer()->playerInFuture == false && m_game->GetPowerCooldown() != 0)
 		{
-			testGui.GetElement(3)->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
-			testGui.GetElement(3)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+			powerCooldownGUI->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
+			powerCooldownGUI->colorTint = Vec3(0.93f, 0.0f, 0.12f);
 		}
 		else if (m_game->GetPlayer()->playerInFuture == false && m_game->GetPowerCooldown() == 0)
 		{
-			testGui.GetElement(3)->colorTint = Vec3(0.08f, 0.18f, 0.8f);
-			testGui.GetElement(3)->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
+			powerCooldownGUI->colorTint = Vec3(0.08f, 0.18f, 0.8f);
+			powerCooldownGUI->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
 		}
 		else
 		{
-			testGui.GetElement(3)->floatData = 0.06f;
-			testGui.GetElement(3)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+			powerCooldownGUI->floatData = 0.06f;
+			powerCooldownGUI->colorTint = Vec3(0.93f, 0.0f, 0.12f);
 		}
 
 		if (m_game->showTextForPickupBloom)
 		{
-			testGui.GetElement(12)->uiRenderable->enabled = true;
+			tutorialTextBloomGUI->uiRenderable->enabled = true;
 		}
 		else
 		{
-			testGui.GetElement(12)->uiRenderable->enabled = false;
+			tutorialTextBloomGUI->uiRenderable->enabled = false;
 		}
 
 		if (Input::Get().IsDXKeyPressed( DXKey::B ))
@@ -358,15 +393,15 @@ void Whisperwoods::Run()
 			//Debug::ExecuteCommand( "Duck", "play" );
 			targetAlpha = !targetAlpha;
 		}
-		testGui.GetElement( 2 )->alpha = LerpFloat( testGui.GetElement( 2 )->alpha, targetAlpha, 4.0f * dTime );
+		duckGUI->alpha = LerpFloat(duckGUI->alpha, targetAlpha, 4.0f * dTime );
 
-		if (testGui.GetElement(2)->alpha = 0.0f)
+		if (duckGUI->alpha = 0.0f)
 		{
-			testGui.GetElement(2)->uiRenderable->enabled = false;
+			duckGUI->uiRenderable->enabled = false;
 		}
 		else
 		{
-			testGui.GetElement(2)->uiRenderable->enabled = true;
+			duckGUI->uiRenderable->enabled = true;
 		}
 
 
@@ -378,37 +413,41 @@ void Whisperwoods::Run()
 		ImGui::End();
 
 		// Main game update
-		m_game->Update(dTime, m_renderer.get());
-
-
-
-		// tutorial text reset
-		for (int i = 4; i <= 11; i++)
+		if (m_firstIntroPic == false)
 		{
-			testGui.GetElement(i)->uiRenderable->enabled = false;
+			if (introScreenGUI->uiRenderable->enabled)
+				introScreenGUI->uiRenderable->enabled = false;
+			m_game->Update(dTime, m_renderer.get());
 		}
+
+		for (shared_ptr<GUIElement> tutorialText : tutorialTextGUIElements)
+		{
+			tutorialText->uiRenderable->enabled = false;
+		}
+
 
 		//set active tutorial text
 		if (m_game->tutorial)
 		{
 			if (m_game->activeTutorialLevel < 6)
 			{
-				testGui.GetElement(m_game->activeTutorialLevel + 3)->uiRenderable->enabled = true;
+				// How does this work?
+				testGui.GetElement(m_game->activeTutorialLevel + 2)->uiRenderable->enabled = true;
 			}
 			else if (m_game->activeTutorialLevel == 6)
 			{
 				if (m_game->GetPlayer()->playerInFuture)
 				{
-					testGui.GetElement(10)->uiRenderable->enabled = true;
+					tutorialText6FutureGUI->uiRenderable->enabled = true;
 				}
 				else
 				{
-					testGui.GetElement(9)->uiRenderable->enabled = true;
+					tutorialText6PresentGUI->uiRenderable->enabled = true;
 				}
 			}
 			else if (m_game->activeTutorialLevel == 7)
 			{
-				testGui.GetElement(11)->uiRenderable->enabled = true;
+				tutorialText7GUI->uiRenderable->enabled = true;
 			}
 		}
 
