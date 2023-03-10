@@ -428,11 +428,6 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 // Debug stuff
 void Game::DrawIMGUIWindows()
 {
-	static Vec2 vignette = Vec2(0.5f, 1.0f);
-	static Vec2 contrast = Vec2(1.0f, 0.4f);
-	static float brightness = 0.0f;
-	static float saturation = 1.25f;
-	static bool firstSet = true;
 
 #if WW_DEBUG
 
@@ -473,10 +468,11 @@ void Game::DrawIMGUIWindows()
 	{
 		float speed = 0.01f;
 		bool changed = false;
-		changed |= ImGui::DragFloat2("Vignette Radius & Strength", (float*)&vignette, speed, 0.0f, FLT_MAX);
-		changed |= ImGui::DragFloat2("Contrast Amount & Midpoint", (float*)&contrast, speed, 0.0f);
-		changed |= ImGui::DragFloat("Brightness", &brightness, speed, 0.0f, FLT_MAX);
-		changed |= ImGui::DragFloat("Saturation", &saturation, speed, 0.0f, FLT_MAX);
+		
+		changed |= ImGui::DragFloat2("Vignette Radius & Strength", (float*)&m_vignetteStrengthAndRadius, speed, 0.0f, FLT_MAX);
+		changed |= ImGui::DragFloat2("Contrast Amount & Midpoint", (float*)&m_contrastStrengthAndMidpoint, speed, 0.0f);
+		changed |= ImGui::DragFloat("Brightness", &m_finalBrightness, speed, 0.0f, FLT_MAX);
+		changed |= ImGui::DragFloat("Saturation", &m_finalSaturation, speed, 0.0f, FLT_MAX);
 
 		/*if (changed || firstSet)
 		{
@@ -592,7 +588,7 @@ void Game::DrawIMGUIWindows()
 
 #endif
 
-	Renderer::UpdatePPFXInfo(vignette, contrast, brightness, saturation);
+	
 }
 
 
@@ -673,6 +669,12 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		// Final steps
 		UpdateTimeSwitchBuffers( renderer );
 		UpdateEnemyConeBuffers( renderer );
+		Renderer::UpdatePPFXInfo(
+			m_vignetteStrengthAndRadius, 
+			m_contrastStrengthAndMidpoint, 
+			m_finalBrightness, 
+			m_finalSaturation
+		);
 	}
 	else
 	{
@@ -829,6 +831,12 @@ void Game::Init()
 
 	m_futureAmbientColor = cs::Color3f(0xFFFFC0);
 	m_futureAmbientIntensity = 0.35f;
+
+	m_vignetteStrengthAndRadius = Vec2(0.5f, 1.0f);
+	m_contrastStrengthAndMidpoint = Vec2(1.0f, 0.4f);
+	m_finalBrightness = 0.0f;
+	m_finalSaturation = 1.25f;
+	firstSet = true;
 }
 
 void Game::DeInit()
