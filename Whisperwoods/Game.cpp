@@ -336,16 +336,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						activeTutorialLevel = r.targetRoom + 1;
 						uint targetIndex = (r.tunnelSubIndex + 1) % 2;
 						const LevelTunnel& t = m_floor.tunnels[r.tunnel];
-						UnLoadPrevious();
-						LoadRoom(&m_floor.rooms[r.targetRoom]);
-
-						m_currentRoom->transform.CalculateWorldMatrix();
-						m_directionalLight->transform.parent = &m_currentRoom->transform;
-						m_directionalLight->Update(0);
-
-						MovePlayer(t.positions[targetIndex] - t.directions[targetIndex] * TUNNEL_SPAWN_DISTANCE, -t.directions[targetIndex]);
-						m_player->ReloadPlayer();
-						
+						ExecuteLoad(r.targetRoom, t.positions[targetIndex], t.directions[targetIndex]);
 						break;
 					}
 
