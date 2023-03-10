@@ -48,8 +48,11 @@ public:
 	LevelHandler(const LevelHandler&) = delete;
 	LevelHandler(LevelHandler&&) = delete;
 
-	shared_ptr<uint8_t> GenerateFloorImage(LevelFloor* floorRef);
+	shared_ptr<uint8_t> GenerateFloorImageData(LevelFloor* floorRef);
+	void GenerateFinishedMinimap(LevelFloor* floorRef);
 	void SetFloormapFocusRoom(Level* level);
+
+	void MinimapSetEnable(bool enable);
 
 	void LoadFloors();
 	void GenerateTutorial(LevelFloor* outFloor, EnvironmentalizeParameters params);
