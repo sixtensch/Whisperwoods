@@ -346,7 +346,6 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						m_player->ReloadPlayer();
 
 						Renderer::ExecuteShadowRender();
-						youWin = true; // REMOVE THIS, TESTING
 						
 						break;
 					}
