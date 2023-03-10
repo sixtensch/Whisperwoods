@@ -3,7 +3,23 @@
 #include "LevelImporter.h"
 #include "Renderer.h"
 
+// Includes to make creation of floor texture possible in constructor
+#include "Resources.h"
+#include "Renderer.h"
+
 #include <filesystem>
+
+constexpr uint LEVEL_MAP_PIXEL_WIDTH = 350u;
+constexpr uint LEVEL_MAP_PIXEL_HEIGHT = 350u;
+constexpr uint BYTES_PER_TEXEL = 4u;
+constexpr uint DATA_SIZE = LEVEL_MAP_PIXEL_WIDTH * LEVEL_MAP_PIXEL_HEIGHT * BYTES_PER_TEXEL;
+
+constexpr float TEXEL_WIDTH = 1.0f / LEVEL_MAP_PIXEL_WIDTH;
+constexpr float TEXEL_HEIGHT = 1.0f / LEVEL_MAP_PIXEL_HEIGHT;
+
+// All calculated from positions are shrinked by certain amount to fit better in texture.
+constexpr float UV_POS_PADDING_FACTOR = 0.7f;
+
 
 bool Intersect(Vec2 p1a, Vec2 p1b, Vec2 p2a, Vec2 p2b)
 {
@@ -38,38 +54,175 @@ bool Intersect(Vec2 p1a, Vec2 p1b, Vec2 p2a, Vec2 p2b)
 
 LevelHandler* LevelHandler::s_handler = nullptr;
 
-LevelHandler::LevelHandler()
+LevelHandler::LevelHandler() 
 {
+	m_floorMinimapGUI = shared_ptr<GUI>(new GUI());
+
+	shared_ptr<GUIElement> minimapElement = m_floorMinimapGUI->AddGUIElement({ -0.9f, 0.3f }, { 0.4f * 0.9f, 0.4f * 1.6f }, nullptr, nullptr);
+	minimapElement->colorTint = cs::Color3f(0xA7A158);
+	minimapElement->alpha = 0.7f;
+	minimapElement->intData = Point4(0, 0, 1, 0); // Makes it zoom in around a given uv point.
+
+	TextureResource* minimapTexture = Resources::Get().CreateTextureUnorm(
+		Renderer::Get().GetRenderCore(),
+		"FloorMinimapGUI",
+		nullptr,
+		LEVEL_MAP_PIXEL_WIDTH,
+		LEVEL_MAP_PIXEL_HEIGHT,
+		true
+	);
+
+	minimapElement->firstTexture = minimapTexture;
+	minimapElement->secondTexture = Resources::Get().GetTexture("HudMask2.png");
+
+	minimapElement->uiRenderable->enabled = false;
+	m_floorMinimapGUIElement = minimapElement;
+	
 }
 
-shared_ptr<uint8_t> LevelHandler::GenerateFloorImage(int sizeX, int sizeY, LevelFloor floorRef)
+int LevelHandler::Get1DPixelPosFromWorld(Vec2 position)
 {
-	for (int i = 0; i < floorRef.rooms.Size(); i++)
+	Vec2 uvPos = GetFloorUVFromPos(position);
+
+	return GetSafe1DPixelPosFromUV(uvPos);
+}
+
+int LevelHandler::GetSafe1DPixelPosFromUV(Vec2 uv)
+{
+	// Simple UV mapping of coordinates to pixel pos.
+	int yOffset = cs::floor(uv.y * LEVEL_MAP_PIXEL_HEIGHT) * LEVEL_MAP_PIXEL_WIDTH;
+	int xOffset = cs::floor(uv.x * LEVEL_MAP_PIXEL_WIDTH);
+
+	return cs::iclamp((yOffset + xOffset) * BYTES_PER_TEXEL, 0, (int)DATA_SIZE);
+}
+
+Vec2 LevelHandler::GetFloorUVFromPos(Vec2 position)
+{
+	// Default value of 0.5f for special cases.
+	float xUVPos = 0.5f;
+	float yUVPos = 0.5f;
+
+	if ((m_minimapWorldMaxWidth - m_minimapWorldMinWidth) != 0.0f)
 	{
-		Vec3 p = floorRef.rooms[i].position;
-		LOG_TRACE("%d - Room pos: %.2f %.2f %.2f", i, p.x, p.y, p.z);
+		xUVPos = (position.x - m_minimapWorldMinWidth) / (m_minimapWorldMaxWidth - m_minimapWorldMinWidth);
 	}
 
-	shared_ptr<uint8_t> returnVal(new uint8_t[sizeX * sizeY * 4]);
-	for (int y = 0; y < sizeY; y++)
+	if ((m_minimapWorldMaxHeight - m_minimapWorldMinHeight) != 0.0f)
 	{
-		for (int x = 0; x < sizeX; x++)
+		yUVPos = (position.y - m_minimapWorldMinHeight) / (m_minimapWorldMaxHeight - m_minimapWorldMinHeight);
+	}
+
+	// Offset to center of number line. Shrink interval towards 0. Offset back to original interval.
+	return (Vec2(xUVPos, yUVPos) - Vec2(0.5f, 0.5f)) * UV_POS_PADDING_FACTOR + Vec2(0.5f, 0.5f);
+}
+
+Vec2 LevelHandler::GetRoomFlatenedPos(Vec3 roomPosition)
+{
+	return Vec2(roomPosition.x, roomPosition.z);
+}
+
+void LevelHandler::LoadPixel(uint8_t* data, uint pixelPos, uint8_t r, uint8_t g, uint8_t b)
+{
+	data[pixelPos + 0] = r;
+	data[pixelPos + 1] = g;
+	data[pixelPos + 2] = b;
+	data[pixelPos + 3] = 255u;
+}
+
+shared_ptr<uint8_t> LevelHandler::GenerateFloorImage(LevelFloor* floorRef)
+{
+	// Height is assumed to be z dimension.
+	m_minimapWorldMinHeight = FLT_MAX;
+	m_minimapWorldMaxHeight = -FLT_MAX;
+
+	// Width is assumed to be x dimension.
+	m_minimapWorldMinWidth = FLT_MAX;
+	m_minimapWorldMaxWidth = -FLT_MAX;
+
+	// Save looped rooms for later use when creating picture.
+	cs::List<Vec2> roomPositions = {};
+	for (int i = 0; i < floorRef->rooms.Size(); i++)
+	{
+		Vec3 roomPos = floorRef->rooms[i].position;
+		Vec2 roomFlatPos = GetRoomFlatenedPos(roomPos);
+
+		m_minimapWorldMinHeight = cs::fmin(m_minimapWorldMinHeight, roomFlatPos.y);
+		m_minimapWorldMaxHeight = cs::fmax(m_minimapWorldMaxHeight, roomFlatPos.y);
+
+		m_minimapWorldMinWidth = cs::fmin(m_minimapWorldMinWidth, roomFlatPos.x);
+		m_minimapWorldMaxWidth = cs::fmax(m_minimapWorldMaxWidth, roomFlatPos.x);
+
+		roomPositions.Add(roomFlatPos);
+		LOG_TRACE("%d - Room pos: %.2f %.2f %.2f", i, roomPos.x, roomPos.y, roomPos.z);
+	}
+
+	// Start of filling pixel data
+
+	// Can be precalculated in compile... but yeah.
+	float minStepLength = cs::fmin(TEXEL_WIDTH, TEXEL_HEIGHT);
+
+	// TODO: Sussy allocation. Will this memleak?
+	shared_ptr<uint8_t> returnData = shared_ptr<uint8_t>(new uint8_t[DATA_SIZE]);
+	uint8_t* pixelData = returnData.get();
+
+	
+	// Draw lines between nodes
+	for (int i = 0; i < floorRef->tunnels.Size(); i++)
+	{
+		const LevelTunnel& tunnel = floorRef->tunnels[i];
+		Vec2 posA = GetFloorUVFromPos(GetRoomFlatenedPos(tunnel.positions[0]));
+		Vec2 posB = GetFloorUVFromPos(GetRoomFlatenedPos(tunnel.positions[1]));
+
+		Vec2 uvDirectionBToA = posA - posB;
+		float lineLength = uvDirectionBToA.Length();
+		uvDirectionBToA.Normalize(); // Make normalized direction after getting length.
+
+		// Calculates one normal (-dy, dx).
+		Vec2 uvDirectionNormal = Vec2(-(posA.y - posB.y), posA.x - posB.x).Normalize();
+
+		uint minSteps = cs::ceil(lineLength / minStepLength);
+		for (int step = 0; step < minSteps; step++)
 		{
-			float xF = (float)x / (float)sizeX;
-			float yF = (float)y / (float)sizeY;
+			Vec2 texelPos = posB + uvDirectionBToA * minStepLength * step;
 
-			
-			
+			for (int widthStep = -2; widthStep <= 2; widthStep++)
+			{
+				Vec2 offset = uvDirectionNormal * minStepLength * widthStep * 0.3f; // Magic number scaler.
+				int channelPos = GetSafe1DPixelPosFromUV(texelPos + offset);
 
-			returnVal.get()[(y * sizeX) + (x * 4) + 0 ] = 255;
-			returnVal.get()[(y * sizeX) + (x * 4) + 1 ] = 0;
-			returnVal.get()[(y * sizeX) + (x * 4) + 2 ] = 0;
-			returnVal.get()[(y * sizeX) + (x * 4) + 3 ] = 255;
+				LoadPixel(pixelData, channelPos, 32u, 91u, 223u);
+			}
 		}
 	}
-	return returnVal;
+
+	// Draw nodes as cubes.
+	int cubeWidth = 20;
+	int halfCube = cubeWidth / 2;
+	for (Vec2 roomPos : roomPositions)
+	{
+		Vec2 roomUVPos = GetFloorUVFromPos(roomPos);
+		
+		for (int y = -halfCube; y <= halfCube; y++)
+		{
+			for (int x = -halfCube; x <= halfCube; x++)
+			{
+				Vec2 cubeOffset = Vec2(x, y) * minStepLength;
+				int channelPos = GetSafe1DPixelPosFromUV(cubeOffset + roomUVPos);
+
+				LoadPixel(pixelData, channelPos, 32u, 91u, 223u);
+			}
+		}
+	}
+
+	return returnData;
 }
 
+
+void LevelHandler::SetFloormapFocusRoom(Level* level)
+{
+	m_floorMinimapGUIElement->minimapRoomPos = GetFloorUVFromPos(GetRoomFlatenedPos(level->position));
+	LOG("Now focusing on room uvs: %f, %f", m_floorMinimapGUIElement->minimapRoomPos.x, m_floorMinimapGUIElement->minimapRoomPos.y);
+}
 
 void LevelHandler::LoadFloors()
 {
@@ -171,6 +324,15 @@ void LevelHandler::GenerateTutorial(LevelFloor* outFloor, EnvironmentalizeParame
 	}
 
 	Unprime(primer, f, params);
+
+	// After creating floor structure, create its image.
+	m_floorMinimapGUIElement->uiRenderable->enabled = true;
+	Renderer::UpdateTexture2DData(
+		m_floorMinimapGUIElement->firstTexture->texture2D,
+		GenerateFloorImage(outFloor).get(),
+		LEVEL_MAP_PIXEL_WIDTH,
+		LEVEL_MAP_PIXEL_HEIGHT
+	);
 }
 
 
@@ -188,8 +350,6 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, 
 		{},
 		{}
 	};
-
-	
 
 	// Bogo-ing
 
@@ -223,6 +383,15 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, 
 	LOG("Generated map network. Attempts: %i", (int)attempts);
 
 	Unprime(primer, f, eParams);
+
+	// After creating floor structure, create its image.
+	m_floorMinimapGUIElement->uiRenderable->enabled = true;
+	Renderer::UpdateTexture2DData(
+		m_floorMinimapGUIElement->firstTexture->texture2D,
+		GenerateFloorImage(outFloor).get(),
+		LEVEL_MAP_PIXEL_WIDTH,
+		LEVEL_MAP_PIXEL_HEIGHT
+	);
 }
 
 void LevelHandler::GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParameters params)
@@ -249,6 +418,9 @@ void LevelHandler::GenerateHubby(LevelFloor* outFloor, EnvironmentalizeParameter
 	// Add a level
 	AddLevelName(f, "Hubby");
 	Environmentalize(f.rooms.Back(), params);
+
+	// Disable minimap.
+	m_floorMinimapGUIElement->uiRenderable->enabled = false;
 }
 
 void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters parameters)

@@ -90,7 +90,7 @@ private:
 	bool IsAllowedToSwitch();
 	bool ChargeIsDone();
 	bool SwitchIsDone();
-	void LoadRoom(Level* level);
+	void LoadRoom(uint levelIndex);
 	void UnloadRoom();
 	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
