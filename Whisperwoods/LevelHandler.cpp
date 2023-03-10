@@ -129,7 +129,7 @@ void LevelHandler::LoadPixel(uint8_t* data, uint pixelPos, uint8_t r, uint8_t g,
 	data[pixelPos + 3] = 255u;
 }
 
-shared_ptr<uint8_t> LevelHandler::GenerateFloorImage(LevelFloor* floorRef)
+shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 {
 	// Height is assumed to be z dimension.
 	m_minimapWorldMinHeight = FLT_MAX;
@@ -218,10 +218,27 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImage(LevelFloor* floorRef)
 }
 
 
+void LevelHandler::GenerateFinishedMinimap(LevelFloor* floorRef)
+{
+	// After creating floor structure, create its image.
+	m_floorMinimapGUIElement->uiRenderable->enabled = true;
+	Renderer::UpdateTexture2DData(
+		m_floorMinimapGUIElement->firstTexture->texture2D,
+		GenerateFloorImageData(floorRef).get(),
+		LEVEL_MAP_PIXEL_WIDTH,
+		LEVEL_MAP_PIXEL_HEIGHT
+	);
+}
+
 void LevelHandler::SetFloormapFocusRoom(Level* level)
 {
 	m_floorMinimapGUIElement->minimapRoomPos = GetFloorUVFromPos(GetRoomFlatenedPos(level->position));
 	LOG("Now focusing on room uvs: %f, %f", m_floorMinimapGUIElement->minimapRoomPos.x, m_floorMinimapGUIElement->minimapRoomPos.y);
+}
+
+void LevelHandler::MinimapSetEnable(bool enable)
+{
+	m_floorMinimapGUIElement->uiRenderable->enabled = enable;
 }
 
 void LevelHandler::LoadFloors()
@@ -325,14 +342,7 @@ void LevelHandler::GenerateTutorial(LevelFloor* outFloor, EnvironmentalizeParame
 
 	Unprime(primer, f, params);
 
-	// After creating floor structure, create its image.
-	m_floorMinimapGUIElement->uiRenderable->enabled = true;
-	Renderer::UpdateTexture2DData(
-		m_floorMinimapGUIElement->firstTexture->texture2D,
-		GenerateFloorImage(outFloor).get(),
-		LEVEL_MAP_PIXEL_WIDTH,
-		LEVEL_MAP_PIXEL_HEIGHT
-	);
+	GenerateFinishedMinimap(&f);
 }
 
 
@@ -385,13 +395,7 @@ void LevelHandler::GenerateFloor(LevelFloor* outFloor, FloorParameters fParams, 
 	Unprime(primer, f, eParams);
 
 	// After creating floor structure, create its image.
-	m_floorMinimapGUIElement->uiRenderable->enabled = true;
-	Renderer::UpdateTexture2DData(
-		m_floorMinimapGUIElement->firstTexture->texture2D,
-		GenerateFloorImage(outFloor).get(),
-		LEVEL_MAP_PIXEL_WIDTH,
-		LEVEL_MAP_PIXEL_HEIGHT
-	);
+	GenerateFinishedMinimap(&f);
 }
 
 void LevelHandler::GenerateTestFloor(LevelFloor* outFloor, EnvironmentalizeParameters params)
@@ -418,9 +422,6 @@ void LevelHandler::GenerateHubby(LevelFloor* outFloor, EnvironmentalizeParameter
 	// Add a level
 	AddLevelName(f, "Hubby");
 	Environmentalize(f.rooms.Back(), params);
-
-	// Disable minimap.
-	m_floorMinimapGUIElement->uiRenderable->enabled = false;
 }
 
 void LevelHandler::Environmentalize(Level& l, EnvironmentalizeParameters parameters)

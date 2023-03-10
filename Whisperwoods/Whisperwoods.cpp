@@ -309,12 +309,14 @@ void Whisperwoods::Run()
 			staminaBarGUI->uiRenderable->enabled = false;
 			powerCooldownGUI->uiRenderable->enabled = false;
 			duckGUI->uiRenderable->enabled = false;
+			m_game->m_levelHandler->MinimapSetEnable(false);
 		}
 		else
 		{
 			staminaBarGUI->uiRenderable->enabled = true;
 			powerCooldownGUI->uiRenderable->enabled = true;
 			duckGUI->uiRenderable->enabled = true;
+			m_game->m_levelHandler->MinimapSetEnable(true);
 		}
 		// Init frame
 		m_renderer->BeginGui();

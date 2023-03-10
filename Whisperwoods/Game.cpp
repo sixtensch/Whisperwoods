@@ -381,6 +381,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			m_loadingHubby = false;
 			m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
 		}
+		
 		if (Input::Get().IsDXKeyPressed( DXKey::H ))
 		{
 			m_loadingHubby = true;
@@ -1526,6 +1527,7 @@ void Game::EndRunDueToPoison(Renderer* renderer)
 
 	EndRun(renderer);
 }
+
 
 void Game::TransitionStart(Vec3 exitPosition, Vec3 exitDirection, uint targetRoom, Vec3 targetPosition, Vec3 targetDirection)
 {
