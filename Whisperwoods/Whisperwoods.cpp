@@ -269,6 +269,7 @@ void Whisperwoods::Run()
 	cutsceneElement1GUI->alpha = 0.0;
 	cutsceneElement1GUI->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
 	cutsceneElement1GUI->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
+	cutsceneElement1GUI->uiRenderable->enabled = true;
 
 	// Cutscene element 2
 	std::shared_ptr<GUIElement> cutsceneElement2GUI = testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
@@ -283,7 +284,7 @@ void Whisperwoods::Run()
 	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo5.png"));
 	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo6.png"));
 	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo7.png"));
-
+	cutsceneElement2GUI->uiRenderable->enabled = true;
 
 	std::shared_ptr<GUIElement> introScreenGUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	introScreenGUI->colorTint = Vec3(1, 1, 1);
@@ -291,6 +292,15 @@ void Whisperwoods::Run()
 	introScreenGUI->uiRenderable->enabled = false;
 	introScreenGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
 	introScreenGUI->firstTexture = Resources::Get().GetTexture("introClip.png");
+
+	std::shared_ptr<GUIElement> introScreenGUI2 = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	introScreenGUI2->colorTint = Vec3(1, 1, 1);
+	introScreenGUI2->alpha = 0.0f;
+	introScreenGUI2->uiRenderable->enabled = false;
+	introScreenGUI2->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	introScreenGUI2->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	introScreenGUI2->secondTexture = Resources::Get().GetTexture("startPicText.png");
+
 
 	m_game->SetGUI(&testGui);
 	m_game->InitCutscene();
@@ -308,6 +318,7 @@ void Whisperwoods::Run()
 			if (Input::Get().IsDXKeyPressed(DXKey::Space))
 			{
 				introScreenGUI->uiRenderable->enabled = false;
+				//introScreenGUI->uiRenderable->a = false;
 				m_firstIntroPic = false;
 			}
 		}
@@ -404,6 +415,8 @@ void Whisperwoods::Run()
 		// Main game update
 		if (m_firstIntroPic == false)
 		{
+			if (introScreenGUI->uiRenderable->enabled)
+				introScreenGUI->uiRenderable->enabled = false;
 			m_game->Update(dTime, m_renderer.get());
 		}
 
