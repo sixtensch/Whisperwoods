@@ -30,6 +30,7 @@ public:
 
 	bool m_cutSceneActive;
 	float m_time;
+	float m_playbackRate;
 	cs::List<shared_ptr<Cutscene>> m_cutscenes;
 	Cutscene* activeCutscene;
 

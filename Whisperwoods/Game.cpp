@@ -59,7 +59,9 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	m_currentStamina = m_player->GetCurrentStamina();
 	Renderer::SetPlayerMatrix( m_player->compassMatrix );
 
-	// Noise Generation for breathing glows and vegetation wind
+	cs::NoiseSimplex noise1( 2 );
+	cs::NoiseSimplex noise2( 123 );
+	// Noise Generation for breathing glows and vegetation wind TODO: Check performance on this, possibly remove if bad.
 	float scanMultiplier = 0.1f;
 	noiseVal1 += Vec3( m_deltaTime * scanMultiplier*5, -m_deltaTime* scanMultiplier, m_deltaTime * scanMultiplier );
 	noiseVal2 += Vec3( m_deltaTime * scanMultiplier*2, m_deltaTime * scanMultiplier, m_deltaTime * scanMultiplier*3);
@@ -70,13 +72,13 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		noise1.Gen2D( noiseVal1.z, noiseVal1.y ));
 	Renderer::SetWorldParameters( noiseVector, Vec4( noiseVal2, 0));
 
-	if (ImGui::Begin( "Noise Debug" ))
-	{
-		ImGui::Text( "NoiseVector: %f %f %f %f", noiseVector.x, noiseVector.y, noiseVector.z, noiseVector.w );
-		ImGui::Text( "NoiseVal1: %f %f %f", noiseVal1.x, noiseVal1.y, noiseVal1.z );
-		ImGui::Text( "NoiseVal2: %f %f %f", noiseVal2.x, noiseVal2.y, noiseVal2.z );
-	}
-	ImGui::End();
+	//if (ImGui::Begin( "Noise Debug" ))
+	//{
+	//	ImGui::Text( "NoiseVector: %f %f %f %f", noiseVector.x, noiseVector.y, noiseVector.z, noiseVector.w );
+	//	ImGui::Text( "NoiseVal1: %f %f %f", noiseVal1.x, noiseVal1.y, noiseVal1.z );
+	//	ImGui::Text( "NoiseVal2: %f %f %f", noiseVal2.x, noiseVal2.y, noiseVal2.z );
+	//}
+	//ImGui::End();
 
 	// Pickups
 	for (int i = 0; i < m_pickups.Size(); ++i)
@@ -606,7 +608,8 @@ void Game::DrawIMGUIWindows()
 void Game::CinematicUpdate()
 {
 	// More later
-	m_player->CinematicUpdate( m_deltaTime ); // Only updates the matrix, allowing for cutscenecontroller control.
+	m_player->CinematicUpdate( m_deltaTime ); // Only updates the matrix and animator, allowing for cutscenecontroller control.
+	m_grafiki->CinematicUpdate( m_deltaTime ); // Only updates the matrix and animator, allowing for cutscenecontroller control.
 	m_currentRoom->Update( m_deltaTime );
 	for (int i = 0; i < m_staticObjects.Size(); i++)
 	{
@@ -702,6 +705,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 void Game::Init()
 {
 	m_godMode = false;
+
 
 	m_loadScreen = shared_ptr<GUI> (new GUI());
 

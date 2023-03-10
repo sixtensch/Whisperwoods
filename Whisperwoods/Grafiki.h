@@ -18,14 +18,16 @@ public:
 
 	void Update(float delta_time) override;
 
+	void CinematicUpdate( float delta_time );
+
 	bool InteractPlayer(Vec2 playerPosition);
 
 	bool enabled = true;
 
+	shared_ptr<Animator> characterAnimator;
 private:
 	shared_ptr<MeshRenderableRigged> characterModel;
 	AnimationResource* animationSet;
-	shared_ptr<Animator> characterAnimator;
 	shared_ptr<AudioSource> m_talkSource;
 
 	float m_animationSpeed;

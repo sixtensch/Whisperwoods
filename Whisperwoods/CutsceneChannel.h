@@ -33,9 +33,16 @@ struct CutsceneChannel
 
 	// Helper functions.
 	Quaternion Squad(Quaternion q0, Quaternion q1, Quaternion q2, Quaternion q3, float t);
+
 	Vec3 Lerp(Vec3 a, Vec3 b, float t);
-	Vec3 GetInterpolatedValue(cs::List<Vec3KeyFrame> keys, float time, float duration);
-	Quaternion GetInterpolatedValue(cs::List<QuatKeyFrame> keys, float time, float duration);
+
+	float Lerp( float a, float b, float t );
+
+	Vec3 GetInterpolatedValue(cs::List<Vec3KeyFrame>& keys, float time, float duration);
+
+	float GetInterpolatedValue( cs::List<FloatKeyFrame>& keys, float time, float duration );
+
+	Quaternion GetInterpolatedValue(cs::List<QuatKeyFrame>& keys, float time, float duration);
 
 	virtual void Update(float animationTime, float durationRef) = 0;
 };
@@ -137,12 +144,14 @@ struct CutsceneGUIChannel : CutsceneChannel
 	// target textbox
 	cs::List<CutsceneGUITriggerKey> keys;
 	GUI* targetGUI;
+	int targetGUIElement;
 	CutsceneGUIChannel()
 	{
 		targetGUI = nullptr;
 		keys = {  };
 		channelType = CutsceneTypeGUI;
 		numKeys = 0;
+		targetGUIElement = 0;
 	}
 	CutsceneGUIChannel(std::string name, GUI* targetGUI) :
 		targetGUI(targetGUI) 
@@ -160,7 +169,7 @@ struct CutsceneGUIChannel : CutsceneChannel
 		numKeys = keys.Size();
 		//this->keys[this->keys.Size() - 1]->parentChannel = this;
 	}
-	void Update(float animationTime, float durationRef) override {};
+	void Update(float animationTime, float durationRef) override;
 };
 
 struct CutsceneTextChannel : CutsceneChannel

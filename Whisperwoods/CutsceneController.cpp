@@ -3,12 +3,13 @@
 #include <imgui.h>
 #include <imgui_neo_sequencer.h>
 #include "WWCBuilder.h"
-
+#include "Input.h"
 CutsceneController::CutsceneController()
 {
     activeCutscene = nullptr;
     transformOpen = true;
     m_time = 0;
+    m_playbackRate = 1.0f;
 }
 
 void CutsceneController::AddCutscene( shared_ptr<Cutscene> cutscene )
@@ -50,6 +51,8 @@ void CutsceneController::Update(float deltaTime)
     // CutsceneAnimatorChannel* animatorChannel2 = nullptr;
 
     cs::List<CutsceneAnimatorChannel*> animatorChannels;
+    cs::List<CutsceneTransformChannel*> transformChannels;
+    cs::List<CutsceneGUIChannel*> guiChannels;
 
     int camIndex = -1;
     // int animIndex1 = -1;
@@ -70,24 +73,18 @@ void CutsceneController::Update(float deltaTime)
 
         for (int i = 0; i < activeCutscene->channels.Size(); i++)
         {
-            if (dynamic_cast<CutsceneAnimatorChannel*>(activeCutscene->channels[i].get()))
                 //if (activeCutscene->channels[i].get()->channelType == CutsceneTypeAnimator)
+            if (dynamic_cast<CutsceneAnimatorChannel*>(activeCutscene->channels[i].get()))
             {
                 animatorChannels.Add((CutsceneAnimatorChannel*)activeCutscene->channels[i].get());
-
-
-                //if (animIndex1 < 0)
-                //{
-                //    animatorChannel1 = (CutsceneAnimatorChannel*)activeCutscene->channels[i].get();
-                //    animIndex1 = i;
-                //    //break;
-                //}
-                //else
-                //{
-                //    animatorChannel2 = static_cast<CutsceneAnimatorChannel*>(activeCutscene->channels[i].get());
-                //    animIndex2 = i;
-                //    break;
-                //}
+            }
+            else if (dynamic_cast<CutsceneTransformChannel*>(activeCutscene->channels[i].get()))
+            {
+                transformChannels.Add( (CutsceneTransformChannel*)activeCutscene->channels[i].get() );
+            }
+            else if (dynamic_cast<CutsceneGUIChannel*>(activeCutscene->channels[i].get()))
+            {
+                guiChannels.Add( (CutsceneGUIChannel*)activeCutscene->channels[i].get() );
             }
         }
     }
@@ -102,7 +99,7 @@ void CutsceneController::Update(float deltaTime)
     }
     if (m_isPlaying)
     {
-        m_time += deltaTime *0.25f;
+        m_time += deltaTime * 0.1f * m_playbackRate;
         if (m_time > 0.99f) m_time = 0;
         currentFrame = m_time * endFrame;
     }
@@ -117,8 +114,11 @@ void CutsceneController::Update(float deltaTime)
 	{
         ImGui::Checkbox("Cutscene Active", &m_cutSceneActive);
         ImGui::Checkbox("Cutscene Playing", &m_isPlaying);
+        ImGui::DragFloat( "Playback speed", &m_playbackRate );
         ImGui::Text( "Current frame: %d \n Start Frame: %d \n End Frame: %d \n Transform open: %d \n selected %d", currentFrame, startFrame, endFrame, transformOpen, selected );
 
+
+        
         /*ImGui::Text( "KeyFrames: " );
         for (int i = 0; i < keys.size(); i++)
         {
@@ -189,40 +189,75 @@ void CutsceneController::Update(float deltaTime)
                             std::sort(&channel->keys.Front(), &channel->keys.Back() + 1, CompareFrame);
                         }
                     }
+                    else
+                    {
+
+                    }
                     ImGui::TreePop();
                 }
             }
-            //if (animatorChannel1 != nullptr)
-            //{
-            //    shared_ptr<Animator> animator = animatorChannel1->targetAnimator;
-            //    ImGui::Text("Animator channel 1: %d ", animIndex1);
-
-            //    if (animator->loadedAnimations.Size() > 0)
-            //    {
-            //        for (int i = 0; i < animator->loadedAnimations.Size(); i++)
-            //        {
-            //            //if (&animator->loadedAnimations[i] != nullptr)
-            //            ImGui::Text("Target animator anim %d ", i);
-            //        }
-
-            //        ImGui::DragInt("Animation index to add", &animationIndex);
-            //        ImGui::DragFloat("Animation start time", &animationStartTime, 0.1f, 0.0f, 1.0f);
-            //        ImGui::DragFloat("Animation play speed", &animationPlaySpeed, 0.1f, 0.0f, 2.0f);
-            //        ImGui::Checkbox("Loop animation", &animationLoop);
-            //        if (ImGui::Button("Add Animation Trigger Keyframe"))
-            //        {
-            //            animatorChannel1->AddKey(shared_ptr<CutsceneAnimationTriggerKey>(
-            //                new CutsceneAnimationTriggerKey(
-            //                    (float)currentFrame / (float)endFrame,
-            //                    animationIndex,
-            //                    animationStartTime,
-            //                    animationPlaySpeed, animationLoop)));
-            //            animatorChannel1->keys[animatorChannel1->keys.Size() - 1]->frame = currentFrame;
-            //            std::sort(&animatorChannel1->keys.Front(), &animatorChannel1->keys.Back() + 1, CompareFrame);
-            //        }
-            //    }
-            //}
         }
+
+        static Vec3 posValue;
+        static Vec3 rotValue;
+        if (ImGui::CollapsingHeader( "Transform Key Adding", m_transformKeyOpen ))
+        {
+            for (int i = 0; i < transformChannels.Size(); i++)
+            {
+                CutsceneTransformChannel* channel = transformChannels[i];
+                std::string headerText = "Transform channel: " + channel->name;
+                if (ImGui::TreeNode( headerText.c_str() ))
+                {
+                    Transform* target = channel->targetTransform;
+                    //ImGui::Text("Animator channel: %s ", channel->name.c_str());
+                    ImGui::DragFloat3( "Key Position", (float*)&posValue, 0.1f);
+                    ImGui::DragFloat3( "Key Euler Rot", (float*)&rotValue, 0.1f);
+                    if (ImGui::Button( "Add Transform Keyframe" ))
+                    {
+                        channel->AddKey( CutsceneTransformKey(
+                            (float)currentFrame / (float)endFrame, posValue, Quaternion::GetEuler(rotValue), Vec3(1,1,1)));
+                        channel->keys[channel->keys.Size() - 1].frame = currentFrame;
+                        std::sort( &channel->keys.Front(), &channel->keys.Back() + 1, CompareFrame );
+                    }
+                    ImGui::TreePop();
+                }
+            }
+        }
+
+
+        //static int targetIDVal;
+        static float alphaVal;
+        static bool activeVal;
+        static Vec3 colorVal(1,1,1);
+        if (ImGui::CollapsingHeader( "GUI Key Adding", m_uiKeyOpen ))
+        {
+            for (int i = 0; i < guiChannels.Size(); i++)
+            {
+                CutsceneGUIChannel* channel = guiChannels[i];
+                std::string headerText = "GUI channel: " + channel->name;
+                if (ImGui::TreeNode( headerText.c_str() ))
+                {
+                    GUI* target = channel->targetGUI;
+                    //ImGui::Text("Animator channel: %s ", channel->name.c_str());
+                    //ImGui::DragInt( "Key alpha", &targetIDVal, 0.1f );
+                    ImGui::DragFloat( "Key alpha", &alphaVal, 0.1f );
+                    ImGui::Checkbox( "Key element active", & activeVal );
+                    ImGui::DragFloat3( "Key Color", (float*)&colorVal, 0.1f );
+                    if (ImGui::Button( "Add GUI Keyframe" ))
+                    {
+                        channel->AddKey( CutsceneGUITriggerKey(
+                            (float)currentFrame / (float)endFrame, 
+                            alphaVal,
+                            activeVal,
+                            colorVal ) );
+                        channel->keys[channel->keys.Size() - 1].frame = currentFrame;
+                        std::sort( &channel->keys.Front(), &channel->keys.Back() + 1, CompareFrame );
+                    }
+                    ImGui::TreePop();
+                }
+            }
+        }
+
 
         static std::string saveName;
         static char buf[128];
@@ -237,8 +272,10 @@ void CutsceneController::Update(float deltaTime)
         }
 
 
-
-        if (ImGui::BeginNeoSequencer( "Sequencer", &currentFrame, &startFrame, &endFrame, {0,0}, ImGuiNeoSequencerFlags_EnableSelection | ImGuiNeoSequencerFlags_Selection_EnableDragging ))
+        bool doDelete = false;
+        if (ImGui::BeginNeoSequencer( "Sequencer", &currentFrame, &startFrame, &endFrame, {0,0}, ImGuiNeoSequencerFlags_EnableSelection | ImGuiNeoSequencerFlags_Selection_EnableDragging |
+            ImGuiNeoSequencerFlags_Selection_EnableDeletion
+        ))
         {
 
             if (activeCutscene != nullptr)
@@ -260,8 +297,23 @@ void CutsceneController::Update(float deltaTime)
                                     if (ImGui::IsNeoKeyframeSelected())
                                     {
                                         selected = v.frame;
+                                        //LOG_TRACE( "Animator key" );
+                                        if( Input::Get().IsDXKeyPressed( DXKey::Delete ))
+                                        {
+                                            int indexToRemove;
+                                            for (int i = 0; i < channel->keys.Size(); i++)
+                                            {
+                                                if (channel->keys[i].frame == selected)
+                                                {
+                                                    indexToRemove = i;
+                                                    break;
+                                                }
+                                            }
+                                            channel->keys.Remove( indexToRemove );
+                                        }
                                     }
                                     // Per keyframe code here
+
                                 }
                             }
                             else if (activeCutscene->channels[i]->channelType == CutsceneTypeTransform)
@@ -274,6 +326,19 @@ void CutsceneController::Update(float deltaTime)
                                     if (ImGui::IsNeoKeyframeSelected())
                                     {
                                         selected = v.frame;
+                                        if (Input::Get().IsDXKeyPressed( DXKey::Delete ))
+                                        {
+                                            int indexToRemove;
+                                            for (int i = 0; i < channel->keys.Size(); i++)
+                                            {
+                                                if (channel->keys[i].frame == selected)
+                                                {
+                                                    indexToRemove = i;
+                                                    break;
+                                                }
+                                            }
+                                            channel->keys.Remove( indexToRemove );
+                                        }
                                     }
                                     // Per keyframe code here
                                 }
@@ -288,6 +353,19 @@ void CutsceneController::Update(float deltaTime)
                                     if (ImGui::IsNeoKeyframeSelected())
                                     {
                                         selected = v.frame;
+                                        if (Input::Get().IsDXKeyPressed( DXKey::Delete ))
+                                        {
+                                            int indexToRemove;
+                                            for (int i = 0; i < channel->keys.Size(); i++)
+                                            {
+                                                if (channel->keys[i].frame == selected)
+                                                {
+                                                    indexToRemove = i;
+                                                    break;
+                                                }
+                                            }
+                                            channel->keys.Remove( indexToRemove );
+                                        }
                                     }
                                     // Per keyframe code here
                                 }
@@ -302,6 +380,19 @@ void CutsceneController::Update(float deltaTime)
                                     if (ImGui::IsNeoKeyframeSelected())
                                     {
                                         selected = v.frame;
+                                        if (Input::Get().IsDXKeyPressed( DXKey::Delete ))
+                                        {
+                                            int indexToRemove;
+                                            for (int i = 0; i < channel->keys.Size(); i++)
+                                            {
+                                                if (channel->keys[i].frame == selected)
+                                                {
+                                                    indexToRemove = i;
+                                                    break;
+                                                }
+                                            }
+                                            channel->keys.Remove( indexToRemove );
+                                        }
                                     }
                                     // Per keyframe code here
                                 }
@@ -316,6 +407,19 @@ void CutsceneController::Update(float deltaTime)
                                     if (ImGui::IsNeoKeyframeSelected())
                                     {
                                         selected = v.frame;
+                                        if (Input::Get().IsDXKeyPressed( DXKey::Delete ))
+                                        {
+                                            int indexToRemove;
+                                            for (int i = 0; i < channel->keys.Size(); i++)
+                                            {
+                                                if (channel->keys[i].frame == selected)
+                                                {
+                                                    indexToRemove = i;
+                                                    break;
+                                                }
+                                            }
+                                            channel->keys.Remove( indexToRemove );
+                                        }
                                     }
                                     // Per keyframe code here
                                 }

@@ -68,11 +68,11 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 	//BuildWWM("Assets/Models/FBX/Static/Big_Trunk_2.fbx", false);
 	//BuildWWM( "Assets/Models/FBX/Static/BananaPlant.fbx", false, 1.0f );
 	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_1_Present.fbx", false, 1.5f);
 	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_2_Present.fbx", false, 1.5f );
 	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Future.fbx", false);
-	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Present.fbx", false);
+	//BuildWWM("Assets/Models/FBX/Static/Medium_Tree_3_Present.fbx", false, 1.5f );
 	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Future.fbx", false);
 	//BuildWWM("Assets/Models/FBX/Static/Stone_1_Present.fbx", false);
 	//BuildWWM("Assets/Models/FBX/Static/Stone_2_Future.fbx", false);
@@ -278,6 +278,14 @@ void Whisperwoods::Run()
 	testGui.GetElement(12)->firstTexture = Resources::Get().GetTexture("getDaBloom.png");
 	testGui.GetElement(12)->secondTexture = Resources::Get().GetTexture("getDaBloom.png");
 
+
+	testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
+	testGui.GetElement( 13 )->colorTint = Vec3( 0, 0, 0 );
+	testGui.GetElement( 13 )->alpha = 1.0;
+	testGui.GetElement( 13 )->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
+	testGui.GetElement( 13 )->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
+	//testGui.GetElement( 13 )->secondTexture = Resources::Get().GetTexture( "tut1Text.png" );
+
 	//// loading screen
 	//testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	//testGui.GetElement(13)->colorTint = Vec3(1, 1, 1);
@@ -294,37 +302,33 @@ void Whisperwoods::Run()
 	shared_ptr<CutsceneController> cutsceneController (new CutsceneController());
 	
 	//Cutscene loadedCutscene;
-	shared_ptr<Cutscene> testCutScene(new Cutscene("something"));
+	shared_ptr<Cutscene> testCutScene(new Cutscene("Intro Cutscene"));
+	LoadWWC(testCutScene.get(), "Assets/Cutscenes/Intro Cutscene.wwc");
 
-	LoadWWC(testCutScene.get(), "Assets/Cutscenes/Test scene.wwc");
-
-
+	// Setup channels for creation, comment out when loading later.
 	//testCutScene->AddChannel( std::shared_ptr<CutsceneCameraChannel>( new CutsceneCameraChannel( "Main camera", &Renderer::GetCamera())));
 	//testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Player Animator", m_game->GetPlayer()->characterAnimator.get())));
+	//testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Grafiki Animator", m_game->m_grafiki->characterAnimator.get() ) ) );
 	//testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Player Transform", &m_game->GetPlayer()->transform )));
+	//testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Grafiki Transform", &m_game->m_grafiki->transform ) ) );
+	//testCutScene->AddChannel( std::shared_ptr<CutsceneGUIChannel>( new CutsceneGUIChannel( "GUI Channel", &testGui )));
 	cutsceneController->m_cutscenes.Add( testCutScene );
 	cutsceneController->ActivateCutscene( 0 );
 
+	// Setup for cutscene playback.
 	CutsceneCameraChannel* channel = (CutsceneCameraChannel*)cutsceneController->m_cutscenes[0]->channels[0].get();
 	channel->targetCamera = &Renderer::GetCamera();
-	//channel->AddKey(CutsceneCameraKey(0.1f, {0,0,-20}, Quaternion::GetEuler( { 0,0,0} ), 90, 1));
-	//channel->keys[0].frame = 0;
-	//channel->AddKey(CutsceneCameraKey(0.1f, { 0,1,10 }, Quaternion::GetEuler({ 0,cs::c_pi,0 }), 90, 1));
-	//channel->keys[1].frame = 99;
-
-	CutsceneAnimatorChannel* animatorChannel = (CutsceneAnimatorChannel*)cutsceneController->m_cutscenes[0]->channels[1].get();
+	CutsceneAnimatorChannel* animatorChannel = (CutsceneAnimatorChannel*)cutsceneController->m_cutscenes[0]->channels[1].get(); // Player
 	animatorChannel->targetAnimator = m_game->GetPlayer()->characterAnimator.get();
-	//animatorChannel->AddKey()
-
-	CutsceneTransformChannel* transformChannel = (CutsceneTransformChannel*)cutsceneController->m_cutscenes[0]->channels[2].get();
+	CutsceneAnimatorChannel* animatorChannel2 = (CutsceneAnimatorChannel*)cutsceneController->m_cutscenes[0]->channels[2].get(); // Grafiki
+	animatorChannel2->targetAnimator = m_game->m_grafiki->characterAnimator.get();
+	CutsceneTransformChannel* transformChannel = (CutsceneTransformChannel*)cutsceneController->m_cutscenes[0]->channels[3].get(); // Player
 	transformChannel->targetTransform = &m_game->GetPlayer()->transform;
-
-	//animatorChannel->AddKey(shared_ptr<Cut>(new CutsceneCameraKey(0.1f, { 0,0,-20 }, Quaternion::GetEuler({ 0,0,0 }), 90, 1)));
-	//channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,5,-5 }, Quaternion::GetEuler( { 1.0f,cs::c_pi,0 } ), 90, 1)));
-	//channel->keys[1]->frame = 30;
-	//channel->AddKey(shared_ptr<CutsceneCameraKey>(new CutsceneCameraKey(0.1f, { 0,1,5 }, Quaternion::GetEuler( { 1.0f,0,0 } ), 90, 1)));
-	//channel->keys[2]->frame = 60;
-	//testCutScene.AddKey( std::shared_ptr< CutsceneTransformKey >(new CutsceneTransformKey( 0.5f, m_game->GetPlayer(), {0,0,0}, Quaternion::GetEuler({0,0,0}), {1,1,1})));
+	CutsceneTransformChannel* transformChannel2 = (CutsceneTransformChannel*)cutsceneController->m_cutscenes[0]->channels[4].get(); // Grafiki
+	transformChannel2->targetTransform = &m_game->m_grafiki->transform;
+	CutsceneGUIChannel* guiChannel = (CutsceneGUIChannel*)cutsceneController->m_cutscenes[0]->channels[5].get(); // GUI 1
+	guiChannel->targetGUI = &testGui;
+	guiChannel->targetGUIElement = 13; // Index
 
 	// Main frame loop
 	int frames = 0;
@@ -358,7 +362,7 @@ void Whisperwoods::Run()
 		static float dTimeAcc = 0.0f;
 		dTimeAcc += dTime;
 		
-		// Test of cinematics
+		// Test of cinematics // TODO: IMPORTANT: LATER DON'T DO THIS WHEN THE GAME IS RUNNING, ITS PROBABLY FATASS-HEAVY ON THE CPU.
 		cutsceneController->Update(dTime);
 		if (cutsceneController->CutsceneActive())
 		{

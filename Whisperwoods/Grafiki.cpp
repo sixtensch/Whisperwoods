@@ -33,7 +33,12 @@ Grafiki::Grafiki()
 	m_animationSpeed = 1.0f;
 
 	characterAnimator->AddAnimation(idleAnimation, 0, m_animationSpeed, 1.0f);
-	
+	characterAnimator->AddAnimation( &animationSet->animations[1], 0, m_animationSpeed, 0.0f );
+	characterAnimator->AddAnimation( &animationSet->animations[2], 0, m_animationSpeed, 0.0f );
+	characterAnimator->AddAnimation( &animationSet->animations[3], 0, m_animationSpeed, 0.0f );
+	characterAnimator->AddAnimation( &animationSet->animations[4], 0, m_animationSpeed, 0.0f );
+
+
 	characterModel->worldMatrix = transform.worldMatrix * Mat::translation3(0.0f, 0.0f, 0.0f)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0);
 }
 
@@ -71,6 +76,17 @@ void Grafiki::Update(float delta_time)
 		transform.CalculateWorldMatrix();
 
 		characterModel->worldMatrix = transform.worldMatrix * Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0);
+	}
+}
+
+void Grafiki::CinematicUpdate( float delta_time )
+{
+	if (enabled)
+	{
+		//characterAnimator->playbackSpeed = m_animationSpeed;
+		characterAnimator->Update( delta_time );
+		transform.CalculateWorldMatrix();
+		characterModel->worldMatrix = transform.worldMatrix * Mat::translation3( 0.0f, 0.0f, 0.0f ) * Mat::rotation3( cs::c_pi * -0.5f, 0, 0 );
 	}
 }
 

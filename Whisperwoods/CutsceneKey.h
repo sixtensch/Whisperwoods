@@ -47,7 +47,7 @@ struct CutsceneTransformKey : CutsceneKey
 	Quaternion rot;
 	Vec3 scale;
 	CutsceneTransformKey() = default;
-	CutsceneTransformKey( float time, GameObject* targetObject, Vec3 pos, Quaternion rot, Vec3 scale ) : /*targetObject( targetObject ), */pos( pos ), rot( rot ), scale( scale ) {
+	CutsceneTransformKey( float time, Vec3 pos, Quaternion rot, Vec3 scale ) : pos( pos ), rot( rot ), scale( scale ) {
 		this->time = time;
 	};
 	//float GetTime() override { return time; };
@@ -55,6 +55,14 @@ struct CutsceneTransformKey : CutsceneKey
 
 struct CutsceneGUITriggerKey : CutsceneKey
 {
+	float alpha;
+	bool active;
+	Vec3 color;
+	CutsceneGUITriggerKey() = default;
+	CutsceneGUITriggerKey( float time, float alpha, bool active, Vec3 color)
+		: alpha( alpha ), active( active ), color( color ) {
+		this->time = time;
+	}
 	// some target text box...
 	//std::string text;
 	//float duration; // needed?

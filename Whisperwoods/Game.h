@@ -102,13 +102,12 @@ public:
 	bool tutorial = false;
 	bool showTextForPickupBloom = false;
 	bool youWin = false;
+	shared_ptr<Grafiki> m_grafiki;
 
 private:
 
 	Vec3 noiseVal1;
 	Vec3 noiseVal2;
-	cs::NoiseSimplex noise1;
-	cs::NoiseSimplex noise2;
 
 	Vec3 dirLightOffset;
 	shared_ptr<Player> m_player;
@@ -124,7 +123,6 @@ private:
 	float m_futureDirectionalIntensity;
 
 	float m_musicVol = 0.3f;
-	shared_ptr<Grafiki> m_grafiki;
 
 	shared_ptr<AudioSource> m_musicPresent;
 	shared_ptr<AudioSource> m_musicFuture;

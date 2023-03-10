@@ -58,15 +58,19 @@ VSOutput main(VSInput input)
         clamp(toFromPlayer.x, -1.0f, 1.0f) * (dotVert * 4.0f),
         (toFromPlayer.y * 0.2f) - (0.7f * distControl * 1.1f),
         clamp(toFromPlayer.z, -1.0f, 1.0f) * (dotVert * 4.0f), 0.0f);
-    output.wPosition = output.wPosition + toFromPlayer * input.UV.w * 1.4f; // Multiply for more effect
+    output.wPosition = output.wPosition + (toFromPlayer * input.UV.w * 1.4f * min(max(2.0 - output.wPosition.y, 0.0f), 1.0f)); // Multiply for more effect
     output.wPosition = float4(output.wPosition.x, clamp(output.wPosition.y, 0.001f, 50000), output.wPosition.z, output.wPosition.w);
 
     // Normal Shader cont...
-    output.outPosition = mul(mul(output.wPosition, ViewMatrix), ProjectionMatrix) + 
-    (float4(sin(cos(output.wPosition.x) * (worldInfo1.x)*2) * 0.01f,
-    sin(cos(output.wPosition.x) * (worldInfo1.x)*2) * 0.01f,
-    sin(cos(output.wPosition.z) * (worldInfo1.y)*2) * 0.01f, 0)
-    * min(sin(output.wPosition.y), 1.0f) * input.UV.w);
+    
+    float sinCosX = sin(cos(output.wPosition.x));
+    output.outPosition = mul(mul(output.wPosition, ViewMatrix), ProjectionMatrix) 
+    + (float4(
+    (sinCosX * (worldInfo1.x) * 2) * 0.01f,
+    (sinCosX * (worldInfo1.x) * 2) * 0.01f,
+    sin(cos(output.wPosition.z) * (worldInfo1.y) * 2) * 0.01f, 0)
+    * min(sin(output.wPosition.y), 1.0f) * input.UV.w)
+    ;
 
     output.outNormal = mul(input.normal, (float3x3) input.worldMatrix);
     //output.outNormal = normalize(output.outNormal);
@@ -77,6 +81,6 @@ VSOutput main(VSInput input)
     output.outBitangent = mul(input.bitangent, (float3x3) input.worldMatrix);
     //output.outBitangent = normalize(output.outBitangent);
     
-    output.outUV = float4(input.UV.x, -input.UV.y, sin(cos(output.wPosition.x) * worldInfo1.x), 0);
+    output.outUV = float4(input.UV.x, -input.UV.y, (sinCosX * worldInfo1.x), 0);
     return output;
 }
