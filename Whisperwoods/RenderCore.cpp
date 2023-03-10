@@ -1034,6 +1034,7 @@ void RenderCore::DrawPPFX()
 	static float strength = 1.0f;
 	static float minLuminance = 0.1f;
 
+#if WW_IMGUI 1
 	if (ImGui::Begin("Bloom Settings"))
 	{
 		float speed = 0.01f;
@@ -1042,6 +1043,7 @@ void RenderCore::DrawPPFX()
 		ImGui::DragFloat("Minimum Luminance", &minLuminance, speed / 10.0f, 0.0f, luminanceThreshold);
 	}
 	ImGui::End();
+#endif
 
 	WritePPFXThresholdInfo(luminanceThreshold, strength, minLuminance);
 

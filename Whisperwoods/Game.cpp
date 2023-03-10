@@ -423,7 +423,7 @@ void Game::DrawIMGUIWindows()
 	static float saturation = 1.25f;
 	static bool firstSet = true;
 
-#if WW_DEBUG
+#if WW_IMGUI 1
 
 	// Gameplay variables window
 	if (ImGui::Begin( "Gameplay Vars" ))

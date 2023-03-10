@@ -59,6 +59,7 @@ void CutsceneController::Update()
         }
     }
 
+#if WW_IMGUI 1
 	if (ImGui::Begin( "Cutscene controller" ))
 	{
         ImGui::Checkbox("Cutscene Active", &m_cutSceneActive);
@@ -156,4 +157,5 @@ void CutsceneController::Update()
         }
 	}
 	ImGui::End();
+#endif
 }

@@ -430,12 +430,13 @@ void Whisperwoods::Run()
 		//		testGui.GetElement( 2 )->colorTint = Vec3( 1, 1, 1 );
 		//	}
 		//}
-
+#if WW_IMGUI 1
 		if (ImGui::Begin( "Shadow PS Test" ))
 		{
 			ImGui::Checkbox( "Use shadow PS", &m_renderer->GetRenderCore()->m_bindShadowPS );
 		}
 		ImGui::End();
+#endif
 
 		// Main game update
 		m_game->Update(dTime, m_renderer.get());
@@ -668,6 +669,7 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 				cs::Vec3 delta = Vec3( (float)mouseState.y, (float)mouseState.x, 0.0f );
 				rotationVec -= delta * dTime * 2.0f;
 				camera.SetRotation( Quaternion::GetEuler( { rotationVec.x, rotationVec.y, rotationVec.z } ).Conjugate() );
+#if WW_IMGUI 1
 
 				if (ImGui::Begin( "Camera rotation dev" ))
 				{
@@ -678,6 +680,7 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 
 				}
 				ImGui::End();
+#endif
 				//camera.SetRotation(Quaternion::GetEuler(rotationVec));
 			}
 			camera.SetPosition(camera.GetPosition() + movement * dTime);
@@ -698,6 +701,7 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 				slerped.NormalizeThis();
 				camera.SetRotation(slerped);
 			}
+#if WW_IMGUI 1
 			if (ImGui::Begin("Camera rotation player"))
 			{
 				Vec3 playPos = player->transform.GetWorldPosition();
@@ -713,6 +717,7 @@ void Whisperwoods::Move(float dTime, Player* player, CutsceneController* cutScen
 				ImGui::DragFloat3("Camera lookAt offset", (float*)&player->cameraLookTargetOffset, 0.1f);
 			}
 			ImGui::End();
+#endif
 		}
 	}
 

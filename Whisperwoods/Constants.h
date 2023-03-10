@@ -3,6 +3,7 @@
 
 //#define CATCH_PROGRAM	0
 #define WW_NODXGI
+#define WW_IMGUI 1
 
 #define MAJOR_VERSION	0
 #define MINOR_VERSION	1
