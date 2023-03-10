@@ -29,13 +29,13 @@
 
 Whisperwoods* Whisperwoods::s_whisperwoods = nullptr;
 
-void TestPlay(void*, void*)
-{
-	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
-	AudioSource testSource(Vec3(0, 0, 0), 0.7f, 1.0f, 0, 10, soundPtr);
-	testSource.mix2d3d = 0;
-	testSource.Play();
-}
+//void TestPlay(void*, void*)
+//{
+//	FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
+//	AudioSource testSource(Vec3(0, 0, 0), 0.7f, 1.0f, 0, 10, soundPtr);
+//	testSource.mix2d3d = 0;
+//	testSource.Play();
+//}
 
 Whisperwoods::Whisperwoods(HINSTANCE instance)
 {
@@ -137,7 +137,7 @@ float LerpFloat( float a, float b, float t )
 
 void Whisperwoods::Run()
 {
-	Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
+	//Debug::RegisterCommand(TestPlay, "play", "Play a quack.");
 	Debug::RegisterCommand(GodMode, "godmode", "Enable god mode.");
 	Debug::RegisterCommand(PeasantMode, "peasantmode", "Disable god mode.");
 	
@@ -423,7 +423,7 @@ void Whisperwoods::Run()
 
 		if (Input::Get().IsDXKeyPressed( DXKey::B ))
 		{
-			Debug::ExecuteCommand( "Duck", "play" );
+			//Debug::ExecuteCommand( "Duck", "play" );
 			targetAlpha = !targetAlpha;
 		}
 		testGui.GetElement( 2 )->alpha = LerpFloat( testGui.GetElement( 2 )->alpha, targetAlpha, 4.0f * dTime );
