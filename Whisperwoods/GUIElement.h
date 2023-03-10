@@ -22,6 +22,8 @@ struct GUIElement
 	Vec3 vectorData;
 	float floatData;
 	Point4 intData;
+	Vec2 minimapRoomPos; // Only used when intData set accordingly to z value.
+
 	TextureResource* firstTexture;
 	TextureResource* secondTexture;
 	GUIElement(Vec2 position, Vec2 size, TextureResource* spriteOne, TextureResource* spriteTwo) : position(position), size(size), firstTexture(spriteOne), secondTexture(spriteTwo)
