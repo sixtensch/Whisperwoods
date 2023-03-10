@@ -280,6 +280,15 @@ void Whisperwoods::Run()
 	//testGui.GetElement(13)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
 	//testGui.GetElement(13)->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
 
+
+	// intro screen
+	testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	testGui.GetElement(15)->colorTint = Vec3(1, 1, 1);
+	testGui.GetElement(15)->alpha = 1.0f;
+	testGui.GetElement(15)->uiRenderable->enabled = false;
+	testGui.GetElement(15)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	testGui.GetElement(15)->firstTexture = Resources::Get().GetTexture("introClip.png");
+
 	m_game->SetGUI(&testGui);
 	m_game->InitCutscene();
 
@@ -289,161 +298,179 @@ void Whisperwoods::Run()
 	cs::Timer deltaTimer;
 	for (bool running = true; running; frames++)
 	{
-
-		if (m_game->youWin || m_game->IsInHubby())
+		if (m_firstIntroPic == true)
 		{
-			testGui.GetElement(0)->uiRenderable->enabled = false;
-			testGui.GetElement(1)->uiRenderable->enabled = false;
-			testGui.GetElement(3)->uiRenderable->enabled = false;
-		}
-		else
-		{
-			testGui.GetElement(0)->uiRenderable->enabled = true;
-			testGui.GetElement(1)->uiRenderable->enabled = true;
-			testGui.GetElement(3)->uiRenderable->enabled = true;
-		}
-		// Init frame
-		m_renderer->BeginGui();
-		m_debug->ClearFrameTrace();
-
-		// Update inputs
-		m_input->Update();
-		running = !m_renderer->UpdateWindow();
-
-		// FPS calculation
-		float dTime = deltaTimer.Lap();
-		m_debug->CalculateFps(dTime);
-		static float dTimeAcc = 0.0f;
-		dTimeAcc += dTime;
-
-		// Update the test gui with the stamina.
-		testGui.GetElement( 0 )->floatData = m_game->GetPlayer()->GetCurrentStamina()/10.0f;
-		if (m_game->GetMaxStamina() == 1.0f)
-		{
-			testGui.GetElement(0)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
-		}
-		else
-		{
-			testGui.GetElement(0)->colorTint = Vec3(1.0f, 0.72f, 0.0f);
-		}
-
-		//update test gui with power cooldown
-		if (m_game->GetPlayer()->playerInFuture == false && m_game->GetPowerCooldown() != 0)
-		{
-			testGui.GetElement(3)->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
-			testGui.GetElement(3)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
-		}
-		else if (m_game->GetPlayer()->playerInFuture == false && m_game->GetPowerCooldown() == 0)
-		{
-			testGui.GetElement(3)->colorTint = Vec3(0.08f, 0.18f, 0.8f);
-			testGui.GetElement(3)->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
-		}
-		else
-		{
-			testGui.GetElement(3)->floatData = 0.06f;
-			testGui.GetElement(3)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
-		}
-
-		if (m_game->showTextForPickupBloom)
-		{
-			testGui.GetElement(12)->uiRenderable->enabled = true;
-		}
-		else
-		{
-			testGui.GetElement(12)->uiRenderable->enabled = false;
-		}
-
-		if (Input::Get().IsDXKeyPressed( DXKey::B ))
-		{
-			//Debug::ExecuteCommand( "Duck", "play" );
-			targetAlpha = !targetAlpha;
-		}
-		testGui.GetElement( 2 )->alpha = LerpFloat( testGui.GetElement( 2 )->alpha, targetAlpha, 4.0f * dTime );
-
-		if (testGui.GetElement(2)->alpha = 0.0f)
-		{
-			testGui.GetElement(2)->uiRenderable->enabled = false;
-		}
-		else
-		{
-			testGui.GetElement(2)->uiRenderable->enabled = true;
-		}
-
-
-
-		if (ImGui::Begin( "Shadow PS Test" ))
-		{
-			ImGui::Checkbox( "Use shadow PS", &m_renderer->GetRenderCore()->m_bindShadowPS );
-		}
-		ImGui::End();
-
-		// Main game update
-		m_game->Update(dTime, m_renderer.get());
-
-
-
-		// tutorial text reset
-		for (int i = 4; i <= 11; i++)
-		{
-			testGui.GetElement(i)->uiRenderable->enabled = false;
-		}
-
-		//set active tutorial text
-		if (m_game->tutorial)
-		{
-			if (m_game->activeTutorialLevel < 6)
+			testGui.GetElement(15)->uiRenderable->enabled = true;
+			if (Input::Get().IsDXKeyPressed(DXKey::Space))
 			{
-				testGui.GetElement(m_game->activeTutorialLevel + 3)->uiRenderable->enabled = true;
-			}
-			else if (m_game->activeTutorialLevel == 6)
-			{
-				if (m_game->GetPlayer()->playerInFuture)
-				{
-					testGui.GetElement(10)->uiRenderable->enabled = true;
-				}
-				else
-				{
-					testGui.GetElement(9)->uiRenderable->enabled = true;
-				}
-			}
-			else if (m_game->activeTutorialLevel == 7)
-			{
-				testGui.GetElement(11)->uiRenderable->enabled = true;
+				testGui.GetElement(15)->uiRenderable->enabled = false;
+				m_firstIntroPic = false;
 			}
 		}
-
-
-
-		// Audio listener calculation (maybe move this somewhere more appropriate)
-		Camera& camera = Renderer::GetCamera();
-		Quaternion rotation = camera.GetRotation();
-		rotation = rotation;
-		Vec3 forward( 0, 0, 1 );
-		forward = rotation * forward;
-		forward.Normalize();
-		Vec3 up( 0, 1, 0 );
-		up = rotation * up;
-		up.Normalize();
-		Vec3 cPos = camera.GetPosition();
-		FMOD_VECTOR listenerPos = { cPos.x, cPos.y, cPos.z };
-		FMOD_VECTOR listenerForward = { forward.x,  forward.y,  forward.z };
-		FMOD_VECTOR listenerVelocity = {0,0,0};
-		FMOD_VECTOR listenerUp = { up.x, up.y, up.z };
-		// Update the audio system
-		m_sound->Update( listenerPos, listenerVelocity, listenerForward, listenerUp );
 		
-		// Draw step
-		m_renderer->Draw();
 
-		// Draw console
-		m_debug->DrawConsole();
 
-		// Profiling update
-		m_renderer->UpdateGPUProfiler();
+			if (m_game->youWin || m_game->IsInHubby())
+			{
+				testGui.GetElement(0)->uiRenderable->enabled = false;
+				testGui.GetElement(1)->uiRenderable->enabled = false;
+				testGui.GetElement(3)->uiRenderable->enabled = false;
+			}
+			else
+			{
+				testGui.GetElement(0)->uiRenderable->enabled = true;
+				testGui.GetElement(1)->uiRenderable->enabled = true;
+				testGui.GetElement(3)->uiRenderable->enabled = true;
+			}
+			// Init frame
+			m_renderer->BeginGui();
+			m_debug->ClearFrameTrace();
 
-		// Wrap up and present
-		m_renderer->EndGui();
-		m_renderer->Present();	
+			// Update inputs
+			m_input->Update();
+			running = !m_renderer->UpdateWindow();
+
+			// FPS calculation
+			float dTime = deltaTimer.Lap();
+			m_debug->CalculateFps(dTime);
+			static float dTimeAcc = 0.0f;
+			dTimeAcc += dTime;
+
+			// Update the test gui with the stamina.
+			testGui.GetElement(0)->floatData = m_game->GetPlayer()->GetCurrentStamina() / 10.0f;
+			if (m_game->GetMaxStamina() == 1.0f)
+			{
+				testGui.GetElement(0)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+			}
+			else
+			{
+				testGui.GetElement(0)->colorTint = Vec3(1.0f, 0.72f, 0.0f);
+			}
+
+			//update test gui with power cooldown
+			if (m_game->GetPlayer()->playerInFuture == false && m_game->GetPowerCooldown() != 0)
+			{
+				testGui.GetElement(3)->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
+				testGui.GetElement(3)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+			}
+			else if (m_game->GetPlayer()->playerInFuture == false && m_game->GetPowerCooldown() == 0)
+			{
+				testGui.GetElement(3)->colorTint = Vec3(0.08f, 0.18f, 0.8f);
+				testGui.GetElement(3)->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
+			}
+			else
+			{
+				testGui.GetElement(3)->floatData = 0.06f;
+				testGui.GetElement(3)->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+			}
+
+			if (m_game->showTextForPickupBloom)
+			{
+				testGui.GetElement(12)->uiRenderable->enabled = true;
+			}
+			else
+			{
+				testGui.GetElement(12)->uiRenderable->enabled = false;
+			}
+
+			if (Input::Get().IsDXKeyPressed(DXKey::B))
+			{
+				//Debug::ExecuteCommand( "Duck", "play" );
+				targetAlpha = !targetAlpha;
+			}
+			testGui.GetElement(2)->alpha = LerpFloat(testGui.GetElement(2)->alpha, targetAlpha, 4.0f * dTime);
+
+			if (testGui.GetElement(2)->alpha = 0.0f)
+			{
+				testGui.GetElement(2)->uiRenderable->enabled = false;
+			}
+			else
+			{
+				testGui.GetElement(2)->uiRenderable->enabled = true;
+			}
+
+
+
+			if (ImGui::Begin("Shadow PS Test"))
+			{
+				ImGui::Checkbox("Use shadow PS", &m_renderer->GetRenderCore()->m_bindShadowPS);
+			}
+			ImGui::End();
+
+			// Main game update
+			if (m_firstIntroPic == false)
+			{
+				m_game->Update(dTime, m_renderer.get());
+			}
+
+
+
+			// tutorial text reset
+			for (int i = 4; i <= 11; i++)
+			{
+				testGui.GetElement(i)->uiRenderable->enabled = false;
+			}
+
+			//set active tutorial text
+			if (m_game->tutorial)
+			{
+				if (m_game->activeTutorialLevel < 6)
+				{
+					testGui.GetElement(m_game->activeTutorialLevel + 3)->uiRenderable->enabled = true;
+				}
+				else if (m_game->activeTutorialLevel == 6)
+				{
+					if (m_game->GetPlayer()->playerInFuture)
+					{
+						testGui.GetElement(10)->uiRenderable->enabled = true;
+					}
+					else
+					{
+						testGui.GetElement(9)->uiRenderable->enabled = true;
+					}
+				}
+				else if (m_game->activeTutorialLevel == 7)
+				{
+					testGui.GetElement(11)->uiRenderable->enabled = true;
+				}
+			}
+
+
+
+			// Audio listener calculation (maybe move this somewhere more appropriate)
+			Camera& camera = Renderer::GetCamera();
+			Quaternion rotation = camera.GetRotation();
+			rotation = rotation;
+			Vec3 forward(0, 0, 1);
+			forward = rotation * forward;
+			forward.Normalize();
+			Vec3 up(0, 1, 0);
+			up = rotation * up;
+			up.Normalize();
+			Vec3 cPos = camera.GetPosition();
+			FMOD_VECTOR listenerPos = { cPos.x, cPos.y, cPos.z };
+			FMOD_VECTOR listenerForward = { forward.x,  forward.y,  forward.z };
+			FMOD_VECTOR listenerVelocity = { 0,0,0 };
+			FMOD_VECTOR listenerUp = { up.x, up.y, up.z };
+			// Update the audio system
+
+			
+			m_sound->Update(listenerPos, listenerVelocity, listenerForward, listenerUp);
+
+
+			// Draw step
+			m_renderer->Draw();
+
+			// Draw console
+			m_debug->DrawConsole();
+
+			// Profiling update
+			m_renderer->UpdateGPUProfiler();
+
+			// Wrap up and present
+			m_renderer->EndGui();
+			m_renderer->Present();
+		
 	}
 
 	m_game->DeInit();
