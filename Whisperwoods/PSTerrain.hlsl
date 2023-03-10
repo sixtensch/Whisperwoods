@@ -106,6 +106,13 @@ cbuffer ENEMY_CONE_INFO_BUFFER : REGISTER_CBV_ENEMY_CONE_INFO
     float MOREPADDING;
 }
 
+cbuffer PlayerInfo : REGISTER_CBV_PLAYER_INFO
+{
+    matrix playerMatrix;
+    float4 worldInfo1;
+    float4 worldInfo2;
+};
+
 
 SamplerState textureSampler : REGISTER_SAMPLER_STANDARD;
 SamplerComparisonState shadowSampler : REGISTER_SAMPLER_SHADOW;
@@ -162,7 +169,7 @@ PS_OUTPUT main(VSOutput input)
         float4 bitmapSample = textureBitmap.Sample(textureSampler, uvNoTile);
         
         float difference = abs(bitmapSample.r - bitmapSample.b);
-        float factor = bitmapSample.r * bitmapSample.b + (difference*0.9f);
+        float factor = bitmapSample.r * bitmapSample.b + (difference * lerp(0.9f, 0.4f, isInFuture));
         float blendFactor = max(factor, 0.1f);
         
         float4 diffuseSample2 = textureDiffuse.Sample(textureSampler, uv * (1.0f - (factor * 0.01f)));
@@ -256,7 +263,7 @@ PS_OUTPUT main(VSOutput input)
         float4 enemyPosAndDir = worldPosAndDir[i];
         float3 enemyPos = float3(enemyPosAndDir.x, 0.0f, enemyPosAndDir.y);
         
-        color.rgb += DrawEnemyPos(enemyPos, input.wPosition.xyz) * isInFuture;
+        color.rgb += DrawEnemyPos(enemyPos, input.wPosition.xyz) * isInFuture * clamp(worldInfo1.y, 0.8f, 2.0f);
     }
 	
     // Fog effects
