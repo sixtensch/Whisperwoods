@@ -10,6 +10,7 @@
 #include "LevelHandler.h"
 #include "TextRenderable.h"
 #include "GUI.h"
+#include "CutsceneController.h"
 #include "Grafiki.h"
 
 constexpr float STAMINA_DECAY_MULTIPLIER = 0.2f;
@@ -49,6 +50,8 @@ public:
 	void Init();
 	void DeInit();
 
+	void InitCutscene();
+
 	void LoadHubby();
 	void LoadTest();
 	void LoadTutorial();
@@ -57,12 +60,14 @@ public:
 
 	Player* GetPlayer();
 	void MovePlayer(Vec3 position, Vec3 direction);
-		
-	void SetCutSceneMode( bool value );
 
+	void Move(float dTime, Player* player, CutsceneController* cutSceneController);
+		
 	float GetPowerCooldown();
 	float GetMaxPowerCooldown();
 	float GetMaxStamina();
+
+	void SetGUI(GUI* gui);
 
 	void GodMode(bool godMode);
 
@@ -122,6 +127,13 @@ private:
 	cs::Color3f m_futureDirectionalColor;
 	float m_futureDirectionalIntensity;
 
+	Vec2 m_vignetteStrengthAndRadius;
+	Vec2 m_contrastStrengthAndMidpoint;
+	float m_finalBrightness;
+	float m_finalSaturation;
+
+	bool firstSet = true;
+
 	float m_musicVol = 0.3f;
 
 	shared_ptr<AudioSource> m_musicPresent;
@@ -161,9 +173,7 @@ private:
 	};
 
 	EnvironmentalizeParameters m_envParams;
-	public:
-	bool m_isCutScene;
-	private:
+private:
 
 	bool m_isHubby;
 	bool m_isInFuture;
@@ -205,10 +215,43 @@ private:
 	bool m_loadNewFloor = false;
 	bool m_skipTutorialQuestion = false;
 
+	bool m_cameraPlayer;
+	bool m_cameraLock;
+	GUI* m_gui;
+	shared_ptr<CutsceneController> m_cutsceneController;
+	shared_ptr<Cutscene> m_testCutScene;
+
+	void TransitionStart(
+		Vec3 exitPosition,
+		Vec3 exitDirection,
+		uint targetRoom, 
+		Vec3 targetPosition,
+		Vec3 targetDirection);
+	void TransitionLoad();
+	void TransitionEnd();
+	void TransitionUpdate(float deltaTime);
+	void ExecuteLoad(uint targetRoom, Vec3 position, Vec3 direction);
+
 	float m_winTimer = 0.0f;
 	float m_timePerEndSlideShow = 7.0f;
-	
 	 
 	TimeSwitchValues m_switchVals;
+
+	Vec3 m_targetFogFocus;
+	float m_targetFogRadius;
+	uint m_targetRoom;
+	Vec3 m_targetSpawnPosition;
+	Vec3 m_targetSpawnDirection;
+	Vec3 m_targetCameraPosition;
+	Quaternion m_targetCameraDirection;
+	float m_transitionTime;
+	float m_transitionTimeTarget;
+	enum TransitionTarget
+	{
+		TransitionTargetNone,
+		TransitionTargetFree,
+		TransitionTargetLoadRoom,
+		TransitionTargetExit,
+	} m_transitionTarget;
 };
 

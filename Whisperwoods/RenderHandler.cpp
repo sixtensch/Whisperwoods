@@ -264,7 +264,7 @@ void RenderHandler::ExecuteStaticShadowDraw()
 	for (uint i = 0; i < LevelAssetCount; i++)
 		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
-	m_renderCore->UpdatePlayerInfo(m_playerMatrix, m_worldInfo1, m_worldInfo2);
+	m_renderCore->UpdatePlayerInfo(m_playerMatrix, Vec4(0, 0, 0, 0), Vec4(0, 0, 0, 0));
 
 
 	// Write to static shadow map (Present)
@@ -376,11 +376,11 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	load(LevelAssetStone1,
 		"Stone_1_Present.wwm", { "Stone_1_Present.wwmt" },
-		"Stone_1_Future.wwm", { "Stone_1_Future.wwmt" });
+		"Stone_1_Present.wwm", { "Stone_1_Future.wwmt" });
 
 	load(LevelAssetStone2,
 		"Stone_2_Present.wwm", { "Stone_2_Present.wwmt" },
-		"Stone_2_Future.wwm", { "Stone_2_Future.wwmt" });
+		"Stone_2_Present.wwm", { "Stone_2_Future.wwmt" });
 
 
 
