@@ -882,8 +882,8 @@ void Game::InitCutscene()
 	guiChannel2->targetGUI = m_gui;
 	guiChannel2->targetGUIElement = 14; // Index
 
-	//m_cutsceneController->m_cutSceneActive = true;
-	//m_cutsceneController->m_isPlaying = true;
+	m_cutsceneController->m_cutSceneActive = true;
+	m_cutsceneController->m_isPlaying = true;
 }
 
 void Game::LoadHubby()
