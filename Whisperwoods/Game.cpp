@@ -357,6 +357,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 							activeTutorialLevel = 8;
 							m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
 							
+							
 						}
 						else if (!m_player->hasPickedUpEssenceBloom)
 						{
@@ -366,7 +367,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						else if (m_player->hasPickedUpEssenceBloom && !tutorial)
 						{
 							// you win!
-							m_loadScreen->GetElement(1)->uiRenderable->enabled = true;
+							//m_loadScreen->GetElement(1)->uiRenderable->enabled = true; // this old win screen
 							youWin = true;
 						}
 						
@@ -381,6 +382,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			m_loadingHubby = false;
 			m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
 		}
+		
 		if (Input::Get().IsDXKeyPressed( DXKey::H ))
 		{
 			m_loadingHubby = true;
@@ -429,11 +431,6 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 // Debug stuff
 void Game::DrawIMGUIWindows()
 {
-	static Vec2 vignette = Vec2(0.5f, 1.0f);
-	static Vec2 contrast = Vec2(1.0f, 0.4f);
-	static float brightness = 0.0f;
-	static float saturation = 1.25f;
-	static bool firstSet = true;
 
 #if WW_DEBUG
 
@@ -474,10 +471,11 @@ void Game::DrawIMGUIWindows()
 	{
 		float speed = 0.01f;
 		bool changed = false;
-		changed |= ImGui::DragFloat2("Vignette Radius & Strength", (float*)&vignette, speed, 0.0f, FLT_MAX);
-		changed |= ImGui::DragFloat2("Contrast Amount & Midpoint", (float*)&contrast, speed, 0.0f);
-		changed |= ImGui::DragFloat("Brightness", &brightness, speed, 0.0f, FLT_MAX);
-		changed |= ImGui::DragFloat("Saturation", &saturation, speed, 0.0f, FLT_MAX);
+		
+		changed |= ImGui::DragFloat2("Vignette Radius & Strength", (float*)&m_vignetteStrengthAndRadius, speed, 0.0f, FLT_MAX);
+		changed |= ImGui::DragFloat2("Contrast Amount & Midpoint", (float*)&m_contrastStrengthAndMidpoint, speed, 0.0f);
+		changed |= ImGui::DragFloat("Brightness", &m_finalBrightness, speed, 0.0f, FLT_MAX);
+		changed |= ImGui::DragFloat("Saturation", &m_finalSaturation, speed, 0.0f, FLT_MAX);
 
 		/*if (changed || firstSet)
 		{
@@ -561,13 +559,16 @@ void Game::DrawIMGUIWindows()
 				m_testMaterials.Add( MaterialResource() );
 			}
 
+			// Distance is in world units.
 			float distance = 0.5f / (BM_MAX_SIZE / BM_PIXELS_PER_UNIT);
 
+			m_player->currentRoom;
 			for (int i = 0; i < f.rooms.Size(); i++)
 			{
 				Level& l = f.rooms[i];
 				m_testRenderables.Add( Renderer::CreateMeshStatic( "room_plane.wwm" ) );
-				m_testRenderables.Back()->worldMatrix = Mat::translation3( l.position.x * distance, 3.2f, l.position.z * distance ) * l.rotation.Matrix() * Mat::scale3( 0.8f );
+				const Vec3 levelPos = Vec3(l.position.x * distance, 3.2f, l.position.z * distance);
+				m_testRenderables.Back()->worldMatrix = Mat::translation3(levelPos) * l.rotation.Matrix() * Mat::scale3( 0.8f );
 
 				m_testMaterials[i].specular = Vec3( 0.5f, 0.5f, 0.5f );
 				m_testMaterials[i].textureDiffuse = l.resource->source;
@@ -593,7 +594,7 @@ void Game::DrawIMGUIWindows()
 
 #endif
 
-	Renderer::UpdatePPFXInfo(vignette, contrast, brightness, saturation);
+	
 }
 
 
@@ -602,8 +603,16 @@ void Game::CinematicUpdate()
 
 	// Test of cinematics // TODO: IMPORTANT: LATER DON'T DO THIS WHEN THE GAME IS RUNNING, ITS PROBABLY FATASS-HEAVY ON THE CPU.
 	m_cutsceneController->Update(m_deltaTime);
-
-
+	if (m_cutsceneController->CutsceneActive())
+	{
+		m_gui->GetElement(13)->uiRenderable->enabled = true;
+		m_gui->GetElement(14)->uiRenderable->enabled = true;
+	}
+	else
+	{
+		m_gui->GetElement(13)->uiRenderable->enabled = false;
+		m_gui->GetElement(14)->uiRenderable->enabled = false;
+	}
 
 	// More later
 	m_player->CinematicUpdate( m_deltaTime ); // Only updates the matrix and animator, allowing for cutscenecontroller control.
@@ -644,23 +653,49 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			return;
 
 		}
+	}
 
-		if (youWin)
+	if (youWin)
+	{
+		m_winTimer += deltaTime; // for slideshow
+		int slideShowIndex = std::floor(m_winTimer / m_timePerEndSlideShow);
+		if (slideShowIndex > 4)
 		{
-
-			if (Input::Get().IsDXKeyPressed(DXKey::Space))
-			{
-				//player pressed spacebar when outside while loop
-				m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
-				youWin = false;
-				EndRun(renderer);
-			}
-			else
-			{
-				return;
-			}
+			m_winTimer -= deltaTime / 2;
 		}
 
+		if (slideShowIndex >= 5)
+		{
+			m_loadScreen->GetElement(8)->uiRenderable->enabled = false;
+			m_loadScreen->GetElement(9)->uiRenderable->enabled = true;
+		}
+		if (Input::Get().IsDXKeyPressed(DXKey::Space) && slideShowIndex >= 5)
+		{
+			//player pressed spacebar when outside while loop
+			//m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
+			m_loadScreen->GetElement(9)->uiRenderable->enabled = false;
+			youWin = false;
+			m_winTimer = 0.0f;
+			EndRun(renderer);
+		}
+		else if (slideShowIndex == 0)
+		{
+			m_loadScreen->GetElement(4)->uiRenderable->enabled = true;
+		}
+		else if (slideShowIndex > 0 && slideShowIndex < 5)
+		{
+			m_loadScreen->GetElement(slideShowIndex + 3 )->uiRenderable->enabled = false;
+			m_loadScreen->GetElement(slideShowIndex + 4)->uiRenderable->enabled = true;
+			return;
+		}
+		else
+		{
+			return;
+		}
+	}
+
+	if (!m_cutsceneController->m_cutSceneActive)
+	{
 		if (m_transitionTarget != TransitionTargetNone)
 		{
 			TransitionUpdate(deltaTime);
@@ -677,6 +712,12 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		// Final steps
 		UpdateTimeSwitchBuffers( renderer );
 		UpdateEnemyConeBuffers( renderer );
+		Renderer::UpdatePPFXInfo(
+			m_vignetteStrengthAndRadius, 
+			m_contrastStrengthAndMidpoint, 
+			m_finalBrightness, 
+			m_finalSaturation
+		);
 	}
 	else
 	{
@@ -727,40 +768,86 @@ void Game::Init()
 	m_loadScreen = shared_ptr<GUI> (new GUI());
 
 	// loading screen
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(0)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(0)->alpha = 1.0f;
-	m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(0)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(0)->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
+	std::shared_ptr<GUIElement> loadingScreenGUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	loadingScreenGUI->colorTint = Vec3(1, 1, 1);
+	loadingScreenGUI->alpha = 1.0f;
+	loadingScreenGUI->uiRenderable->enabled = false;
+	loadingScreenGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	loadingScreenGUI->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
 
 
 	//winning screen 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(1)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(1)->alpha = 1.0f;
-	m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(1)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(1)->firstTexture = Resources::Get().GetTexture("winScreen.png");
+	std::shared_ptr<GUIElement> winningScreenGUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	winningScreenGUI->colorTint = Vec3(1, 1, 1);
+	winningScreenGUI->alpha = 1.0f;
+	winningScreenGUI->uiRenderable->enabled = false;
+	winningScreenGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	winningScreenGUI->firstTexture = Resources::Get().GetTexture("winScreen.png");
 
 
 	//skip tutorial screen 
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(2)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(2)->alpha = 1.0f;
-	m_loadScreen->GetElement(2)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(2)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(2)->firstTexture = Resources::Get().GetTexture("skipTutorial.png");
+	std::shared_ptr<GUIElement> skipTutorialScreenGUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	skipTutorialScreenGUI->colorTint = Vec3(1, 1, 1);
+	skipTutorialScreenGUI->alpha = 1.0f;
+	skipTutorialScreenGUI->uiRenderable->enabled = false;
+	skipTutorialScreenGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	skipTutorialScreenGUI->firstTexture = Resources::Get().GetTexture("skipTutorial.png");
 
 
 	// text for not running backwards
-	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
-	m_loadScreen->GetElement(3)->colorTint = Vec3(1, 1, 1);
-	m_loadScreen->GetElement(3)->alpha = 1.0f;
-	m_loadScreen->GetElement(3)->uiRenderable->enabled = false;
-	m_loadScreen->GetElement(3)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(3)->firstTexture = Resources::Get().GetTexture("coward.png");
-	m_loadScreen->GetElement(3)->secondTexture = Resources::Get().GetTexture("coward.png");
+	std::shared_ptr<GUIElement> runningBackwardsTextGUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	runningBackwardsTextGUI->colorTint = Vec3(1, 1, 1);
+	runningBackwardsTextGUI->alpha = 1.0f;
+	runningBackwardsTextGUI->uiRenderable->enabled = false;
+	runningBackwardsTextGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	runningBackwardsTextGUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	runningBackwardsTextGUI->secondTexture = Resources::Get().GetTexture("coward.png");
+
+
+	// THIS IS NEW WIN SCREENS
+	std::shared_ptr<GUIElement> endClip1GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip1GUI->colorTint = Vec3(1, 1, 1);
+	endClip1GUI->alpha = 1.0f;
+	endClip1GUI->uiRenderable->enabled = false;
+	endClip1GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip1GUI->firstTexture = Resources::Get().GetTexture("endClip1.png");
+
+	std::shared_ptr<GUIElement> endClip2GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip2GUI->colorTint = Vec3(1, 1, 1);
+	endClip2GUI->alpha = 1.0f;
+	endClip2GUI->uiRenderable->enabled = false;
+	endClip2GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip2GUI->firstTexture = Resources::Get().GetTexture("endClip2.png");
+
+	std::shared_ptr<GUIElement> endClip3GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip3GUI->colorTint = Vec3(1, 1, 1);
+	endClip3GUI->alpha = 1.0f;
+	endClip3GUI->uiRenderable->enabled = false;
+	endClip3GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip3GUI->firstTexture = Resources::Get().GetTexture("endClip3.png");
+
+	std::shared_ptr<GUIElement> endClip4GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip4GUI->colorTint = Vec3(1, 1, 1);
+	endClip4GUI->alpha = 1.0f;
+	endClip4GUI->uiRenderable->enabled = false;
+	endClip4GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip4GUI->firstTexture = Resources::Get().GetTexture("endClip4.png");
+
+	std::shared_ptr<GUIElement> endClip5GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip5GUI->colorTint = Vec3(1, 1, 1);
+	endClip5GUI->alpha = 1.0f;
+	endClip5GUI->uiRenderable->enabled = false;
+	endClip5GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip5GUI->firstTexture = Resources::Get().GetTexture("endClip5.png");
+
+	std::shared_ptr<GUIElement> endClip6GUI = m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	endClip6GUI->colorTint = Vec3(1, 1, 1);
+	endClip6GUI->alpha = 1.0f;
+	endClip6GUI->uiRenderable->enabled = false;
+	endClip6GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	endClip6GUI->firstTexture = Resources::Get().GetTexture("endClip6.png");
+
+	//****
 
 	// Audio test startup
 	/*FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
@@ -912,8 +999,8 @@ void Game::LoadHubby()
 {
 	UnLoadPrevious();
 	m_levelHandler->GenerateHubby( &m_floor, m_envParams );
-	LoadRoom( &m_floor.rooms[0] );
-	m_detectionLevelFloor = 0.0f;
+	uint roomIndex = 0;
+	LoadRoom(roomIndex);
 
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update( 0 );
@@ -933,7 +1020,8 @@ void Game::LoadHubby()
 void Game::LoadTest()
 {
 	m_levelHandler->GenerateTestFloor(&m_floor, m_envParams);
-	LoadRoom(&m_floor.rooms[0]);
+	uint roomIndex = 0;
+	LoadRoom(roomIndex);
 
 	m_isHubby = false;
 	Renderer::ExecuteShadowRender();
@@ -943,7 +1031,7 @@ void Game::LoadTutorial()
 {
 	UnLoadPrevious();
 	m_levelHandler->GenerateTutorial(&m_floor, m_envParams);
-	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
+	LoadRoom(m_floor.startRoom);
 
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update( 0 );
@@ -966,8 +1054,9 @@ void Game::LoadGame(uint gameSeed, uint roomCount)
 
 	UnLoadPrevious();
 	m_levelHandler->GenerateFloor(&m_floor, params, m_envParams);
-	LoadRoom(&m_floor.rooms[m_floor.startRoom]);
-	m_currentRoom->transform.CalculateWorldMatrix();
+	LoadRoom(m_floor.startRoom);
+
+	m_player->transform.position = m_floor.startPosition;
 
 	MovePlayer(m_floor.startPosition, m_floor.startDirection);
 	m_player->ReloadPlayer();
@@ -1238,39 +1327,44 @@ bool Game::IsInHubby()
 	return m_isHubby;
 }
 
-void Game::LoadRoom(Level* level)
+void Game::LoadRoom(uint levelIndex)
 {
+	Level& level = m_floor.rooms[levelIndex];
+
+	m_levelHandler->SetFloormapFocusRoom(&level);
+
 	Mat4 roomOffset =
 		Mat::translation3(0, -0.01f, 0) *
-		Mat::scale3(level->resource->worldWidth, 1.0f, level->resource->worldHeight);
+		Mat::scale3(level.resource->worldWidth, 1.0f, level.resource->worldHeight);
 
 	Mat4 cylinderOffset =
 		Mat::translation3( 0, -0.02f, 0 ) *
-		Mat::scale3(level->resource->worldWidth * 1.3f, 1.0f, level->resource->worldHeight * 1.6f);
+		Mat::scale3(level.resource->worldWidth * 1.3f, 1.0f, level.resource->worldHeight * 1.3f);
 
-	m_currentRoom = shared_ptr<Room>(new Room(level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
-	m_currentRoom->transform.position = level->position;
-	m_currentRoom->transform.rotation = level->rotation;
+	m_currentRoom = shared_ptr<Room>(new Room(&level, "room_plane.wwm", "room_walls_floor.wwm", roomOffset, cylinderOffset ));
+	m_currentRoom->transform.position = level.position;
+	m_currentRoom->transform.rotation = level.rotation;
 
+	
 	m_currentRoom->transform.CalculateWorldMatrix();
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update(0);
 
-	m_fogFocus = level->position;
-	m_fogRadius = level->resource->worldWidth * 0.55f;
+	m_fogFocus = level.position;
+	m_fogRadius = level.resource->worldWidth * 0.55f;
 
 	Renderer::LoadEnvironment(m_currentRoom->m_level);
 
 	m_player->currentRoom = m_currentRoom.get();
 	
-	for ( LevelPickup& pickup : level->resource->pickups )
+	for ( LevelPickup& pickup : level.resource->pickups )
 	{
 		Vec3 worldpos = m_player->currentRoom->bitMapToWorldPos(static_cast<Point2>(pickup.position));
 		shared_ptr<Pickup> item = make_shared<EssenceBloom>(m_player.get(), Vec2(worldpos.x, worldpos.z));
 		m_pickups.Add(item);
 	}
 
-	for (LevelPatrol& p : level->resource->patrolsClosed)
+	for (LevelPatrol& p : level.resource->patrolsClosed)
 	{
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
 			"Carcinian_Animated.wwm", 
@@ -1286,8 +1380,8 @@ void Game::LoadRoom(Level* level)
 			m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
 		}
 	}
-	
-	for (LevelPatrol& p : level->resource->patrolsOpen)
+
+	for (LevelPatrol& p : level.resource->patrolsOpen)
 	{
 		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
 			"Carcinian_Animated.wwm",
@@ -1451,6 +1545,7 @@ void Game::EndRunDueToPoison(Renderer* renderer)
 	EndRun(renderer);
 }
 
+
 void Game::TransitionStart(Vec3 exitPosition, Vec3 exitDirection, uint targetRoom, Vec3 targetPosition, Vec3 targetDirection)
 {
 	Camera& c = Renderer::GetCamera();
@@ -1558,13 +1653,14 @@ void Game::TransitionUpdate(float deltaTime)
 void Game::ExecuteLoad(uint targetRoom, Vec3 position, Vec3 direction)
 {
 	UnLoadPrevious();
-	LoadRoom(&m_floor.rooms[targetRoom]);
+	// TODO: Check this
+	LoadRoom(targetRoom);
 
 	m_currentRoom->transform.CalculateWorldMatrix();
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update(0);
 
-	MovePlayer(direction - direction * TUNNEL_SPAWN_DISTANCE, -direction);
+	MovePlayer(position - direction * TUNNEL_SPAWN_DISTANCE, -direction);
 	m_player->ReloadPlayer();
 
 	Renderer::ExecuteShadowRender();

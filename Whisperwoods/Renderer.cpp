@@ -199,6 +199,11 @@ void Renderer::SetFogParameters(Vec3 focus, float radius)
 	s_singleton->m_renderHandler->SetFogParameters(focus, radius);
 }
 
+void Renderer::UpdateTexture2DData(ComPtr<ID3D11Texture2D> texture2D, uint8_t* data, uint textureWidth, uint textureHeight)
+{
+	s_singleton->GetRenderCore()->UpdateTexture2DUnormData(texture2D, data, textureWidth, textureHeight);
+}
+
 Camera& Renderer::GetCamera()
 {
 	return s_singleton->m_renderHandler->GetCamera();
@@ -207,6 +212,16 @@ Camera& Renderer::GetCamera()
 Window& Renderer::GetWindow()
 {
 	return *(s_singleton->m_window.get());
+}
+
+Renderer& Renderer::Get()
+{
+	if (s_singleton == nullptr)
+	{
+		EXC("Renderer is nullptr.")
+	}
+
+	return *s_singleton;
 }
 
 RenderCore* Renderer::GetRenderCore()

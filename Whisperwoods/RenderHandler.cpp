@@ -264,7 +264,7 @@ void RenderHandler::ExecuteStaticShadowDraw()
 	for (uint i = 0; i < LevelAssetCount; i++)
 		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
-	m_renderCore->UpdatePlayerInfo(m_playerMatrix, m_worldInfo1, m_worldInfo2);
+	m_renderCore->UpdatePlayerInfo(m_playerMatrix, Vec4(0, 0, 0, 0), Vec4(0, 0, 0, 0));
 
 
 	// Write to static shadow map (Present)

@@ -41,6 +41,8 @@ class Game sealed
 
 	void CinematicUpdate();
 
+	
+
 public:
 	Game();
 	~Game();
@@ -51,6 +53,8 @@ public:
 	void DeInit();
 
 	void InitCutscene();
+
+	
 
 	void LoadHubby();
 	void LoadTest();
@@ -90,7 +94,7 @@ private:
 	bool IsAllowedToSwitch();
 	bool ChargeIsDone();
 	bool SwitchIsDone();
-	void LoadRoom(Level* level);
+	void LoadRoom(uint levelIndex);
 	void UnloadRoom();
 	bool IsDetected(float deltaTime, float enemyDistance, float maximalDistance);
 	void LowerToFloor(float deltaTime);
@@ -99,6 +103,7 @@ private:
 	void EndRun(Renderer* renderer);
 	void EndRunDueToEnemy(Renderer* renderer);
 	void EndRunDueToPoison(Renderer* renderer);
+	
 
 public:
 	//Camera* m_camera;
@@ -126,6 +131,13 @@ private:
 	float m_directionalIntensity;
 	cs::Color3f m_futureDirectionalColor;
 	float m_futureDirectionalIntensity;
+
+	Vec2 m_vignetteStrengthAndRadius;
+	Vec2 m_contrastStrengthAndMidpoint;
+	float m_finalBrightness;
+	float m_finalSaturation;
+
+	bool firstSet = true;
 
 	float m_musicVol = 0.3f;
 
@@ -203,9 +215,10 @@ private:
 	bool m_loadingHubby = false;
 	bool m_loadingTutorial = false;
 	bool m_loadingGame = false;
+	bool m_loadNewFloor = false;
 	bool m_deathPoison = false;
 	bool m_deathEnemy = false; 
-	bool m_loadNewFloor = false;
+	
 	bool m_skipTutorialQuestion = false;
 
 	bool m_cameraPlayer;
@@ -225,6 +238,9 @@ private:
 	void TransitionUpdate(float deltaTime);
 	void ExecuteLoad(uint targetRoom, Vec3 position, Vec3 direction);
 
+	float m_winTimer = 0.0f;
+	float m_timePerEndSlideShow = 7.0f;
+	 
 	TimeSwitchValues m_switchVals;
 
 	Vec3 m_initialFogFocus;

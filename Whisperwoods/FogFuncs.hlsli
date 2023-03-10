@@ -6,7 +6,7 @@
 // Used in pixel shader for inserting into apply fog function.
 static const float3 STATE_FOG_COLORS[2] = { float3(0.02f, 0.04f, 0.05f), float3(0.70f, 0.50f, 0.3f) };
 static const float STATE_FOG_STRENGTHS[2] = { 1.0f, 1.7f };
-static const float STATE_FOG_DENSITIES[2] = { 0.06f, 0.1f };
+static const float STATE_FOG_DENSITIES[2] = { 0.06f, 0.15f };
 
 float3 ApplyExpFog(float3 color, float density, float distance, float3 fogColor, float fogStrength)
 {
