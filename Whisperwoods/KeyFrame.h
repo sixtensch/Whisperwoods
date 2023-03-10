@@ -16,3 +16,8 @@ struct QuatKeyFrame : KeyFrame
 {
 	cs::Quaternion value;
 };
+
+struct FloatKeyFrame : KeyFrame
+{
+	float value;
+};

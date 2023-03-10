@@ -85,9 +85,14 @@ void Renderer::SetupEnvironmentAssets()
 	m_renderHandler->SetupEnvironmentAssets();
 }
 
-void Renderer::SetPlayerMatrix(const Mat4& matrix)
+void Renderer::SetPlayerMatrix(const Mat4& matrix )
 {
 	s_singleton->m_renderHandler->SetPlayerMatrix( matrix );
+}
+
+void Renderer::SetWorldParameters( Vec4 worldInfo1, Vec4 worldInfo2 )
+{
+	s_singleton->m_renderHandler->SetWorldParameters( worldInfo1, worldInfo2 );
 }
 
 void Renderer::LoadLevel(LevelResource* level, string image)

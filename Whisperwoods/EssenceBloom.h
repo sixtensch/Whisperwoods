@@ -18,5 +18,8 @@ private:
 
 	float m_Vol = 0.5f;
 	unique_ptr<AudioSource> m_soundSource;
+
+	float m_ambianceVol = 0.8f;
+	unique_ptr<AudioSource> m_ambianceSource;
 };
 
