@@ -127,6 +127,13 @@ private:
 	cs::Color3f m_futureDirectionalColor;
 	float m_futureDirectionalIntensity;
 
+	Vec2 m_vignetteStrengthAndRadius;
+	Vec2 m_contrastStrengthAndMidpoint;
+	float m_finalBrightness;
+	float m_finalSaturation;
+
+	bool firstSet = true;
+
 	float m_musicVol = 0.3f;
 
 	shared_ptr<AudioSource> m_musicPresent;
@@ -225,6 +232,9 @@ private:
 	void TransitionUpdate(float deltaTime);
 	void ExecuteLoad(uint targetRoom, Vec3 position, Vec3 direction);
 
+	float m_winTimer = 0.0f;
+	float m_timePerEndSlideShow = 7.0f;
+	 
 	TimeSwitchValues m_switchVals;
 
 	Vec3 m_targetFogFocus;
@@ -234,6 +244,8 @@ private:
 	Vec3 m_targetSpawnDirection;
 	Vec3 m_targetCameraPosition;
 	Quaternion m_targetCameraDirection;
+	float m_transitionTime;
+	float m_transitionTimeTarget;
 	enum TransitionTarget
 	{
 		TransitionTargetNone,

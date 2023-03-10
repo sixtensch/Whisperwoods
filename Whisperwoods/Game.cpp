@@ -356,6 +356,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 							activeTutorialLevel = 8;
 							m_loadScreen->GetElement(0)->uiRenderable->enabled = true;
 							
+							
 						}
 						else if (!m_player->hasPickedUpEssenceBloom)
 						{
@@ -365,7 +366,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						else if (m_player->hasPickedUpEssenceBloom && !tutorial)
 						{
 							// you win!
-							m_loadScreen->GetElement(1)->uiRenderable->enabled = true;
+							//m_loadScreen->GetElement(1)->uiRenderable->enabled = true; // this old win screen
 							youWin = true;
 						}
 						
@@ -428,11 +429,6 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 // Debug stuff
 void Game::DrawIMGUIWindows()
 {
-	static Vec2 vignette = Vec2(0.5f, 1.0f);
-	static Vec2 contrast = Vec2(1.0f, 0.4f);
-	static float brightness = 0.0f;
-	static float saturation = 1.25f;
-	static bool firstSet = true;
 
 #if WW_DEBUG
 
@@ -473,10 +469,11 @@ void Game::DrawIMGUIWindows()
 	{
 		float speed = 0.01f;
 		bool changed = false;
-		changed |= ImGui::DragFloat2("Vignette Radius & Strength", (float*)&vignette, speed, 0.0f, FLT_MAX);
-		changed |= ImGui::DragFloat2("Contrast Amount & Midpoint", (float*)&contrast, speed, 0.0f);
-		changed |= ImGui::DragFloat("Brightness", &brightness, speed, 0.0f, FLT_MAX);
-		changed |= ImGui::DragFloat("Saturation", &saturation, speed, 0.0f, FLT_MAX);
+		
+		changed |= ImGui::DragFloat2("Vignette Radius & Strength", (float*)&m_vignetteStrengthAndRadius, speed, 0.0f, FLT_MAX);
+		changed |= ImGui::DragFloat2("Contrast Amount & Midpoint", (float*)&m_contrastStrengthAndMidpoint, speed, 0.0f);
+		changed |= ImGui::DragFloat("Brightness", &m_finalBrightness, speed, 0.0f, FLT_MAX);
+		changed |= ImGui::DragFloat("Saturation", &m_finalSaturation, speed, 0.0f, FLT_MAX);
 
 		/*if (changed || firstSet)
 		{
@@ -592,7 +589,7 @@ void Game::DrawIMGUIWindows()
 
 #endif
 
-	Renderer::UpdatePPFXInfo(vignette, contrast, brightness, saturation);
+	
 }
 
 
@@ -601,8 +598,16 @@ void Game::CinematicUpdate()
 
 	// Test of cinematics // TODO: IMPORTANT: LATER DON'T DO THIS WHEN THE GAME IS RUNNING, ITS PROBABLY FATASS-HEAVY ON THE CPU.
 	m_cutsceneController->Update(m_deltaTime);
-
-
+	if (m_cutsceneController->CutsceneActive())
+	{
+		m_gui->GetElement(13)->uiRenderable->enabled = true;
+		m_gui->GetElement(14)->uiRenderable->enabled = true;
+	}
+	else
+	{
+		m_gui->GetElement(13)->uiRenderable->enabled = false;
+		m_gui->GetElement(14)->uiRenderable->enabled = false;
+	}
 
 	// More later
 	m_player->CinematicUpdate( m_deltaTime ); // Only updates the matrix and animator, allowing for cutscenecontroller control.
@@ -644,24 +649,49 @@ void Game::Update(float deltaTime, Renderer* renderer)
 			return;
 
 		}
+	}
 
-		if (youWin)
+	if (youWin)
+	{
+		m_winTimer += deltaTime; // for slideshow
+		int slideShowIndex = std::floor(m_winTimer / m_timePerEndSlideShow);
+		if (slideShowIndex > 4)
 		{
-
-			if (Input::Get().IsDXKeyPressed(DXKey::Space))
-			{
-				//player pressed spacebar when outside while loop
-				m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
-				youWin = false;
-				EndRun(renderer);
-			}
-			else
-			{
-				return;
-			}
+			m_winTimer -= deltaTime / 2;
 		}
 
+		if (slideShowIndex >= 5)
+		{
+			m_loadScreen->GetElement(8)->uiRenderable->enabled = false;
+			m_loadScreen->GetElement(9)->uiRenderable->enabled = true;
+		}
+		if (Input::Get().IsDXKeyPressed(DXKey::Space) && slideShowIndex >= 5)
+		{
+			//player pressed spacebar when outside while loop
+			//m_loadScreen->GetElement(1)->uiRenderable->enabled = false;
+			m_loadScreen->GetElement(9)->uiRenderable->enabled = false;
+			youWin = false;
+			m_winTimer = 0.0f;
+			EndRun(renderer);
+		}
+		else if (slideShowIndex == 0)
+		{
+			m_loadScreen->GetElement(4)->uiRenderable->enabled = true;
+		}
+		else if (slideShowIndex > 0 && slideShowIndex < 5)
+		{
+			m_loadScreen->GetElement(slideShowIndex + 3 )->uiRenderable->enabled = false;
+			m_loadScreen->GetElement(slideShowIndex + 4)->uiRenderable->enabled = true;
+			return;
+		}
+		else
+		{
+			return;
+		}
+	}
 
+	if (!m_cutsceneController->m_cutSceneActive)
+	{
 		UpdateGameObjects();
 
 		UpdateGameplayVars( renderer );
@@ -673,6 +703,12 @@ void Game::Update(float deltaTime, Renderer* renderer)
 		// Final steps
 		UpdateTimeSwitchBuffers( renderer );
 		UpdateEnemyConeBuffers( renderer );
+		Renderer::UpdatePPFXInfo(
+			m_vignetteStrengthAndRadius, 
+			m_contrastStrengthAndMidpoint, 
+			m_finalBrightness, 
+			m_finalSaturation
+		);
 	}
 	else
 	{
@@ -724,7 +760,7 @@ void Game::Init()
 	m_loadScreen->GetElement(0)->firstTexture = Resources::Get().GetTexture("loadingScreen.png");
 
 
-	//winning screen 
+	//winning screen (old)
 	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	m_loadScreen->GetElement(1)->colorTint = Vec3(1, 1, 1);
 	m_loadScreen->GetElement(1)->alpha = 1.0f;
@@ -748,8 +784,54 @@ void Game::Init()
 	m_loadScreen->GetElement(3)->alpha = 1.0f;
 	m_loadScreen->GetElement(3)->uiRenderable->enabled = false;
 	m_loadScreen->GetElement(3)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	m_loadScreen->GetElement(3)->firstTexture = Resources::Get().GetTexture("coward.png");
+	m_loadScreen->GetElement(3)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	m_loadScreen->GetElement(3)->secondTexture = Resources::Get().GetTexture("coward.png");
+
+
+	// THIS IS NEW WIN SCREENS
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(4)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(4)->alpha = 1.0f;
+	m_loadScreen->GetElement(4)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(4)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(4)->firstTexture = Resources::Get().GetTexture("endClip1.png");
+
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(5)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(5)->alpha = 1.0f;
+	m_loadScreen->GetElement(5)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(5)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(5)->firstTexture = Resources::Get().GetTexture("endClip2.png");
+
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(6)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(6)->alpha = 1.0f;
+	m_loadScreen->GetElement(6)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(6)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(6)->firstTexture = Resources::Get().GetTexture("endClip3.png");
+
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(7)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(7)->alpha = 1.0f;
+	m_loadScreen->GetElement(7)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(7)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(7)->firstTexture = Resources::Get().GetTexture("endClip4.png");
+
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(8)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(8)->alpha = 1.0f;
+	m_loadScreen->GetElement(8)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(8)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(8)->firstTexture = Resources::Get().GetTexture("endClip5.png");
+
+	m_loadScreen->AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	m_loadScreen->GetElement(9)->colorTint = Vec3(1, 1, 1);
+	m_loadScreen->GetElement(9)->alpha = 1.0f;
+	m_loadScreen->GetElement(9)->uiRenderable->enabled = false;
+	m_loadScreen->GetElement(9)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	m_loadScreen->GetElement(9)->firstTexture = Resources::Get().GetTexture("endClip6.png");
+
+	//****
 
 	// Audio test startup
 	/*FMOD::Sound* soundPtr = (Resources::Get().GetSound("Duck.mp3"))->currentSound;
@@ -829,6 +911,12 @@ void Game::Init()
 
 	m_futureAmbientColor = cs::Color3f(0xFFFFC0);
 	m_futureAmbientIntensity = 0.35f;
+
+	m_vignetteStrengthAndRadius = Vec2(0.5f, 1.0f);
+	m_contrastStrengthAndMidpoint = Vec2(1.0f, 0.4f);
+	m_finalBrightness = 0.0f;
+	m_finalSaturation = 1.25f;
+	firstSet = true;
 }
 
 void Game::DeInit()
@@ -1432,6 +1520,8 @@ void Game::EndRunDueToPoison(Renderer* renderer)
 void Game::TransitionStart(Vec3 exitPosition, Vec3 exitDirection, uint targetRoom, Vec3 targetPosition, Vec3 targetDirection)
 {
 	m_transitionTarget = TransitionTargetLoadRoom;
+	m_transitionTime = 0.0f;
+	m_transitionTimeTarget = 0.2f;
 
 	m_targetCameraPosition = exitPosition + exitDirection * 3.0f + Vec3(0.0f, 1.0f, 0.0f);
 	m_targetCameraDirection = Quaternion::GetDirection((exitDirection + Vec3(0.0f, -0.2f, 0.0f)).Normalized());
@@ -1457,7 +1547,7 @@ void Game::ExecuteLoad(uint targetRoom, Vec3 position, Vec3 direction)
 	m_directionalLight->transform.parent = &m_currentRoom->transform;
 	m_directionalLight->Update(0);
 
-	MovePlayer(direction - direction * TUNNEL_SPAWN_DISTANCE, -direction);
+	MovePlayer(position - direction * TUNNEL_SPAWN_DISTANCE, -direction);
 	m_player->ReloadPlayer();
 
 	Renderer::ExecuteShadowRender();

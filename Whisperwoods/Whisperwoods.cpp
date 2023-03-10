@@ -255,7 +255,7 @@ void Whisperwoods::Run()
 	testGui.GetElement(12)->colorTint = Vec3(1, 1, 1);
 	testGui.GetElement(12)->alpha = textAlpha;
 	testGui.GetElement(12)->intData = Point4(0, 0, 0, 0); // No special flags, just the image
-	testGui.GetElement(12)->firstTexture = Resources::Get().GetTexture("getDaBloom.png");
+	testGui.GetElement(12)->firstTexture = Resources::Get().GetTexture("TextWhite.png");
 	testGui.GetElement(12)->secondTexture = Resources::Get().GetTexture("getDaBloom.png");
 
 	// Cutscene element 1

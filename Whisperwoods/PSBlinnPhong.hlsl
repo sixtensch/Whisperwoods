@@ -307,8 +307,8 @@ PS_OUTPUT main(VSOutput input)
         );
     }
   
-	
-	
+
+    
     float totalInflunce =
         TotalTimeSwitchInfluence(
         timeSinceSwitch,
