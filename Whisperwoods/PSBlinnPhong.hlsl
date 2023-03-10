@@ -15,7 +15,7 @@ struct VSOutput
 	float3 outNormal	: NORMAL0;
 	float3 outTangent   : TANGENT0;
 	float3 outBitangent : BITANGENT0;
-	float2 outUV		: TEXCOORD0;
+	float4 outUV		: TEXCOORD0;
 };
 
 struct LightDirectional
@@ -270,22 +270,6 @@ PS_OUTPUT main(VSOutput input)
         color.rgb += DrawEnemyPos(enemyPos, input.wPosition.xyz) * isInFuture;
     }
 	
-    // Fog effects
-    {
-        float posToCamDist = distance(input.wPosition.xyz, cameraPosition);
-        float posToFocalDist = distance(input.wPosition.xyz, fogFocusPosition);
-        float focalModifier = 1.0f + (max(fogFocusRadius, posToFocalDist) - fogFocusRadius) * 0.25f;
-        uint stateIndex = uint(isInFuture);
-        color.rgb = ApplyExpFog(
-            color.rgb, 
-            STATE_FOG_DENSITIES[stateIndex] * focalModifier, 
-            posToCamDist, 
-            STATE_FOG_COLORS[stateIndex],
-            STATE_FOG_STRENGTHS[stateIndex]
-        );
-    }
-  
-	
     float3 finalEmissiveColor = 0.0f;
 	// Detection scaled emission calculations.
 	{
@@ -306,8 +290,25 @@ PS_OUTPUT main(VSOutput input)
 
 	// Used to scale ALL emissive for more dramatic glow.
     static float emissiveScalar = 2.0f;
-    color.rgb += finalEmissiveColor * emissiveScalar;
-	
+    color.rgb += finalEmissiveColor * (emissiveScalar + ((input.outUV.z-0.1f) * 2));
+    
+    // Fog effects
+    {
+        float posToCamDist = distance(input.wPosition.xyz, cameraPosition);
+        float posToFocalDist = distance(input.wPosition.xyz, fogFocusPosition);
+        float focalModifier = 1.0f + (max(fogFocusRadius, posToFocalDist) - fogFocusRadius) * 0.25f;
+        uint stateIndex = uint(isInFuture);
+        color.rgb = ApplyExpFog(
+            color.rgb, 
+            STATE_FOG_DENSITIES[stateIndex] * focalModifier, 
+            posToCamDist, 
+            STATE_FOG_COLORS[stateIndex],
+            STATE_FOG_STRENGTHS[stateIndex]
+        );
+    }
+  
+
+    
     float totalInflunce =
         TotalTimeSwitchInfluence(
         timeSinceSwitch,

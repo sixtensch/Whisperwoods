@@ -6,8 +6,8 @@ static const float MAX_COLOR_STRENGTH = 7.0f;
 static const float3 BASE_CONE_COLOR = float3(0.5f, 0.2f, 0.0f);
 static const float3 DETECTED_CONE_COLOR = float3(1.0f, 0.0f, 0.0f);
 
-static const float ENEMY_POS_MAX_DISTANCE = 0.3f;
-static const float3 ENEMY_POS_COLOR = float3(2.0f, 0.0f, 0.0f);
+static const float ENEMY_POS_MAX_DISTANCE = 0.5f;
+static const float3 ENEMY_POS_COLOR = float3(0.6f, 0.4f, 0.03f);
 
 float3 DrawEnemyCone(float3 enemyPos, float3 worldPos, float3 viewDirection, float coneLength, float coneAngle, float detectionLevel)
 {
