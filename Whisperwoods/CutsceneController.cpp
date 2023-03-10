@@ -5,6 +5,9 @@
 #include "WWCBuilder.h"
 #include "Input.h"
 CutsceneController::CutsceneController()
+    :
+    m_cutSceneActive(false),
+    m_isPlaying(false)
 {
     activeCutscene = nullptr;
     transformOpen = true;
