@@ -98,6 +98,6 @@ bool Grafiki::InteractPlayer(Vec2 playerPosition)
 
 	float distance = std::abs(playerDirection.Length()); //distance from enemy to player
 
-	return false; // temp
+	//return false; // temp
 	return distance <= m_range;
 }
