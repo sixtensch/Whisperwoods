@@ -376,11 +376,11 @@ void RenderHandler::SetupEnvironmentAssets()
 
 	load(LevelAssetStone1,
 		"Stone_1_Present.wwm", { "Stone_1_Present.wwmt" },
-		"Stone_1_Future.wwm", { "Stone_1_Future.wwmt" });
+		"Stone_1_Present.wwm", { "Stone_1_Future.wwmt" });
 
 	load(LevelAssetStone2,
 		"Stone_2_Present.wwm", { "Stone_2_Present.wwmt" },
-		"Stone_2_Future.wwm", { "Stone_2_Future.wwmt" });
+		"Stone_2_Present.wwm", { "Stone_2_Future.wwmt" });
 
 
 
