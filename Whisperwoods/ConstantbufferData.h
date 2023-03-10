@@ -15,6 +15,13 @@ namespace CB
 		Mat4 worldMatrix;
 	};
 
+	struct PlayerAndWorldInfo
+	{
+		Mat4 worldMatrix;
+		Vec4 worldInfo1;
+		Vec4 worldInfo2;
+	};
+
 	struct ShadingInfo
 	{
 		DirectionalLight::Data directional;

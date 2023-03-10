@@ -253,6 +253,7 @@ void Animator::PlayAnimation(int index, float startTime, float influence, bool l
 			}
 		}
 		loadedAnimations[index].influence = influence;
+		loadedAnimations[index].isActive = true;
 		globalTime = startTime;
 		looping = loop;
 	}

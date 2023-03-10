@@ -68,7 +68,7 @@ void RenderHandler::LoadLevel(LevelResource* level, string image)
 void RenderHandler::Draw()
 {
 	m_renderCore->NewFrame();
-	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
+	m_renderCore->UpdatePlayerInfo(m_playerMatrix, m_worldInfo1, m_worldInfo2);
 
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_renderCore->UpdateViewInfo(m_mainCamera);
@@ -264,7 +264,7 @@ void RenderHandler::ExecuteStaticShadowDraw()
 	for (uint i = 0; i < LevelAssetCount; i++)
 		m_envMeshes[i].hotInstances.MassAdd(m_envMeshes[i].instances.Data(), m_envMeshes[i].instances.Size(), true);
 	m_renderCore->UpdateViewInfo(m_lightDirectional->camera);
-	m_renderCore->UpdatePlayerInfo(m_playerMatrix);
+	m_renderCore->UpdatePlayerInfo(m_playerMatrix, m_worldInfo1, m_worldInfo2);
 
 
 	// Write to static shadow map (Present)
@@ -698,6 +698,12 @@ void RenderHandler::SetFogParameters(Vec3 focus, float radius)
 {
 	m_fogFocus = focus;
 	m_fogRadius = radius;
+}
+
+void RenderHandler::SetWorldParameters( Vec4 worldInfo1, Vec4 worldInfo2 )
+{
+	m_worldInfo1 = worldInfo1;
+	m_worldInfo2 = worldInfo2;
 }
 
 void RenderHandler::ClearShadowRenderables()

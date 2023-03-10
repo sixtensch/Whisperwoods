@@ -33,8 +33,13 @@ Grafiki::Grafiki()
 	m_animationSpeed = 1.0f;
 
 	characterAnimator->AddAnimation(idleAnimation, 0, m_animationSpeed, 1.0f);
-	
-	characterModel->worldMatrix = transform.worldMatrix * Mat::translation3(0.0f, 0.0f, 0.0f)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0);
+	characterAnimator->AddAnimation( &animationSet->animations[1], 0, m_animationSpeed, 0.0f );
+	characterAnimator->AddAnimation( &animationSet->animations[2], 0, m_animationSpeed, 0.0f );
+	characterAnimator->AddAnimation( &animationSet->animations[3], 0, m_animationSpeed, 0.0f );
+	characterAnimator->AddAnimation( &animationSet->animations[4], 0, m_animationSpeed, 0.0f );
+
+	modelSpecialMatrix = Mat::scale3( 1.4f, 1.4f, 1.4f );
+	characterModel->worldMatrix = transform.worldMatrix * Mat::translation3(0.0f, 0.0f, 0.0f)* Mat::rotation3(cs::c_pi * -0.5f, 0, 0) * modelSpecialMatrix;
 }
 
 Grafiki::~Grafiki()
@@ -70,7 +75,18 @@ void Grafiki::Update(float delta_time)
 		characterAnimator->Update(delta_time);
 		transform.CalculateWorldMatrix();
 
-		characterModel->worldMatrix = transform.worldMatrix * Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0);
+		characterModel->worldMatrix = transform.worldMatrix * Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0) * modelSpecialMatrix;
+	}
+}
+
+void Grafiki::CinematicUpdate( float delta_time )
+{
+	if (enabled)
+	{
+		//characterAnimator->playbackSpeed = m_animationSpeed;
+		characterAnimator->Update( delta_time );
+		transform.CalculateWorldMatrix();
+		characterModel->worldMatrix = transform.worldMatrix * Mat::translation3( 0.0f, 0.0f, 0.0f ) * Mat::rotation3( cs::c_pi * -0.5f, 0, 0 ) * modelSpecialMatrix;
 	}
 }
 
@@ -82,5 +98,6 @@ bool Grafiki::InteractPlayer(Vec2 playerPosition)
 
 	float distance = std::abs(playerDirection.Length()); //distance from enemy to player
 
+	//return false; // temp
 	return distance <= m_range;
 }

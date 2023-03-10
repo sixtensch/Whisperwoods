@@ -102,8 +102,12 @@ public:
 	bool tutorial = false;
 	bool showTextForPickupBloom = false;
 	bool youWin = false;
+	shared_ptr<Grafiki> m_grafiki;
 
 private:
+
+	Vec3 noiseVal1;
+	Vec3 noiseVal2;
 
 	Vec3 dirLightOffset;
 	shared_ptr<Player> m_player;
@@ -119,7 +123,6 @@ private:
 	float m_futureDirectionalIntensity;
 
 	float m_musicVol = 0.3f;
-	shared_ptr<Grafiki> m_grafiki;
 
 	shared_ptr<AudioSource> m_musicPresent;
 	shared_ptr<AudioSource> m_musicFuture;
@@ -158,8 +161,10 @@ private:
 	};
 
 	EnvironmentalizeParameters m_envParams;
-	
+	public:
 	bool m_isCutScene;
+	private:
+
 	bool m_isHubby;
 	bool m_isInFuture;
 	bool m_isSwitching; // Switching = is true during whole duration (start + end) of time switch.
