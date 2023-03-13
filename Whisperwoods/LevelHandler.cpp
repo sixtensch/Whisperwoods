@@ -54,18 +54,14 @@ LevelHandler::LevelHandler()
 {
 	m_floorMinimapGUI = shared_ptr<GUI>(new GUI());
 
-	shared_ptr<GUIElement> minimapElement = m_floorMinimapGUI->AddGUIElement({ -0.95f, 0.3f }, { 0.4f * 0.9f, 0.4f * 1.6f }, nullptr, nullptr);
+	Vec2 minimapPosition = Vec2(-0.95f, 0.3f);
+	Vec2 minimapSize = Vec2(0.4f * 0.9f, 0.4f * 1.6f);
+
+	// Add the map texture
+	shared_ptr<GUIElement> minimapElement = m_floorMinimapGUI->AddGUIElement(minimapPosition, minimapSize, nullptr, nullptr);
 	minimapElement->colorTint = cs::Color3f(0xFFFFFF); // This is the base color of the map.
 	minimapElement->alpha = 0.8f;
 	minimapElement->intData = Point4(0, 0, 1, 0); // Makes it zoom in around a given uv point.
-
-	// Add the overlay
-	shared_ptr<GUIElement> minimapOverlayElement = m_floorMinimapGUI->AddGUIElement( { -0.95f, 0.3f }, { 0.4f * 0.9f, 0.4f * 1.6f }, nullptr, nullptr );
-	minimapOverlayElement->colorTint = cs::Color3f( 0.9f,0.9f,0.9f ); // This is the base color of the map.
-	minimapOverlayElement->alpha = 1.0f;
-	minimapOverlayElement->intData = Point4( 0, 0, 0, 0 ); // 
-	minimapOverlayElement->firstTexture = Resources::Get().GetTexture( "MinimapOverlay.png" );
-	minimapOverlayElement->secondTexture = Resources::Get().GetTexture( "MiniMapOverlayMask.png" );
 
 	TextureResource* minimapTexture = Resources::Get().CreateTextureUnorm(
 		Renderer::Get().GetRenderCore(),
@@ -79,6 +75,15 @@ LevelHandler::LevelHandler()
 	minimapElement->firstTexture = minimapTexture;
 	minimapElement->secondTexture = Resources::Get().GetTexture("HudMask2.png");
 
+	// Add the overlay
+	shared_ptr<GUIElement> minimapOverlayElement = m_floorMinimapGUI->AddGUIElement(minimapPosition, minimapSize, nullptr, nullptr );
+	minimapOverlayElement->colorTint = cs::Color3f( 0.9f,0.9f,0.9f ); // This is the base color of the map overlay.
+	minimapOverlayElement->alpha = 1.0f;
+	minimapOverlayElement->intData = Point4( 0, 0, 0, 0 );
+	minimapOverlayElement->firstTexture = Resources::Get().GetTexture( "MinimapOverlay.png" );
+	minimapOverlayElement->secondTexture = Resources::Get().GetTexture( "MiniMapOverlayMask.png" );
+
+	
 	minimapElement->uiRenderable->enabled = false;
 	m_floorMinimapGUIElement = minimapElement;
 	m_floorMinimapOverlayGUIElement = minimapOverlayElement;
@@ -90,6 +95,9 @@ LevelHandler::LevelHandler()
 
 	m_minimapTexelSize = 1.0f / MINIMAP_PIXEL_SIZE;
 	m_nodeCubeWidth = 22u;
+
+	// Allocate data for the minimap texture.
+	m_minimapTextureData = shared_ptr<uint8_t>(new uint8_t[DATA_SIZE](0));
 }
 
 int LevelHandler::Get1DPixelPosFromWorld(Vec2 position)
@@ -133,20 +141,21 @@ Vec2 LevelHandler::GetRoomFlatenedPos(Vec3 roomPosition)
 	return Vec2(roomPosition.x, roomPosition.z);
 }
 
-void LevelHandler::LoadPixel(uint8_t* data, uint pixelPos, uint8_t r, uint8_t g, uint8_t b)
+void LevelHandler::LoadPixel(uint pixelPos, uint8_t r, uint8_t g, uint8_t b)
 {
-	data[pixelPos + 0] = r;
-	data[pixelPos + 1] = g;
-	data[pixelPos + 2] = b;
-	data[pixelPos + 3] = 255u;
+	uint8_t* textureData = m_minimapTextureData.get();
+	textureData[pixelPos + 0] = r;
+	textureData[pixelPos + 1] = g;
+	textureData[pixelPos + 2] = b;
+	textureData[pixelPos + 3] = 255u;
 }
 
-void LevelHandler::LoadPixel(uint8_t* data, uint pixelPos, cs::Color3 color)
+void LevelHandler::LoadPixel(uint pixelPos, cs::Color3 color)
 {
-	LoadPixel(data, pixelPos, color.r, color.g, color.b);
+	LoadPixel(pixelPos, color.r, color.g, color.b);
 }
 
-shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
+void LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 {
 	// Height is assumed to be z dimension.
 	m_minimapWorldMinHeight = FLT_MAX;
@@ -169,6 +178,7 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 			if (connection.targetRoom == -2)
 			{
 				roomExitIndex = roomPositions.Size();
+				m_exitRoom = &level;
 				break;
 			}
 		}
@@ -188,51 +198,25 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 
 	// --------- Start of filling pixel data --------------
 
-	// TODO: Sussy allocation. Will this memleak?
-	shared_ptr<uint8_t> returnData = shared_ptr<uint8_t>(new uint8_t[DATA_SIZE](0));
-	uint8_t* pixelData = returnData.get();
-	
 	// Fill with background color.
 	for (int i = 0; i < DATA_SIZE; i += 4)
 	{
-		LoadPixel(pixelData, i, m_minimapBackgroundColor);
+		LoadPixel(i, m_minimapBackgroundColor);
 	}
 	
 	// Draw lines between nodes
-	const int halfLineWidth = 2;
 	for (int i = 0; i < floorRef->tunnels.Size(); i++)
 	{
 		const LevelTunnel& tunnel = floorRef->tunnels[i];
-		Vec2 posA = GetFloorUVFromPos(GetRoomFlatenedPos(tunnel.positions[0]));
-		Vec2 posB = GetFloorUVFromPos(GetRoomFlatenedPos(tunnel.positions[1]));
-		//Vec2 posA = GetFloorUVFromPos(GetRoomFlatenedPos(floorRef->rooms[tunnel.startRoom].position));
-		//Vec2 posB = GetFloorUVFromPos(GetRoomFlatenedPos(floorRef->rooms[tunnel.endRoom].position));
+		//Vec2 posA = GetFloorUVFromPos(GetRoomFlatenedPos(tunnel.positions[0]));
+		//Vec2 posB = GetFloorUVFromPos(GetRoomFlatenedPos(tunnel.positions[1]));
+		Vec2 posA = GetFloorUVFromPos(GetRoomFlatenedPos(floorRef->rooms[tunnel.startRoom].position));
+		Vec2 posB = GetFloorUVFromPos(GetRoomFlatenedPos(floorRef->rooms[tunnel.endRoom].position));
 
-		Vec2 uvDirectionBToA = posA - posB;
-		float lineLength = uvDirectionBToA.Length();
-		uvDirectionBToA.Normalize(); // Make normalized direction after getting length.
-
-		// Calculates one normal (-dy, dx).
-		Vec2 uvDirectionNormal = Vec2(-(posA.y - posB.y), posA.x - posB.x).Normalize();
-
-		uint minSteps = cs::ceil(lineLength / m_minimapTexelSize);
-		for (int step = 0; step < minSteps; step++)
-		{
-			Vec2 texelPos = posB + uvDirectionBToA * m_minimapTexelSize * step;
-
-			for (int widthStep = -halfLineWidth; widthStep <= halfLineWidth; widthStep++)
-			{
-				// Magic number scalar to ensure proper filling of line (no gaps between each width step).
-				Vec2 offset = uvDirectionNormal * m_minimapTexelSize * widthStep * 0.7f; 
-				int pixelPos = GetSafe1DPixelPosFromUV(texelPos + offset);
-
-				LoadPixel(pixelData, pixelPos, m_minimapConnectionColor);
-			}
-		}
+		DrawLine(posA, posB, m_minimapConnectionColor);
 	}
 
-	// Draw nodes as cubes.
-	const int halfCube = m_nodeCubeWidth / 2;
+	// Draw nodes.
 	for (int i = 0; i < roomPositions.Size(); i++)
 	{
 		Vec2 roomUVPos = GetFloorUVFromPos(roomPositions[i]);
@@ -247,31 +231,24 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 			drawColor = m_minimapNodeColor;
 		}
 
-		for (int y = -halfCube; y <= halfCube; y++)
-		{
-			for (int x = -halfCube; x <= halfCube; x++)
-			{
-				Vec2 cubeOffset = Vec2(x, y) * m_minimapTexelSize;
-				if (cubeOffset.Length() <= (halfCube * m_minimapTexelSize))
-				{
-					int pixelPos = GetSafe1DPixelPosFromUV(cubeOffset + roomUVPos);
-					LoadPixel(pixelData, pixelPos, drawColor);
-				}
-			}
-		}
+		DrawNode(roomUVPos, drawColor);
 	}
-
-	return returnData;
 }
 
 
 void LevelHandler::GenerateFinishedMinimap(LevelFloor* floorRef)
 {
 	// After creating floor structure, create its image.
+	GenerateFloorImageData(floorRef);
 	m_floorMinimapGUIElement->uiRenderable->enabled = true;
+	UpdateDirectXTexture();
+}
+
+void LevelHandler::UpdateDirectXTexture()
+{
 	Renderer::UpdateTexture2DData(
 		m_floorMinimapGUIElement->firstTexture->texture2D,
-		GenerateFloorImageData(floorRef).get(),
+		m_minimapTextureData.get(),
 		MINIMAP_PIXEL_SIZE,
 		MINIMAP_PIXEL_SIZE
 	);
@@ -279,14 +256,87 @@ void LevelHandler::GenerateFinishedMinimap(LevelFloor* floorRef)
 
 void LevelHandler::SetFloormapFocusRoom(Level* level)
 {
-	m_floorMinimapGUIElement->minimapRoomPos = GetFloorUVFromPos(GetRoomFlatenedPos(level->position));
-	LOG("Now focusing on room uvs: %f, %f", m_floorMinimapGUIElement->minimapRoomPos.x, m_floorMinimapGUIElement->minimapRoomPos.y);
+	if (level == nullptr)
+	{
+		LOG_WARN("Focus room was nullptr. Early return.");
+		return;
+	}
+
+	m_pastRoom = m_currentRoom;
+	m_currentRoom = level;
+
+	Vec2 currentRoomPos = GetFloorUVFromPos(GetRoomFlatenedPos(m_currentRoom->position));
+	m_floorMinimapGUIElement->minimapCurrentRoomPos = currentRoomPos;
+
+	// If this sort of check needs to be done at more places, this could be a member variable.
+	bool textureIsUpdated = false;
+
+	// Do not change back color if its a special room.
+	if (m_pastRoom != m_exitRoom && m_pastRoom != nullptr)
+	{
+		Vec2 pastRoomPos = GetFloorUVFromPos(GetRoomFlatenedPos(m_pastRoom->position));
+		DrawNode(pastRoomPos, m_minimapNodeColor);
+		textureIsUpdated |= true;
+	}
+	
+	// Do not change color if its a special room.
+	if (m_currentRoom != m_exitRoom)
+	{
+		DrawNode(currentRoomPos, cs::Color3(0xFFFFFF));
+		textureIsUpdated |= true;
+	}
+	
+	if(textureIsUpdated)
+		UpdateDirectXTexture();
 }
 
 void LevelHandler::MinimapSetEnable(bool enable)
 {
 	m_floorMinimapGUIElement->uiRenderable->enabled = enable;
 	m_floorMinimapOverlayGUIElement->uiRenderable->enabled = enable;
+}
+
+void LevelHandler::DrawLine(Vec2 uvPosA, Vec2 uvPosB, cs::Color3 lineColor)
+{
+	Vec2 uvDirectionBToA = uvPosA - uvPosB;
+	float lineLength = uvDirectionBToA.Length();
+	uvDirectionBToA.Normalize(); // Make normalized direction after getting length.
+
+	// Calculates one normal (-dy, dx).
+	Vec2 uvDirectionNormal = Vec2(-(uvPosA.y - uvPosB.y), uvPosA.x - uvPosB.x).Normalize();
+
+	uint minSteps = cs::ceil(lineLength / m_minimapTexelSize);
+	const int halfLineWidth = 2;
+	for (int step = 0; step < minSteps; step++)
+	{
+		Vec2 texelPos = uvPosB + uvDirectionBToA * m_minimapTexelSize * step;
+
+		for (int widthStep = -halfLineWidth; widthStep <= halfLineWidth; widthStep++)
+		{
+			// Magic number scalar to ensure proper filling of line (no gaps between each width step).
+			Vec2 offset = uvDirectionNormal * m_minimapTexelSize * widthStep * 0.7f;
+			int pixelPos = GetSafe1DPixelPosFromUV(texelPos + offset);
+
+			LoadPixel(pixelPos, m_minimapConnectionColor);
+		}
+	}
+}
+
+void LevelHandler::DrawNode(Vec2 uvPosNode, cs::Color3 nodeColor)
+{
+	const int halfCube = m_nodeCubeWidth / 2;
+	for (int y = -halfCube; y <= halfCube; y++)
+	{
+		for (int x = -halfCube; x <= halfCube; x++)
+		{
+			Vec2 cubeOffset = Vec2(x, y) * m_minimapTexelSize;
+			if (cubeOffset.Length() <= (halfCube * m_minimapTexelSize))
+			{
+				int pixelPos = GetSafe1DPixelPosFromUV(cubeOffset + uvPosNode);
+				LoadPixel(pixelPos, nodeColor);
+			}
+		}
+	}
 }
 
 void LevelHandler::LoadFloors()

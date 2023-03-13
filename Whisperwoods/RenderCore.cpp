@@ -869,7 +869,7 @@ void RenderCore::UpdateGUIInfo(const GUIElement* guiElement) const
 	newInfo.vectorData = guiElement->vectorData;
 	newInfo.floatData = guiElement->floatData;
 	newInfo.intData = guiElement->intData;
-	newInfo.minimapRoomPos = guiElement->minimapRoomPos;
+	newInfo.minimapRoomPos = guiElement->minimapCurrentRoomPos;
 
 	D3D11_MAPPED_SUBRESOURCE msr = {};
 	EXC_COMCHECK(m_context->Map(m_constantBuffers.guiInfo.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &msr));

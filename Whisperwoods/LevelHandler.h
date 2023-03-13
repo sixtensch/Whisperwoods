@@ -48,10 +48,7 @@ public:
 	LevelHandler(const LevelHandler&) = delete;
 	LevelHandler(LevelHandler&&) = delete;
 
-	shared_ptr<uint8_t> GenerateFloorImageData(LevelFloor* floorRef);
-	void GenerateFinishedMinimap(LevelFloor* floorRef);
 	void SetFloormapFocusRoom(Level* level);
-
 	void MinimapSetEnable(bool enable);
 
 	void LoadFloors();
@@ -96,14 +93,19 @@ private:
 		cs::List<RoomPrimer> rooms;
 	};
 
+	void GenerateFloorImageData(LevelFloor* floorRef);
+	void GenerateFinishedMinimap(LevelFloor* floorRef);
+	void UpdateDirectXTexture();
+
 	int Get1DPixelPosFromWorld(Vec2 position);
 	int GetSafe1DPixelPosFromUV(Vec2 uv);
-
 	Vec2 GetFloorUVFromPos(Vec2 position);
 	Vec2 GetRoomFlatenedPos(Vec3 roomPosition);
 
-	void LoadPixel(uint8_t* data, uint pixelPos, uint8_t r, uint8_t g, uint8_t b);
-	void LoadPixel(uint8_t* data, uint pixelPos, cs::Color3 color);
+	void DrawLine(Vec2 uvPosA, Vec2 uvPosB, cs::Color3 lineColor);
+	void DrawNode(Vec2 uvPosNode, cs::Color3 nodeColor);
+	void LoadPixel(uint pixelPos, uint8_t r, uint8_t g, uint8_t b);
+	void LoadPixel(uint pixelPos, cs::Color3 color);
 
 	void Environmentalize(Level& l, EnvironmentalizeParameters parameters);
 	void AddLevelName(LevelFloor& f, string name);
@@ -146,4 +148,9 @@ private:
 
 	float m_minimapTexelSize;
 	uint m_nodeCubeWidth;
+	shared_ptr<uint8_t> m_minimapTextureData;
+
+	Level* m_currentRoom;
+	Level* m_pastRoom;
+	Level* m_exitRoom;	
 };
