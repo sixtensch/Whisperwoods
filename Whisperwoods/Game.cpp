@@ -53,7 +53,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	}
 
 	m_coolDownCounter += m_deltaTime * (m_godMode ? 5.0f : 1.0f);
-	showTextForPickupBloom = false;
+	
 	// Player vars
 	m_player->SetGodMode(m_godMode);
 	m_player->playerInFuture = m_isInFuture;
@@ -220,8 +220,10 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 {
 	if (m_loadNewFloor)
 	{
+		cs::Random r;
+
 		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
-		LoadGame(1, 9);
+		LoadGame(r.GetUnsigned(), (uint)r.Get(8, 10));
 		m_player->hasPickedUpEssenceBloom = false;
 		tutorial = false;
 		m_loadNewFloor = false;
@@ -324,7 +326,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		{
 			m_maxStamina = 1.0f;
 		}*/
-
+		showTextForPickupBloom = false;
 		m_testTunnel = false;
 		m_loadScreen->GetElement(3)->uiRenderable->enabled = false;
 
