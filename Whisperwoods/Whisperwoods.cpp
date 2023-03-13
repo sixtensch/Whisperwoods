@@ -143,11 +143,20 @@ void Whisperwoods::Run()
 	m_game->Init();
 	m_game->LoadHubby();
 
-	// Test GUI
-	// Stamina bar
+	// Placeholder gui stuff
 	GUI testGui;
-	std::shared_ptr<GUIElement> staminaBarGUI = testGui.AddGUIElement({ 0.28f,-0.90f }, { 0.7f,0.08f }, nullptr, nullptr);
-	staminaBarGUI->colorTint = Vec3(1.0f, 0.72f, 0.0f);
+	// Duck
+	std::shared_ptr<GUIElement> powerBarsBacking = testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f,2.0f }, nullptr, nullptr );
+	powerBarsBacking->colorTint = Vec3( 0.65f, 0.65f, 0.65f );
+	powerBarsBacking->alpha = 1.0f;
+	powerBarsBacking->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
+	powerBarsBacking->firstTexture = Resources::Get().GetTexture( "PowerBarsBacking.png" );
+	powerBarsBacking->secondTexture = Resources::Get().GetTexture( "PowerBarsBackingMask.png" );
+	float targetAlpha = 0.0f;
+
+	// Stamina bar
+	std::shared_ptr<GUIElement> staminaBarGUI = testGui.AddGUIElement({ 0.33f,-0.90f }, { 0.63f,0.08f }, nullptr, nullptr);
+	staminaBarGUI->colorTint = Vec3(0.8f, 0.52f, 0.0f);
 	staminaBarGUI->alpha = 0.6f;
 	staminaBarGUI->vectorData = Vec3( 1, 1, 1 );
 	staminaBarGUI->floatData = 0.5f;
@@ -155,18 +164,8 @@ void Whisperwoods::Run()
 	staminaBarGUI->firstTexture = nullptr;
 	staminaBarGUI->secondTexture = Resources::Get().GetTexture("StaminaBarMask09.png");
 
-	// Duck
-	std::shared_ptr<GUIElement> duckGUI = testGui.AddGUIElement( { -0.5f,-0.5f }, { 1.0f,1.0f }, nullptr, nullptr );
-	duckGUI->colorTint = Vec3( 1, 1, 1 );
-	duckGUI->alpha = 1.0f;
-	duckGUI->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
-	duckGUI->firstTexture = Resources::Get().GetTexture( "duck.jpg" );
-	duckGUI->secondTexture = Resources::Get().GetTexture( "StaminaBarMask09.png" );
-	float targetAlpha = 0.0f;
-
-
 	//************* power cooldown
-	std::shared_ptr<GUIElement> powerCooldownGUI = testGui.AddGUIElement({ 0.475f,-0.82f }, { 0.5f,0.1f }, nullptr, nullptr);
+	std::shared_ptr<GUIElement> powerCooldownGUI = testGui.AddGUIElement({ 0.475f,-0.82f }, { 0.485f,0.1f }, nullptr, nullptr);
 	powerCooldownGUI->colorTint = Vec3(0.08f, 0.18f, 0.8f);
 	powerCooldownGUI->alpha = 0.6f;
 	powerCooldownGUI->vectorData = Vec3(1, 1, 1);
@@ -327,14 +326,14 @@ void Whisperwoods::Run()
 		{
 			staminaBarGUI->uiRenderable->enabled = false;
 			powerCooldownGUI->uiRenderable->enabled = false;
-			duckGUI->uiRenderable->enabled = false;
+			powerBarsBacking->uiRenderable->enabled = false;
 			m_game->m_levelHandler->MinimapSetEnable(false);
 		}
 		else
 		{
 			staminaBarGUI->uiRenderable->enabled = true;
 			powerCooldownGUI->uiRenderable->enabled = true;
-			duckGUI->uiRenderable->enabled = true;
+			powerBarsBacking->uiRenderable->enabled = true;
 			m_game->m_levelHandler->MinimapSetEnable(true);
 		}
 		// Init frame
@@ -355,18 +354,18 @@ void Whisperwoods::Run()
 		staminaBarGUI->floatData = m_game->GetPlayer()->GetCurrentStamina()/10.0f;
 		if (m_game->GetMaxStamina() == 1.0f)
 		{
-			staminaBarGUI->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+			staminaBarGUI->colorTint = Vec3(0.73f, 0.0f, 0.12f);
 		}
 		else
 		{
-			staminaBarGUI->colorTint = Vec3(1.0f, 0.72f, 0.0f);
+			staminaBarGUI->colorTint = Vec3(0.8f, 0.52f, 0.0f);
 		}
 
 		//update test gui with power cooldown
 		if (m_game->GetPlayer()->playerInFuture == false && m_game->GetPowerCooldown() != 0)
 		{
 			powerCooldownGUI->floatData = (m_game->GetMaxPowerCooldown() - m_game->GetPowerCooldown()) / m_game->GetMaxPowerCooldown();
-			powerCooldownGUI->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+			powerCooldownGUI->colorTint = Vec3(0.73f, 0.0f, 0.12f);
 		}
 		else if (m_game->GetPlayer()->playerInFuture == false && m_game->GetPowerCooldown() == 0)
 		{
@@ -376,26 +375,26 @@ void Whisperwoods::Run()
 		else
 		{
 			powerCooldownGUI->floatData = 0.06f;
-			powerCooldownGUI->colorTint = Vec3(0.93f, 0.0f, 0.12f);
+			powerCooldownGUI->colorTint = Vec3(0.73f, 0.0f, 0.12f);
 		}
 
 		
 
-		if (Input::Get().IsDXKeyPressed( DXKey::B ))
-		{
-			//Debug::ExecuteCommand( "Duck", "play" );
-			targetAlpha = !targetAlpha;
-		}
-		duckGUI->alpha = LerpFloat(duckGUI->alpha, targetAlpha, 4.0f * dTime );
+		//if (Input::Get().IsDXKeyPressed( DXKey::B ))
+		//{
+		//	//Debug::ExecuteCommand( "Duck", "play" );
+		//	targetAlpha = !targetAlpha;
+		//}
+		//duckGUI->alpha = LerpFloat(duckGUI->alpha, targetAlpha, 4.0f * dTime );
 
-		if (duckGUI->alpha = 0.0f)
+		/*if (duckGUI->alpha = 0.0f)
 		{
 			duckGUI->uiRenderable->enabled = false;
 		}
 		else
 		{
 			duckGUI->uiRenderable->enabled = true;
-		}
+		}*/
 
 
 #if WW_IMGUI 1
