@@ -143,5 +143,6 @@ private:
 	cs::Color3 m_minimapNodeExitColor;
 	cs::Color3 m_minimapConnectionColor;
 
+	float m_minimapTexelSize;
 	uint m_nodeCubeWidth;
 };

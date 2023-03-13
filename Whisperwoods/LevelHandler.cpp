@@ -9,13 +9,9 @@
 
 #include <filesystem>
 
-constexpr uint LEVEL_MAP_PIXEL_WIDTH = 400u;
-constexpr uint LEVEL_MAP_PIXEL_HEIGHT = 400u;
+constexpr uint MINIMAP_PIXEL_SIZE = 400u;
 constexpr uint BYTES_PER_TEXEL = 4u;
-constexpr uint DATA_SIZE = LEVEL_MAP_PIXEL_WIDTH * LEVEL_MAP_PIXEL_HEIGHT * BYTES_PER_TEXEL;
-
-constexpr float TEXEL_WIDTH = 1.0f / LEVEL_MAP_PIXEL_WIDTH;
-constexpr float TEXEL_HEIGHT = 1.0f / LEVEL_MAP_PIXEL_HEIGHT;
+constexpr uint DATA_SIZE = MINIMAP_PIXEL_SIZE * MINIMAP_PIXEL_SIZE * BYTES_PER_TEXEL;
 
 // All calculated from positions are shrinked by certain amount to fit better in texture.
 constexpr float UV_POS_PADDING_FACTOR = 0.7f;
@@ -67,8 +63,8 @@ LevelHandler::LevelHandler()
 		Renderer::Get().GetRenderCore(),
 		"FloorMinimapGUI",
 		nullptr,
-		LEVEL_MAP_PIXEL_WIDTH,
-		LEVEL_MAP_PIXEL_HEIGHT,
+		MINIMAP_PIXEL_SIZE,
+		MINIMAP_PIXEL_SIZE,
 		true
 	);
 
@@ -83,6 +79,7 @@ LevelHandler::LevelHandler()
 	m_minimapNodeExitColor = cs::Color3(0xa0d9fa);
 	m_minimapConnectionColor = cs::Color3(0xd2fad2);
 
+	m_minimapTexelSize = 1.0f / MINIMAP_PIXEL_SIZE;
 	m_nodeCubeWidth = 22u;
 }
 
@@ -96,8 +93,8 @@ int LevelHandler::Get1DPixelPosFromWorld(Vec2 position)
 int LevelHandler::GetSafe1DPixelPosFromUV(Vec2 uv)
 {
 	// Simple UV mapping of coordinates to pixel pos.
-	int yOffset = cs::floor(uv.y * LEVEL_MAP_PIXEL_HEIGHT) * LEVEL_MAP_PIXEL_WIDTH;
-	int xOffset = cs::floor(uv.x * LEVEL_MAP_PIXEL_WIDTH);
+	int yOffset = cs::floor(uv.y * MINIMAP_PIXEL_SIZE) * MINIMAP_PIXEL_SIZE;
+	int xOffset = cs::floor(uv.x * MINIMAP_PIXEL_SIZE);
 
 	return cs::iclamp((yOffset + xOffset) * BYTES_PER_TEXEL, 0, (int)DATA_SIZE);
 }
@@ -182,9 +179,6 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 
 	// --------- Start of filling pixel data --------------
 
-	// Can be precalculated in compile... but yeah.
-	float minStepLength = cs::fmin(TEXEL_WIDTH, TEXEL_HEIGHT);
-
 	// TODO: Sussy allocation. Will this memleak?
 	shared_ptr<uint8_t> returnData = shared_ptr<uint8_t>(new uint8_t[DATA_SIZE](0));
 	uint8_t* pixelData = returnData.get();
@@ -196,11 +190,14 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 	}
 	
 	// Draw lines between nodes
+	const int halfLineWidth = 2;
 	for (int i = 0; i < floorRef->tunnels.Size(); i++)
 	{
 		const LevelTunnel& tunnel = floorRef->tunnels[i];
 		Vec2 posA = GetFloorUVFromPos(GetRoomFlatenedPos(tunnel.positions[0]));
 		Vec2 posB = GetFloorUVFromPos(GetRoomFlatenedPos(tunnel.positions[1]));
+		//Vec2 posA = GetFloorUVFromPos(GetRoomFlatenedPos(floorRef->rooms[tunnel.startRoom].position));
+		//Vec2 posB = GetFloorUVFromPos(GetRoomFlatenedPos(floorRef->rooms[tunnel.endRoom].position));
 
 		Vec2 uvDirectionBToA = posA - posB;
 		float lineLength = uvDirectionBToA.Length();
@@ -209,17 +206,18 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 		// Calculates one normal (-dy, dx).
 		Vec2 uvDirectionNormal = Vec2(-(posA.y - posB.y), posA.x - posB.x).Normalize();
 
-		uint minSteps = cs::ceil(lineLength / minStepLength);
+		uint minSteps = cs::ceil(lineLength / m_minimapTexelSize);
 		for (int step = 0; step < minSteps; step++)
 		{
-			Vec2 texelPos = posB + uvDirectionBToA * minStepLength * step;
+			Vec2 texelPos = posB + uvDirectionBToA * m_minimapTexelSize * step;
 
-			for (int widthStep = -2; widthStep <= 2; widthStep++)
+			for (int widthStep = -halfLineWidth; widthStep <= halfLineWidth; widthStep++)
 			{
-				Vec2 offset = uvDirectionNormal * minStepLength * widthStep * 0.3f; // Magic number scaler.
-				int channelPos = GetSafe1DPixelPosFromUV(texelPos + offset);
+				// Magic number scalar to ensure proper filling of line (no gaps between each width step).
+				Vec2 offset = uvDirectionNormal * m_minimapTexelSize * widthStep * 0.7f; 
+				int pixelPos = GetSafe1DPixelPosFromUV(texelPos + offset);
 
-				LoadPixel(pixelData, channelPos, m_minimapConnectionColor);
+				LoadPixel(pixelData, pixelPos, m_minimapConnectionColor);
 			}
 		}
 	}
@@ -244,10 +242,12 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 		{
 			for (int x = -halfCube; x <= halfCube; x++)
 			{
-				Vec2 cubeOffset = Vec2(x, y) * minStepLength;
-				int channelPos = GetSafe1DPixelPosFromUV(cubeOffset + roomUVPos);
-
-				LoadPixel(pixelData, channelPos, drawColor);
+				Vec2 cubeOffset = Vec2(x, y) * m_minimapTexelSize;
+				if (cubeOffset.Length() <= (halfCube * m_minimapTexelSize))
+				{
+					int pixelPos = GetSafe1DPixelPosFromUV(cubeOffset + roomUVPos);
+					LoadPixel(pixelData, pixelPos, drawColor);
+				}
 			}
 		}
 	}
@@ -263,8 +263,8 @@ void LevelHandler::GenerateFinishedMinimap(LevelFloor* floorRef)
 	Renderer::UpdateTexture2DData(
 		m_floorMinimapGUIElement->firstTexture->texture2D,
 		GenerateFloorImageData(floorRef).get(),
-		LEVEL_MAP_PIXEL_WIDTH,
-		LEVEL_MAP_PIXEL_HEIGHT
+		MINIMAP_PIXEL_SIZE,
+		MINIMAP_PIXEL_SIZE
 	);
 }
 
