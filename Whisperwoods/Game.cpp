@@ -220,8 +220,10 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 {
 	if (m_loadNewFloor)
 	{
+		cs::Random r;
+
 		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
-		LoadGame(1, 9);
+		LoadGame(r.GetUnsigned(), (uint)r.Get(8, 10));
 		m_player->hasPickedUpEssenceBloom = false;
 		tutorial = false;
 		m_loadNewFloor = false;

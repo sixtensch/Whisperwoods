@@ -10,7 +10,7 @@ GPUProfiler::GPUProfiler(ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext
 	m_context(context), 
 	m_waitFramesPerUpdate(waitFramesPerUpdate), 
 	m_frameCounter(0u), 
-	m_isOn(true),
+	m_isOn(false),
 	m_writeSummaryToConsole(false),
 	m_lastSummary("") {}
 
