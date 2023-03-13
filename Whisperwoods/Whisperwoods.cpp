@@ -379,14 +379,7 @@ void Whisperwoods::Run()
 			powerCooldownGUI->colorTint = Vec3(0.93f, 0.0f, 0.12f);
 		}
 
-		if (m_game->showTextForPickupBloom)
-		{
-			tutorialTextBloomGUI->uiRenderable->enabled = true;
-		}
-		else
-		{
-			tutorialTextBloomGUI->uiRenderable->enabled = false;
-		}
+		
 
 		if (Input::Get().IsDXKeyPressed( DXKey::B ))
 		{
@@ -424,6 +417,15 @@ void Whisperwoods::Run()
 		for (shared_ptr<GUIElement> tutorialText : tutorialTextGUIElements)
 		{
 			tutorialText->uiRenderable->enabled = false;
+		}
+
+		if (m_game->showTextForPickupBloom)
+		{
+			tutorialTextGUIElements[8]->uiRenderable->enabled = true;
+		}
+		else
+		{
+			tutorialTextGUIElements[8]->uiRenderable->enabled = false;
 		}
 
 
