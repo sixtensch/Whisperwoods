@@ -34,11 +34,11 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	// Idle
 	Animation* idleAnimation = &animationSet->animations[0];
 	// Tail
-	Animation* tailAnimation = &animationSet->animations[3];
+	Animation* tailAnimation = &animationSet->animations[1];
 	// Walk
 	Animation* walkAnimation = &animationSet->animations[4];
 	// Run
-	Animation* runAnimation = &animationSet->animations[2];
+	Animation* runAnimation = &animationSet->animations[3];
 	// Crouch
 	Animation* couchAnimation = &animationSet->animations[5];
 
@@ -346,20 +346,17 @@ void Player::PlayerMovement(float delta_time, float movementMultiplier)
 			//transform.rotation = transform.rotation * (Quaternion::GetEuler( delta ));
 		}
 
-		// Camera follow point calculation.
-		Vec3 followPoint = -(cameraCompassRotation * (Quaternion::GetAxis( Vec3( 1, 0, 0 ), cameraFollowTilt ) * Vec3( 0, 0, 1 )) * cameraFollowDistance);
-		cameraFollowTarget = followPoint;
-		Vec3 currentPos = transform.GetWorldPosition();
-		cameraFollowTarget = currentPos + cameraFollowTarget;
-		Vec3 lookDir = currentPos - (cameraFollowTarget + cameraLookTargetOffset);
-		lookDir.Normalize();
-		cameraLookRotationTarget = Quaternion::GetDirection( lookDir );
+		UpdateCameraVars();
 	}
 }
 
 void Player::Update(float delta_time)
 {
-	PlayerMovement(delta_time, 10);
+	if (!m_movementLock)
+	{
+		PlayerMovement(delta_time, 10);
+	}
+
 	characterAnimator->loadedAnimations[2].influence = (m_velocity.Length() / m_walkSpeed);
 	characterAnimator->loadedAnimations[3].influence = (m_velocity.Length() / m_runSpeed);
 	characterAnimator->loadedAnimations[4].influence = (m_isCrouch);
@@ -403,6 +400,11 @@ void Player::Update(float delta_time)
 void Player::ResetCamera(Vec3 direction)
 {
 	cameraCompassRotation = Quaternion::GetDirection(direction);
+	UpdateCameraVars();
+}
+
+void Player::UpdateCameraVars()
+{
 	Vec3 followPoint = -(cameraCompassRotation * (Quaternion::GetAxis(Vec3(1, 0, 0), cameraFollowTilt) * Vec3(0, 0, 1)) * cameraFollowDistance);
 	cameraFollowTarget = followPoint;
 	Vec3 currentPos = transform.GetWorldPosition();
@@ -415,6 +417,7 @@ void Player::ResetCamera(Vec3 direction)
 // Only the essentials.
 void Player::CinematicUpdate( float delta_time )
 {
+	characterAnimator->loadedAnimations[1].influence = 0.5f;
 	//characterAnimator->playbackSpeed = m_animationSpeed;
 	characterAnimator->Update( delta_time );
 	transform.CalculateWorldMatrix();
@@ -499,4 +502,9 @@ void Player::UpdateSound(float delta_time)
 void Player::SetGodMode(bool godMode)
 {
 	m_godMode = godMode;
+}
+
+void Player::SetMovementLock(bool lock)
+{
+	m_movementLock = lock;
 }

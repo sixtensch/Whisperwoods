@@ -62,7 +62,7 @@ public:
 	shared_ptr<AudioSource> m_coughSound;
 
 	bool m_godMode;
-
+	bool m_movementLock;
 
 	Player() = default;
 	Player(std::string modelResource, std::string animationsPath, Mat4 modelOffset);
@@ -78,11 +78,13 @@ public:
 	void Update(float delta_time) override;
 
 	void ResetCamera(Vec3 direction);
+	void UpdateCameraVars();
 
 	void CinematicUpdate( float delta_time );
 
 	void UpdateSound(float delta_time);
 
 	void SetGodMode(bool godMode);
+	void SetMovementLock(bool lock);
 
 };

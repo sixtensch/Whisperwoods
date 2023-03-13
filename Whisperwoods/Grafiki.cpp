@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Resources.h"
 #include "SoundResource.h"
+#include "Input.h"
 
 Grafiki::Grafiki()
 {
@@ -90,14 +91,27 @@ void Grafiki::CinematicUpdate( float delta_time )
 	}
 }
 
-bool Grafiki::InteractPlayer(Vec2 playerPosition)
+bool Grafiki::InteractPlayer(Vec2 playerPosition, GUI* gui)
 {
 	if (!enabled) return false;
-	//direction vector from enemy position to player position
 	Vec2 playerDirection(playerPosition.x - transform.worldPosition.x, playerPosition.y - transform.worldPosition.z);
-
 	float distance = std::abs(playerDirection.Length()); //distance from enemy to player
-
-	//return false; // temp
-	return distance <= m_range;
+	if (Input::Get().IsDXKeyPressed(DXKey::Space))
+	{
+		//direction vector from enemy position to player position
+		gui->GetElement(15)->alpha=0.0f;
+		gui->GetElement(15)->uiRenderable->enabled = false;
+		return distance <= m_range;
+	}
+	else if (distance <= m_range)
+	{
+		gui->GetElement(15)->alpha = 1.0f;
+		gui->GetElement(15)->uiRenderable->enabled = true;
+	}
+	else
+	{
+		gui->GetElement(15)->alpha = 0.0f;
+		gui->GetElement(15)->uiRenderable->enabled = false;
+	}
+	return false;
 }

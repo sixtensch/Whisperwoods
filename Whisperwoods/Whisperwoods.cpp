@@ -79,7 +79,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
-	//BuildWWA( "Assets/Models/FBX/Rigged/Shadii_Animations.fbx" );
+	//BuildWWA( "Assets/Models/FBX/Rigged/Shadii_Animations2.fbx" );
 	//BuildWWA( "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx" );
 
 	//cs::List<VertexTextured> planeVerts = { 
@@ -269,6 +269,7 @@ void Whisperwoods::Run()
 	cutsceneElement1GUI->alpha = 0.0;
 	cutsceneElement1GUI->intData = Point4( 0, 0, 0, 0 ); // No special flags, just the image
 	cutsceneElement1GUI->firstTexture = Resources::Get().GetTexture( "TextWhite.png" );
+	cutsceneElement1GUI->uiRenderable->enabled = true;
 
 	// Cutscene element 2
 	std::shared_ptr<GUIElement> cutsceneElement2GUI = testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr );
@@ -276,6 +277,14 @@ void Whisperwoods::Run()
 	cutsceneElement2GUI->alpha = 0.0;
 	cutsceneElement2GUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
 	cutsceneElement2GUI->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo1.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo2.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo3.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo4.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo5.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo6.png"));
+	cutsceneElement2GUI->alternativeImages.Add(Resources::Get().GetTexture("convo7.png"));
+	cutsceneElement2GUI->uiRenderable->enabled = true;
 
 	std::shared_ptr<GUIElement> introScreenGUI = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
 	introScreenGUI->colorTint = Vec3(1, 1, 1);
@@ -283,6 +292,15 @@ void Whisperwoods::Run()
 	introScreenGUI->uiRenderable->enabled = false;
 	introScreenGUI->intData = Point4(0, 0, 0, 0); // No special flags, just the image
 	introScreenGUI->firstTexture = Resources::Get().GetTexture("introClip.png");
+
+	std::shared_ptr<GUIElement> introScreenGUI2 = testGui.AddGUIElement({ -1.0f,-1.0f }, { 2.0f, 2.0f }, nullptr, nullptr);
+	introScreenGUI2->colorTint = Vec3(1, 1, 1);
+	introScreenGUI2->alpha = 0.0f;
+	introScreenGUI2->uiRenderable->enabled = false;
+	introScreenGUI2->intData = Point4(0, 0, 0, 0); // No special flags, just the image
+	introScreenGUI2->firstTexture = Resources::Get().GetTexture("TextWhite.png");
+	introScreenGUI2->secondTexture = Resources::Get().GetTexture("startPicText.png");
+
 
 	m_game->SetGUI(&testGui);
 	m_game->InitCutscene();
@@ -300,6 +318,7 @@ void Whisperwoods::Run()
 			if (Input::Get().IsDXKeyPressed(DXKey::Space))
 			{
 				introScreenGUI->uiRenderable->enabled = false;
+				//introScreenGUI->uiRenderable->a = false;
 				m_firstIntroPic = false;
 			}
 		}
@@ -360,14 +379,7 @@ void Whisperwoods::Run()
 			powerCooldownGUI->colorTint = Vec3(0.93f, 0.0f, 0.12f);
 		}
 
-		if (m_game->showTextForPickupBloom)
-		{
-			tutorialTextBloomGUI->uiRenderable->enabled = true;
-		}
-		else
-		{
-			tutorialTextBloomGUI->uiRenderable->enabled = false;
-		}
+		
 
 		if (Input::Get().IsDXKeyPressed( DXKey::B ))
 		{
@@ -386,22 +398,34 @@ void Whisperwoods::Run()
 		}
 
 
-
+#if WW_IMGUI 1
 		if (ImGui::Begin( "Shadow PS Test" ))
 		{
 			ImGui::Checkbox( "Use shadow PS", &m_renderer->GetRenderCore()->m_bindShadowPS );
 		}
 		ImGui::End();
+#endif
 
 		// Main game update
 		if (m_firstIntroPic == false)
 		{
+			if (introScreenGUI->uiRenderable->enabled)
+				introScreenGUI->uiRenderable->enabled = false;
 			m_game->Update(dTime, m_renderer.get());
 		}
 
 		for (shared_ptr<GUIElement> tutorialText : tutorialTextGUIElements)
 		{
 			tutorialText->uiRenderable->enabled = false;
+		}
+
+		if (m_game->showTextForPickupBloom)
+		{
+			tutorialTextGUIElements[8]->uiRenderable->enabled = true;
+		}
+		else
+		{
+			tutorialTextGUIElements[8]->uiRenderable->enabled = false;
 		}
 
 
@@ -411,7 +435,7 @@ void Whisperwoods::Run()
 			if (m_game->activeTutorialLevel < 6)
 			{
 				// How does this work?
-				testGui.GetElement(m_game->activeTutorialLevel + 3)->uiRenderable->enabled = true;
+				testGui.GetElement(m_game->activeTutorialLevel + 2)->uiRenderable->enabled = true;
 			}
 			else if (m_game->activeTutorialLevel == 6)
 			{

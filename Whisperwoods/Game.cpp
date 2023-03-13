@@ -27,7 +27,8 @@ Game::Game() :
 	m_isCutscene( false ),
 	m_isSeen( false ),
 	noiseVal1( 0, 0, 0 ),
-	noiseVal2( 1, 1, 1 )
+	noiseVal2( 1, 1, 1 ),
+	m_initialCamFov(0.0f)
 {
 }
 
@@ -36,14 +37,14 @@ Game::~Game() {}
 // Stamina, pickups, detection etc
 void Game::UpdateGameplayVars( Renderer* renderer )
 {
-	if (m_deathEnemy == true)
+	if (m_deathEnemy == true && m_deathTransition == false)
 	{
 		m_deathEnemy = false;
 		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
 		EndRunDueToEnemy(renderer);
 		activeTutorialLevel = 8;
 	}
-	else if (m_deathPoison == true)
+	else if (m_deathPoison == true && m_deathTransition == false)
 	{
 		m_deathPoison = false;
 		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
@@ -52,7 +53,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	}
 
 	m_coolDownCounter += m_deltaTime * (m_godMode ? 5.0f : 1.0f);
-	showTextForPickupBloom = false;
+	
 	// Player vars
 	m_player->SetGodMode(m_godMode);
 	m_player->playerInFuture = m_isInFuture;
@@ -72,7 +73,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 		noise1.Gen2D( noiseVal1.y, noiseVal1.x ), 
 		noise1.Gen2D( noiseVal1.z, noiseVal1.y ));
 	Renderer::SetWorldParameters( noiseVector, Vec4( noiseVal2, 0));
-
+#if WW_IMGUI 1
 	//if (ImGui::Begin( "Noise Debug" ))
 	//{
 	//	ImGui::Text( "NoiseVector: %f %f %f %f", noiseVector.x, noiseVector.y, noiseVector.z, noiseVector.w );
@@ -80,7 +81,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	//	ImGui::Text( "NoiseVal2: %f %f %f", noiseVal2.x, noiseVal2.y, noiseVal2.z );
 	//}
 	//ImGui::End();
-
+#endif
 	// Pickups
 	for (int i = 0; i < m_pickups.Size(); ++i)
 	{
@@ -219,8 +220,10 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 {
 	if (m_loadNewFloor)
 	{
+		cs::Random r;
+
 		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
-		LoadGame(1, 9);
+		LoadGame(r.GetUnsigned(), (uint)r.Get(8, 10));
 		m_player->hasPickedUpEssenceBloom = false;
 		tutorial = false;
 		m_loadNewFloor = false;
@@ -242,6 +245,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 				m_isSwitching = true;
 				m_finishedCharging = false;
 				m_initialCamFov = renderer->GetCamera().GetFov();
+				m_player->m_switchSource->SetPitch(1.5f);
 				m_player->m_switchSource->Play();
 			}
 		}
@@ -263,13 +267,20 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 			{
 				if (!m_finishedCharging)
 				{
-					SwapTimeline( renderer );
-					m_finishedCharging = true;
-					renderer->GetCamera().SetFov( m_initialCamFov );
-
-					if (!m_isInFuture) // time to cooldown
+					if (m_deathTransition)
 					{
-						m_coolDownCounter = 0.0f;
+						EndRun(renderer);
+					}
+					else
+					{
+						SwapTimeline(renderer);
+						m_finishedCharging = true;
+						renderer->GetCamera().SetFov(m_initialCamFov);
+
+						if (!m_isInFuture) // time to cooldown
+						{
+							m_coolDownCounter = 0.0f;
+						}
 					}
 				}
 			}
@@ -315,7 +326,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		{
 			m_maxStamina = 1.0f;
 		}*/
-
+		showTextForPickupBloom = false;
 		m_testTunnel = false;
 		m_loadScreen->GetElement(3)->uiRenderable->enabled = false;
 
@@ -336,7 +347,8 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 						activeTutorialLevel = r.targetRoom + 1;
 						uint targetIndex = (r.tunnelSubIndex + 1) % 2;
 						const LevelTunnel& t = m_floor.tunnels[r.tunnel];
-						ExecuteLoad(r.targetRoom, t.positions[targetIndex], t.directions[targetIndex]);
+						//ExecuteLoad(r.targetRoom, t.positions[targetIndex], t.directions[targetIndex]);
+						TransitionStart(r.position, r.direction, r.targetRoom, t.positions[targetIndex], t.directions[targetIndex]);
 						break;
 					}
 
@@ -410,7 +422,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 
 
 
-		if (m_grafiki->InteractPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z)))
+		if (m_grafiki->InteractPlayer(Vec2(m_player->transform.worldPosition.x, m_player->transform.worldPosition.z), m_gui))
 		{
 			m_grafiki->enabled = false;
 			m_loadScreen->GetElement(2)->uiRenderable->enabled = true;
@@ -431,7 +443,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 void Game::DrawIMGUIWindows()
 {
 
-#if WW_DEBUG
+#if WW_IMGUI 1
 
 	// Gameplay variables window
 	if (ImGui::Begin( "Gameplay Vars" ))
@@ -453,7 +465,7 @@ void Game::DrawIMGUIWindows()
 		{
 			ImGui::Separator();
 			ImGui::InputFloat3("Fog Focus", (float*)&m_fogFocus);
-			ImGui::DragFloat("Fog Radius", &m_fogRadius, 0.1f, 0.1f, 100.0f);
+			ImGui::DragFloat("Fog Radius", &m_fogRadius, 0.1f, -100.0f, 100.0f);
 		}
 	}
 	ImGui::End();
@@ -599,9 +611,9 @@ void Game::DrawIMGUIWindows()
 
 void Game::CinematicUpdate()
 {
-
+	m_gui->GetElement(15)->alpha = 0.0f;
 	// Test of cinematics // TODO: IMPORTANT: LATER DON'T DO THIS WHEN THE GAME IS RUNNING, ITS PROBABLY FATASS-HEAVY ON THE CPU.
-	m_cutsceneController->Update(m_deltaTime);
+	//m_cutsceneController->Update(m_deltaTime);
 	if (m_cutsceneController->CutsceneActive())
 	{
 		m_gui->GetElement(13)->uiRenderable->enabled = true;
@@ -623,12 +635,26 @@ void Game::CinematicUpdate()
 	}
 }
 
+static bool firstFrame = false;
+static bool secondFrame = false;
 // Main update function.
 void Game::Update(float deltaTime, Renderer* renderer)
 {
 	m_deltaTime = deltaTime;
 
-
+	if (!firstFrame)
+	{
+		firstFrame = true;
+	}
+	else if (!secondFrame)
+	{
+		secondFrame = true;
+		m_cutsceneController->m_cutSceneActive = true;
+		m_cutsceneController->m_isPlaying = true;
+	}
+	m_cutsceneController->Update(m_deltaTime);
+	m_gui->GetElement(14)->alpha = 0;
+	m_gui->GetElement(14)->uiRenderable->enabled = false;
 
 	if (!m_cutsceneController->m_cutSceneActive)
 	{
@@ -696,13 +722,27 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 	if (!m_cutsceneController->m_cutSceneActive)
 	{
+		if (secondFrame)
+		{
+			m_gui->GetElement(12)->alpha = 0.0f;
+			m_gui->GetElement(13)->alpha = 0.0f;
+			m_gui->GetElement(12)->uiRenderable->enabled = false;
+			m_gui->GetElement(13)->uiRenderable->enabled = false;
+
+		}
+
+		if (m_transitionTarget != TransitionTargetNone)
+		{
+			TransitionUpdate(deltaTime);
+		}
+		else
+		{
+			UpdateRoomAndTimeSwappingLogic(renderer);
+		}
+
+		UpdateEnemies(renderer);
 		UpdateGameObjects();
-
-		UpdateGameplayVars( renderer );
-
-		UpdateEnemies( renderer );
-
-		UpdateRoomAndTimeSwappingLogic( renderer);
+		UpdateGameplayVars(renderer);
 
 		// Final steps
 		UpdateTimeSwitchBuffers( renderer );
@@ -718,6 +758,13 @@ void Game::Update(float deltaTime, Renderer* renderer)
 	{
 		CinematicUpdate();
 	}
+
+	Renderer::UpdatePPFXInfo(
+		m_vignetteStrengthAndRadius,
+		m_contrastStrengthAndMidpoint,
+		m_finalBrightness,
+		m_finalSaturation
+	);
 
 	Move(deltaTime, m_player.get(), m_cutsceneController.get());
 
@@ -874,7 +921,7 @@ void Game::Init()
 	
 
 	// In-world objects and entities
-	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
+	m_player = shared_ptr<Player>(new Player("Shadii_Rigged_Optimized.wwm", "Shadii_Animations2.wwa", Mat::translation3(0.0f, 0.0f, 0.0f) * Mat::rotation3(cs::c_pi * -0.5f, 0, 0)));
 	m_grafiki = make_shared<Grafiki>();
 
 
@@ -921,6 +968,11 @@ void Game::Init()
 	m_finalBrightness = 0.0f;
 	m_finalSaturation = 1.25f;
 	firstSet = true;
+
+
+
+	m_timeSwooshIn = 0.5f;
+	m_timeSwooshOut = 0.5f;
 }
 
 void Game::DeInit()
@@ -951,7 +1003,7 @@ void Game::InitCutscene()
 	//m_testCutScene->AddChannel( std::shared_ptr<CutsceneAnimatorChannel>( new CutsceneAnimatorChannel( "Grafiki Animator", m_game->m_grafiki->characterAnimator.get() ) ) );
 	//m_testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Player Transform", &m_game->GetPlayer()->transform )));
 	//m_testCutScene->AddChannel( std::shared_ptr<CutsceneTransformChannel>( new CutsceneTransformChannel( "Grafiki Transform", &m_game->m_grafiki->transform ) ) );
-	m_testCutScene->AddChannel(std::shared_ptr<CutsceneGUIChannel>(new CutsceneGUIChannel("GUI Channel 2", m_gui)));
+	//m_testCutScene->AddChannel(std::shared_ptr<CutsceneGUIChannel>(new CutsceneGUIChannel("GUI Channel 2", m_gui)));
 	m_cutsceneController->m_cutscenes.Add(m_testCutScene);
 	m_cutsceneController->ActivateCutscene(0);
 
@@ -968,14 +1020,15 @@ void Game::InitCutscene()
 	transformChannel2->targetTransform = &m_grafiki->transform;
 	CutsceneGUIChannel* guiChannel = (CutsceneGUIChannel*)m_cutsceneController->m_cutscenes[0]->channels[5].get(); // GUI 1
 	guiChannel->targetGUI = m_gui;
-	guiChannel->targetGUIElement = 13; // Index
+	m_gui->GetElement(14)->uiRenderable->enabled = false;
+	guiChannel->targetGUIElement = 12; // Index
 
-	CutsceneGUIChannel* guiChannel2 = (CutsceneGUIChannel*)m_cutsceneController->m_cutscenes[0]->channels[5].get(); // GUI 1
+	CutsceneGUIChannel* guiChannel2 = (CutsceneGUIChannel*)m_cutsceneController->m_cutscenes[0]->channels[6].get(); // GUI 1
 	guiChannel2->targetGUI = m_gui;
-	guiChannel2->targetGUIElement = 14; // Index
+	guiChannel2->targetGUIElement = 13; // Index
 
-	//m_cutsceneController->m_cutSceneActive = true;
-	//m_cutsceneController->m_isPlaying = true;
+	m_cutsceneController->m_cutSceneActive = false;
+	m_cutsceneController->m_isPlaying = false;
 }
 
 void Game::LoadHubby()
@@ -1177,7 +1230,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 	Camera& camera = Renderer::GetCamera();
 	Input& inputRef = Input::Get();
 
-	if (!cutSceneController->CutsceneActive())
+	if (m_transitionTarget == TransitionTargetNone && !cutSceneController->CutsceneActive())
 	{
 		MouseState mouseState = inputRef.GetMouseState();
 
@@ -1224,7 +1277,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 				cs::Vec3 delta = Vec3((float)mouseState.y, (float)mouseState.x, 0.0f);
 				rotationVec -= delta * dTime * 2.0f;
 				camera.SetRotation(Quaternion::GetEuler({ rotationVec.x, rotationVec.y, rotationVec.z }).Conjugate());
-
+#if WW_IMGUI 1
 				if (ImGui::Begin("Camera rotation dev"))
 				{
 					ImGui::Text("Rot Vec: %f, %f, %f", rotationVec.x, rotationVec.y, rotationVec.z);
@@ -1234,6 +1287,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 
 				}
 				ImGui::End();
+#endif
 				//camera.SetRotation(Quaternion::GetEuler(rotationVec));
 			}
 			camera.SetPosition(camera.GetPosition() + movement * dTime);
@@ -1254,6 +1308,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 				slerped.NormalizeThis();
 				camera.SetRotation(slerped);
 			}
+#if WW_IMGUI 1
 			if (ImGui::Begin("Camera rotation player"))
 			{
 				Vec3 playPos = player->transform.GetWorldPosition();
@@ -1269,6 +1324,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 				ImGui::DragFloat3("Camera lookAt offset", (float*)&player->cameraLookTargetOffset, 0.1f);
 			}
 			ImGui::End();
+#endif
 		}
 	}
 
@@ -1498,10 +1554,11 @@ void Game::ResetGameplayValues()
 
 void Game::EndRun(Renderer* renderer)
 {
-	if (m_isSwitching)
-	{
-		Renderer::GetCamera().SetFov(m_initialCamFov);
-	}
+	m_deathTransition = false;
+	m_deathEnemy = false;
+	m_deathPoison = false;
+	m_isSwitching = false;
+	Renderer::GetCamera().SetFov(m_initialCamFov);
 
 	ResetGameplayValues();
 	ChangeToPresentTimeline(renderer);
@@ -1518,36 +1575,128 @@ void Game::EndRunDueToEnemy(Renderer* renderer)
 
 	// More logic for dying from enemy here.
 
-	EndRun(renderer);
+	m_isSwitching = true;
+	m_deathTransition = true;
+	m_finishedCharging = false;
+	if (m_initialCamFov == 0.0f)
+		m_initialCamFov = renderer->GetCamera().GetFov();
 }
 
 void Game::EndRunDueToPoison(Renderer* renderer)
 {
 	// Logic for dying from future poison here.
 
-	EndRun(renderer);
+	m_isSwitching = true;
+	m_deathTransition = true;
+	m_finishedCharging = false;
+	m_player->m_switchSource->Play();
+	if (m_initialCamFov == 0.0f)
+		m_initialCamFov = renderer->GetCamera().GetFov();
 }
 
 
 void Game::TransitionStart(Vec3 exitPosition, Vec3 exitDirection, uint targetRoom, Vec3 targetPosition, Vec3 targetDirection)
 {
-	m_transitionTarget = TransitionTargetLoadRoom;
-	m_transitionTime = 0.0f;
-	m_transitionTimeTarget = 0.2f;
+	Camera& c = Renderer::GetCamera();
 
-	m_targetCameraPosition = exitPosition + exitDirection * 3.0f + Vec3(0.0f, 1.0f, 0.0f);
-	m_targetCameraDirection = Quaternion::GetDirection((exitDirection + Vec3(0.0f, -0.2f, 0.0f)).Normalized());
+	m_transitionTarget = TransitionTargetLoadRoom;
+	m_transitionTimeTarget = 0.3f;
+
+	m_initialFogFocus = m_fogFocus;
+	m_initialFogRadius = m_fogRadius;
+	m_initialCameraPosition = c.GetPosition();
+	m_initialCameraRotation = c.GetRotation();
+
+	m_targetFogFocus = exitPosition + exitDirection * 4.0f;
+	m_targetFogRadius = -30.0f;
+	m_targetCameraPosition = exitPosition + exitDirection * 5.0f + Vec3(0.0f, 2.0f, 0.0f);
+	m_targetCameraRotation = Quaternion::GetDirection((exitDirection + Vec3(0.0f, -0.2f, 0.0f)).Normalized());
 	m_targetRoom = targetRoom;
+
 	m_targetSpawnPosition = targetPosition;
 	m_targetSpawnDirection = targetDirection;
 
-	m_targetFogFocus = exitPosition + exitDirection * 1.5f;
-	m_targetFogRadius = -0.5f;
+	m_transitionTimer.Lap();
+
+	//m_player->SetMovementLock(true);
 }
 
 void Game::TransitionLoad()
 {
+	ExecuteLoad(m_targetRoom, m_targetSpawnPosition, m_targetSpawnDirection);
+	m_transitionTarget = TransitionTargetFree;
+	m_transitionTimeTarget = 0.8f;
 
+	m_initialFogFocus = m_targetSpawnPosition + m_targetSpawnDirection * 3.0f;
+	m_initialFogRadius = -30.0f;
+	m_initialCameraPosition = m_targetSpawnPosition + m_targetSpawnDirection * 1.5f + Vec3(0.0f, 2.0f, 0.0f);
+	m_initialCameraRotation = Quaternion::GetDirection((-m_targetSpawnDirection + Vec3(0.0f, -0.2f, 0.0f)).Normalized());
+
+	m_targetFogFocus = m_fogFocus;
+	m_targetFogRadius = m_fogRadius;
+	m_targetCameraPosition = m_player->cameraFollowTarget;
+	m_targetCameraRotation = m_player->cameraLookRotationTarget;
+
+	m_transitionTimer.Lap();
+}
+
+void Game::TransitionEnd()
+{
+	//m_player->SetMovementLock(false);
+	m_transitionTarget = TransitionTargetNone;
+}
+
+void Game::TransitionUpdate(float deltaTime)
+{
+	Camera& c = Renderer::GetCamera();
+
+	float lapsed = m_transitionTimer.Peek();
+	float lerp = cs::fclamp(lapsed, 0.0f, m_transitionTimeTarget) / m_transitionTimeTarget;
+	float ease = m_transitionTarget == TransitionTargetLoadRoom ?
+		cs::ease::in(lerp) :
+		cs::ease::outCubic(lerp);
+
+	if (m_transitionTarget == TransitionTargetFree)
+	{
+		m_player->UpdateCameraVars();
+		m_targetCameraPosition = m_player->cameraFollowTarget;
+		m_targetCameraRotation = m_player->cameraLookRotationTarget;
+	}
+
+	m_fogFocus = m_initialFogFocus + (m_targetFogFocus - m_initialFogFocus) * ease;
+	m_fogRadius = m_initialFogRadius + (m_targetFogRadius - m_initialFogRadius) * ease;
+
+	c.SetPosition(m_initialCameraPosition + (m_targetCameraPosition - m_initialCameraPosition) * ease);
+
+	Vec3 fromDirection = m_initialCameraRotation * Vec3(0.0f, 0.0f, 1.0f);
+	Vec3 toDirection = m_targetCameraRotation * Vec3(0.0f, 0.0f, 1.0f);
+	Vec3 lerpDirection = fromDirection + (toDirection - fromDirection) * ease;
+
+	Vec3 fromUp = (fromDirection % Vec3(0.0f, 0.0f, 1.0f)) % fromDirection;
+	Vec3 toUp = (toDirection % Vec3(0.0f, 0.0f, 1.0f)) % toDirection;
+	Vec3 lerpUp = fromUp + (toUp - fromUp) * ease;
+
+	Vec3 val = (lerpUp % lerpDirection) % lerpUp;
+
+	c.SetRotation(Quaternion::GetDirection(val.Normalized()));
+
+	if (lapsed > m_transitionTimeTarget)
+	{
+		switch (m_transitionTarget) 
+		{
+		case TransitionTargetFree:
+			TransitionEnd();
+			break;
+
+		case TransitionTargetLoadRoom:
+			TransitionLoad();
+			TransitionUpdate(deltaTime);
+			break;
+
+		case TransitionTargetExit:
+			break;
+		}
+	}
 }
 
 void Game::ExecuteLoad(uint targetRoom, Vec3 position, Vec3 direction)

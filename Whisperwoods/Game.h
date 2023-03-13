@@ -186,6 +186,8 @@ private:
 	bool m_finishedCharging; // Charging = only first part of whole duration (start)
 	float m_maxStamina;
 
+	bool m_deathTransition = false;
+
 	bool m_testTunnel;
 
 	float m_detectionLevelGlobal; //how detected you currently are
@@ -243,15 +245,21 @@ private:
 	 
 	TimeSwitchValues m_switchVals;
 
+	Vec3 m_initialFogFocus;
+	float m_initialFogRadius;
+	Vec3 m_initialCameraPosition;
+	Quaternion m_initialCameraRotation;
 	Vec3 m_targetFogFocus;
 	float m_targetFogRadius;
+	Vec3 m_targetCameraPosition;
+	Quaternion m_targetCameraRotation;
 	uint m_targetRoom;
 	Vec3 m_targetSpawnPosition;
 	Vec3 m_targetSpawnDirection;
-	Vec3 m_targetCameraPosition;
-	Quaternion m_targetCameraDirection;
-	float m_transitionTime;
 	float m_transitionTimeTarget;
+	float m_timeSwooshIn;
+	float m_timeSwooshOut;
+	cs::Timer m_transitionTimer;
 	enum TransitionTarget
 	{
 		TransitionTargetNone,

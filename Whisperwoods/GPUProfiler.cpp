@@ -10,7 +10,7 @@ GPUProfiler::GPUProfiler(ComPtr<ID3D11Device> device, ComPtr<ID3D11DeviceContext
 	m_context(context), 
 	m_waitFramesPerUpdate(waitFramesPerUpdate), 
 	m_frameCounter(0u), 
-	m_isOn(true),
+	m_isOn(false),
 	m_writeSummaryToConsole(false),
 	m_lastSummary("") {}
 
@@ -159,6 +159,7 @@ void GPUProfiler::SynthesizeSummary()
 
 void GPUProfiler::DrawImGui()
 {
+#if WW_IMGUI 1
 	if (ImGui::Begin("GPU Profiler"))
 	{
 		ImGui::Checkbox("Profiler toggle", &m_isOn);
@@ -182,6 +183,7 @@ void GPUProfiler::DrawImGui()
 	{
 		m_waitFramesPerUpdate = s_maxFrameWait;
 	}
+#endif
 }
 
 bool GPUProfiler::IsAllowedToUpdate()
