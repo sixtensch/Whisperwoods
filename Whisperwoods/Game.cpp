@@ -53,7 +53,7 @@ void Game::UpdateGameplayVars( Renderer* renderer )
 	}
 
 	m_coolDownCounter += m_deltaTime * (m_godMode ? 5.0f : 1.0f);
-	showTextForPickupBloom = false;
+	
 	// Player vars
 	m_player->SetGodMode(m_godMode);
 	m_player->playerInFuture = m_isInFuture;
@@ -326,7 +326,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		{
 			m_maxStamina = 1.0f;
 		}*/
-
+		showTextForPickupBloom = false;
 		m_testTunnel = false;
 		m_loadScreen->GetElement(3)->uiRenderable->enabled = false;
 
