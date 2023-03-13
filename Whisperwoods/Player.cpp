@@ -34,11 +34,11 @@ Player::Player(std::string modelResource, std::string animationsPath, Mat4 model
 	// Idle
 	Animation* idleAnimation = &animationSet->animations[0];
 	// Tail
-	Animation* tailAnimation = &animationSet->animations[3];
+	Animation* tailAnimation = &animationSet->animations[1];
 	// Walk
 	Animation* walkAnimation = &animationSet->animations[4];
 	// Run
-	Animation* runAnimation = &animationSet->animations[2];
+	Animation* runAnimation = &animationSet->animations[3];
 	// Crouch
 	Animation* couchAnimation = &animationSet->animations[5];
 
@@ -417,6 +417,7 @@ void Player::UpdateCameraVars()
 // Only the essentials.
 void Player::CinematicUpdate( float delta_time )
 {
+	characterAnimator->loadedAnimations[1].influence = 0.5f;
 	//characterAnimator->playbackSpeed = m_animationSpeed;
 	characterAnimator->Update( delta_time );
 	transform.CalculateWorldMatrix();

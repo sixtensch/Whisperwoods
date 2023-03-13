@@ -79,7 +79,7 @@ Whisperwoods::Whisperwoods(HINSTANCE instance)
 
 	//// Animations
 	//BuildWWA( "Assets/Models/FBX/Rigged/Grafiki_Animations.fbx" );
-	//BuildWWA( "Assets/Models/FBX/Rigged/Shadii_Animations.fbx" );
+	//BuildWWA( "Assets/Models/FBX/Rigged/Shadii_Animations2.fbx" );
 	//BuildWWA( "Assets/Models/FBX/Rigged/Carcinian_Animations.fbx" );
 
 	//cs::List<VertexTextured> planeVerts = { 
