@@ -48,6 +48,7 @@ public:
 	LevelHandler(const LevelHandler&) = delete;
 	LevelHandler(LevelHandler&&) = delete;
 
+	// Gets called unnecessarily when loading hubby. This is shouldn't be harmful but is a bit undefined.
 	void SetFloormapFocusRoom(Level* level);
 	void MinimapSetEnable(bool enable);
 
@@ -94,7 +95,8 @@ private:
 	};
 
 	void GenerateFloorImageData(LevelFloor* floorRef);
-	void GenerateFinishedMinimap(LevelFloor* floorRef);
+	void GenerateNewMinimap(LevelFloor* floorRef);
+	void ResetMinimapValues();
 	void UpdateDirectXTexture();
 
 	int Get1DPixelPosFromWorld(Vec2 position);
@@ -104,6 +106,7 @@ private:
 
 	void DrawLine(Vec2 uvPosA, Vec2 uvPosB, cs::Color3 lineColor);
 	void DrawNode(Vec2 uvPosNode, cs::Color3 nodeColor);
+	void ClearMinimapTexture(cs::Color3 clearColor);
 	void LoadPixel(uint pixelPos, uint8_t r, uint8_t g, uint8_t b);
 	void LoadPixel(uint pixelPos, cs::Color3 color);
 
@@ -147,10 +150,10 @@ private:
 	cs::Color3 m_minimapConnectionColor;
 
 	float m_minimapTexelSize;
-	uint m_nodeCubeWidth;
+	uint m_nodePixelRadius;
 	shared_ptr<uint8_t> m_minimapTextureData;
 
 	Level* m_currentRoom;
-	Level* m_pastRoom;
+	Level* m_previousRoom;
 	Level* m_exitRoom;	
 };
