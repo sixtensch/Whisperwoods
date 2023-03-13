@@ -58,10 +58,18 @@ LevelHandler::LevelHandler()
 {
 	m_floorMinimapGUI = shared_ptr<GUI>(new GUI());
 
-	shared_ptr<GUIElement> minimapElement = m_floorMinimapGUI->AddGUIElement({ -0.9f, 0.3f }, { 0.4f * 0.9f, 0.4f * 1.6f }, nullptr, nullptr);
+	shared_ptr<GUIElement> minimapElement = m_floorMinimapGUI->AddGUIElement({ -0.95f, 0.3f }, { 0.4f * 0.9f, 0.4f * 1.6f }, nullptr, nullptr);
 	minimapElement->colorTint = cs::Color3f(0xFFFFFF); // This is the base color of the map.
 	minimapElement->alpha = 0.8f;
 	minimapElement->intData = Point4(0, 0, 1, 0); // Makes it zoom in around a given uv point.
+
+	// Add the overlay
+	shared_ptr<GUIElement> minimapOverlayElement = m_floorMinimapGUI->AddGUIElement( { -0.95f, 0.3f }, { 0.4f * 0.9f, 0.4f * 1.6f }, nullptr, nullptr );
+	minimapOverlayElement->colorTint = cs::Color3f( 0.9f,0.9f,0.9f ); // This is the base color of the map.
+	minimapOverlayElement->alpha = 1.0f;
+	minimapOverlayElement->intData = Point4( 0, 0, 0, 0 ); // 
+	minimapOverlayElement->firstTexture = Resources::Get().GetTexture( "MinimapOverlay.png" );
+	minimapOverlayElement->secondTexture = Resources::Get().GetTexture( "MiniMapOverlayMask.png" );
 
 	TextureResource* minimapTexture = Resources::Get().CreateTextureUnorm(
 		Renderer::Get().GetRenderCore(),
@@ -77,7 +85,8 @@ LevelHandler::LevelHandler()
 
 	minimapElement->uiRenderable->enabled = false;
 	m_floorMinimapGUIElement = minimapElement;
-	
+	m_floorMinimapOverlayGUIElement = minimapOverlayElement;
+
 	m_minimapBackgroundColor = cs::Color3(0x282928);
 	m_minimapNodeColor = cs::Color3(0xa0faa0);
 	m_minimapNodeExitColor = cs::Color3(0xa0d9fa);
@@ -277,6 +286,7 @@ void LevelHandler::SetFloormapFocusRoom(Level* level)
 void LevelHandler::MinimapSetEnable(bool enable)
 {
 	m_floorMinimapGUIElement->uiRenderable->enabled = enable;
+	m_floorMinimapOverlayGUIElement->uiRenderable->enabled = enable;
 }
 
 void LevelHandler::LoadFloors()

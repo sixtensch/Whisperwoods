@@ -611,6 +611,20 @@ void Game::DrawIMGUIWindows()
 
 void Game::CinematicUpdate()
 {
+	// Update sway and glow breathing
+	cs::NoiseSimplex noise1( 2 );
+	cs::NoiseSimplex noise2( 123 );
+	// Noise Generation for breathing glows and vegetation wind TODO: Check performance on this, possibly remove if bad.
+	float scanMultiplier = 0.1f;
+	noiseVal1 += Vec3( m_deltaTime * scanMultiplier * 5, -m_deltaTime * scanMultiplier, m_deltaTime * scanMultiplier );
+	noiseVal2 += Vec3( m_deltaTime * scanMultiplier * 2, m_deltaTime * scanMultiplier, m_deltaTime * scanMultiplier * 3 );
+	Vec4 noiseVector = Vec4(
+		noise1.Gen1D( noiseVal1.x ),
+		noise2.Gen1D( noiseVal1.x ),
+		noise1.Gen2D( noiseVal1.y, noiseVal1.x ),
+		noise1.Gen2D( noiseVal1.z, noiseVal1.y ) );
+	Renderer::SetWorldParameters( noiseVector, Vec4( noiseVal2, 0 ) );
+
 	m_gui->GetElement(15)->alpha = 0.0f;
 	// Test of cinematics // TODO: IMPORTANT: LATER DON'T DO THIS WHEN THE GAME IS RUNNING, ITS PROBABLY FATASS-HEAVY ON THE CPU.
 	//m_cutsceneController->Update(m_deltaTime);
@@ -632,6 +646,11 @@ void Game::CinematicUpdate()
 	for (int i = 0; i < m_staticObjects.Size(); i++)
 	{
 		m_staticObjects[i]->Update( m_deltaTime );
+	}
+
+	if (Input::Get().IsDXKeyPressed( DXKey::Space ))
+	{
+		m_cutsceneController->m_time = m_cutsceneController->m_time + 0.1f;
 	}
 }
 

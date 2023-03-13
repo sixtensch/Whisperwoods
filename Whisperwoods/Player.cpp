@@ -417,6 +417,7 @@ void Player::UpdateCameraVars()
 // Only the essentials.
 void Player::CinematicUpdate( float delta_time )
 {
+	characterAnimator->loadedAnimations[0].influence = 1.0f;
 	characterAnimator->loadedAnimations[1].influence = 0.5f;
 	//characterAnimator->playbackSpeed = m_animationSpeed;
 	characterAnimator->Update( delta_time );

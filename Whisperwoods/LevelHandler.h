@@ -137,6 +137,7 @@ private:
 
 	shared_ptr<GUI> m_floorMinimapGUI;
 	shared_ptr<GUIElement> m_floorMinimapGUIElement;
+	shared_ptr<GUIElement> m_floorMinimapOverlayGUIElement;
 
 	cs::Color3 m_minimapBackgroundColor;
 	cs::Color3 m_minimapNodeColor;
