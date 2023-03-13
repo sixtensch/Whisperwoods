@@ -59,8 +59,8 @@ LevelHandler::LevelHandler()
 	m_floorMinimapGUI = shared_ptr<GUI>(new GUI());
 
 	shared_ptr<GUIElement> minimapElement = m_floorMinimapGUI->AddGUIElement({ -0.9f, 0.3f }, { 0.4f * 0.9f, 0.4f * 1.6f }, nullptr, nullptr);
-	minimapElement->colorTint = cs::Color3f(0xA7A158);
-	minimapElement->alpha = 0.7f;
+	minimapElement->colorTint = cs::Color3f(0xFFFFFF); // This is the base color of the map.
+	minimapElement->alpha = 0.8f;
 	minimapElement->intData = Point4(0, 0, 1, 0); // Makes it zoom in around a given uv point.
 
 	TextureResource* minimapTexture = Resources::Get().CreateTextureUnorm(
@@ -78,6 +78,12 @@ LevelHandler::LevelHandler()
 	minimapElement->uiRenderable->enabled = false;
 	m_floorMinimapGUIElement = minimapElement;
 	
+	m_minimapBackgroundColor = cs::Color3(0x282928);
+	m_minimapNodeColor = cs::Color3(0xa0faa0);
+	m_minimapNodeExitColor = cs::Color3(0xa0d9fa);
+	m_minimapConnectionColor = cs::Color3(0xd2fad2);
+
+	m_nodeCubeWidth = 22u;
 }
 
 int LevelHandler::Get1DPixelPosFromWorld(Vec2 position)
@@ -129,6 +135,11 @@ void LevelHandler::LoadPixel(uint8_t* data, uint pixelPos, uint8_t r, uint8_t g,
 	data[pixelPos + 3] = 255u;
 }
 
+void LevelHandler::LoadPixel(uint8_t* data, uint pixelPos, cs::Color3 color)
+{
+	LoadPixel(data, pixelPos, color.r, color.g, color.b);
+}
+
 shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 {
 	// Height is assumed to be z dimension.
@@ -139,11 +150,24 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 	m_minimapWorldMinWidth = FLT_MAX;
 	m_minimapWorldMaxWidth = -FLT_MAX;
 
+	uint roomExitIndex = UINT_MAX;
+
 	// Save looped rooms for later use when creating picture.
 	cs::List<Vec2> roomPositions = {};
 	for (int i = 0; i < floorRef->rooms.Size(); i++)
 	{
-		Vec3 roomPos = floorRef->rooms[i].position;
+		Level& level = floorRef->rooms[i];
+		for (LevelTunnelRef& connection : level.connections)
+		{
+			// If the room/level contains a connection that leads to -2, its the exit room.
+			if (connection.targetRoom == -2)
+			{
+				roomExitIndex = roomPositions.Size();
+				break;
+			}
+		}
+
+		Vec3 roomPos = level.position;
 		Vec2 roomFlatPos = GetRoomFlatenedPos(roomPos);
 
 		m_minimapWorldMinHeight = cs::fmin(m_minimapWorldMinHeight, roomFlatPos.y);
@@ -156,15 +180,20 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 		LOG_TRACE("%d - Room pos: %.2f %.2f %.2f", i, roomPos.x, roomPos.y, roomPos.z);
 	}
 
-	// Start of filling pixel data
+	// --------- Start of filling pixel data --------------
 
 	// Can be precalculated in compile... but yeah.
 	float minStepLength = cs::fmin(TEXEL_WIDTH, TEXEL_HEIGHT);
 
 	// TODO: Sussy allocation. Will this memleak?
-	shared_ptr<uint8_t> returnData = shared_ptr<uint8_t>(new uint8_t[DATA_SIZE]);
+	shared_ptr<uint8_t> returnData = shared_ptr<uint8_t>(new uint8_t[DATA_SIZE](0));
 	uint8_t* pixelData = returnData.get();
-
+	
+	// Fill with background color.
+	for (int i = 0; i < DATA_SIZE; i += 4)
+	{
+		LoadPixel(pixelData, i, m_minimapBackgroundColor);
+	}
 	
 	// Draw lines between nodes
 	for (int i = 0; i < floorRef->tunnels.Size(); i++)
@@ -190,18 +219,27 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 				Vec2 offset = uvDirectionNormal * minStepLength * widthStep * 0.3f; // Magic number scaler.
 				int channelPos = GetSafe1DPixelPosFromUV(texelPos + offset);
 
-				LoadPixel(pixelData, channelPos, 32u, 91u, 223u);
+				LoadPixel(pixelData, channelPos, m_minimapConnectionColor);
 			}
 		}
 	}
 
 	// Draw nodes as cubes.
-	int cubeWidth = 22;
-	int halfCube = cubeWidth / 2;
-	for (Vec2 roomPos : roomPositions)
+	const int halfCube = m_nodeCubeWidth / 2;
+	for (int i = 0; i < roomPositions.Size(); i++)
 	{
-		Vec2 roomUVPos = GetFloorUVFromPos(roomPos);
+		Vec2 roomUVPos = GetFloorUVFromPos(roomPositions[i]);
 		
+		cs::Color3 drawColor;
+		if (i == roomExitIndex)
+		{
+			drawColor = m_minimapNodeExitColor;
+		}
+		else
+		{
+			drawColor = m_minimapNodeColor;
+		}
+
 		for (int y = -halfCube; y <= halfCube; y++)
 		{
 			for (int x = -halfCube; x <= halfCube; x++)
@@ -209,7 +247,7 @@ shared_ptr<uint8_t> LevelHandler::GenerateFloorImageData(LevelFloor* floorRef)
 				Vec2 cubeOffset = Vec2(x, y) * minStepLength;
 				int channelPos = GetSafe1DPixelPosFromUV(cubeOffset + roomUVPos);
 
-				LoadPixel(pixelData, channelPos, 32u, 91u, 223u);
+				LoadPixel(pixelData, channelPos, drawColor);
 			}
 		}
 	}

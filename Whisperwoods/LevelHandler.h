@@ -103,6 +103,7 @@ private:
 	Vec2 GetRoomFlatenedPos(Vec3 roomPosition);
 
 	void LoadPixel(uint8_t* data, uint pixelPos, uint8_t r, uint8_t g, uint8_t b);
+	void LoadPixel(uint8_t* data, uint pixelPos, cs::Color3 color);
 
 	void Environmentalize(Level& l, EnvironmentalizeParameters parameters);
 	void AddLevelName(LevelFloor& f, string name);
@@ -127,7 +128,6 @@ private:
 	cs::List<uint> m_resourceIndices[3];
 	cs::List<shared_ptr<LevelResource>> m_resources;
 
-
 	// Height is assumed to be z dimension.
 	float m_minimapWorldMinHeight = FLT_MAX;
 	float m_minimapWorldMaxHeight = -FLT_MAX;
@@ -137,4 +137,11 @@ private:
 
 	shared_ptr<GUI> m_floorMinimapGUI;
 	shared_ptr<GUIElement> m_floorMinimapGUIElement;
+
+	cs::Color3 m_minimapBackgroundColor;
+	cs::Color3 m_minimapNodeColor;
+	cs::Color3 m_minimapNodeExitColor;
+	cs::Color3 m_minimapConnectionColor;
+
+	uint m_nodeCubeWidth;
 };
