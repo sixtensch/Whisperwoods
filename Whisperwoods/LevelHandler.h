@@ -51,6 +51,7 @@ public:
 	// Gets called unnecessarily when loading hubby. This is shouldn't be harmful but is a bit undefined.
 	void SetFloormapFocusRoom(Level* level);
 	void MinimapSetEnable(bool enable);
+	void MinimapSetFuture( bool future );
 
 	void LoadFloors();
 	void GenerateTutorial(LevelFloor* outFloor, EnvironmentalizeParameters params);

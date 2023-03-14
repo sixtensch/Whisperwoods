@@ -145,7 +145,8 @@ void Whisperwoods::Run()
 
 	// Placeholder gui stuff
 	GUI testGui;
-	// Duck
+	// backing
+	bool futureMode = false;
 	std::shared_ptr<GUIElement> powerBarsBacking = testGui.AddGUIElement( { -1.0f,-1.0f }, { 2.0f,2.0f }, nullptr, nullptr );
 	powerBarsBacking->colorTint = Vec3( 0.65f, 0.65f, 0.65f );
 	powerBarsBacking->alpha = 1.0f;
@@ -376,6 +377,14 @@ void Whisperwoods::Run()
 		{
 			powerCooldownGUI->floatData = 0.06f;
 			powerCooldownGUI->colorTint = Vec3(0.73f, 0.0f, 0.12f);
+		}
+
+		if (m_game->GetPlayer()->playerInFuture != futureMode)
+		{
+			futureMode = m_game->GetPlayer()->playerInFuture;
+			powerBarsBacking->firstTexture = (futureMode) ? Resources::Get().GetTexture( "PowerBarsBarren.png" ) : Resources::Get().GetTexture( "PowerBarsBacking.png" );
+			powerBarsBacking->secondTexture = (futureMode) ? Resources::Get().GetTexture( "PowerBarsBarrenMask.png" ) : Resources::Get().GetTexture( "PowerBarsBackingMask.png" );
+			powerBarsBacking->colorTint = (futureMode) ? Vec3( 0.9f, 0.9f, 0.9f ) : Vec3( 0.65f, 0.65f, 0.65f );
 		}
 
 		

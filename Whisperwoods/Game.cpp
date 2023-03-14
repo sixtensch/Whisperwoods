@@ -1738,6 +1738,8 @@ void Game::SwapTimeline(Renderer* renderer)
 {
 	m_isInFuture = !m_isInFuture;
 
+	m_levelHandler->MinimapSetFuture( m_isInFuture );
+
 	ApplyTimelineState(renderer);
 }
 
