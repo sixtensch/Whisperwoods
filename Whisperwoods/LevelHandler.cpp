@@ -81,7 +81,7 @@ LevelHandler::LevelHandler()
 	minimapOverlayElement->alpha = 1.0f;
 	minimapOverlayElement->intData = Point4( 0, 0, 0, 0 );
 	minimapOverlayElement->firstTexture = Resources::Get().GetTexture( "MinimapOverlay.png" );
-	minimapOverlayElement->secondTexture = Resources::Get().GetTexture( "MinimapOverlayMask.png" );
+	minimapOverlayElement->secondTexture = Resources::Get().GetTexture( "MiniMapOverlayMask.png" );
 
 	
 	minimapElement->uiRenderable->enabled = false;
@@ -304,7 +304,7 @@ void LevelHandler::MinimapSetEnable(bool enable)
 void LevelHandler::MinimapSetFuture( bool future )
 {
 	m_floorMinimapOverlayGUIElement->firstTexture = (future) ? Resources::Get().GetTexture( "MinimapOverlayBarren.png" ) : Resources::Get().GetTexture( "MinimapOverlay.png" );
-	m_floorMinimapOverlayGUIElement->secondTexture = (future) ? Resources::Get().GetTexture( "MinimapOverlayBarrenMask.png" ) : Resources::Get().GetTexture( "MinimapOverlayMask.png" );
+	m_floorMinimapOverlayGUIElement->secondTexture = (future) ? Resources::Get().GetTexture( "MinimapOverlayBarrenMask.png" ) : Resources::Get().GetTexture( "MiniMapOverlayMask.png" );
 }
 
 void LevelHandler::DrawLine(Vec2 uvPosA, Vec2 uvPosB, cs::Color3 lineColor)
