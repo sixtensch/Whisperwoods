@@ -30,6 +30,8 @@ Game::Game() :
 	noiseVal2( 1, 1, 1 ),
 	m_initialCamFov(0.0f)
 {
+	Input& inputRef = Input::Get();
+	inputRef.SetMouseMode(dx::Mouse::MODE_RELATIVE);
 }
 
 Game::~Game() {}
@@ -1253,6 +1255,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 	{
 		MouseState mouseState = inputRef.GetMouseState();
 
+#ifdef WW_DEBUG
 		if (inputRef.IsDXKeyPressed(DXKey::R))
 		{
 			if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
@@ -1270,7 +1273,7 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 			m_cameraPlayer = !m_cameraPlayer;
 			player->cameraIsLocked = m_cameraPlayer;
 		}
-
+#endif
 		if (!m_cameraPlayer)
 		{
 			// Debug Camera Movement
