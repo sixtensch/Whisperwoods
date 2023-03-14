@@ -1255,6 +1255,11 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 	{
 		MouseState mouseState = inputRef.GetMouseState();
 
+#ifdef WW_RELEASE
+		inputRef.SetMouseMode(dx::Mouse::MODE_RELATIVE);
+#endif
+
+
 #ifdef WW_DEBUG
 		if (inputRef.IsDXKeyPressed(DXKey::R))
 		{
