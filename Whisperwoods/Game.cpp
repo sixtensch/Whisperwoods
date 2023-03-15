@@ -814,7 +814,7 @@ void Game::Update(float deltaTime, Renderer* renderer)
 
 void Game::Init()
 {
-	m_godMode = false;
+	m_godMode = true;
 
 	m_cameraPlayer = true;
 	m_cameraLock = false;
@@ -1276,7 +1276,16 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 			// Debug Camera Movement
 			Vec3 movement = Vec3(0, 0, 0);
 			Vec3 forwardDirection = camera.GetDirection();
-			forwardDirection.y = 0;
+
+			if (!flyingCam)
+				forwardDirection.y = 0;
+
+			if (inputRef.IsDXKeyDown( dx::Keyboard::RightControl ) && !inputRef.GetLastKeyboardState().RightControl)
+			{
+				flyingCam = !flyingCam;
+			}
+
+
 			forwardDirection.Normalize();
 			Vec3 rightDirection = camera.GetRight();
 			Vec3 upDirection = Vec3(0.0f, 1.0f, 0.0f);
@@ -1290,25 +1299,57 @@ void Game::Move(float dTime, Player* player, CutsceneController* cutSceneControl
 			{
 				movement *= 5.0f;
 			}
+
+			movement *= movementMultiplier;
+
+			scrollDelta = (float)mouseState.scrollWheelValue - lastScroll;
+			lastScroll = (float)mouseState.scrollWheelValue;
+
+
+			if (inputRef.IsDXKeyDown( dx::Keyboard::LeftControl ))
+			{
+				mouseLookMultiplier += scrollDelta * dTime * 0.1f;
+			}
+			else
+			{
+				movementMultiplier += scrollDelta * dTime * 0.1f;
+			}
+
+
 			static Vec3 rotationVec = {};
 			if (mouseState.positionMode == dx::Mouse::MODE_RELATIVE)
 			{
 				cs::Vec3 delta = Vec3((float)mouseState.y, (float)mouseState.x, 0.0f);
-				rotationVec -= delta * dTime * 2.0f;
-				camera.SetRotation(Quaternion::GetEuler({ rotationVec.x, rotationVec.y, rotationVec.z }).Conjugate());
-#if WW_IMGUI 1
-				if (ImGui::Begin("Camera rotation dev"))
-				{
-					ImGui::Text("Rot Vec: %f, %f, %f", rotationVec.x, rotationVec.y, rotationVec.z);
-					ImGui::Text("Rot: %f, %f, %f, %f", camera.GetRotation().x, camera.GetRotation().y, camera.GetRotation().z, camera.GetRotation().w);
-					ImGui::Text("Dir: %f, %f, %f", camera.GetDirection().x, camera.GetDirection().y, camera.GetDirection().z);
-					ImGui::Text("Delta: %f, %f, %f", delta.x, delta.y, delta.z);
+				rotationVec -= delta * dTime * mouseLookMultiplier;
+				//camera.SetRotation(Quaternion::GetEuler({ rotationVec.x, rotationVec.y, rotationVec.z }).Conjugate());
 
+				Quaternion cameraCurrentRot = camera.GetRotation();
+				Quaternion cameraTargetRot = Quaternion::GetEuler( { rotationVec.x, rotationVec.y, rotationVec.z } ).Conjugate();
+
+				if (!(std::isnan( cameraTargetRot.x ) || std::isnan( cameraTargetRot.y ) || std::isnan( cameraTargetRot.z ) || std::isnan( cameraTargetRot.w )))
+				{
+					Quaternion slerped;
+					slerped = Lerp( cameraCurrentRot, cameraTargetRot, cs::fclamp( dTime * 1.5f, 0.0001f, 1.0f ) );
+					slerped.NormalizeThis();
+					camera.SetRotation( slerped );
 				}
-				ImGui::End();
-#endif
+//#if WW_IMGUI 1
+//				if (ImGui::Begin("Camera rotation dev"))
+//				{
+//					ImGui::Text("Rot Vec: %f, %f, %f", rotationVec.x, rotationVec.y, rotationVec.z);
+//					ImGui::Text("Rot: %f, %f, %f, %f", camera.GetRotation().x, camera.GetRotation().y, camera.GetRotation().z, camera.GetRotation().w);
+//					ImGui::Text("Dir: %f, %f, %f", camera.GetDirection().x, camera.GetDirection().y, camera.GetDirection().z);
+//					ImGui::Text("Delta: %f, %f, %f", delta.x, delta.y, delta.z);
+//
+//				}
+//				ImGui::End();
+//#endif
 				//camera.SetRotation(Quaternion::GetEuler(rotationVec));
 			}
+
+
+
+
 			camera.SetPosition(camera.GetPosition() + movement * dTime);
 		}
 		else
@@ -1422,39 +1463,39 @@ void Game::LoadRoom(uint levelIndex)
 		m_pickups.Add(item);
 	}
 
-	for (LevelPatrol& p : level.resource->patrolsClosed)
-	{
-		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
-			"Carcinian_Animated.wwm", 
-			"Carcinian_Animations.wwa", 
-			Mat::translation3(0, 0, 0) * 
-			Mat::scale3(1.25f, 1.25f, 1.25f) * 
-			Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
-		
-		for (int j = 0; j < p.controlPoints.Size(); j++)
-		{
-			Point2 bitPos = Point2(p.controlPoints[j]);
-			Vec3 enemyPos = m_currentRoom->bitMapToWorldPos(bitPos);
-			m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
-		}
-	}
+	//for (LevelPatrol& p : level.resource->patrolsClosed)
+	//{
+	//	m_enemies.Add(shared_ptr<Enemy>(new Enemy(
+	//		"Carcinian_Animated.wwm", 
+	//		"Carcinian_Animations.wwa", 
+	//		Mat::translation3(0, 0, 0) * 
+	//		Mat::scale3(1.25f, 1.25f, 1.25f) * 
+	//		Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
+	//	
+	//	for (int j = 0; j < p.controlPoints.Size(); j++)
+	//	{
+	//		Point2 bitPos = Point2(p.controlPoints[j]);
+	//		Vec3 enemyPos = m_currentRoom->bitMapToWorldPos(bitPos);
+	//		m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), true);
+	//	}
+	//}
 
-	for (LevelPatrol& p : level.resource->patrolsOpen)
-	{
-		m_enemies.Add(shared_ptr<Enemy>(new Enemy(
-			"Carcinian_Animated.wwm",
-			"Carcinian_Animations.wwa",
-			Mat::translation3(0, 0, 0) *
-			Mat::scale3(1.25f, 1.25f, 1.25f) *
-			Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
+	//for (LevelPatrol& p : level.resource->patrolsOpen)
+	//{
+	//	m_enemies.Add(shared_ptr<Enemy>(new Enemy(
+	//		"Carcinian_Animated.wwm",
+	//		"Carcinian_Animations.wwa",
+	//		Mat::translation3(0, 0, 0) *
+	//		Mat::scale3(1.25f, 1.25f, 1.25f) *
+	//		Mat::rotation3(cs::c_pi * -0.5f, 0, 0))));
 
-		for (int j = 0; j < p.controlPoints.Size(); j++)
-		{
-			Point2 bitPos = Point2(p.controlPoints[j]);
-			Vec3 enemyPos = m_currentRoom->bitMapToWorldPos(bitPos);
-			m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), false);
-		}
-	}
+	//	for (int j = 0; j < p.controlPoints.Size(); j++)
+	//	{
+	//		Point2 bitPos = Point2(p.controlPoints[j]);
+	//		Vec3 enemyPos = m_currentRoom->bitMapToWorldPos(bitPos);
+	//		m_enemies.Back()->AddCoordinateToPatrolPath(Vec2(enemyPos.x, enemyPos.z), false);
+	//	}
+	//}
 }
 
 void Game::UnloadRoom()

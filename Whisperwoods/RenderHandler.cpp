@@ -53,7 +53,7 @@ void RenderHandler::InitCore(shared_ptr<Window> window)
 	m_lightDirectional->intensity = 0.0f;
 	m_lightDirectional->color = cs::Color3f(0xFFFFFF);
 
-	m_mainCamera.SetValues( 90 * dx::XM_PI/180, window->GetAspectRatio(), 0.86f, 1000.0f );
+	m_mainCamera.SetValues( 54 * dx::XM_PI/180, window->GetAspectRatio(), 0.46f, 1000.0f );
 	m_mainCamera.CalculatePerspectiveProjection();
 	m_mainCamera.Update();
 
@@ -206,16 +206,16 @@ void RenderHandler::ExecuteDraw(TimelineState state, bool shadows)
     (il),-''  (li),'  ((!.-'   <(~Draw all the GUI renderables~)	*/
 void RenderHandler::RenderGUI()
 {
-	for (int i = 0; i < m_guiRenderables.Size(); i++)
-	{
-		auto data = m_guiRenderables[i];
-		if (data && data->enabled)
-		{
-			m_renderCore->UpdateGUIInfo(data.get()->m_elementRef);
-			m_renderCore->UpdateObjectInfo(data.get());
-			m_renderCore->DrawObject(data.get(), false, false);
-		}
-	}
+	//for (int i = 0; i < m_guiRenderables.Size(); i++)
+	//{
+	//	auto data = m_guiRenderables[i];
+	//	if (data && data->enabled)
+	//	{
+	//		m_renderCore->UpdateGUIInfo(data.get()->m_elementRef);
+	//		m_renderCore->UpdateObjectInfo(data.get());
+	//		m_renderCore->DrawObject(data.get(), false, false);
+	//	}
+	//}
 }
 
 void RenderHandler::RenderTerrain()

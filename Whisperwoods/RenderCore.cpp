@@ -102,7 +102,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	
 	EXC_COMCHECK(m_device->CreateShaderResourceView(m_bbTexture.Get(), &srvd, &m_bbSRV));
 
-	m_bbClearColor = cs::Color4f(0.0f, 0.0f, 0.0f, 1.0f);
+	m_bbClearColor = cs::Color4f( 0.02f, 0.04f, 0.05f, 1.0f);
 
 	// Main render texture
 
@@ -469,7 +469,15 @@ RenderCore::~RenderCore()
 
 void RenderCore::NewFrame()
 {
-	EXC_COMINFO(m_context->ClearDepthStencilView(m_dsDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u));
+	EXC_COMINFO( m_context->ClearDepthStencilView( m_dsDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0u ) );
+
+
+	float zero[4] = { 0.0f,0.0f,0.0f,1.0f };
+	EXC_COMINFO( m_context->OMSetRenderTargets( 1u, m_renderTextureRTV.GetAddressOf(), m_dsDSV.Get() ) );
+	EXC_COMINFO( m_context->ClearRenderTargetView( m_renderTextureRTV.Get(), (float*)&m_bbClearColor ) );
+	EXC_COMINFO( m_context->ClearRenderTargetView( m_bbRTV.Get(), (float*)&m_bbClearColor ) );
+	EXC_COMINFO( m_context->ClearRenderTargetView( m_ppfxLumRTV.Get(), zero ) );
+
 
 	EXC_COMINFO(m_context->OMSetRenderTargets(1u, m_renderTextureRTV.GetAddressOf(), m_dsDSV.Get()));
 

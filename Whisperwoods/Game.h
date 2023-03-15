@@ -54,7 +54,11 @@ public:
 
 	void InitCutscene();
 
-	
+	bool flyingCam = false;
+	float mouseLookMultiplier = 1.0f;
+	float movementMultiplier = 1.0f;
+	float lastScroll = 0.0f;
+	float scrollDelta = 0.0f;
 
 	void LoadHubby();
 	void LoadTest();

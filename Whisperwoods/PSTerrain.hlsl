@@ -240,31 +240,31 @@ PS_OUTPUT main(VSOutput input)
     
     // Enemy cone effects.
     // Will not loop if the state is in the future.
-    for (uint i = 0; i < coneCount * !isInFuture; i++)
-    {
-        float4 enemyPosAndDir = worldPosAndDir[i];
-        float3 enemyPos = float3(enemyPosAndDir.x, 0.0f, enemyPosAndDir.y);
-        float3 enemyDir = float3(enemyPosAndDir.z, 0.0f, enemyPosAndDir.w);
+    //for (uint i = 0; i < coneCount * !isInFuture; i++)
+    //{
+    //    float4 enemyPosAndDir = worldPosAndDir[i];
+    //    float3 enemyPos = float3(enemyPosAndDir.x, 0.0f, enemyPosAndDir.y);
+    //    float3 enemyDir = float3(enemyPosAndDir.z, 0.0f, enemyPosAndDir.w);
         
-        color.rgb += DrawEnemyCone(
-            enemyPos,
-            input.wPosition.xyz, // Y value is important so dont set to 0.
-            enemyDir,
-            coneLength,
-            coneAngle,
-            detectionLevelGlobal
-        );
-    }
+    //    color.rgb += DrawEnemyCone(
+    //        enemyPos,
+    //        input.wPosition.xyz, // Y value is important so dont set to 0.
+    //        enemyDir,
+    //        coneLength,
+    //        coneAngle,
+    //        detectionLevelGlobal
+    //    );
+    //}
     
-    // Enemy position effects.
-    // Will not loop if the state is in the present.
-    for (uint i = 0; i < coneCount * isInFuture; i++)
-    {
-        float4 enemyPosAndDir = worldPosAndDir[i];
-        float3 enemyPos = float3(enemyPosAndDir.x, 0.0f, enemyPosAndDir.y);
+    //// Enemy position effects.
+    //// Will not loop if the state is in the present.
+    //for (uint i = 0; i < coneCount * isInFuture; i++)
+    //{
+    //    float4 enemyPosAndDir = worldPosAndDir[i];
+    //    float3 enemyPos = float3(enemyPosAndDir.x, 0.0f, enemyPosAndDir.y);
         
-        color.rgb += DrawEnemyPos(enemyPos, input.wPosition.xyz) * isInFuture * clamp(worldInfo1.y, 0.8f, 2.0f);
-    }
+    //    color.rgb += DrawEnemyPos(enemyPos, input.wPosition.xyz) * isInFuture * clamp(worldInfo1.y, 0.8f, 2.0f);
+    //}
 	
     // Fog effects
     {
