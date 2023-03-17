@@ -225,7 +225,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 		cs::Random r;
 
 		m_loadScreen->GetElement(0)->uiRenderable->enabled = false;
-		LoadGame(r.GetUnsigned(), (uint)r.Get(8, 10));
+		LoadGame(r.GetUnsigned(UINT_MAX), (uint)r.Get(8, 10));
 		m_player->hasPickedUpEssenceBloom = false;
 		tutorial = false;
 		m_loadNewFloor = false;
