@@ -21,7 +21,7 @@ class LevelHandler;
 class Game sealed
 {
 	bool m_isCutscene;
-
+	bool m_console = false;
 	float m_initialCamFov;
 	float m_totalFovDelta;
 	float m_currentStamina;

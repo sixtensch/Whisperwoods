@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include <io.h>
 #include <format>
-
+#include "Input.h"
 
 
 Debug* Debug::s_debug = nullptr;
@@ -120,7 +120,16 @@ void Debug::DestroyConsole()
 
 void Debug::DrawConsole()
 {
-#if WW_IMGUI 1
+//#if WW_IMGUI 1
+
+
+	if (Input::Get().IsDXKeyPressed(DXKey::Home))
+	{
+		console = !console;
+	}
+
+	if (console)
+	{
 	if (ImGui::Begin("FPS counter"))
 	{
 		ImGui::Text("Last 16 frames average FPS: %f", m_fpsAverage16);
@@ -245,7 +254,8 @@ void Debug::DrawConsole()
 		}
 	}
 	ImGui::End();
-#endif
+	}
+//#endif
 }
 
 void Debug::ClearFrameTrace()

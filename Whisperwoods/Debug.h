@@ -50,6 +50,7 @@ class Sound;
 class Debug sealed
 {
 public:
+	bool console = false;
 	Debug();
 	~Debug();
 

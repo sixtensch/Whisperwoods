@@ -445,6 +445,7 @@ void Game::UpdateRoomAndTimeSwappingLogic( Renderer* renderer )
 void Game::DrawIMGUIWindows()
 {
 
+	
 #if WW_IMGUI 1
 
 	// Gameplay variables window
@@ -1585,7 +1586,8 @@ void Game::EndRun(Renderer* renderer)
 	m_deathEnemy = false;
 	m_deathPoison = false;
 	m_isSwitching = false;
-	Renderer::GetCamera().SetFov(m_initialCamFov);
+	if (m_initialCamFov == 0.0f)
+		m_initialCamFov = renderer->GetCamera().GetFov();
 
 	ResetGameplayValues();
 	ChangeToPresentTimeline(renderer);
