@@ -28,7 +28,7 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT | DXGI_USAGE_UNORDERED_ACCESS; //use resource or surface as result of rendering
 	desc.BufferCount = 3; 
 	desc.OutputWindow = window->Data();
-	desc.Windowed = true;
+	desc.Windowed = false;
 	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; //deletes contents of backup buffer when called on
 	desc.Flags = 0;
 
@@ -68,8 +68,8 @@ RenderCore::RenderCore(shared_ptr<Window> window)
 	m_viewport.Width = static_cast<float>(window->GetWidth());
 	m_viewport.Height = static_cast<float>(window->GetHeight());
 
-	UINT shadowMapHeight = 1024;
-	UINT shadowMapWidth = 1024;
+	UINT shadowMapHeight = 2048;
+	UINT shadowMapWidth = 2048;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.TopLeftX = 0;
 	m_shadowViewport.MinDepth = 0;
