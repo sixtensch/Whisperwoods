@@ -1586,6 +1586,8 @@ void Game::EndRun(Renderer* renderer)
 	m_deathEnemy = false;
 	m_deathPoison = false;
 	m_isSwitching = false;
+
+	renderer->GetCamera().SetFov(m_initialCamFov);
 	if (m_initialCamFov == 0.0f)
 		m_initialCamFov = renderer->GetCamera().GetFov();
 
